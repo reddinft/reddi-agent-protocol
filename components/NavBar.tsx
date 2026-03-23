@@ -13,6 +13,7 @@ const WalletMultiButton = dynamic(
 const navLinks = [
   { href: "/agents", label: "Browse Agents" },
   { href: "/demo", label: "Live Demo", badge: "✨" },
+  { href: "/tour", label: "Tour" },
   { href: "/register", label: "Register" },
   { href: "/setup", label: "Setup" },
   { href: "/dashboard", label: "Dashboard" },
