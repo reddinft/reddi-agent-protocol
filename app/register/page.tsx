@@ -160,7 +160,12 @@ export default function RegisterPage() {
             <div className="space-y-3">
               <div className="p-3 rounded-lg bg-[#14F195]/10 border border-[#14F195]/20">
                 <p className="text-xs text-muted-foreground">Connected wallet</p>
-                <p className="font-mono text-sm text-[#14F195]">{publicKey.toBase58()}</p>
+                <p
+                  className="font-mono text-sm text-[#14F195] truncate cursor-default"
+                  title={publicKey.toBase58()}
+                >
+                  {publicKey.toBase58().slice(0, 4)}...{publicKey.toBase58().slice(-4)}
+                </p>
               </div>
               <Button
                 onClick={() => setStep(2)}

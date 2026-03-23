@@ -3,12 +3,17 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import dynamic from "next/dynamic";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 const WalletMultiButton = dynamic(
   async () =>
     (await import("@solana/wallet-adapter-react-ui")).WalletMultiButton,
   { ssr: false }
 );
+
+function abbrev(addr: string) {
+  return `${addr.slice(0, 4)}...${addr.slice(-4)}`;
+}
 
 const navLinks = [
   { href: "/agents", label: "Browse Agents" },
@@ -21,6 +26,7 @@ const navLinks = [
 
 export default function NavBar() {
   const pathname = usePathname();
+  const { publicKey, disconnect } = useWallet();
 
   return (
     <nav className="sticky top-0 z-50 border-b border-white/10 bg-background/80 backdrop-blur-sm">
@@ -57,15 +63,26 @@ export default function NavBar() {
 
           {/* Wallet button */}
           <div className="flex items-center">
-            <WalletMultiButton
-              style={{
-                background: "linear-gradient(135deg, #9945FF 0%, #14F195 100%)",
-                height: "36px",
-                fontSize: "13px",
-                borderRadius: "8px",
-                padding: "0 16px",
-              }}
-            />
+            {publicKey ? (
+              <button
+                onClick={() => disconnect()}
+                title={publicKey.toBase58()}
+                className="h-9 px-4 rounded-lg text-sm font-medium text-black transition-opacity hover:opacity-80"
+                style={{ background: "linear-gradient(135deg, #9945FF 0%, #14F195 100%)" }}
+              >
+                {abbrev(publicKey.toBase58())}
+              </button>
+            ) : (
+              <WalletMultiButton
+                style={{
+                  background: "linear-gradient(135deg, #9945FF 0%, #14F195 100%)",
+                  height: "36px",
+                  fontSize: "13px",
+                  borderRadius: "8px",
+                  padding: "0 16px",
+                }}
+              />
+            )}
           </div>
         </div>
       </div>
