@@ -11,7 +11,7 @@ pub use state::*;
 
 // Program ID placeholder — will be replaced after first `anchor build` + keypair generation.
 // TODO: Run `anchor keys sync` after generating a fresh deploy keypair for devnet.
-declare_id!("AHYnDju4zFNu1TBYfo86R5r77iPqgJeXgjqnFoQzSqxt");
+declare_id!("BaDZtpgWpDx6H1y8Dga2cfyxs3RXj5y2fkBo7HoT2pdv");
 
 #[program]
 pub mod escrow {
