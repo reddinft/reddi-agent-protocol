@@ -31,4 +31,22 @@ pub enum EscrowError {
 
     #[msg("Agent is not active")]
     AgentNotActive,
+
+    #[msg("Rating commitment already submitted")]
+    AlreadyCommitted,
+
+    #[msg("Cannot reveal until both parties commit")]
+    BothMustCommitFirst,
+
+    #[msg("Commitment hash mismatch")]
+    CommitmentMismatch,
+
+    #[msg("Score must be 1-10")]
+    InvalidScore,
+
+    #[msg("Rating has not expired")]
+    NotExpired,
+
+    #[msg("Rating already finalised")]
+    AlreadyFinalised,
 }
