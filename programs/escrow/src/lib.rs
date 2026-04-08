@@ -42,4 +42,33 @@ pub mod escrow {
     pub fn cancel_escrow(ctx: Context<CancelEscrow>) -> Result<()> {
         instructions::cancel_escrow::cancel_escrow_handler(ctx)
     }
+
+    pub fn register_agent(
+        ctx: Context<RegisterAgent>,
+        agent_type: AgentType,
+        model: String,
+        rate_lamports: u64,
+        min_reputation: u8,
+    ) -> Result<()> {
+        instructions::register_agent::register_agent_handler(
+            ctx,
+            agent_type,
+            model,
+            rate_lamports,
+            min_reputation,
+        )
+    }
+
+    pub fn update_agent(
+        ctx: Context<UpdateAgent>,
+        rate_lamports: u64,
+        min_reputation: u8,
+        active: bool,
+    ) -> Result<()> {
+        instructions::update_agent::update_agent_handler(ctx, rate_lamports, min_reputation, active)
+    }
+
+    pub fn deregister_agent(ctx: Context<DeregisterAgent>) -> Result<()> {
+        instructions::deregister_agent::deregister_agent_handler(ctx)
+    }
 }

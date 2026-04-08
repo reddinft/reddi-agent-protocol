@@ -25,4 +25,10 @@ pub enum EscrowError {
 
     #[msg("Invalid payee")]
     InvalidPayee,
+
+    #[msg("Model string exceeds maximum length")]
+    ModelTooLong,
+
+    #[msg("Agent is not active")]
+    AgentNotActive,
 }
