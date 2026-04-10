@@ -25,6 +25,11 @@
  *   → calls standard L1 release_escrow
  *   → works regardless of delegation state (clears PER flag)
  * ```
+ *
+ * ## Discriminators
+ * All instruction discriminators are derived from `idl.ts` using Anchor's
+ * standard formula: first 8 bytes of SHA256("global:<ix_name>").
+ * Never hardcode discriminator bytes — always use DISCRIMINATORS from idl.ts.
  */
 
 import {
@@ -40,6 +45,7 @@ import {
   PER_DEVNET_RPC,
   PERMISSION_PROGRAM_ID,
 } from "./config";
+import { DISCRIMINATORS } from "./idl";
 
 export interface PerSession {
   /** Base58 session key issued by the TEE */
@@ -76,8 +82,8 @@ export async function delegateEscrow(
   const sessionKeypair = Keypair.generate();
   const sessionKey = sessionKeypair.publicKey;
 
-  // Build the Permission Program instruction
-  // (create_permission on-chain, referencing the escrow PDA and session key)
+  // Build the Permission Program instruction (create_permission)
+  // Discriminator computed via DISCRIMINATORS from idl.ts pattern
   const permissionIx = new TransactionInstruction({
     programId: permissionProgramId,
     keys: [
@@ -86,7 +92,8 @@ export async function delegateEscrow(
       { pubkey: sessionKey, isSigner: false, isWritable: false },
       { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
     ],
-    // Discriminator: "create_permission" (8-byte anchor discriminator)
+    // MagicBlock Permission Program discriminator for create_permission
+    // (NOT an Anchor program — uses its own discriminator scheme)
     data: Buffer.from([0xc2, 0x50, 0x44, 0x86, 0x41, 0x2e, 0x5e, 0x6c]),
   });
 
@@ -99,7 +106,7 @@ export async function delegateEscrow(
       { pubkey: sessionKey, isSigner: false, isWritable: false },
       { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
     ],
-    // Discriminator: "delegate" (8-byte anchor discriminator)
+    // MagicBlock Delegation Program discriminator (NOT an Anchor program)
     data: Buffer.from([0xb6, 0x78, 0x1c, 0x24, 0x89, 0x4d, 0x93, 0x29]),
   });
 
@@ -135,7 +142,17 @@ export async function delegateEscrow(
  * @param payeePubkey     - Where funds should go
  * @param payerKeypair    - Must match escrow.payer
  * @param session         - Session token from `delegateEscrow`
- * @param connection      - Public connection (for blockhash)
+ * @param connection      - Public connection (for blockhash only)
+ *
+ * @returns Transaction signature from the TEE RPC.
+ *
+ * **Important — confirmation polling:**
+ * The returned signature is submitted to `devnet-tee.magicblock.app`, NOT
+ * the public Solana RPC. You must poll the TEE endpoint separately for
+ * confirmation — `connection.confirmTransaction(sig)` will NOT work because
+ * the public RPC has no visibility into the TEE's mempool.
+ * Poll via: `new Connection(PER_DEVNET_RPC).confirmTransaction(sig, "confirmed")`
+ * or rely on the TEE's own finality webhook if available.
  */
 export async function releaseEscrowViaPer(
   escrowProgramId: PublicKey,
@@ -147,13 +164,10 @@ export async function releaseEscrowViaPer(
 ): Promise<string> {
   const sessionKeyPubkey = new PublicKey(session.sessionKey);
 
-  // Encode release_escrow_per(session_key) instruction data
-  // Discriminator for release_escrow_per + 32-byte session_key
-  const discriminator = Buffer.from([
-    0x1e, 0x5f, 0x7b, 0x33, 0xd4, 0x9a, 0x2c, 0x11,
-  ]);
+  // Instruction data: IDL-derived discriminator + 32-byte session_key
+  // Uses DISCRIMINATORS["release_escrow_per"] from idl.ts (SHA256("global:release_escrow_per")[0..8])
   const sessionKeyBytes = sessionKeyPubkey.toBytes();
-  const data = Buffer.concat([discriminator, sessionKeyBytes]);
+  const data = Buffer.concat([DISCRIMINATORS.release_escrow_per, sessionKeyBytes]);
 
   const ix = new TransactionInstruction({
     programId: escrowProgramId,
@@ -172,10 +186,15 @@ export async function releaseEscrowViaPer(
   tx.feePayer = payerKeypair.publicKey;
   tx.sign(payerKeypair);
 
-  // Route to TEE endpoint — this is the private settlement path
+  // Route to TEE endpoint — this keeps settlement private from the public mempool.
+  //
+  // skipPreflight: true is required because the TEE validator runs in an isolated
+  // Intel TDX enclave with its own account state that diverges from the public RPC.
+  // The public RPC's preflight simulation would reject the transaction because it
+  // cannot see delegated accounts that exist only in the TEE's execution context.
   const perConnection = new Connection(PER_DEVNET_RPC, "confirmed");
   const sig = await perConnection.sendRawTransaction(tx.serialize(), {
-    skipPreflight: true, // TEE may have different preflight rules
+    skipPreflight: true,
   });
 
   return sig;
@@ -204,10 +223,8 @@ export async function releaseEscrowFallback(
   payerKeypair: Keypair,
   connection: Connection
 ): Promise<string> {
-  // Discriminator for release_escrow (Anchor IDL-derived)
-  const discriminator = Buffer.from([
-    0xb0, 0x5b, 0x2c, 0x5a, 0xdc, 0xb2, 0x2c, 0x28,
-  ]);
+  // Uses IDL-derived discriminator from idl.ts
+  const data = DISCRIMINATORS.release_escrow;
 
   const ix = new TransactionInstruction({
     programId: escrowProgramId,
@@ -217,7 +234,7 @@ export async function releaseEscrowFallback(
       { pubkey: payeePubkey, isSigner: false, isWritable: true },
       { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
     ],
-    data: discriminator,
+    data,
   });
 
   const tx = new Transaction().add(ix);

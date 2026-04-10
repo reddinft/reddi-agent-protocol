@@ -10,3 +10,4 @@ export {
   PERMISSION_PROGRAM_ID,
   DELEGATION_PROGRAM_ID,
 } from "./config";
+export { DISCRIMINATORS } from "./idl";
