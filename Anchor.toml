@@ -7,14 +7,14 @@ resolution = true
 skip-lint = false
 
 [programs.devnet]
-escrow = "BaDZtpgWpDx6H1y8Dga2cfyxs3RXj5y2fkBo7HoT2pdv"
+escrow = "77rkRQxe4GRzHU56H6JuWPFe27g4NoRBz4GGftuUZXmX"
 
 [programs.localnet]
 escrow = "EscrowXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 
 [provider]
 cluster = "devnet"
-wallet = "~/.config/solana/id.json"
+wallet = "~/.config/solana/blitz-dev.json"
 
 [scripts]
 test = "cargo test"
