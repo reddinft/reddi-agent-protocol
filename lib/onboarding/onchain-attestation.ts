@@ -1,0 +1,132 @@
+import "server-only";
+
+import { randomBytes } from "crypto";
+import {
+  Connection,
+  Keypair,
+  PublicKey,
+  SystemProgram,
+  Transaction,
+  TransactionInstruction,
+} from "@solana/web3.js";
+import {
+  DEVNET_RPC,
+  ESCROW_PROGRAM_ID,
+  agentPda,
+  attestationPda,
+  buildAttestQualityData,
+} from "@/lib/program";
+
+export type SubmitOnchainAttestationInput = {
+  walletAddress: string;
+  consumerWalletAddress?: string;
+  rpcUrl?: string;
+  operatorSecretKey?: string;
+  scores?: [number, number, number, number, number];
+};
+
+export type SubmitOnchainAttestationResult = {
+  signature: string;
+  attestationPda: string;
+  jobIdHex: string;
+  operator: string;
+  consumer: string;
+  specialistWallet: string;
+};
+
+export type OnchainAttestationOperatorStatus = {
+  ready: boolean;
+  operatorPubkey?: string;
+  note: string;
+};
+
+function parseOperatorKeypair(secret: string): Keypair {
+  const trimmed = secret.trim();
+
+  if (!trimmed.startsWith("[")) {
+    throw new Error(
+      "ONBOARDING_ATTEST_OPERATOR_SECRET_KEY must be a JSON byte array (e.g. [12,34,...])."
+    );
+  }
+
+  const arr = JSON.parse(trimmed) as number[];
+  return Keypair.fromSecretKey(Uint8Array.from(arr));
+}
+
+export function getOnchainAttestationOperatorStatus(
+  secret = process.env.ONBOARDING_ATTEST_OPERATOR_SECRET_KEY
+): OnchainAttestationOperatorStatus {
+  if (!secret) {
+    return {
+      ready: false,
+      note: "Missing ONBOARDING_ATTEST_OPERATOR_SECRET_KEY.",
+    };
+  }
+
+  try {
+    const keypair = parseOperatorKeypair(secret);
+    return {
+      ready: true,
+      operatorPubkey: keypair.publicKey.toBase58(),
+      note: "Operator signer is configured.",
+    };
+  } catch (error) {
+    return {
+      ready: false,
+      note:
+        error instanceof Error
+          ? error.message
+          : "Invalid ONBOARDING_ATTEST_OPERATOR_SECRET_KEY format.",
+    };
+  }
+}
+
+export async function submitOnchainOnboardingAttestation(
+  input: SubmitOnchainAttestationInput
+): Promise<SubmitOnchainAttestationResult> {
+  const operatorSecret = input.operatorSecretKey || process.env.ONBOARDING_ATTEST_OPERATOR_SECRET_KEY;
+  if (!operatorSecret) {
+    throw new Error("Missing ONBOARDING_ATTEST_OPERATOR_SECRET_KEY for on-chain attestation.");
+  }
+
+  const specialistWallet = new PublicKey(input.walletAddress);
+  const consumerWallet = new PublicKey(input.consumerWalletAddress || input.walletAddress);
+  const operator = parseOperatorKeypair(operatorSecret);
+
+  const scores: [number, number, number, number, number] = input.scores || [8, 8, 8, 8, 8];
+  const jobId = randomBytes(16);
+  const attestPda = attestationPda(jobId);
+  const judgeAgentPda = agentPda(operator.publicKey);
+
+  const ix = new TransactionInstruction({
+    programId: ESCROW_PROGRAM_ID,
+    keys: [
+      { pubkey: attestPda, isSigner: false, isWritable: true },
+      { pubkey: judgeAgentPda, isSigner: false, isWritable: false },
+      { pubkey: operator.publicKey, isSigner: true, isWritable: true },
+      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+    ],
+    data: buildAttestQualityData(jobId, scores, consumerWallet),
+  });
+
+  const conn = new Connection(input.rpcUrl || DEVNET_RPC, "confirmed");
+  const { blockhash } = await conn.getLatestBlockhash();
+
+  const tx = new Transaction();
+  tx.recentBlockhash = blockhash;
+  tx.feePayer = operator.publicKey;
+  tx.add(ix);
+  tx.sign(operator);
+
+  const signature = await conn.sendRawTransaction(tx.serialize(), { skipPreflight: false });
+  await conn.confirmTransaction(signature, "confirmed");
+
+  return {
+    signature,
+    attestationPda: attestPda.toBase58(),
+    jobIdHex: Buffer.from(jobId).toString("hex"),
+    operator: operator.publicKey.toBase58(),
+    consumer: consumerWallet.toBase58(),
+    specialistWallet: specialistWallet.toBase58(),
+  };
+}

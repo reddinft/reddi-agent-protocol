@@ -1,0 +1,48 @@
+{
+  "copied": [
+    {
+      "source": "projects/colosseum-frontier/QUASAR-ASSESSMENT.md",
+      "copied_to": "projects/reddi-agent-protocol-code/docs/verifiable-agent-protocol/colosseum-frontier-2026-04/QUASAR-ASSESSMENT.md"
+    },
+    {
+      "source": "projects/colosseum-frontier/QUASAR-PARITY-PLAN.md",
+      "copied_to": "projects/reddi-agent-protocol-code/docs/verifiable-agent-protocol/colosseum-frontier-2026-04/QUASAR-PARITY-PLAN.md"
+    },
+    {
+      "source": "projects/colosseum-frontier/QUASAR-BENCHMARKS.md",
+      "copied_to": "projects/reddi-agent-protocol-code/docs/verifiable-agent-protocol/colosseum-frontier-2026-04/QUASAR-BENCHMARKS.md"
+    },
+    {
+      "source": "projects/colosseum-frontier/QUASAR-DECISION-MEMO.md",
+      "copied_to": "projects/reddi-agent-protocol-code/docs/verifiable-agent-protocol/colosseum-frontier-2026-04/QUASAR-DECISION-MEMO.md"
+    },
+    {
+      "source": "projects/colosseum-frontier/QUASAR-REGISTRY-PARITY-REPORT.md",
+      "copied_to": "projects/reddi-agent-protocol-code/docs/verifiable-agent-protocol/colosseum-frontier-2026-04/QUASAR-REGISTRY-PARITY-REPORT.md"
+    },
+    {
+      "source": "projects/colosseum-frontier/QUASAR-REPUTATION-PARITY-REPORT.md",
+      "copied_to": "projects/reddi-agent-protocol-code/docs/verifiable-agent-protocol/colosseum-frontier-2026-04/QUASAR-REPUTATION-PARITY-REPORT.md"
+    },
+    {
+      "source": "projects/colosseum-frontier/QUASAR-ATTESTATION-PARITY-REPORT.md",
+      "copied_to": "projects/reddi-agent-protocol-code/docs/verifiable-agent-protocol/colosseum-frontier-2026-04/QUASAR-ATTESTATION-PARITY-REPORT.md"
+    },
+    {
+      "source": "projects/colosseum-frontier/QUASAR-PER-PARITY-REPORT.md",
+      "copied_to": "projects/reddi-agent-protocol-code/docs/verifiable-agent-protocol/colosseum-frontier-2026-04/QUASAR-PER-PARITY-REPORT.md"
+    },
+    {
+      "source": "projects/colosseum-frontier/SUBMISSION-NARRATIVE-V1.md",
+      "copied_to": "projects/reddi-agent-protocol-code/docs/verifiable-agent-protocol/colosseum-frontier-2026-04/SUBMISSION-NARRATIVE-V1.md"
+    },
+    {
+      "source": "projects/colosseum-frontier/COMPETITOR-POSITIONING-MATRIX.md",
+      "copied_to": "projects/reddi-agent-protocol-code/docs/verifiable-agent-protocol/colosseum-frontier-2026-04/COMPETITOR-POSITIONING-MATRIX.md"
+    },
+    {
+      "source": "projects/colosseum-frontier/pitch/quasar/NARRATIVE.md",
+      "copied_to": "projects/reddi-agent-protocol-code/docs/verifiable-agent-protocol/colosseum-frontier-2026-04/NARRATIVE.md"
+    }
+  ]
+}

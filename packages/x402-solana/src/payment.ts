@@ -1,4 +1,10 @@
 import { X402Request, PaymentReceipt } from './types';
+import { needsAutoSwap, resolveMint, SwapClient } from './jupiter';
+
+export interface SendPaymentOptions {
+  swapClient?: SwapClient;
+  slippageBps?: number;
+}
 
 /**
  * Parse x402-request header into structured request
@@ -28,12 +34,15 @@ export function parseX402Header(header: string): X402Request {
       currency: parsed.currency,
       paymentAddress: parsed.paymentAddress,
       nonce: parsed.nonce,
+      payerCurrency: typeof parsed.payerCurrency === 'string' ? parsed.payerCurrency : undefined,
+      payerAddress: typeof parsed.payerAddress === 'string' ? parsed.payerAddress : undefined,
+      autoSwap: typeof parsed.autoSwap === 'boolean' ? parsed.autoSwap : false,
     };
-  } catch (e: any) {
-    if (e instanceof SyntaxError) {
+  } catch (error: unknown) {
+    if (error instanceof SyntaxError) {
       throw new Error('x402-request header is not valid JSON');
     }
-    throw e;
+    throw error;
   }
 }
 
@@ -43,7 +52,10 @@ export function parseX402Header(header: string): X402Request {
  * @param request The payment request
  * @returns Promise resolving to payment receipt
  */
-export async function sendPayment(request: X402Request): Promise<PaymentReceipt> {
+export async function sendPayment(
+  request: X402Request,
+  options: SendPaymentOptions = {}
+): Promise<PaymentReceipt> {
   // Phase 2 implementation will:
   // - Create a Solana connection
   // - Load payer keypair
@@ -51,12 +63,51 @@ export async function sendPayment(request: X402Request): Promise<PaymentReceipt>
   // - Send and confirm transaction with 5s timeout
   // - Return receipt with txSignature, slot, etc.
 
+  let swapMeta: PaymentReceipt['swap'];
+
+  if (needsAutoSwap(request)) {
+    if (!options.swapClient) {
+      throw new Error('token_mismatch_requires_swap_client');
+    }
+
+    const payerAddress = request.payerAddress;
+    if (!payerAddress) {
+      throw new Error('payerAddress is required when autoSwap=true');
+    }
+
+    const swapResult = await options.swapClient.swap({
+      inputMint: resolveMint(request.payerCurrency || request.currency),
+      outputMint: resolveMint(request.currency),
+      amount: String(request.amount),
+      userPublicKey: payerAddress,
+      slippageBps: options.slippageBps ?? 50,
+    });
+
+    swapMeta = {
+      performed: true,
+      fromCurrency: request.payerCurrency,
+      toCurrency: request.currency,
+      orderId: swapResult.orderId,
+      executeId: swapResult.executeId,
+      inAmount: swapResult.inAmount,
+      outAmount: swapResult.outAmount,
+    };
+  } else {
+    swapMeta = {
+      performed: false,
+      fromCurrency: request.payerCurrency || request.currency,
+      toCurrency: request.currency,
+    };
+  }
+
   // For now, return a mock receipt for testing
   return {
     txSignature: 'mock_tx_signature_' + Math.random().toString(36).substring(7),
     slot: Math.floor(Math.random() * 1000000),
     lamports: request.amount,
     nonce: request.nonce,
+    settlementCurrency: request.currency,
+    swap: swapMeta,
   };
 }
 

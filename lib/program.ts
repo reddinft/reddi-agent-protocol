@@ -150,5 +150,76 @@ export function agentPda(ownerPubkey: PublicKey): PublicKey {
   )[0];
 }
 
+/** Derive the AttestationAccount PDA for a given 16-byte job id. */
+export function attestationPda(jobId: Uint8Array): PublicKey {
+  if (jobId.length !== 16) {
+    throw new Error("jobId must be 16 bytes");
+  }
+  return PublicKey.findProgramAddressSync(
+    [ATTESTATION_SEED, Buffer.from(jobId)],
+    ESCROW_PROGRAM_ID
+  )[0];
+}
+
+/**
+ * Build `attest_quality` instruction data:
+ * discriminator(8) + job_id(16) + scores[5] + consumer_pubkey(32)
+ */
+export function buildAttestQualityData(
+  jobId: Uint8Array,
+  scores: [number, number, number, number, number],
+  consumerPubkey: PublicKey
+): Buffer {
+  if (jobId.length !== 16) {
+    throw new Error("jobId must be 16 bytes");
+  }
+
+  const buf = Buffer.alloc(8 + 16 + 5 + 32);
+  let o = 0;
+  IX.attest_quality.copy(buf, o); o += 8;
+  Buffer.from(jobId).copy(buf, o); o += 16;
+  for (const s of scores) {
+    if (!Number.isInteger(s) || s < 0 || s > 255) {
+      throw new Error("scores must be integers between 0 and 255");
+    }
+    buf.writeUInt8(s, o);
+    o += 1;
+  }
+  Buffer.from(consumerPubkey.toBytes()).copy(buf, o);
+  return buf;
+}
+
+/**
+ * Build `confirm_attestation` instruction data:
+ * discriminator(8) + job_id(16)
+ */
+export function buildConfirmAttestationData(jobId: Uint8Array): Buffer {
+  if (jobId.length !== 16) {
+    throw new Error("jobId must be 16 bytes");
+  }
+
+  const buf = Buffer.alloc(8 + 16);
+  let o = 0;
+  IX.confirm_attestation.copy(buf, o); o += 8;
+  Buffer.from(jobId).copy(buf, o);
+  return buf;
+}
+
+/**
+ * Build `dispute_attestation` instruction data:
+ * discriminator(8) + job_id(16)
+ */
+export function buildDisputeAttestationData(jobId: Uint8Array): Buffer {
+  if (jobId.length !== 16) {
+    throw new Error("jobId must be 16 bytes");
+  }
+
+  const buf = Buffer.alloc(8 + 16);
+  let o = 0;
+  IX.dispute_attestation.copy(buf, o); o += 8;
+  Buffer.from(jobId).copy(buf, o);
+  return buf;
+}
+
 /** Hardcoded incinerator address (matches on-chain AGENT_FEE_BURN_ADDRESS) */
 export const INCINERATOR = new PublicKey("1nc1nerator11111111111111111111111111111111");

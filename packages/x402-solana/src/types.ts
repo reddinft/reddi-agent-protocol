@@ -6,6 +6,9 @@ export interface X402Request {
   currency: string;      // "SOL"
   paymentAddress: string; // base58 Solana address
   nonce: string;         // UUID or random string for replay protection
+  payerCurrency?: string; // Currency currently held by payer (e.g., "SOL")
+  payerAddress?: string;  // Payer wallet used for swap/order execution
+  autoSwap?: boolean;     // If true, perform swap when payerCurrency != currency
 }
 
 /**
@@ -16,6 +19,16 @@ export interface PaymentReceipt {
   slot: number;          // Solana slot when confirmed
   lamports: number;      // Amount transferred (should match request)
   nonce: string;         // Echo back for correlation
+  settlementCurrency?: string;
+  swap?: {
+    performed: boolean;
+    fromCurrency?: string;
+    toCurrency?: string;
+    orderId?: string;
+    executeId?: string;
+    inAmount?: string;
+    outAmount?: string;
+  };
 }
 
 /**

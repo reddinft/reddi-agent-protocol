@@ -3,6 +3,7 @@ import {
   sendPayment,
   isValidPaymentAddress,
 } from '../src/payment';
+import { needsAutoSwap } from '../src/jupiter';
 import {
   checkAndStoreNonce,
   clearNonces,
@@ -144,6 +145,62 @@ describe('x402 Payment Module', () => {
       expect(receipt.nonce).toBe('test-nonce-123');
       expect(receipt.txSignature).toBeDefined();
       expect(receipt.slot).toBeDefined();
+    });
+
+    it('should mark swap as performed for token mismatch with autoSwap', async () => {
+      const request = {
+        amount: 5000,
+        currency: 'USDC',
+        payerCurrency: 'SOL',
+        payerAddress: 'BaDZtpgWpDx6H1y8Dga2cfyxs3RXj5y2fkBo7HoT2pdv',
+        autoSwap: true,
+        paymentAddress: 'BaDZtpgWpDx6H1y8Dga2cfyxs3RXj5y2fkBo7HoT2pdv',
+        nonce: 'swap-nonce-1',
+      };
+
+      const receipt = await sendPayment(request, {
+        swapClient: {
+          swap: async () => ({
+            orderId: 'ord_1',
+            executeId: 'exec_1',
+            inAmount: '5000',
+            outAmount: '4990',
+          }),
+        },
+      });
+
+      expect(receipt.swap?.performed).toBe(true);
+      expect(receipt.swap?.orderId).toBe('ord_1');
+      expect(receipt.settlementCurrency).toBe('USDC');
+    });
+
+    it('should fail when token mismatch requires swap and no client configured', async () => {
+      const request = {
+        amount: 5000,
+        currency: 'USDC',
+        payerCurrency: 'SOL',
+        payerAddress: 'BaDZtpgWpDx6H1y8Dga2cfyxs3RXj5y2fkBo7HoT2pdv',
+        autoSwap: true,
+        paymentAddress: 'BaDZtpgWpDx6H1y8Dga2cfyxs3RXj5y2fkBo7HoT2pdv',
+        nonce: 'swap-nonce-2',
+      };
+
+      await expect(sendPayment(request)).rejects.toThrow('token_mismatch_requires_swap_client');
+    });
+  });
+
+  describe('needsAutoSwap', () => {
+    it('should detect mismatch when autoSwap=true', () => {
+      expect(
+        needsAutoSwap({
+          amount: 10,
+          currency: 'USDC',
+          payerCurrency: 'SOL',
+          paymentAddress: 'BaDZtpgWpDx6H1y8Dga2cfyxs3RXj5y2fkBo7HoT2pdv',
+          nonce: 'x',
+          autoSwap: true,
+        })
+      ).toBe(true);
     });
   });
 

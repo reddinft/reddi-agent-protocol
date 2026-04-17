@@ -28,9 +28,16 @@ import {
   RATING_SEED,
   ESCROW_SEED,
 } from "./config";
+import {
+  formatTransferContract,
+  resolveTransferContractForDemo,
+} from "./payments-contract";
+import { runMintReadinessPreflight } from "./payments-mint-readiness";
 
 const PROGRAM_ID = new PublicKey(ESCROW_PROGRAM_ID);
 const connection = new Connection(DEVNET_RPC, "confirmed");
+
+type SettlementMode = "auto" | "magicblock_per" | "vanish_core" | "public";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -43,11 +50,11 @@ function findPda(seeds: Buffer[]): PublicKey {
 }
 
 function escrowPda(payer: PublicKey, nonce: Uint8Array): PublicKey {
-  return findPda([ESCROW_SEED, payer.toBytes(), Buffer.from(nonce)]);
+  return findPda([ESCROW_SEED, Buffer.from(payer.toBytes()), Buffer.from(nonce)]);
 }
 
 function agentPda(owner: PublicKey): PublicKey {
-  return findPda([AGENT_SEED, owner.toBytes()]);
+  return findPda([AGENT_SEED, Buffer.from(owner.toBytes())]);
 }
 
 function ratingPda(jobId: Uint8Array): PublicKey {
@@ -75,6 +82,20 @@ function sha256(score: number, salt: Uint8Array): Uint8Array {
   h.update(Buffer.from([score]));
   h.update(salt);
   return new Uint8Array(h.digest());
+}
+
+function readSettlementMode(): SettlementMode {
+  const raw = (process.env.DEMO_SETTLEMENT_MODE ?? "auto").toLowerCase();
+  switch (raw) {
+    case "auto":
+    case "magicblock_per":
+    case "vanish_core":
+    case "public":
+      return raw;
+    default:
+      console.log(`⚠️  Unknown DEMO_SETTLEMENT_MODE='${raw}', defaulting to auto`);
+      return "auto";
+  }
 }
 
 // ── Instruction encoders ──────────────────────────────────────────────────────
@@ -147,6 +168,9 @@ function encodeAttestQuality(jobId: Uint8Array, scores: number[], consumerPk: Pu
 
 async function runDemo() {
   const start = Date.now();
+  const requestedSettlementMode = readSettlementMode();
+  const allowFallback = String(process.env.DEMO_ALLOW_FALLBACK ?? "true").toLowerCase() === "true";
+  const transferContract = resolveTransferContractForDemo(requestedSettlementMode);
 
   console.log("\n╔══════════════════════════════════════════════════════════╗");
   console.log("║       Reddi Agent Protocol — Devnet Demo                ║");
@@ -156,6 +180,8 @@ async function runDemo() {
   console.log(`Agent A:  ${AGENT_A_KEYPAIR.publicKey.toBase58()} (Orchestrator)`);
   console.log(`Agent B:  ${AGENT_B.toBase58()} (Specialist)`);
   console.log(`Agent C:  ${AGENT_C.toBase58()} (Judge)`);
+  console.log(`Settlement mode requested: ${requestedSettlementMode}`);
+  console.log(`Transfer contract: ${formatTransferContract(transferContract)}`);
   console.log("");
 
   // ── Step 1: Query registry ────────────────────────────────────────────────
@@ -194,17 +220,36 @@ async function runDemo() {
   const workResult = { output: "Analysis complete: market is bullish. Confidence: 0.87." };
   console.log(`   ✅ Delivered: "${workResult.output}"\n`);
 
-  // ── Step 4: Delegate + Release via PER (with L1 fallback) ─────────────────
-  console.log("🔒 Step 4 — Agent A: releasing via MagicBlock PER (private settlement)...");
+  // ── Step 4: Settlement routing choice (PER / Vanish / Public) ─────────────
+  console.log("🔒 Step 4 — Agent A: selecting settlement route...");
+  if (transferContract.visibility === "private") {
+    console.log(`   🔧 Private routing config: ${formatTransferContract(transferContract)}`);
+  }
+  await runMintReadinessPreflight({
+    payer: AGENT_A_KEYPAIR.publicKey,
+    contract: transferContract,
+  });
 
   let settlementSig: string;
-  let usedPer = false;
+  let settlementRouteUsed: "magicblock_per" | "public";
 
-  try {
-    // Generate session keypair
+  const releaseViaL1 = async (): Promise<string> => {
+    const releaseL1Ix = new TransactionInstruction({
+      programId: PROGRAM_ID,
+      keys: [
+        { pubkey: ePda, isSigner: false, isWritable: true },
+        { pubkey: AGENT_A_KEYPAIR.publicKey, isSigner: true, isWritable: true },
+        { pubkey: AGENT_B, isSigner: false, isWritable: true },
+        { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+      ],
+      data: encodeReleaseEscrow(),
+    });
+    return sendTx(releaseL1Ix, [AGENT_A_KEYPAIR]);
+  };
+
+  const releaseViaPer = async (): Promise<string> => {
     const sessionKeypair = Keypair.generate();
 
-    // 4a. Delegate escrow on-chain
     const delegateIx = new TransactionInstruction({
       programId: PROGRAM_ID,
       keys: [
@@ -216,8 +261,6 @@ async function runDemo() {
     await sendTx(delegateIx, [AGENT_A_KEYPAIR]);
     console.log(`   ✅ Escrow delegated to PER. Session key: ${sessionKeypair.publicKey.toBase58()}`);
 
-    // 4b. Route release_escrow_per to TEE endpoint
-    const releasePerData = encodeReleaseEscrowPer(sessionKeypair.publicKey);
     const releasePerIx = new TransactionInstruction({
       programId: PROGRAM_ID,
       keys: [
@@ -226,7 +269,7 @@ async function runDemo() {
         { pubkey: AGENT_B, isSigner: false, isWritable: true },
         { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
       ],
-      data: releasePerData,
+      data: encodeReleaseEscrowPer(sessionKeypair.publicKey),
     });
 
     const { blockhash } = await connection.getLatestBlockhash();
@@ -236,28 +279,33 @@ async function runDemo() {
     perTx.add(releasePerIx);
     perTx.sign(AGENT_A_KEYPAIR);
 
-    // skipPreflight: true required — TEE has different account state from public RPC
     const perConn = new Connection(PER_DEVNET_RPC, "confirmed");
-    settlementSig = await perConn.sendRawTransaction(perTx.serialize(), { skipPreflight: true });
-    usedPer = true;
-    console.log(`   🔒 PER settlement submitted: ${settlementSig}`);
-    console.log(`   ℹ️  Confirmation polling via TEE endpoint (async, omitted from timing)\n`);
+    return perConn.sendRawTransaction(perTx.serialize(), { skipPreflight: true });
+  };
 
-  } catch (e: any) {
-    console.log(`   ⚠️  PER unavailable (${e.message?.slice(0, 60)}...) — using L1 fallback`);
+  if (requestedSettlementMode === "public") {
+    settlementSig = await releaseViaL1();
+    settlementRouteUsed = "public";
+    console.log(`   🌐 Public L1 settlement used — sig: https://explorer.solana.com/tx/${settlementSig}?cluster=devnet\n`);
+  } else {
+    if (requestedSettlementMode === "vanish_core") {
+      console.log("   ℹ️  Vanish Core is swap-privacy routing (x402_private_swap). This escrow release demo uses PER/public rails.");
+    }
 
-    const releaseL1Ix = new TransactionInstruction({
-      programId: PROGRAM_ID,
-      keys: [
-        { pubkey: ePda, isSigner: false, isWritable: true },
-        { pubkey: AGENT_A_KEYPAIR.publicKey, isSigner: true, isWritable: true },
-        { pubkey: AGENT_B, isSigner: false, isWritable: true },
-        { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
-      ],
-      data: encodeReleaseEscrow(),
-    });
-    settlementSig = await sendTx(releaseL1Ix, [AGENT_A_KEYPAIR]);
-    console.log(`   ✅ L1 fallback used — sig: https://explorer.solana.com/tx/${settlementSig}?cluster=devnet\n`);
+    try {
+      settlementSig = await releaseViaPer();
+      settlementRouteUsed = "magicblock_per";
+      console.log(`   🔒 PER settlement submitted: ${settlementSig}`);
+      console.log(`   ℹ️  Confirmation polling via TEE endpoint (async, omitted from timing)\n`);
+    } catch (e: any) {
+      if (!allowFallback || requestedSettlementMode === "magicblock_per") {
+        throw new Error(`PER settlement failed and fallback disabled: ${e.message}`);
+      }
+      console.log(`   ⚠️  PER unavailable (${e.message?.slice(0, 60)}...) — using L1 fallback`);
+      settlementSig = await releaseViaL1();
+      settlementRouteUsed = "public";
+      console.log(`   ✅ L1 fallback used — sig: https://explorer.solana.com/tx/${settlementSig}?cluster=devnet\n`);
+    }
   }
 
   // ── Step 5: Blind commit ratings ──────────────────────────────────────────
@@ -357,11 +405,11 @@ async function runDemo() {
   console.log(`  Escrow PDA:      ${ePda.toBase58()}`);
   console.log(`  Rating PDA:      ${rPda.toBase58()}`);
   console.log(`  Attestation PDA: ${attestPda.toBase58()}`);
-  console.log(`  Settlement:      ${usedPer ? "MagicBlock PER (private)" : "L1 direct (fallback)"}`);
+  console.log(`  Settlement:      ${settlementRouteUsed === "magicblock_per" ? "MagicBlock PER (private)" : "L1 direct (public/fallback)"}`);
   console.log(`  Settlement sig:  ${settlementSig!}`);
   console.log(`\n  ⏱  Total time: ${elapsed}ms ${elapsed < 10_000 ? "✅ (< 10s target)" : "⚠️  (> 10s target)"}`);
 
-  if (!usedPer) {
+  if (settlementRouteUsed !== "magicblock_per") {
     console.log(`\n  ℹ️  PER was unavailable — L1 fallback used. No funds stuck.`);
     console.log(`      For PER settlement, ensure devnet-tee.magicblock.app is reachable.`);
   } else {

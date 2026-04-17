@@ -34,6 +34,32 @@ cd packages/demo-agents && npm run register
 
 # 7. Run the demo
 npm run demo
+
+# Optional: choose settlement privacy route for Step 4
+# auto (default): try MagicBlock PER, then fallback (if enabled)
+DEMO_SETTLEMENT_MODE=auto npm run demo
+
+# force PER only (no fallback)
+DEMO_SETTLEMENT_MODE=magicblock_per DEMO_ALLOW_FALLBACK=false npm run demo
+
+# private routing contract knobs (MagicBlock ONE-style semantics)
+DEMO_SETTLEMENT_MODE=auto DEMO_PRIVATE_MIN_DELAY_MS=1000 DEMO_PRIVATE_MAX_DELAY_MS=5000 DEMO_PRIVATE_SPLIT=3 npm run demo
+
+# enable mint-readiness preflight for private route
+DEMO_SETTLEMENT_MODE=auto DEMO_PRIVATE_MINT=<mint-pubkey> DEMO_PAYMENTS_CLUSTER=devnet npm run demo
+
+# strict mode: fail demo if mint is not initialized
+DEMO_SETTLEMENT_MODE=auto DEMO_PRIVATE_MINT=<mint-pubkey> DEMO_REQUIRE_MINT_READY=true npm run demo
+
+# print initialize-mint JSON + ready curl command
+DEMO_PRIVATE_MINT=<mint-pubkey> npm run mint:init-helper
+
+# force public L1 settlement
+DEMO_SETTLEMENT_MODE=public npm run demo
+
+# note: vanish_core is tracked as swap privacy route in plugin flow,
+# this escrow-release demo still executes PER/public settlement rails
+DEMO_SETTLEMENT_MODE=vanish_core npm run demo
 ```
 
 ## Agent wallets (pre-generated, each funded with 0.025 SOL from blitz-dev)

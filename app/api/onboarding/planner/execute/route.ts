@@ -1,0 +1,57 @@
+import { executePlannerSpecialistCall, listPlannerRuns } from "@/lib/onboarding/planner-execution";
+
+export const runtime = "nodejs";
+
+export async function GET() {
+  try {
+    const result = listPlannerRuns();
+    return Response.json({ ok: true, result });
+  } catch (error) {
+    return Response.json(
+      {
+        ok: false,
+        error: error instanceof Error ? error.message : "Planner run listing failed",
+      },
+      { status: 400 }
+    );
+  }
+}
+
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+    const result = await executePlannerSpecialistCall({
+      prompt: String(body.prompt || ""),
+      policy: {
+        requiredPrivacyMode:
+          body.policy?.requiredPrivacyMode === "public" ||
+          body.policy?.requiredPrivacyMode === "per" ||
+          body.policy?.requiredPrivacyMode === "vanish"
+            ? body.policy.requiredPrivacyMode
+            : undefined,
+        requiresAttested:
+          body.policy?.requiresAttested === undefined
+            ? undefined
+            : Boolean(body.policy.requiresAttested),
+        requiresHealthPass:
+          body.policy?.requiresHealthPass === undefined
+            ? undefined
+            : Boolean(body.policy.requiresHealthPass),
+        maxPerCallUsd:
+          body.policy?.maxPerCallUsd === undefined
+            ? undefined
+            : Number(body.policy.maxPerCallUsd),
+      },
+    });
+
+    return Response.json({ ok: result.ok, result }, { status: result.ok ? 200 : 400 });
+  } catch (error) {
+    return Response.json(
+      {
+        ok: false,
+        error: error instanceof Error ? error.message : "Planner execution failed",
+      },
+      { status: 400 }
+    );
+  }
+}

@@ -1,0 +1,1667 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import dynamic from "next/dynamic";
+import { useWallet, useConnection } from "@solana/wallet-adapter-react";
+import { Connection, PublicKey, SystemProgram, Transaction, TransactionInstruction } from "@solana/web3.js";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import StepIndicator from "@/components/StepIndicator";
+import {
+  AGENT_TYPE_ENUM,
+  agentPda,
+  attestationPda,
+  buildConfirmAttestationData,
+  buildDisputeAttestationData,
+  buildRegisterAgentData,
+  DEVNET_RPC,
+  ESCROW_PROGRAM_ID,
+  INCINERATOR,
+} from "@/lib/program";
+
+const WalletMultiButton = dynamic(
+  async () =>
+    (await import("@solana/wallet-adapter-react-ui")).WalletMultiButton,
+  { ssr: false }
+);
+
+type WizardState = {
+  consentExposeEndpoint: boolean;
+  consentProtocolOps: boolean;
+  platform: "macos" | "ubuntu" | "windows";
+  ollamaPort: string;
+  protocolDomain: string;
+  runtimeReady: boolean;
+  runtimeNote: string;
+  runtimeTokenStored: boolean;
+  hasWallet: "yes" | "no";
+  walletAddress: string;
+  walletPassphrase: string;
+  walletBackupConfirmed: boolean;
+  walletStatusNote: string;
+  sponsorshipReady: boolean;
+  sponsorshipNote: string;
+  sponsorshipLamports: number;
+  endpointUrl: string;
+  endpointStatus: "pending" | "online" | "offline";
+  endpointNote: string;
+  endpointTunnelCommand: string;
+  endpointProxyCommand: string;
+  endpointProxyPort: number;
+  endpointAuthHeader: string;
+  endpointAuthTokenPreview: string;
+  endpointAuthToken: string;
+  healthcheckStatus: "pending" | "pass" | "fail";
+  healthcheckNote: string;
+  attested: boolean;
+  attestationNote: string;
+  attestationJobIdHex: string;
+  attestationPda: string;
+  attestationOperator: string;
+  attestationConsumer: string;
+  attestationResolution: "pending" | "confirmed" | "disputed";
+  attestationResolutionSig: string;
+  attestationOperatorReady: boolean;
+  attestationOperatorStatusNote: string;
+  capabilityTaskTypes: string;
+  capabilityInputModes: string;
+  capabilityOutputModes: string;
+  capabilityPrivacyModes: string;
+  capabilityTags: string;
+  capabilityBaseUsd: string;
+  capabilityPerCallUsd: string;
+  capabilitySaved: boolean;
+  capabilityNote: string;
+  plannerPrompt: string;
+  plannerRunId: string;
+  plannerStatus: "idle" | "running" | "completed" | "failed";
+  plannerNote: string;
+  plannerResponsePreview: string;
+  plannerX402Tx: string;
+  plannerFeedbackScore: string;
+  plannerFeedbackNote: string;
+  plannerFeedbackSent: boolean;
+  plannerFeedbackNote2: string;
+};
+
+const STORAGE_KEY = "reddi-onboarding-wizard-v1";
+
+const INITIAL_STATE: WizardState = {
+  consentExposeEndpoint: false,
+  consentProtocolOps: false,
+  platform: "macos",
+  ollamaPort: "11434",
+  protocolDomain: "https://reddi.tech",
+  runtimeReady: false,
+  runtimeNote: "",
+  runtimeTokenStored: false,
+  hasWallet: "yes",
+  walletAddress: "",
+  walletPassphrase: "",
+  walletBackupConfirmed: false,
+  walletStatusNote: "",
+  sponsorshipReady: false,
+  sponsorshipNote: "",
+  sponsorshipLamports: 0,
+  endpointUrl: "",
+  endpointStatus: "pending",
+  endpointNote: "",
+  endpointTunnelCommand: "",
+  endpointProxyCommand: "",
+  endpointProxyPort: 0,
+  endpointAuthHeader: "x-reddi-agent-token",
+  endpointAuthTokenPreview: "",
+  endpointAuthToken: "",
+  healthcheckStatus: "pending",
+  healthcheckNote: "",
+  attested: false,
+  attestationNote: "",
+  attestationJobIdHex: "",
+  attestationPda: "",
+  attestationOperator: "",
+  attestationConsumer: "",
+  attestationResolution: "pending",
+  attestationResolutionSig: "",
+  attestationOperatorReady: false,
+  attestationOperatorStatusNote: "",
+  capabilityTaskTypes: "summarize, classify",
+  capabilityInputModes: "text",
+  capabilityOutputModes: "text",
+  capabilityPrivacyModes: "public, per",
+  capabilityTags: "onboarding, default",
+  capabilityBaseUsd: "0",
+  capabilityPerCallUsd: "0",
+  capabilitySaved: false,
+  capabilityNote: "",
+  plannerPrompt: "Summarise the key risks in deploying an AI agent with on-chain payment capabilities.",
+  plannerRunId: "",
+  plannerStatus: "idle",
+  plannerNote: "",
+  plannerResponsePreview: "",
+  plannerX402Tx: "",
+  plannerFeedbackScore: "8",
+  plannerFeedbackNote: "",
+  plannerFeedbackSent: false,
+  plannerFeedbackNote2: "",
+};
+
+const STEPS = [
+  "Consent",
+  "Runtime",
+  "Endpoint",
+  "Wallet",
+  "Register",
+  "Healthcheck",
+  "Attestation",
+  "Try Planner",
+];
+
+function mockWalletAddress() {
+  const alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+  let out = "";
+  for (let i = 0; i < 44; i += 1) out += alphabet[Math.floor(Math.random() * alphabet.length)];
+  return out;
+}
+
+function hexToJobId(hex: string): Uint8Array {
+  if (!/^[0-9a-fA-F]{32}$/.test(hex)) {
+    throw new Error("Invalid attestation job id.");
+  }
+  const out = new Uint8Array(16);
+  for (let i = 0; i < 16; i += 1) {
+    out[i] = Number.parseInt(hex.slice(i * 2, i * 2 + 2), 16);
+  }
+  return out;
+}
+
+export default function OnboardingPage() {
+  const { connected, publicKey, sendTransaction } = useWallet();
+  const { connection: walletConnection } = useConnection();
+  const [step, setStep] = useState(1);
+  const [runtimeLoading, setRuntimeLoading] = useState(false);
+  const [endpointLoading, setEndpointLoading] = useState(false);
+  const [endpointHeartbeatLoading, setEndpointHeartbeatLoading] = useState(false);
+  const [walletLoading, setWalletLoading] = useState(false);
+  const [sponsorshipLoading, setSponsorshipLoading] = useState(false);
+  const [registering, setRegistering] = useState(false);
+  const [registered, setRegistered] = useState(false);
+  const [registerTxSig, setRegisterTxSig] = useState<string | null>(null);
+  const [registerError, setRegisterError] = useState<string | null>(null);
+  const [registerPreflightLoading, setRegisterPreflightLoading] = useState(false);
+  const [registerPreflight, setRegisterPreflight] = useState<{
+    ok: boolean;
+    error?: string;
+    unitsConsumed?: number;
+    logs?: string[];
+    rateLamports: bigint;
+    agentPda: string;
+    estimatedCostSol: number;
+  } | null>(null);
+  const [healthcheckLoading, setHealthcheckLoading] = useState(false);
+  const [attestationLoading, setAttestationLoading] = useState(false);
+  const [attestationOperatorCheckLoading, setAttestationOperatorCheckLoading] = useState(false);
+  const [capabilityLoading, setCapabilityLoading] = useState(false);
+  const [state, setState] = useState<WizardState>(() => {
+    if (typeof window === "undefined") return INITIAL_STATE;
+    try {
+      const raw = window.localStorage.getItem(STORAGE_KEY);
+      if (!raw) return INITIAL_STATE;
+      const parsed = JSON.parse(raw) as Partial<WizardState>;
+      return { ...INITIAL_STATE, ...parsed };
+    } catch {
+      return INITIAL_STATE;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch {
+      // ignore storage errors
+    }
+  }, [state]);
+
+  useEffect(() => {
+    if (!publicKey) return;
+    const walletBase58 = publicKey.toBase58();
+    setState((prev) =>
+      prev.walletAddress === walletBase58
+        ? prev
+        : {
+            ...prev,
+            walletAddress: walletBase58,
+            capabilitySaved: false,
+            capabilityNote: "",
+          }
+    );
+  }, [publicKey]);
+
+  const endpointPreview = useMemo(() => {
+    if (!state.ollamaPort || !state.consentExposeEndpoint) return "Not configured";
+    return state.endpointUrl || `https://your-agent.localtunnel.me (maps to :${state.ollamaPort})`;
+  }, [state.ollamaPort, state.consentExposeEndpoint, state.endpointUrl]);
+
+  const canContinue = useMemo(() => {
+    if (step === 1) return state.consentExposeEndpoint && state.consentProtocolOps;
+    if (step === 2) return Number(state.ollamaPort) > 0 && state.runtimeReady;
+    if (step === 3) return state.endpointStatus === "online";
+    if (step === 4) {
+      const walletOk = state.walletAddress.length > 0;
+      const backupOk = state.hasWallet === "yes" ? true : state.walletBackupConfirmed;
+      return walletOk && backupOk && state.sponsorshipReady;
+    }
+    if (step === 5) return registered && state.capabilitySaved;
+    if (step === 6) return state.healthcheckStatus === "pass";
+    if (step === 7) return state.attested;
+    if (step === 8) return state.plannerStatus === "completed" || state.plannerFeedbackSent;
+    return false;
+  }, [step, state, registered]);
+
+  const buildRegisterDraft = () => {
+    if (!publicKey) {
+      throw new Error("Connect wallet before registration.");
+    }
+
+    const pda = agentPda(publicKey);
+    const agentTypeByte = AGENT_TYPE_ENUM.Primary;
+    const modelName = "ollama-local";
+    const minRep = 0;
+    const rateLamports = BigInt(Math.round(0.001 * 1_000_000_000));
+    const data = buildRegisterAgentData(agentTypeByte, modelName, rateLamports, minRep);
+
+    const ix = new TransactionInstruction({
+      programId: ESCROW_PROGRAM_ID,
+      keys: [
+        { pubkey: pda, isSigner: false, isWritable: true },
+        { pubkey: publicKey, isSigner: true, isWritable: true },
+        { pubkey: INCINERATOR, isSigner: false, isWritable: true },
+        { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+      ],
+      data,
+    });
+
+    return { pda, rateLamports, ix };
+  };
+
+  const handleSimulateRegisterSpecialist = async () => {
+    if (!publicKey) return;
+
+    setRegisterPreflightLoading(true);
+    setRegisterPreflight(null);
+
+    try {
+      const conn = walletConnection ?? new Connection(DEVNET_RPC, "confirmed");
+      const { pda, rateLamports, ix } = buildRegisterDraft();
+
+      const { blockhash, lastValidBlockHeight } = await conn.getLatestBlockhash();
+      const tx = new Transaction();
+      tx.recentBlockhash = blockhash;
+      tx.lastValidBlockHeight = lastValidBlockHeight;
+      tx.feePayer = publicKey;
+      tx.add(ix);
+
+      const sim = await (conn as unknown as {
+        simulateTransaction: (
+          txArg: Transaction,
+          options?: {
+            sigVerify?: boolean;
+            replaceRecentBlockhash?: boolean;
+            commitment?: "processed" | "confirmed" | "finalized";
+          }
+        ) => Promise<{
+          value: {
+            err: unknown;
+            logs?: string[];
+            unitsConsumed?: number;
+          };
+        }>;
+      }).simulateTransaction(tx, {
+        sigVerify: false,
+        replaceRecentBlockhash: true,
+        commitment: "processed",
+      });
+
+      const estimatedCostSol = Number(rateLamports) / 1_000_000_000 + 0.01057;
+
+      setRegisterPreflight({
+        ok: !sim.value.err,
+        error: sim.value.err ? JSON.stringify(sim.value.err) : undefined,
+        logs: sim.value.logs,
+        unitsConsumed: sim.value.unitsConsumed,
+        rateLamports,
+        agentPda: pda.toBase58(),
+        estimatedCostSol,
+      });
+    } catch (error: unknown) {
+      setRegisterPreflight({
+        ok: false,
+        error: error instanceof Error ? error.message : "Preflight simulation failed",
+        rateLamports: BigInt(Math.round(0.001 * 1_000_000_000)),
+        agentPda: publicKey ? agentPda(publicKey).toBase58() : "",
+        estimatedCostSol: 0.01157,
+      });
+    } finally {
+      setRegisterPreflightLoading(false);
+    }
+  };
+
+  const handleRegisterSpecialist = async () => {
+    if (!publicKey || !sendTransaction) return;
+
+    setRegistering(true);
+    setRegisterError(null);
+    setRegistered(false);
+
+    try {
+      const conn = walletConnection ?? new Connection(DEVNET_RPC, "confirmed");
+      const { ix } = buildRegisterDraft();
+
+      const { blockhash } = await conn.getLatestBlockhash();
+      const tx = new Transaction();
+      tx.recentBlockhash = blockhash;
+      tx.feePayer = publicKey;
+      tx.add(ix);
+
+      const sig = await sendTransaction(tx, conn);
+      await conn.confirmTransaction(sig, "confirmed");
+
+      setRegisterTxSig(sig);
+      setRegistered(true);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : "Registration failed";
+      setRegisterError(msg);
+      setRegisterTxSig(null);
+      setRegistered(false);
+    } finally {
+      setRegistering(false);
+    }
+  };
+
+  return (
+    <div className="max-w-3xl mx-auto px-4 py-10 space-y-8">
+      <div className="space-y-2">
+        <h1 className="text-3xl font-bold">Specialist Onboarding Wizard</h1>
+        <p className="text-sm text-muted-foreground">
+          Zero-to-registered flow, consent-first. Installs local runtime, exposes endpoint, then registers and verifies your specialist.
+        </p>
+      </div>
+
+      <div className="space-y-3">
+        {STEPS.map((title, idx) => {
+          const number = idx + 1;
+          const status = number < step ? "complete" : number === step ? "in-progress" : "not-started";
+          return <StepIndicator key={title} number={number} title={title} status={status} />;
+        })}
+      </div>
+
+      <div className="rounded-xl border border-white/10 bg-card/30 p-6 space-y-5">
+        {step === 1 && (
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold">1. Consent</h2>
+            <p className="text-sm text-muted-foreground">
+              We only proceed if you explicitly approve network exposure and protocol-managed onboarding actions.
+            </p>
+            <label className="flex items-start gap-3 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={state.consentExposeEndpoint}
+                onChange={(e) => setState((s) => ({ ...s, consentExposeEndpoint: e.target.checked }))}
+                className="mt-1 accent-[#9945FF]"
+              />
+              <span>I consent to exposing my local Ollama API through a tunnel endpoint.</span>
+            </label>
+            <label className="flex items-start gap-3 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={state.consentProtocolOps}
+                onChange={(e) => setState((s) => ({ ...s, consentProtocolOps: e.target.checked }))}
+                className="mt-1 accent-[#9945FF]"
+              />
+              <span>I consent to protocol-funded onboarding transactions (rent + registration fee only).</span>
+            </label>
+          </div>
+        )}
+
+        {step === 2 && (
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold">2. Runtime setup</h2>
+            <p className="text-sm text-muted-foreground">Wizard checks/install steps for Ollama by platform.</p>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <Label className="mb-1 block">Platform</Label>
+                <select
+                  value={state.platform}
+                  onChange={(e) =>
+                    setState((s) => ({ ...s, platform: e.target.value as WizardState["platform"] }))
+                  }
+                  className="w-full bg-background border border-white/10 rounded-md px-3 py-2 text-sm"
+                >
+                  <option value="macos">macOS</option>
+                  <option value="ubuntu">Ubuntu</option>
+                  <option value="windows">Windows</option>
+                </select>
+              </div>
+              <div>
+                <Label className="mb-1 block">Ollama API port</Label>
+                <Input
+                  value={state.ollamaPort}
+                  onChange={(e) =>
+                    setState((s) => ({ ...s, ollamaPort: e.target.value, runtimeReady: false, runtimeNote: "" }))
+                  }
+                  placeholder="11434"
+                />
+              </div>
+            </div>
+            <div>
+              <Label className="mb-1 block">Protocol CORS allowlist domain</Label>
+              <Input
+                value={state.protocolDomain}
+                onChange={(e) =>
+                  setState((s) => ({ ...s, protocolDomain: e.target.value, runtimeReady: false, runtimeNote: "" }))
+                }
+                placeholder="https://reddi.tech"
+              />
+            </div>
+            <Button
+              variant="outline"
+              disabled={
+                runtimeLoading ||
+                !state.consentExposeEndpoint ||
+                !state.consentProtocolOps ||
+                Number(state.ollamaPort) <= 0
+              }
+              onClick={async () => {
+                setRuntimeLoading(true);
+                try {
+                  const res = await fetch("/api/onboarding/runtime", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      platform: state.platform,
+                      port: Number(state.ollamaPort),
+                      protocolDomain: state.protocolDomain,
+                      consentExposeEndpoint: state.consentExposeEndpoint,
+                      consentProtocolOps: state.consentProtocolOps,
+                    }),
+                  });
+                  const data = await res.json();
+                  if (!res.ok || !data.ok) {
+                    setState((s) => ({
+                      ...s,
+                      runtimeReady: false,
+                      runtimeTokenStored: false,
+                      runtimeNote: data.error || "Runtime bootstrap failed",
+                    }));
+                    return;
+                  }
+
+                  const noteParts = [
+                    data.result.ollama.running ? "Ollama running" : "Ollama not running",
+                    data.result.token.storedInKeychain ? "token stored in keychain" : "token not stored in keychain",
+                    data.result.installHint ? `hint: ${data.result.installHint}` : null,
+                    data.result.token.note || null,
+                  ].filter(Boolean);
+
+                  setState((s) => ({
+                    ...s,
+                    runtimeReady: Boolean(data.result.ready),
+                    runtimeTokenStored: Boolean(data.result.token.storedInKeychain),
+                    runtimeNote: noteParts.join(" · "),
+                  }));
+                } catch {
+                  setState((s) => ({
+                    ...s,
+                    runtimeReady: false,
+                    runtimeTokenStored: false,
+                    runtimeNote: "Runtime bootstrap failed",
+                  }));
+                } finally {
+                  setRuntimeLoading(false);
+                }
+              }}
+            >
+              {runtimeLoading ? "Bootstrapping runtime..." : "Run runtime bootstrap"}
+            </Button>
+
+            {state.runtimeNote && (
+              <div className="rounded-lg border border-white/10 bg-black/30 p-3 text-xs text-muted-foreground">
+                <p className={state.runtimeReady ? "text-[#14F195]" : "text-yellow-400"}>
+                  {state.runtimeReady ? "Runtime ready" : "Runtime not ready"}
+                </p>
+                <p className="mt-1">{state.runtimeNote}</p>
+              </div>
+            )}
+            <div className="rounded-lg border border-[#14F195]/20 bg-[#14F195]/5 p-3 text-xs font-mono text-muted-foreground">
+              Installer command (planned): curl -fsSL https://reddi.tech/install-specialist | bash
+            </div>
+          </div>
+        )}
+
+        {step === 3 && (
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold">3. Endpoint setup</h2>
+            <p className="text-sm text-muted-foreground">Configure token-gated proxy + tunnel endpoint mapped to your local Ollama port.</p>
+            <div>
+              <Label className="mb-1 block">Tunnel endpoint (optional override)</Label>
+              <Input
+                value={state.endpointUrl}
+                onChange={(e) =>
+                  setState((s) => ({
+                    ...s,
+                    endpointUrl: e.target.value,
+                    endpointStatus: "pending",
+                    endpointNote: "",
+                    endpointTunnelCommand: "",
+                    endpointProxyCommand: "",
+                    endpointProxyPort: 0,
+                    endpointAuthTokenPreview: "",
+                    endpointAuthToken: "",
+                  }))
+                }
+                placeholder="https://my-specialist.localtunnel.me"
+              />
+            </div>
+            <div className="rounded-lg border border-white/10 bg-black/30 p-3 text-sm">
+              <p className="text-muted-foreground text-xs">Effective endpoint</p>
+              <p className="font-mono text-[#14F195] break-all">{endpointPreview}</p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                disabled={endpointLoading || !state.consentExposeEndpoint || Number(state.ollamaPort) <= 0}
+                onClick={async () => {
+                  setEndpointLoading(true);
+                  try {
+                    const res = await fetch("/api/onboarding/endpoint", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        action: "create",
+                        consentExposeEndpoint: state.consentExposeEndpoint,
+                        port: Number(state.ollamaPort),
+                        endpointUrl: state.endpointUrl || undefined,
+                      }),
+                    });
+
+                    const data = await res.json();
+                    if (!res.ok || !data.ok) {
+                      setState((s) => ({
+                        ...s,
+                        endpointStatus: "offline",
+                        endpointNote: data.error || "Endpoint creation failed",
+                      }));
+                      return;
+                    }
+
+                    setState((s) => ({
+                      ...s,
+                      endpointUrl: data.result.endpointUrl,
+                      endpointStatus: data.result.status,
+                      endpointNote: data.result.note || "",
+                      endpointTunnelCommand: data.result.tunnelCommand || "",
+                      endpointProxyCommand: data.result.proxyCommand || "",
+                      endpointProxyPort: data.result.proxyPort || 0,
+                      endpointAuthHeader: data.result.authHeaderName || "x-reddi-agent-token",
+                      endpointAuthTokenPreview: data.result.authTokenPreview || "",
+                      endpointAuthToken: data.result.authToken || "",
+                    }));
+                  } catch {
+                    setState((s) => ({
+                      ...s,
+                      endpointStatus: "offline",
+                      endpointNote: "Endpoint creation failed",
+                    }));
+                  } finally {
+                    setEndpointLoading(false);
+                  }
+                }}
+              >
+                {endpointLoading ? "Creating endpoint..." : "Create tunnel endpoint"}
+              </Button>
+
+              <Button
+                variant="outline"
+                disabled={endpointHeartbeatLoading || Number(state.ollamaPort) <= 0 || !state.endpointUrl}
+                onClick={async () => {
+                  setEndpointHeartbeatLoading(true);
+                  try {
+                    const res = await fetch("/api/onboarding/endpoint", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        action: "heartbeat",
+                        port: Number(state.ollamaPort),
+                        endpointUrl: state.endpointUrl,
+                      }),
+                    });
+
+                    const data = await res.json();
+                    if (!res.ok || !data.ok) {
+                      setState((s) => ({
+                        ...s,
+                        endpointStatus: "offline",
+                        endpointNote: data.error || "Heartbeat failed",
+                      }));
+                      return;
+                    }
+
+                    setState((s) => ({
+                      ...s,
+                      endpointStatus: data.result.status,
+                      endpointNote: data.result.note || "",
+                      endpointTunnelCommand: data.result.tunnelCommand || "",
+                      endpointProxyCommand: data.result.proxyCommand || s.endpointProxyCommand,
+                      endpointProxyPort: data.result.proxyPort || s.endpointProxyPort,
+                      endpointAuthHeader: data.result.authHeaderName || s.endpointAuthHeader,
+                      endpointAuthTokenPreview:
+                        data.result.authTokenPreview || s.endpointAuthTokenPreview,
+                    }));
+                  } catch {
+                    setState((s) => ({
+                      ...s,
+                      endpointStatus: "offline",
+                      endpointNote: "Heartbeat failed",
+                    }));
+                  } finally {
+                    setEndpointHeartbeatLoading(false);
+                  }
+                }}
+              >
+                {endpointHeartbeatLoading ? "Checking heartbeat..." : "Run endpoint heartbeat"}
+              </Button>
+            </div>
+
+            <div className="rounded-lg border border-white/10 bg-black/30 p-3 text-xs text-muted-foreground">
+              <p
+                className={
+                  state.endpointStatus === "online"
+                    ? "text-[#14F195]"
+                    : state.endpointStatus === "offline"
+                    ? "text-red-400"
+                    : "text-yellow-400"
+                }
+              >
+                Endpoint status: {state.endpointStatus.toUpperCase()}
+              </p>
+              {state.endpointNote && <p className="mt-1">{state.endpointNote}</p>}
+              {state.endpointAuthToken && (
+                <p className="mt-1 font-mono break-all">
+                  auth token (save now): {state.endpointAuthToken}
+                </p>
+              )}
+              {state.endpointAuthTokenPreview && !state.endpointAuthToken && (
+                <p className="mt-1 font-mono">
+                  auth token: {state.endpointAuthTokenPreview} (stored in profile)
+                </p>
+              )}
+              {state.endpointProxyCommand && (
+                <p className="mt-1 font-mono break-all">start token proxy: {state.endpointProxyCommand}</p>
+              )}
+              <p className="mt-1 font-mono">x402 public paths: /v1/*, /x402/*, /healthz (no token)</p>
+              {state.endpointTunnelCommand && (
+                <p className="mt-1 font-mono break-all">quick fix: {state.endpointTunnelCommand}</p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {step === 4 && (
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold">4. Wallet path</h2>
+            <div className="space-y-2 text-sm">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="wallet"
+                  checked={state.hasWallet === "yes"}
+                  onChange={() =>
+                    setState((s) => ({
+                      ...s,
+                      hasWallet: "yes",
+                      walletBackupConfirmed: false,
+                      walletStatusNote: "",
+                      sponsorshipReady: false,
+                      sponsorshipNote: "",
+                      sponsorshipLamports: 0,
+                    }))
+                  }
+                  className="accent-[#9945FF]"
+                />
+                I already have a wallet
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="wallet"
+                  checked={state.hasWallet === "no"}
+                  onChange={() =>
+                    setState((s) => ({
+                      ...s,
+                      hasWallet: "no",
+                      walletAddress: s.walletAddress || mockWalletAddress(),
+                      walletBackupConfirmed: false,
+                      walletStatusNote: "",
+                      sponsorshipReady: false,
+                      sponsorshipNote: "",
+                      sponsorshipLamports: 0,
+                    }))
+                  }
+                  className="accent-[#9945FF]"
+                />
+                Create local non-custodial wallet
+              </label>
+            </div>
+            <div>
+              <Label className="mb-1 block">Wallet address</Label>
+              <Input
+                value={state.walletAddress}
+                onChange={(e) =>
+                  setState((s) => ({
+                    ...s,
+                    walletAddress: e.target.value,
+                    sponsorshipReady: false,
+                    sponsorshipNote: "",
+                    sponsorshipLamports: 0,
+                  }))
+                }
+                placeholder="Paste wallet or use generated address"
+              />
+            </div>
+            {state.hasWallet === "no" && (
+              <>
+                <div>
+                  <Label className="mb-1 block">Wallet encryption passphrase</Label>
+                  <Input
+                    type="password"
+                    value={state.walletPassphrase}
+                    onChange={(e) => setState((s) => ({ ...s, walletPassphrase: e.target.value }))}
+                    placeholder="Minimum 12 characters"
+                  />
+                </div>
+                <label className="flex items-start gap-3 text-xs cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={state.walletBackupConfirmed}
+                    onChange={(e) =>
+                      setState((s) => ({
+                        ...s,
+                        walletBackupConfirmed: e.target.checked,
+                        sponsorshipReady: false,
+                        sponsorshipNote: "",
+                        sponsorshipLamports: 0,
+                      }))
+                    }
+                    className="mt-0.5 accent-[#14F195]"
+                  />
+                  <span>Backup checkpoint complete: I saved recovery material before continuing.</span>
+                </label>
+                <Button
+                  variant="outline"
+                  disabled={walletLoading || !state.walletBackupConfirmed || state.walletPassphrase.length < 12}
+                  onClick={async () => {
+                    setWalletLoading(true);
+                    try {
+                      const res = await fetch("/api/onboarding/wallet", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          action: "create",
+                          backupConfirmed: state.walletBackupConfirmed,
+                          passphrase: state.walletPassphrase,
+                        }),
+                      });
+                      const data = await res.json();
+                      if (!res.ok || !data.ok) {
+                        setState((s) => ({ ...s, walletStatusNote: data.error || "Wallet creation failed" }));
+                        return;
+                      }
+                      setState((s) => ({
+                        ...s,
+                        walletAddress: data.result.walletAddress,
+                        walletStatusNote: data.result.note || "Wallet created",
+                        sponsorshipReady: false,
+                        sponsorshipNote: "",
+                        sponsorshipLamports: 0,
+                      }));
+                    } catch {
+                      setState((s) => ({ ...s, walletStatusNote: "Wallet creation failed" }));
+                    } finally {
+                      setWalletLoading(false);
+                    }
+                  }}
+                >
+                  {walletLoading ? "Creating local wallet..." : "Create encrypted local wallet"}
+                </Button>
+              </>
+            )}
+
+            <Button
+              variant="outline"
+              disabled={sponsorshipLoading || !state.walletAddress || !state.consentProtocolOps}
+              onClick={async () => {
+                setSponsorshipLoading(true);
+                try {
+                  const res = await fetch("/api/onboarding/wallet", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      action: "sponsorship",
+                      walletAddress: state.walletAddress,
+                    }),
+                  });
+                  const data = await res.json();
+                  if (!res.ok || !data.ok) {
+                    setState((s) => ({
+                      ...s,
+                      sponsorshipReady: false,
+                      sponsorshipNote: data.error || "Sponsorship setup failed",
+                    }));
+                    return;
+                  }
+                  setState((s) => ({
+                    ...s,
+                    sponsorshipReady: true,
+                    sponsorshipNote: data.result.note || "Sponsorship prepared",
+                    sponsorshipLamports: data.result.lamportsApproved || 0,
+                  }));
+                } catch {
+                  setState((s) => ({
+                    ...s,
+                    sponsorshipReady: false,
+                    sponsorshipNote: "Sponsorship setup failed",
+                  }));
+                } finally {
+                  setSponsorshipLoading(false);
+                }
+              }}
+            >
+              {sponsorshipLoading ? "Preparing sponsorship..." : "Prepare sponsorship (rent + registration fee cap)"}
+            </Button>
+
+            {(state.walletStatusNote || state.sponsorshipNote) && (
+              <div className="rounded-lg border border-white/10 bg-black/30 p-3 text-xs text-muted-foreground">
+                {state.walletStatusNote && <p>{state.walletStatusNote}</p>}
+                {state.sponsorshipNote && <p className="mt-1">{state.sponsorshipNote}</p>}
+                {state.sponsorshipLamports > 0 && (
+                  <p className="mt-1 font-mono">approved lamports: {state.sponsorshipLamports.toLocaleString()}</p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {step === 5 && (
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold">5. Register specialist</h2>
+            <p className="text-sm text-muted-foreground">
+              Submit `register_agent` directly from the wizard using your connected wallet and endpoint metadata.
+            </p>
+            <div className="w-full">
+              <WalletMultiButton className="!bg-[#9945FF] hover:!bg-[#7f34df] !text-white !rounded-md !h-10" />
+            </div>
+            <div className="rounded-lg border border-white/10 bg-black/30 p-3 text-xs font-mono space-y-1">
+              <p>wallet: {state.walletAddress || "(missing)"}</p>
+              <p>endpoint: {endpointPreview}</p>
+              <p>sponsorship: protocol rent + registration fee only</p>
+              <p>instruction: register_agent (Primary, ollama-local, 0.001 SOL/call)</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                onClick={handleSimulateRegisterSpecialist}
+                disabled={
+                  registerPreflightLoading ||
+                  !connected ||
+                  !state.walletAddress ||
+                  state.endpointStatus !== "online" ||
+                  !state.sponsorshipReady
+                }
+              >
+                {registerPreflightLoading ? "Simulating..." : "Run preflight simulation"}
+              </Button>
+            </div>
+
+            {registerPreflight && (
+              <div className="rounded-lg border border-white/10 bg-black/30 p-3 text-xs text-muted-foreground space-y-1">
+                <p className={registerPreflight.ok ? "text-[#14F195]" : "text-red-400"}>
+                  {registerPreflight.ok ? "Preflight PASS" : "Preflight FAIL"}
+                </p>
+                <p className="font-mono break-all">agent PDA: {registerPreflight.agentPda}</p>
+                <p className="font-mono">rate lamports: {registerPreflight.rateLamports.toString()}</p>
+                <p className="font-mono">estimated cost: ~{registerPreflight.estimatedCostSol.toFixed(5)} SOL</p>
+                {typeof registerPreflight.unitsConsumed === "number" && (
+                  <p className="font-mono">compute units: {registerPreflight.unitsConsumed.toLocaleString()}</p>
+                )}
+                {registerPreflight.error && <p className="text-red-300">{registerPreflight.error}</p>}
+                {registerPreflight.logs && registerPreflight.logs.length > 0 && (
+                  <details>
+                    <summary className="cursor-pointer">simulation logs</summary>
+                    <div className="mt-1 space-y-1">
+                      {registerPreflight.logs.slice(0, 8).map((line, idx) => (
+                        <p key={`${idx}-${line}`} className="font-mono break-all">
+                          {line}
+                        </p>
+                      ))}
+                    </div>
+                  </details>
+                )}
+              </div>
+            )}
+
+            <Button
+              onClick={handleRegisterSpecialist}
+              disabled={
+                registering ||
+                !connected ||
+                !state.walletAddress ||
+                state.endpointStatus !== "online" ||
+                !state.sponsorshipReady
+              }
+              style={{ background: "linear-gradient(135deg, #9945FF, #14F195)", color: "#000" }}
+            >
+              {registering ? "Registering on-chain..." : "Register specialist on-chain"}
+            </Button>
+
+            {registerError && (
+              <div className="rounded-lg border border-red-400/30 bg-red-500/10 p-3 text-xs text-red-300">
+                {registerError}
+              </div>
+            )}
+
+            {registerTxSig && (
+              <div className="rounded-lg border border-[#14F195]/30 bg-[#14F195]/10 p-3 text-xs">
+                <p className="text-[#14F195]">Registration submitted</p>
+                <a
+                  href={`https://explorer.solana.com/tx/${registerTxSig}?cluster=devnet`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-mono break-all hover:underline"
+                >
+                  {registerTxSig}
+                </a>
+              </div>
+            )}
+
+            <div className="rounded-lg border border-white/10 bg-black/30 p-3 space-y-3">
+              <p className="text-xs text-muted-foreground">
+                Capability profile (required before continuing)
+              </p>
+              <div className="grid sm:grid-cols-2 gap-2">
+                <Input
+                  value={state.capabilityTaskTypes}
+                  onChange={(e) =>
+                    setState((s) => ({
+                      ...s,
+                      capabilityTaskTypes: e.target.value,
+                      capabilitySaved: false,
+                      capabilityNote: "",
+                    }))
+                  }
+                  placeholder="task types (comma separated)"
+                />
+                <Input
+                  value={state.capabilityInputModes}
+                  onChange={(e) =>
+                    setState((s) => ({
+                      ...s,
+                      capabilityInputModes: e.target.value,
+                      capabilitySaved: false,
+                      capabilityNote: "",
+                    }))
+                  }
+                  placeholder="input modes (comma separated)"
+                />
+                <Input
+                  value={state.capabilityOutputModes}
+                  onChange={(e) =>
+                    setState((s) => ({
+                      ...s,
+                      capabilityOutputModes: e.target.value,
+                      capabilitySaved: false,
+                      capabilityNote: "",
+                    }))
+                  }
+                  placeholder="output modes (comma separated)"
+                />
+                <Input
+                  value={state.capabilityPrivacyModes}
+                  onChange={(e) =>
+                    setState((s) => ({
+                      ...s,
+                      capabilityPrivacyModes: e.target.value,
+                      capabilitySaved: false,
+                      capabilityNote: "",
+                    }))
+                  }
+                  placeholder="privacy modes (public, per, vanish)"
+                />
+                <Input
+                  value={state.capabilityBaseUsd}
+                  onChange={(e) =>
+                    setState((s) => ({
+                      ...s,
+                      capabilityBaseUsd: e.target.value,
+                      capabilitySaved: false,
+                      capabilityNote: "",
+                    }))
+                  }
+                  placeholder="base USD"
+                />
+                <Input
+                  value={state.capabilityPerCallUsd}
+                  onChange={(e) =>
+                    setState((s) => ({
+                      ...s,
+                      capabilityPerCallUsd: e.target.value,
+                      capabilitySaved: false,
+                      capabilityNote: "",
+                    }))
+                  }
+                  placeholder="per-call USD"
+                />
+              </div>
+              <Input
+                value={state.capabilityTags}
+                onChange={(e) =>
+                  setState((s) => ({
+                    ...s,
+                    capabilityTags: e.target.value,
+                    capabilitySaved: false,
+                    capabilityNote: "",
+                  }))
+                }
+                placeholder="tags (comma separated)"
+              />
+              <Button
+                variant="outline"
+                disabled={capabilityLoading || !state.walletAddress || !registered}
+                onClick={async () => {
+                  setCapabilityLoading(true);
+                  try {
+                    const splitList = (v: string) =>
+                      v
+                        .split(",")
+                        .map((x) => x.trim())
+                        .filter(Boolean);
+
+                    const res = await fetch("/api/onboarding/capabilities", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        walletAddress: state.walletAddress,
+                        taskTypes: splitList(state.capabilityTaskTypes),
+                        inputModes: splitList(state.capabilityInputModes),
+                        outputModes: splitList(state.capabilityOutputModes),
+                        privacyModes: splitList(state.capabilityPrivacyModes),
+                        tags: splitList(state.capabilityTags),
+                        endpointUrl: state.endpointUrl,
+                        healthcheckStatus: state.healthcheckStatus,
+                        attested: state.attested,
+                        pricing: {
+                          baseUsd: Number(state.capabilityBaseUsd || "0"),
+                          perCallUsd:
+                            state.capabilityPerCallUsd.trim().length > 0
+                              ? Number(state.capabilityPerCallUsd)
+                              : undefined,
+                        },
+                      }),
+                    });
+
+                    const data = await res.json();
+                    if (!res.ok || !data.ok) {
+                      setState((s) => ({
+                        ...s,
+                        capabilitySaved: false,
+                        capabilityNote: data.error || "Capability save failed",
+                      }));
+                      return;
+                    }
+
+                    setState((s) => ({
+                      ...s,
+                      capabilitySaved: true,
+                      capabilityNote: "Capability profile saved.",
+                    }));
+                  } catch {
+                    setState((s) => ({
+                      ...s,
+                      capabilitySaved: false,
+                      capabilityNote: "Capability save failed",
+                    }));
+                  } finally {
+                    setCapabilityLoading(false);
+                  }
+                }}
+              >
+                {capabilityLoading ? "Saving capabilities..." : "Save capability profile"}
+              </Button>
+              {state.capabilityNote && (
+                <p className={`text-xs ${state.capabilitySaved ? "text-[#14F195]" : "text-red-400"}`}>
+                  {state.capabilityNote}
+                </p>
+              )}
+            </div>
+
+            <Link
+              href={`/register?endpoint=${encodeURIComponent(endpointPreview.startsWith("https://") ? endpointPreview : state.endpointUrl || "")}`}
+              className="inline-block"
+            >
+              <Button variant="outline">
+                Open full registration page (fallback)
+              </Button>
+            </Link>
+          </div>
+        )}
+
+        {step === 6 && (
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold">6. x402 healthcheck</h2>
+            <p className="text-sm text-muted-foreground">
+              Runs through reddi-x402 to confirm endpoint is reachable and payment flow is healthy.
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                disabled={healthcheckLoading || !state.endpointUrl || !state.walletAddress}
+                onClick={async () => {
+                  setHealthcheckLoading(true);
+                  try {
+                    const res = await fetch("/api/onboarding/healthcheck", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        endpointUrl: state.endpointUrl,
+                        walletAddress: state.walletAddress,
+                      }),
+                    });
+
+                    const data = await res.json();
+                    if (!res.ok || !data.ok) {
+                      setState((s) => ({
+                        ...s,
+                        healthcheckStatus: "fail",
+                        healthcheckNote: data.error || "Healthcheck failed",
+                        attested: false,
+                      }));
+                      return;
+                    }
+
+                    setState((s) => ({
+                      ...s,
+                      healthcheckStatus: data.result.status === "pass" ? "pass" : "fail",
+                      healthcheckNote: data.result.note || "",
+                      attested: false,
+                      attestationJobIdHex: "",
+                      attestationPda: "",
+                      attestationOperator: "",
+                      attestationConsumer: "",
+                      attestationResolution: "pending",
+                      attestationResolutionSig: "",
+                    }));
+                  } catch {
+                    setState((s) => ({
+                      ...s,
+                      healthcheckStatus: "fail",
+                      healthcheckNote: "Healthcheck failed",
+                      attested: false,
+                      attestationJobIdHex: "",
+                      attestationPda: "",
+                      attestationOperator: "",
+                      attestationConsumer: "",
+                      attestationResolution: "pending",
+                      attestationResolutionSig: "",
+                    }));
+                  } finally {
+                    setHealthcheckLoading(false);
+                  }
+                }}
+              >
+                {healthcheckLoading ? "Running healthcheck..." : "Run healthcheck"}
+              </Button>
+              <span
+                className={`text-sm self-center ${
+                  state.healthcheckStatus === "pass"
+                    ? "text-[#14F195]"
+                    : state.healthcheckStatus === "fail"
+                    ? "text-red-400"
+                    : "text-muted-foreground"
+                }`}
+              >
+                {state.healthcheckStatus === "pending"
+                  ? "Not run"
+                  : state.healthcheckStatus === "pass"
+                  ? "PASS"
+                  : "FAIL"}
+              </span>
+            </div>
+            {state.healthcheckNote && (
+              <div className="rounded-lg border border-white/10 bg-black/30 p-3 text-xs text-muted-foreground">
+                {state.healthcheckNote}
+              </div>
+            )}
+          </div>
+        )}
+
+        {step === 7 && (
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold">7. Attestation</h2>
+            <p className="text-sm text-muted-foreground">Operator attests onboarding quality once healthcheck passes.</p>
+            <Button
+              variant="outline"
+              disabled={attestationOperatorCheckLoading}
+              onClick={async () => {
+                setAttestationOperatorCheckLoading(true);
+                try {
+                  const res = await fetch("/api/onboarding/attestation-operator");
+                  const data = await res.json();
+                  if (!res.ok || !data.ok) {
+                    setState((s) => ({
+                      ...s,
+                      attestationOperatorReady: false,
+                      attestationOperatorStatusNote: data.error || "Operator status check failed",
+                    }));
+                    return;
+                  }
+
+                  setState((s) => ({
+                    ...s,
+                    attestationOperatorReady: Boolean(data.result.ready),
+                    attestationOperatorStatusNote: data.result.operatorPubkey
+                      ? `${data.result.note} (${data.result.operatorPubkey})`
+                      : data.result.note || "",
+                  }));
+                } catch {
+                  setState((s) => ({
+                    ...s,
+                    attestationOperatorReady: false,
+                    attestationOperatorStatusNote: "Operator status check failed",
+                  }));
+                } finally {
+                  setAttestationOperatorCheckLoading(false);
+                }
+              }}
+            >
+              {attestationOperatorCheckLoading ? "Checking operator key..." : "Check attestor key status"}
+            </Button>
+            <Button
+              variant="outline"
+              disabled={
+                attestationLoading ||
+                state.healthcheckStatus !== "pass" ||
+                !state.walletAddress ||
+                !state.attestationOperatorReady
+              }
+              onClick={async () => {
+                setAttestationLoading(true);
+                try {
+                  const res = await fetch("/api/onboarding/attestation", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      walletAddress: state.walletAddress,
+                      endpointUrl: state.endpointUrl,
+                      healthcheckStatus: state.healthcheckStatus,
+                      operator: "wizard-operator",
+                    }),
+                  });
+
+                  const data = await res.json();
+                  if (!res.ok || !data.ok) {
+                    setState((s) => ({
+                      ...s,
+                      attested: false,
+                      attestationNote: data.error || "Attestation failed",
+                    }));
+                    return;
+                  }
+
+                  setState((s) => ({
+                    ...s,
+                    attested: true,
+                    attestationJobIdHex: data.result?.onchain?.jobIdHex || "",
+                    attestationPda: data.result?.onchain?.attestationPda || "",
+                    attestationOperator: data.result?.onchain?.operator || "",
+                    attestationConsumer: data.result?.onchain?.consumer || "",
+                    attestationResolution: "pending",
+                    attestationResolutionSig: "",
+                    attestationNote: data.result?.onchain?.signature
+                      ? `Attestation recorded on-chain: ${data.result.onchain.signature}`
+                      : data.result?.note || "Attestation recorded",
+                  }));
+                } catch {
+                  setState((s) => ({
+                    ...s,
+                    attested: false,
+                    attestationNote: "Attestation failed",
+                  }));
+                } finally {
+                  setAttestationLoading(false);
+                }
+              }}
+            >
+              {attestationLoading ? "Recording attestation..." : "Record operator attestation"}
+            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                disabled={
+                  !state.attested ||
+                  !state.attestationJobIdHex ||
+                  !connected ||
+                  !publicKey ||
+                  publicKey.toBase58() !== state.attestationConsumer ||
+                  state.attestationResolution !== "pending"
+                }
+                onClick={async () => {
+                  if (!publicKey || !sendTransaction || !state.attestationJobIdHex || !state.attestationOperator) {
+                    return;
+                  }
+
+                  try {
+                    const conn = walletConnection ?? new Connection(DEVNET_RPC, "confirmed");
+                    const jobId = hexToJobId(state.attestationJobIdHex);
+
+                    const ix = new TransactionInstruction({
+                      programId: ESCROW_PROGRAM_ID,
+                      keys: [
+                        {
+                          pubkey: state.attestationPda
+                            ? new PublicKey(state.attestationPda)
+                            : attestationPda(jobId),
+                          isSigner: false,
+                          isWritable: true,
+                        },
+                        { pubkey: agentPda(new PublicKey(state.attestationOperator)), isSigner: false, isWritable: true },
+                        { pubkey: publicKey, isSigner: true, isWritable: false },
+                      ],
+                      data: buildConfirmAttestationData(jobId),
+                    });
+
+                    const { blockhash } = await conn.getLatestBlockhash();
+                    const tx = new Transaction();
+                    tx.recentBlockhash = blockhash;
+                    tx.feePayer = publicKey;
+                    tx.add(ix);
+
+                    const sig = await sendTransaction(tx, conn);
+                    await conn.confirmTransaction(sig, "confirmed");
+
+                    setState((s) => ({
+                      ...s,
+                      attestationResolution: "confirmed",
+                      attestationResolutionSig: sig,
+                      attestationNote: `Attestation confirmed by consumer: ${sig}`,
+                    }));
+                  } catch (error: unknown) {
+                    setState((s) => ({
+                      ...s,
+                      attestationNote:
+                        error instanceof Error ? error.message : "Confirm attestation failed",
+                    }));
+                  }
+                }}
+              >
+                Confirm attestation (consumer)
+              </Button>
+              <Button
+                variant="outline"
+                disabled={
+                  !state.attested ||
+                  !state.attestationJobIdHex ||
+                  !connected ||
+                  !publicKey ||
+                  publicKey.toBase58() !== state.attestationConsumer ||
+                  state.attestationResolution !== "pending"
+                }
+                onClick={async () => {
+                  if (!publicKey || !sendTransaction || !state.attestationJobIdHex || !state.attestationOperator) {
+                    return;
+                  }
+
+                  try {
+                    const conn = walletConnection ?? new Connection(DEVNET_RPC, "confirmed");
+                    const jobId = hexToJobId(state.attestationJobIdHex);
+
+                    const ix = new TransactionInstruction({
+                      programId: ESCROW_PROGRAM_ID,
+                      keys: [
+                        {
+                          pubkey: state.attestationPda
+                            ? new PublicKey(state.attestationPda)
+                            : attestationPda(jobId),
+                          isSigner: false,
+                          isWritable: true,
+                        },
+                        { pubkey: agentPda(new PublicKey(state.attestationOperator)), isSigner: false, isWritable: true },
+                        { pubkey: publicKey, isSigner: true, isWritable: false },
+                      ],
+                      data: buildDisputeAttestationData(jobId),
+                    });
+
+                    const { blockhash } = await conn.getLatestBlockhash();
+                    const tx = new Transaction();
+                    tx.recentBlockhash = blockhash;
+                    tx.feePayer = publicKey;
+                    tx.add(ix);
+
+                    const sig = await sendTransaction(tx, conn);
+                    await conn.confirmTransaction(sig, "confirmed");
+
+                    setState((s) => ({
+                      ...s,
+                      attestationResolution: "disputed",
+                      attestationResolutionSig: sig,
+                      attestationNote: `Attestation disputed by consumer: ${sig}`,
+                    }));
+                  } catch (error: unknown) {
+                    setState((s) => ({
+                      ...s,
+                      attestationNote:
+                        error instanceof Error ? error.message : "Dispute attestation failed",
+                    }));
+                  }
+                }}
+              >
+                Dispute attestation (consumer)
+              </Button>
+            </div>
+            {state.attested && state.attestationConsumer && (
+              <p className="text-xs text-muted-foreground">
+                Consumer follow-through wallet: <span className="font-mono">{state.attestationConsumer}</span>
+              </p>
+            )}
+            {state.attestationResolution !== "pending" && state.attestationResolutionSig && (
+              <a
+                href={`https://explorer.solana.com/tx/${state.attestationResolutionSig}?cluster=devnet`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block text-xs font-mono break-all text-[#14F195] hover:underline"
+              >
+                resolution tx: {state.attestationResolutionSig}
+              </a>
+            )}
+            {state.healthcheckStatus !== "pass" && (
+              <p className="text-xs text-yellow-400">Healthcheck must pass before attestation can be recorded.</p>
+            )}
+            {!state.attestationOperatorReady && (
+              <p className="text-xs text-yellow-400">Operator signer key must be configured before recording attestation.</p>
+            )}
+            {state.attestationOperatorStatusNote && (
+              <div className="rounded-lg border border-white/10 bg-black/30 p-3 text-xs text-muted-foreground">
+                {state.attestationOperatorStatusNote}
+              </div>
+            )}
+            {state.attestationNote && (
+              <div className="rounded-lg border border-white/10 bg-black/30 p-3 text-xs text-muted-foreground">
+                {state.attestationNote}
+              </div>
+            )}
+          </div>
+        )}
+
+        {step === 8 && (
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Your specialist endpoint is live and registered. Use the planner to run a real task against it — the system will select a candidate, negotiate payment (x402), and execute the call.
+            </p>
+
+            {/* Prompt input */}
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Prompt</Label>
+              <textarea
+                rows={3}
+                className="w-full rounded-md border border-white/15 bg-black/40 px-3 py-2 text-sm text-white resize-none focus:outline-none focus:ring-1 focus:ring-purple-500"
+                value={state.plannerPrompt}
+                onChange={(e) => setState((s) => ({ ...s, plannerPrompt: e.target.value }))}
+                disabled={state.plannerStatus === "running"}
+              />
+            </div>
+
+            {/* Policy toggles */}
+            <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+              <span className="rounded-full border border-white/10 px-2 py-0.5 bg-black/30">policy: requiresHealthPass=true</span>
+              <span className="rounded-full border border-white/10 px-2 py-0.5 bg-black/30">auto-selects best available candidate</span>
+            </div>
+
+            {/* Execute button */}
+            <Button
+              className="w-full"
+              disabled={state.plannerStatus === "running" || !state.plannerPrompt.trim()}
+              onClick={async () => {
+                setState((s) => ({ ...s, plannerStatus: "running", plannerNote: "Routing to specialist...", plannerRunId: "", plannerResponsePreview: "", plannerX402Tx: "" }));
+                try {
+                  const res = await fetch("/api/onboarding/planner/execute", {
+                    method: "POST",
+                    headers: { "content-type": "application/json" },
+                    body: JSON.stringify({ prompt: state.plannerPrompt }),
+                  });
+                  const data = await res.json();
+                  if (data.ok) {
+                    setState((s) => ({
+                      ...s,
+                      plannerStatus: "completed",
+                      plannerRunId: data.result?.result?.runId || "",
+                      plannerResponsePreview: data.result?.result?.responsePreview || "(no preview)",
+                      plannerX402Tx: data.result?.result?.x402TxSignature || "",
+                      plannerNote: "✓ Planner call completed.",
+                    }));
+                  } else {
+                    setState((s) => ({
+                      ...s,
+                      plannerStatus: "failed",
+                      plannerNote: `Planner call failed: ${data.error || "unknown error"}`,
+                    }));
+                  }
+                } catch (e) {
+                  setState((s) => ({ ...s, plannerStatus: "failed", plannerNote: `Request error: ${e instanceof Error ? e.message : String(e)}` }));
+                }
+              }}
+            >
+              {state.plannerStatus === "running" ? "Running..." : "Run specialist call"}
+            </Button>
+
+            {/* Result */}
+            {state.plannerNote && (
+              <div className={`rounded-lg border p-3 text-xs ${
+                state.plannerStatus === "completed" ? "border-green-500/30 bg-green-950/20 text-green-300" :
+                state.plannerStatus === "failed" ? "border-red-500/30 bg-red-950/20 text-red-300" :
+                "border-white/10 bg-black/30 text-muted-foreground"
+              }`}>
+                <div>{state.plannerNote}</div>
+                {state.plannerRunId && <div className="mt-1 font-mono opacity-60">run: {state.plannerRunId}</div>}
+                {state.plannerX402Tx && <div className="mt-1 font-mono opacity-60">x402 tx: {state.plannerX402Tx}</div>}
+                {state.plannerResponsePreview && (
+                  <div className="mt-2 border-t border-white/10 pt-2 whitespace-pre-wrap opacity-80">{state.plannerResponsePreview}</div>
+                )}
+              </div>
+            )}
+
+            {/* Feedback */}
+            {(state.plannerStatus === "completed" || state.plannerStatus === "failed") && state.plannerRunId && !state.plannerFeedbackSent && (
+              <div className="space-y-3 border border-white/10 rounded-lg p-4 bg-black/20">
+                <p className="text-xs font-medium text-white">Rate this specialist call (1–10)</p>
+                <div className="flex items-center gap-3">
+                  <Input
+                    type="number"
+                    min={1}
+                    max={10}
+                    className="w-20 text-center"
+                    value={state.plannerFeedbackScore}
+                    onChange={(e) => setState((s) => ({ ...s, plannerFeedbackScore: e.target.value }))}
+                  />
+                  <Input
+                    placeholder="Optional notes"
+                    value={state.plannerFeedbackNote}
+                    onChange={(e) => setState((s) => ({ ...s, plannerFeedbackNote: e.target.value }))}
+                  />
+                </div>
+                <Button
+                  size="sm"
+                  className="w-full"
+                  onClick={async () => {
+                    try {
+                      const score = Math.max(1, Math.min(10, parseInt(state.plannerFeedbackScore, 10) || 5));
+                      const res = await fetch("/api/onboarding/planner/feedback", {
+                        method: "POST",
+                        headers: { "content-type": "application/json" },
+                        body: JSON.stringify({
+                          runId: state.plannerRunId,
+                          score,
+                          agreesWithAttestation: state.attested,
+                          notes: state.plannerFeedbackNote || undefined,
+                        }),
+                      });
+                      const data = await res.json();
+                      setState((s) => ({
+                        ...s,
+                        plannerFeedbackSent: true,
+                        plannerFeedbackNote2: data.ok
+                          ? `✓ Feedback saved${data.result?.reputationCommit?.ok ? " + reputation committed on-chain" : " (off-chain only — operator key not configured)"}.`
+                          : `Feedback save failed: ${data.error || "unknown"}`,
+                      }));
+                    } catch (e) {
+                      setState((s) => ({
+                        ...s,
+                        plannerFeedbackSent: true,
+                        plannerFeedbackNote2: `Request error: ${e instanceof Error ? e.message : String(e)}`,
+                      }));
+                    }
+                  }}
+                >
+                  Submit feedback
+                </Button>
+              </div>
+            )}
+
+            {state.plannerFeedbackNote2 && (
+              <div className="rounded-lg border border-white/10 bg-black/30 p-3 text-xs text-muted-foreground">
+                {state.plannerFeedbackNote2}
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="flex justify-between pt-2 border-t border-white/10">
+          <Button variant="outline" onClick={() => setStep((s) => Math.max(1, s - 1))} disabled={step === 1}>
+            Back
+          </Button>
+          {step < STEPS.length ? (
+            <Button onClick={() => setStep((s) => s + 1)} disabled={!canContinue}>
+              Next
+            </Button>
+          ) : (
+            <Button
+              disabled={!state.attested}
+              style={{ background: "linear-gradient(135deg, #9945FF, #14F195)", color: "#000" }}
+            >
+              Onboarding complete ✓
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

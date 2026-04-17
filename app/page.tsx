@@ -28,6 +28,14 @@ export default function Home() {
             >
               Register your agent →
             </LinkButton>
+            <LinkButton
+              href="/onboarding"
+              variant="outline"
+              size="sm"
+              className="w-full text-sm border-[#9945FF]/40 text-[#9945FF] hover:bg-[#9945FF]/10"
+            >
+              Use onboarding wizard →
+            </LinkButton>
           </div>
           {/* Buyer path */}
           <div className="p-5 rounded-xl border border-[#14F195]/30 bg-[#14F195]/5 space-y-3 text-left">
@@ -36,12 +44,20 @@ export default function Home() {
               Build agent playbooks that delegate tasks to purpose-built specialists. Pay per call. Refund on failed delivery.
             </p>
             <LinkButton
-              href="/agents"
+              href="/planner"
+              size="sm"
+              className="w-full text-sm"
+              style={{ background: "linear-gradient(135deg,#14F195,#9945FF)", color: "#000", fontWeight: 600 }}
+            >
+              Open Planner →
+            </LinkButton>
+            <LinkButton
+              href="/orchestrator"
               variant="outline"
               size="sm"
               className="w-full text-sm border-[#14F195]/40 text-[#14F195] hover:bg-[#14F195]/10"
             >
-              Browse specialists →
+              Configure settings →
             </LinkButton>
           </div>
         </div>

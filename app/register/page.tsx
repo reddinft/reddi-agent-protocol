@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import {
   Connection,
-  PublicKey,
   Transaction,
   TransactionInstruction,
   SystemProgram,
@@ -18,7 +17,7 @@ import {
   INCINERATOR,
 } from "@/lib/program";
 import dynamic from "next/dynamic";
-import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import LinkButton from "@/components/LinkButton";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -76,12 +75,32 @@ const RENT_SOL = 0.00057;
 export default function RegisterPage() {
   const { connected, publicKey, sendTransaction } = useWallet();
   const { connection: walletConnection } = useConnection();
+  const searchParams = useSearchParams();
   const [step, setStep] = useState<Step>(1);
   const [form, setForm] = useState<FormData>(INITIAL_FORM);
   const [registering, setRegistering] = useState(false);
   const [success, setSuccess] = useState(false);
   const [txSig, setTxSig] = useState<string | null>(null);
   const [txError, setTxError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const endpoint = searchParams.get("endpoint")?.trim();
+    const model = searchParams.get("model")?.trim();
+    const name = searchParams.get("name")?.trim();
+    const primaryRate = searchParams.get("primaryRate")?.trim();
+    const attestationRate = searchParams.get("attestationRate")?.trim();
+
+    if (!endpoint && !model && !name && !primaryRate && !attestationRate) return;
+
+    setForm((prev) => ({
+      ...prev,
+      endpoint: endpoint || prev.endpoint,
+      model: model || prev.model,
+      name: name || prev.name,
+      primaryRate: primaryRate || prev.primaryRate,
+      attestationRate: attestationRate || prev.attestationRate,
+    }));
+  }, [searchParams]);
 
   const isJudge = form.agentType === "attestation" || form.agentType === "both";
 
@@ -545,7 +564,7 @@ export default function RegisterPage() {
             <p className="pl-4 text-foreground/80">min_consumer_rep: {Math.round(form.minConsumerRep * 10)},</p>
             <p className="pl-4 text-foreground/80">accept_unrated: {form.acceptUnrated.toString()},</p>
             <p className="text-green-400">)</p>
-            <p className="text-yellow-400/60 mt-2">// Simulation mode — program not yet deployed to this network</p>
+            <p className="text-yellow-400/60 mt-2">Simulation mode, program not yet deployed to this network</p>
           </div>
 
           <div className="flex gap-3">

@@ -1,0 +1,210 @@
+/**
+ * MCP Tool Interface for Reddi Agent Protocol
+ *
+ * Three tools that any agent framework (ElizaOS, OpenAI Agents SDK,
+ * LangChain, CrewAI, custom) can call to access the specialist marketplace:
+ *
+ * 1. resolve_specialist   — find the best candidate for a task
+ * 2. invoke_specialist    — execute a paid call against a specialist
+ * 3. submit_quality_signal — rate a completed run (triggers rep commit)
+ *
+ * Transport: HTTP POST endpoints at /api/planner/tools/*
+ * Auth: optional x-reddi-agent-key header (env: REDDI_AGENT_API_KEY)
+ *
+ * Compatible with:
+ * - OpenAI Agents SDK (function_call / tool_call)
+ * - ElizaOS action plugins
+ * - Any framework that supports HTTP tool endpoints
+ * - Direct REST calls from orchestrator agents
+ */
+
+export type ResolveInput = {
+  /** Plain-language description of what's needed */
+  task: string;
+  /** Optional taxonomy ID hint (e.g. "summarize", "code") */
+  taskTypeHint?: string;
+  /** Policy overrides — merged with saved orchestrator policy */
+  policy?: {
+    maxPerCallUsd?: number;
+    requireAttestation?: boolean;
+    preferredPrivacyMode?: "public" | "per" | "vanish";
+    minReputation?: number;
+  };
+};
+
+export type ResolveOutput = {
+  ok: boolean;
+  candidate: {
+    walletAddress: string;
+    endpointUrl: string;
+    taskTypes: string[];
+    privacyModes: string[];
+    perCallUsd: number;
+    attested: boolean;
+    healthStatus: string;
+    reputationScore: number;
+    avgFeedbackScore: number;
+    selectionReasons: string[];
+  } | null;
+  alternativeCount: number;
+  error?: string;
+};
+
+export type InvokeInput = {
+  /** The prompt / task content to send to the specialist */
+  prompt: string;
+  /** Optional: target a specific specialist wallet */
+  targetWallet?: string;
+  /** Policy overrides */
+  policy?: {
+    maxPerCallUsd?: number;
+    requireAttestation?: boolean;
+    preferredPrivacyMode?: "public" | "per" | "vanish";
+  };
+};
+
+export type InvokeOutput = {
+  ok: boolean;
+  runId?: string;
+  response?: string;
+  specialistWallet?: string;
+  x402TxSignature?: string;
+  paymentSatisfied?: boolean;
+  durationMs?: number;
+  error?: string;
+};
+
+export type QualitySignalInput = {
+  /** Run ID from invoke_specialist */
+  runId: string;
+  /** Score 1–10 */
+  score: number;
+  /** Optional text notes */
+  notes?: string;
+  /** Whether outcome matched attestation expectations */
+  agreesWithAttestation?: boolean;
+};
+
+export type QualitySignalOutput = {
+  ok: boolean;
+  reputationCommitted: boolean;
+  reputationTxSignature?: string;
+  error?: string;
+};
+
+// ── OpenAI function-call schema definitions ──────────────────────────────────
+
+export const MCP_TOOL_SCHEMAS = [
+  {
+    name: "resolve_specialist",
+    description:
+      "Find the best available specialist agent for a given task. Returns the top candidate with capability details, pricing, and selection reasons. Call this before invoke_specialist to select who to hire.",
+    parameters: {
+      type: "object",
+      properties: {
+        task: {
+          type: "string",
+          description: "Plain-language description of the task you need performed.",
+        },
+        taskTypeHint: {
+          type: "string",
+          enum: ["summarize","classify","extract","generate","analyze","code","translate","qa","plan","review","search","embed","transcribe","vision","custom"],
+          description: "Optional task category hint to improve candidate matching.",
+        },
+        policy: {
+          type: "object",
+          properties: {
+            maxPerCallUsd: { type: "number", description: "Maximum price per call in USD." },
+            requireAttestation: { type: "boolean", description: "Only use attested specialists." },
+            preferredPrivacyMode: { type: "string", enum: ["public","per","vanish"] },
+            minReputation: { type: "number", description: "Minimum on-chain reputation score." },
+          },
+        },
+      },
+      required: ["task"],
+    },
+  },
+  {
+    name: "invoke_specialist",
+    description:
+      "Execute a task against a specialist agent. Handles x402 payment negotiation automatically. Returns the specialist's response and a run receipt. Optionally targets a specific specialist by wallet address.",
+    parameters: {
+      type: "object",
+      properties: {
+        prompt: {
+          type: "string",
+          description: "The task prompt to send to the specialist.",
+        },
+        targetWallet: {
+          type: "string",
+          description: "Optional: target a specific specialist by wallet address. If omitted, the best candidate is selected automatically.",
+        },
+        policy: {
+          type: "object",
+          properties: {
+            maxPerCallUsd: { type: "number" },
+            requireAttestation: { type: "boolean" },
+            preferredPrivacyMode: { type: "string", enum: ["public","per","vanish"] },
+          },
+        },
+      },
+      required: ["prompt"],
+    },
+  },
+  {
+    name: "submit_quality_signal",
+    description:
+      "Rate a completed specialist call (1–10). Scores ≥3 trigger an on-chain blind reputation commit. Call this after invoke_specialist to contribute to specialist reputation.",
+    parameters: {
+      type: "object",
+      properties: {
+        runId: {
+          type: "string",
+          description: "The run ID returned by invoke_specialist.",
+        },
+        score: {
+          type: "number",
+          description: "Quality score from 1 (worst) to 10 (best).",
+          minimum: 1,
+          maximum: 10,
+        },
+        notes: {
+          type: "string",
+          description: "Optional notes about the result quality.",
+        },
+        agreesWithAttestation: {
+          type: "boolean",
+          description: "Whether the result matched your expectations given the specialist's attestation.",
+        },
+      },
+      required: ["runId", "score"],
+    },
+  },
+];
+
+// ── ElizaOS action manifest ───────────────────────────────────────────────────
+
+export const ELIZA_ACTION_MANIFEST = {
+  plugin: "@reddi/eliza-specialist-marketplace",
+  version: "1.0.0",
+  actions: [
+    {
+      name: "RESOLVE_SPECIALIST",
+      description: "Find the best specialist agent for a capability need.",
+      endpoint: "/api/planner/tools/resolve",
+      method: "POST",
+    },
+    {
+      name: "INVOKE_SPECIALIST",
+      description: "Hire and execute a specialist agent call with automatic x402 payment.",
+      endpoint: "/api/planner/tools/invoke",
+      method: "POST",
+    },
+    {
+      name: "SUBMIT_QUALITY_SIGNAL",
+      description: "Submit quality feedback for a completed specialist call.",
+      endpoint: "/api/planner/tools/signal",
+      method: "POST",
+    },
+  ],
+};

@@ -1,247 +1,285 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import seedAgents, { SeedAgent, formatLamportsUsd } from "@/lib/agents";
-import { useOnchainAgents, type OnchainAgentWithPda } from "@/lib/useOnchainAgents";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { TASK_TYPES, PRIVACY_MODES } from "@/lib/capabilities/taxonomy";
+import type { SpecialistListing } from "@/lib/registry/bridge";
 
-// ── helpers ──────────────────────────────────────────────────────────────────
+// ── helpers ───────────────────────────────────────────────────────────────────
 
-const agentTypeBadge: Record<string, string> = {
-  Primary: "bg-[#9945FF]/20 text-[#9945FF] border-[#9945FF]/30",
-  Specialist: "bg-[#14F195]/20 text-[#14F195] border-[#14F195]/30",
-};
-
-function taskTypeLabel(raw: string): string {
-  return raw.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+function shortWallet(w: string) {
+  if (!w || w.length < 12) return w;
+  return `${w.slice(0, 6)}…${w.slice(-4)}`;
 }
 
-// ── Seed Agent Card ───────────────────────────────────────────────────────────
+function healthColor(status: string) {
+  if (status === "pass") return "text-green-400 border-green-500/30 bg-green-500/10";
+  if (status === "fail") return "text-red-400 border-red-500/30 bg-red-500/10";
+  return "text-muted-foreground border-white/10 bg-white/5";
+}
 
-function SeedAgentCard({ agent }: { agent: SeedAgent }) {
-  const online = agent.available_by_default;
-  const typeCls = agentTypeBadge[agent.agent_type] ?? agentTypeBadge.Specialist;
+function healthLabel(status: string) {
+  if (status === "pass") return "● Online";
+  if (status === "fail") return "○ Offline";
+  return "○ Unknown";
+}
+
+function formatUsd(v: number) {
+  if (!v) return "free";
+  return `$${v.toFixed(4)}/call`;
+}
+
+// ── Specialist Card ───────────────────────────────────────────────────────────
+
+function SpecialistCard({ listing }: { listing: SpecialistListing }) {
+  const cap = listing.capabilities;
+  const model = listing.onchain.model || "Ollama";
+  const repScore = listing.onchain.reputationScore;
+  const feedbackScore = listing.signals.avgFeedbackScore;
+  const jobs = Number(listing.onchain.jobsCompleted);
 
   return (
-    <div data-testid="agent-card" className="rounded-xl border border-white/10 bg-card/30 hover:border-white/20 transition-all flex flex-col gap-3 p-4">
-      {/* Header */}
+    <Link
+      href={`/agents/${listing.walletAddress}`}
+      className="block rounded-xl border border-white/10 bg-card/30 hover:border-[#9945FF]/40 transition-all flex flex-col gap-3 p-4 cursor-pointer"
+    >
+      {/* Header row */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
-          <div>
-            <h3 className="font-semibold text-base">{agent.name}</h3>
-            <p className="text-xs text-muted-foreground italic">{agent.title}</p>
-            <p className="text-xs font-mono text-muted-foreground/60">{agent.handle}</p>
-          </div>
-          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{agent.specialty}</p>
-        </div>
-        {/* Availability badge */}
-        <span
-          className={`flex-shrink-0 text-xs font-medium px-2 py-0.5 rounded-full border ${
-            online
-              ? "text-green-400 border-green-500/30 bg-green-500/10"
-              : "text-muted-foreground border-white/10 bg-white/5"
-          }`}
-        >
-          {online ? "● Online" : "○ Offline"}
-        </span>
-      </div>
-
-      {/* Model + Provider */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <span className="font-mono text-xs px-2 py-0.5 rounded border border-white/10 bg-white/5 text-muted-foreground">
-          {agent.ollama_model}
-        </span>
-        <span
-          className="text-xs px-2 py-0.5 rounded border border-white/10 bg-white/5 text-muted-foreground"
-          title="Groq fallback enabled"
-        >
-          Ollama · Groq ↩
-        </span>
-        <Badge variant="outline" className={`text-xs ${typeCls}`}>
-          {agent.agent_type}
-        </Badge>
-      </div>
-
-      {/* Rate + Reputation + Jobs */}
-      <div className="flex items-center justify-between text-xs">
-        <span className="text-muted-foreground font-mono">
-          {formatLamportsUsd(agent.rate_lamports)}
-        </span>
-      </div>
-      <div className="flex items-center justify-between text-xs">
-        <span style={{ color: "#14F195" }}>
-          {"★".repeat(Math.round(agent.reputation_seed))}
-          <span className="text-muted-foreground ml-1">{agent.reputation_seed.toFixed(1)}</span>
-        </span>
-        <span className="text-muted-foreground">{agent.job_count_seed} jobs</span>
-      </div>
-
-      {/* Task type tags (first 3) */}
-      <div className="flex flex-wrap gap-1">
-        {agent.task_types.slice(0, 3).map((t) => (
-          <span
-            key={t}
-            className="text-xs px-2 py-0.5 rounded-full border border-white/10 bg-white/5 text-muted-foreground"
-          >
-            {taskTypeLabel(t)}
-          </span>
-        ))}
-        {agent.task_types.length > 3 && (
-          <span className="text-xs px-2 py-0.5 rounded-full border border-white/10 bg-white/5 text-muted-foreground">
-            +{agent.task_types.length - 3}
-          </span>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ── On-chain Agent Card ───────────────────────────────────────────────────────
-
-function OnchainAgentCard({ agent }: { agent: OnchainAgentWithPda }) {
-  const typeCls =
-    agent.agentType === "Primary"
-      ? "bg-[#9945FF]/20 text-[#9945FF] border-[#9945FF]/30"
-      : "bg-[#14F195]/20 text-[#14F195] border-[#14F195]/30";
-  const solRate = (Number(agent.rateLamports) / 1_000_000_000).toFixed(4);
-  const shortPda = `${agent.pda.slice(0, 4)}…${agent.pda.slice(-4)}`;
-
-  return (
-    <div data-testid="onchain-agent-card" className="rounded-xl border border-[#14F195]/30 bg-card/30 hover:border-[#14F195]/50 transition-all flex flex-col gap-3 p-4">
-      {/* Live badge */}
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-mono text-muted-foreground/60">{shortPda}</span>
-        <span className="text-xs px-2 py-0.5 rounded-full border border-[#14F195]/40 bg-[#14F195]/10 text-[#14F195]">
-          ⚡ Live on devnet
-        </span>
-      </div>
-
-      {/* Type + model */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <span className="font-mono text-xs px-2 py-0.5 rounded border border-white/10 bg-white/5 text-muted-foreground">
-          {agent.model || "unknown"}
-        </span>
-        <Badge variant="outline" className={`text-xs ${typeCls}`}>
-          {agent.agentType}
-        </Badge>
-      </div>
-
-      {/* Rate + reputation */}
-      <div className="flex items-center justify-between text-xs">
-        <span className="text-muted-foreground font-mono">{solRate} SOL / call</span>
-        <span style={{ color: "#14F195" }}>
-          rep {agent.reputationScore}
-          <span className="text-muted-foreground ml-1">· {Number(agent.jobsCompleted)} jobs</span>
-        </span>
-      </div>
-
-      {/* Owner */}
-      <p className="text-xs text-muted-foreground/60 font-mono truncate">
-        {agent.owner.slice(0, 8)}…{agent.owner.slice(-8)}
-      </p>
-    </div>
-  );
-}
-
-// ── Page ─────────────────────────────────────────────────────────────────────
-
-export default function AgentsPage() {
-  const [demoMode, setDemoMode] = useState(false);
-  const { agents: onchainAgents, loading: onchainLoading, error: onchainError } = useOnchainAgents();
-
-  const visibleAgents = demoMode
-    ? seedAgents.filter((a) => a.available_by_default)
-    : seedAgents;
-
-  const onlineCount = seedAgents.filter((a) => a.available_by_default).length;
-  const totalCount = seedAgents.length + onchainAgents.length;
-
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      {/* Page header */}
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Browse Specialists</h1>
-          <p className="text-muted-foreground mt-1">
-            {totalCount} agents registered ·{" "}
-            <span className="text-green-400">{onlineCount} online now</span>
-            {onchainAgents.length > 0 && (
-              <span className="text-[#14F195] ml-2">· {onchainAgents.length} live on-chain</span>
-            )}
-          </p>
-        </div>
-
-        {/* Demo mode toggle */}
-        <button
-          onClick={() => setDemoMode((v) => !v)}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
-            demoMode
-              ? "border-[#14F195]/50 bg-[#14F195]/10 text-[#14F195]"
-              : "border-white/10 bg-white/5 text-muted-foreground hover:border-white/30"
-          }`}
-        >
-          <span
-            className={`w-2 h-2 rounded-full ${demoMode ? "bg-[#14F195]" : "bg-muted-foreground"}`}
-          />
-          Demo mode
-        </button>
-      </div>
-
-      {/* Demo mode banner */}
-      {demoMode && (
-        <div className="mb-6 flex items-center justify-between gap-4 px-4 py-3 rounded-xl border border-[#14F195]/30 bg-[#14F195]/5 text-sm text-[#14F195]">
-          <span>
-            Demo mode — showing {visibleAgents.length} active specialists. Toggle to see all{" "}
-            {seedAgents.length}.
-          </span>
-          <button
-            onClick={() => setDemoMode(false)}
-            className="text-xs underline opacity-70 hover:opacity-100"
-          >
-            Show all
-          </button>
-        </div>
-      )}
-
-      {/* Live on-chain agents (devnet) */}
-      {!demoMode && (
-        <div className="mb-8">
-          <div className="flex items-center gap-2 mb-3">
-            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-              Live on devnet
-            </h2>
-            {onchainLoading && (
-              <span className="text-xs text-muted-foreground animate-pulse">fetching…</span>
-            )}
-          </div>
-          {onchainError && (
-            <p className="text-xs text-amber-400 mb-3">⚠️ Could not reach devnet: {onchainError}</p>
+          <p className="font-mono text-xs text-muted-foreground/60 truncate">{shortWallet(listing.walletAddress)}</p>
+          {model && (
+            <span className="mt-1 font-mono text-xs px-2 py-0.5 rounded border border-white/10 bg-white/5 text-muted-foreground inline-block">
+              {model}
+            </span>
           )}
-          {!onchainLoading && onchainAgents.length === 0 && !onchainError && (
-            <p className="text-xs text-muted-foreground">
-              No agents registered on devnet yet.{" "}
-              <a href="/register" className="text-[#14F195] hover:underline">Be the first →</a>
-            </p>
+        </div>
+        <div className="flex flex-col items-end gap-1">
+          <span className={`flex-shrink-0 text-xs font-medium px-2 py-0.5 rounded-full border ${healthColor(listing.health.status)}`}>
+            {healthLabel(listing.health.status)}
+          </span>
+          {listing.attestation.attested && (
+            <span className="text-xs font-medium px-2 py-0.5 rounded-full border border-[#14F195]/30 bg-[#14F195]/10 text-[#14F195]">
+              ✓ Attested
+            </span>
           )}
-          {onchainAgents.length > 0 && (
-            <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
-              {onchainAgents.map((agent) => (
-                <OnchainAgentCard key={agent.pda} agent={agent} />
-              ))}
-            </div>
+        </div>
+      </div>
+
+      {/* Task type badges */}
+      {cap && cap.taskTypes.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {cap.taskTypes.slice(0, 4).map((t) => (
+            <Badge
+              key={t}
+              variant="outline"
+              className="text-xs border-[#9945FF]/30 text-[#9945FF] bg-[#9945FF]/5"
+            >
+              {t}
+            </Badge>
+          ))}
+          {cap.taskTypes.length > 4 && (
+            <Badge variant="outline" className="text-xs border-white/10 text-muted-foreground">
+              +{cap.taskTypes.length - 4}
+            </Badge>
           )}
         </div>
       )}
 
-      {/* Seed agents */}
-      <div>
-        {!demoMode && <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">All Specialists</h2>}
-        <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
-          {visibleAgents.map((agent) => (
-            <SeedAgentCard key={agent.id} agent={agent} />
+      {/* Privacy modes */}
+      {cap && cap.privacyModes.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {cap.privacyModes.map((p) => (
+            <span key={p} className="text-xs px-1.5 py-0.5 rounded border border-white/10 bg-white/5 text-muted-foreground/70">
+              {p === "per" ? "🔒 PER" : p === "vanish" ? "👻 Vanish" : "🌐 Public"}
+            </span>
           ))}
         </div>
+      )}
+
+      {/* Metrics row */}
+      <div className="flex items-center justify-between text-xs text-muted-foreground border-t border-white/5 pt-2">
+        <span>
+          {repScore > 0 && <span className="mr-2">rep {repScore}</span>}
+          {feedbackScore > 0 && <span>★ {feedbackScore.toFixed(1)}</span>}
+          {jobs > 0 && <span className="ml-2">{jobs} jobs</span>}
+        </span>
+        <span className="font-mono text-[#14F195]">
+          {cap ? formatUsd(cap.perCallUsd) : "–"}
+        </span>
       </div>
+    </Link>
+  );
+}
+
+// ── Main page ─────────────────────────────────────────────────────────────────
+
+export default function AgentsPage() {
+  const [listings, setListings] = useState<SpecialistListing[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [onchainCount, setOnchainCount] = useState(0);
+  const [indexedCount, setIndexedCount] = useState(0);
+
+  // Filters
+  const [search, setSearch] = useState("");
+  const [filterTask, setFilterTask] = useState("");
+  const [filterPrivacy, setFilterPrivacy] = useState("");
+  const [filterAttested, setFilterAttested] = useState(false);
+  const [filterHealth, setFilterHealth] = useState(false);
+  const [sort, setSort] = useState("default");
+
+  const fetchListings = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = new URLSearchParams();
+      if (filterTask) params.set("taskType", filterTask);
+      if (filterPrivacy) params.set("privacyMode", filterPrivacy);
+      if (filterAttested) params.set("attested", "true");
+      if (filterHealth) params.set("health", "pass");
+      if (sort !== "default") params.set("sort", sort);
+
+      const res = await fetch(`/api/registry?${params.toString()}`);
+      const data = await res.json();
+      setListings(data.listings ?? []);
+      setOnchainCount(data.onchainCount ?? 0);
+      setIndexedCount(data.indexedCount ?? 0);
+      if (!data.ok && data.error) setError(data.error);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to load specialists");
+    } finally {
+      setLoading(false);
+    }
+  }, [filterTask, filterPrivacy, filterAttested, filterHealth, sort]);
+
+  useEffect(() => { fetchListings(); }, [fetchListings]);
+
+  // Client-side wallet/tag text search
+  const displayed = listings.filter((l) => {
+    if (!search.trim()) return true;
+    const q = search.toLowerCase();
+    return (
+      l.walletAddress.toLowerCase().includes(q) ||
+      l.capabilities?.taskTypes.some((t) => t.includes(q)) ||
+      l.capabilities?.tags?.some((t) => t.toLowerCase().includes(q)) ||
+      l.onchain.model?.toLowerCase().includes(q)
+    );
+  });
+
+  return (
+    <div className="max-w-6xl mx-auto px-4 py-12 space-y-8">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-3xl font-bold">Specialist Marketplace</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            {loading ? "Loading…" : `${displayed.length} specialist${displayed.length !== 1 ? "s" : ""}`}
+            {onchainCount > 0 && <span className="ml-2 text-muted-foreground/50">({onchainCount} on-chain)</span>}
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Link href="/onboarding">
+            <Button size="sm" style={{ background: "linear-gradient(135deg,#9945FF,#14F195)", color: "#000", fontWeight: 600 }}>
+              Register as specialist →
+            </Button>
+          </Link>
+          <Button size="sm" variant="outline" onClick={fetchListings} disabled={loading}>
+            {loading ? "…" : "↻ Refresh"}
+          </Button>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-wrap gap-3 items-center">
+        <Input
+          placeholder="Search wallet, model, tag…"
+          className="w-56"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+
+        <select
+          value={filterTask}
+          onChange={(e) => setFilterTask(e.target.value)}
+          className="text-sm rounded-md border border-white/15 bg-black/40 px-3 py-1.5 text-white"
+        >
+          <option value="">All task types</option>
+          {TASK_TYPES.map((t) => (
+            <option key={t.id} value={t.id}>{t.label}</option>
+          ))}
+        </select>
+
+        <select
+          value={filterPrivacy}
+          onChange={(e) => setFilterPrivacy(e.target.value)}
+          className="text-sm rounded-md border border-white/15 bg-black/40 px-3 py-1.5 text-white"
+        >
+          <option value="">All settlement types</option>
+          {PRIVACY_MODES.map((p) => (
+            <option key={p.id} value={p.id}>{p.label}</option>
+          ))}
+        </select>
+
+        <select
+          value={sort}
+          onChange={(e) => setSort(e.target.value)}
+          className="text-sm rounded-md border border-white/15 bg-black/40 px-3 py-1.5 text-white"
+        >
+          <option value="default">Sort: Best match</option>
+          <option value="reputation">Sort: Reputation</option>
+          <option value="feedback">Sort: Feedback score</option>
+          <option value="cost">Sort: Lowest cost</option>
+        </select>
+
+        <label className="flex items-center gap-1.5 text-sm text-muted-foreground cursor-pointer">
+          <input type="checkbox" checked={filterAttested} onChange={(e) => setFilterAttested(e.target.checked)} />
+          Attested only
+        </label>
+
+        <label className="flex items-center gap-1.5 text-sm text-muted-foreground cursor-pointer">
+          <input type="checkbox" checked={filterHealth} onChange={(e) => setFilterHealth(e.target.checked)} />
+          Online only
+        </label>
+      </div>
+
+      {/* Error banner */}
+      {error && (
+        <div className="rounded-lg border border-yellow-500/30 bg-yellow-950/20 text-yellow-300 text-xs px-4 py-2">
+          ⚠ RPC note: {error} — showing off-chain index results.
+        </div>
+      )}
+
+      {/* Grid */}
+      {loading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="rounded-xl border border-white/10 bg-white/5 h-40 animate-pulse" />
+          ))}
+        </div>
+      ) : displayed.length === 0 ? (
+        <div className="text-center py-20 text-muted-foreground space-y-3">
+          <p className="text-xl">No specialists found</p>
+          <p className="text-sm">
+            {indexedCount === 0
+              ? "No agents registered yet. Be the first!"
+              : "Try clearing filters or refreshing."}
+          </p>
+          <Link href="/onboarding">
+            <Button style={{ background: "linear-gradient(135deg,#9945FF,#14F195)", color: "#000" }}>
+              Register your agent →
+            </Button>
+          </Link>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {displayed.map((l) => (
+            <SpecialistCard key={l.pda || l.walletAddress} listing={l} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -6,7 +6,8 @@
   "scripts": {
     "fund": "ts-node src/fund-agents.ts",
     "register": "ts-node src/register-agents.ts",
-    "demo": "ts-node src/demo.ts"
+    "demo": "ts-node src/demo.ts",
+    "mint:init-helper": "ts-node src/mint-init-helper.ts"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.32.0",

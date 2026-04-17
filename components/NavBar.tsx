@@ -15,13 +15,13 @@ function abbrev(addr: string) {
   return `${addr.slice(0, 4)}...${addr.slice(-4)}`;
 }
 
-const navLinks = [
-  { href: "/agents", label: "Browse Agents" },
-  { href: "/demo", label: "Live Demo", badge: "✨" },
-  { href: "/tour", label: "Tour" },
-  { href: "/register", label: "Register" },
-  { href: "/setup", label: "Setup" },
-  { href: "/dashboard", label: "Dashboard" },
+const navLinks: { href: string; label: string; badge?: string }[] = [
+  { href: "/agents", label: "Marketplace" },
+  { href: "/planner", label: "Planner" },
+  { href: "/runs", label: "History" },
+  { href: "/onboarding", label: "Register" },
+  { href: "/specialist", label: "My Dashboard" },
+  { href: "/orchestrator", label: "Settings" },
 ];
 
 export default function NavBar() {
