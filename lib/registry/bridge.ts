@@ -25,7 +25,10 @@ import {
   decodeAgentAccount,
   type OnchainAgent,
 } from "@/lib/program";
-import type { SpecialistIndexEntry } from "@/lib/onboarding/specialist-index";
+import {
+  computeSpecialistRankingScore,
+  type SpecialistIndexEntry,
+} from "@/lib/onboarding/specialist-index";
 import type { TaskTypeId, InputModeId, OutputModeId, PrivacyModeId } from "@/lib/capabilities/taxonomy";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -67,6 +70,8 @@ export type SpecialistListing = {
     attestationAgreements: number;
     attestationDisagreements: number;
   };
+  /** Composite ranking signal for route sorting */
+  ranking_score: number;
 };
 
 // ── Base58 encode (no dep) ────────────────────────────────────────────────────
@@ -94,6 +99,9 @@ type AttestationRecord = {
   walletAddress?: string;
   wallet?: string;
   createdAt?: string;
+  recordedAt?: string;
+  txSignature?: string;
+  localOnly?: boolean;
   status?: string;
 };
 
@@ -182,6 +190,13 @@ export async function fetchSpecialistListings(): Promise<{
     const attestRecord = attestations.find((a) => (a.walletAddress ?? a.wallet) === wallet);
     const profile = profiles.find((p) => p.walletAddress === wallet);
 
+    const rankingScore = computeSpecialistRankingScore({
+      reputationScore: agent.reputationScore,
+      healthStreak: indexEntry?.health_streak ?? 0,
+      attested: attestRecord != null || indexEntry?.attested === true || agent.attestationAccuracy > 0,
+      feedbackAvg: indexEntry?.routingSignals?.avgFeedbackScore ?? 0,
+    });
+
     const cap = indexEntry?.capabilities;
     const capabilities = cap
       ? {
@@ -215,13 +230,14 @@ export async function fetchSpecialistListings(): Promise<{
               : indexEntry?.healthcheckStatus === "fail" ? "fail"
               : "unknown",
         endpointUrl: profile?.endpointUrl ?? indexEntry?.endpointUrl ?? null,
-        lastCheckedAt: profile?.lastHealthcheck ?? indexEntry?.updatedAt ?? null,
+        lastCheckedAt: profile?.lastHealthcheck ?? indexEntry?.last_seen_at ?? indexEntry?.updatedAt ?? null,
       },
       attestation: {
         attested: attestRecord != null || indexEntry?.attested === true || agent.attestationAccuracy > 0,
-        lastAttestedAt: attestRecord?.createdAt ?? null,
+        lastAttestedAt: attestRecord?.createdAt ?? attestRecord?.recordedAt ?? null,
       },
       signals,
+      ranking_score: rankingScore,
     };
   });
 
@@ -265,6 +281,12 @@ function normalizeArray<T extends string>(raw: any): T[] {
 
 function buildFromIndexOnly(entry: SpecialistIndexEntry): SpecialistListing {
   const cap = entry.capabilities;
+  const rankingScore = computeSpecialistRankingScore({
+    reputationScore: entry.reputation_score ?? 0,
+    healthStreak: entry.health_streak ?? 0,
+    attested: entry.attested === true,
+    feedbackAvg: entry.routingSignals?.avgFeedbackScore ?? 0,
+  });
   return {
     pda: "",
     walletAddress: entry.walletAddress,
@@ -298,7 +320,7 @@ function buildFromIndexOnly(entry: SpecialistIndexEntry): SpecialistListing {
             : entry.healthcheckStatus === "fail" ? "fail"
             : "unknown",
       endpointUrl: entry.endpointUrl ?? null,
-      lastCheckedAt: entry.updatedAt ?? null,
+      lastCheckedAt: entry.last_seen_at ?? entry.updatedAt ?? null,
     },
     attestation: {
       attested: entry.attested === true,
@@ -310,5 +332,6 @@ function buildFromIndexOnly(entry: SpecialistIndexEntry): SpecialistListing {
       attestationAgreements: 0,
       attestationDisagreements: 0,
     },
+    ranking_score: rankingScore,
   };
 }

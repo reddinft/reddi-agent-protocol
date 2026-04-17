@@ -1,13 +1,21 @@
 import { runSpecialistHealthcheck } from "@/lib/onboarding/healthcheck";
+import { updateSpecialistHealthcheck } from "@/lib/onboarding/specialist-index";
 
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
+    const walletAddress = String(body.walletAddress || "");
+    const endpointUrl = String(body.endpointUrl || "");
     const result = await runSpecialistHealthcheck({
-      endpointUrl: String(body.endpointUrl || ""),
-      walletAddress: String(body.walletAddress || ""),
+      endpointUrl,
+      walletAddress,
+    });
+
+    updateSpecialistHealthcheck(walletAddress, {
+      endpointUrl,
+      healthcheckStatus: result.status === "pass" ? "pass" : "fail",
     });
 
     return Response.json({ ok: true, result });

@@ -11,7 +11,7 @@ export const runtime = "nodejs";
  *   privacyMode — filter by privacy mode ID
  *   attested   — "true" to require attestation
  *   health     — "pass" to require health pass
- *   sort       — "reputation" | "cost" | "feedback" (default: default bridge sort)
+ *   sortBy    — "ranking" | "reputation" | "cost" | "feedback" (default: default bridge sort)
  */
 export async function GET(req: Request) {
   try {
@@ -21,7 +21,7 @@ export async function GET(req: Request) {
     const filterPrivacyMode = searchParams.get("privacyMode");
     const filterAttested = searchParams.get("attested") === "true";
     const filterHealth = searchParams.get("health");
-    const sort = searchParams.get("sort") ?? "default";
+    const sort = searchParams.get("sortBy") ?? searchParams.get("sort") ?? "default";
 
     const { ok, listings, onchainCount, indexedCount, error } =
       await fetchSpecialistListings();
@@ -50,7 +50,9 @@ export async function GET(req: Request) {
       results = results.filter((l) => l.health.status === "pass");
     }
 
-    if (sort === "reputation") {
+    if (sort === "ranking") {
+      results = [...results].sort((a, b) => b.ranking_score - a.ranking_score);
+    } else if (sort === "reputation") {
       results = [...results].sort(
         (a, b) => b.onchain.reputationScore - a.onchain.reputationScore
       );

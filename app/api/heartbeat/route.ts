@@ -9,9 +9,12 @@
  *
  * Returns: updated health states for all specialists polled.
  */
-import { readFileSync, mkdirSync, writeFileSync } from "fs";
+import { readFileSync } from "fs";
 import { join } from "path";
-import type { SpecialistIndexEntry } from "@/lib/onboarding/specialist-index";
+import {
+  updateSpecialistHealthcheck,
+  type SpecialistIndexEntry,
+} from "@/lib/onboarding/specialist-index";
 
 export const runtime = "nodejs";
 
@@ -21,11 +24,6 @@ function readIndex(): SpecialistIndexEntry[] {
   try {
     return JSON.parse(readFileSync(INDEX_PATH, "utf8")) as SpecialistIndexEntry[];
   } catch { return []; }
-}
-
-function writeIndex(records: SpecialistIndexEntry[]) {
-  mkdirSync(join(process.cwd(), "data", "onboarding"), { recursive: true });
-  writeFileSync(INDEX_PATH, JSON.stringify(records, null, 2));
 }
 
 type HealthPollResult = {
@@ -86,12 +84,12 @@ export async function POST(req: Request) {
       const newStatus: "pass" | "fail" = probe.ok ? "pass" : "fail";
       const previousStatus = entry.healthcheckStatus ?? "unknown";
 
-      // Update index
-      const idx = records.findIndex((r) => r.walletAddress === entry.walletAddress);
-      if (idx >= 0) {
-        records[idx].healthcheckStatus = newStatus;
-        records[idx].updatedAt = new Date().toISOString();
-      }
+      updateSpecialistHealthcheck(entry.walletAddress, {
+        endpointUrl: entry.endpointUrl,
+        healthcheckStatus: newStatus,
+        attested: entry.attested,
+        reputationScore: entry.reputation_score,
+      });
 
       results.push({
         walletAddress: entry.walletAddress,
@@ -102,8 +100,6 @@ export async function POST(req: Request) {
         error: probe.error,
       });
     }
-
-    writeIndex(records);
 
     const passed = results.filter((r) => r.newStatus === "pass").length;
     const failed = results.filter((r) => r.newStatus === "fail").length;

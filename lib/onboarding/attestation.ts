@@ -8,15 +8,24 @@ export type RecordAttestationInput = {
   endpointUrl: string;
   healthcheckStatus: "pending" | "pass" | "fail";
   operator: string;
+  jobIdHex?: string;
+  txSignature?: string;
+  operatorPubkeySuffix?: string;
+  localOnly?: boolean;
 };
 
 export type AttestationRecord = {
   id: string;
   recordedAt: string;
+  createdAt: string;
   walletAddress: string;
   endpointUrl: string;
   operator: string;
-  source: "onboarding-wizard";
+  operatorPubkeySuffix?: string;
+  jobIdHex?: string;
+  txSignature?: string;
+  localOnly: boolean;
+  source: "onboarding-wizard" | "onchain-attestation";
 };
 
 const ATTESTATION_PATH = join(process.cwd(), "data", "onboarding", "attestations.json");
@@ -45,13 +54,19 @@ export function recordAttestation(input: RecordAttestationInput) {
     throw new Error("Valid endpoint URL is required for attestation.");
   }
 
+  const recordedAt = new Date().toISOString();
   const record: AttestationRecord = {
     id: `att_${Date.now().toString(36)}`,
-    recordedAt: new Date().toISOString(),
+    recordedAt,
+    createdAt: recordedAt,
     walletAddress: input.walletAddress,
     endpointUrl: input.endpointUrl,
     operator: input.operator || "operator-unknown",
-    source: "onboarding-wizard",
+    operatorPubkeySuffix: input.operatorPubkeySuffix,
+    jobIdHex: input.jobIdHex,
+    txSignature: input.txSignature,
+    localOnly: input.localOnly ?? !input.txSignature,
+    source: input.txSignature ? "onchain-attestation" : "onboarding-wizard",
   };
 
   const existing = readAll();

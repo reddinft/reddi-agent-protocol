@@ -31,6 +31,10 @@ export async function POST(req: Request) {
       endpointUrl: String(body.endpointUrl || ""),
       healthcheckStatus,
       operator: String(body.operator || "wizard-operator"),
+      jobIdHex: onchain.jobIdHex,
+      txSignature: onchain.signature,
+      operatorPubkeySuffix: onchain.operator.slice(-8),
+      localOnly: false,
     });
 
     return Response.json({

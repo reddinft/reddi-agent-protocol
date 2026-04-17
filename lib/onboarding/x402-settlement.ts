@@ -12,21 +12,37 @@ import "server-only";
  * 2. Calls sendPayment() to produce a signed receipt.
  * 3. Returns the receipt as a JSON string to embed in the `x402-payment`
  *    retry header.
- *
- * NOTE: sendPayment() in @reddi/x402-solana is currently a stub (Phase 1).
- * It returns a structurally valid receipt with a mock tx signature.
- * Phase 2 wiring (real Solana keypair + RPC send) is tracked in:
- *   packages/x402-solana/src/payment.ts#sendPayment
- * The orchestration architecture here is correct and production-ready.
  */
 
-import { parseX402Header } from "@/packages/x402-solana/src/payment";
-import { sendPayment } from "@/packages/x402-solana/src/payment";
-import type { PaymentReceipt } from "@/packages/x402-solana/src/types";
+import {
+  JupiterSwapV2Client,
+  parseX402Header,
+  sendPayment,
+  type PaymentReceipt,
+  type X402Request,
+} from "@reddi/x402-solana";
+
+export type X402ChallengeMetadata = {
+  swap_used: boolean;
+  orderId?: string;
+  executeId?: string;
+};
 
 export type X402ChallengeResult =
-  | { ok: true; receiptHeader: string; receipt: PaymentReceipt; trace: string[] }
-  | { ok: false; error: string; trace: string[] };
+  | {
+      ok: true;
+      receiptHeader: string;
+      receipt: PaymentReceipt;
+      trace: string[];
+      metadata: X402ChallengeMetadata;
+    }
+  | { ok: false; error: string; trace: string[]; metadata: X402ChallengeMetadata };
+
+export function getJupiterSwapClient() {
+  const apiBase = process.env.JUPITER_API_BASE?.trim() || "https://api.jup.ag";
+  if (!apiBase) return undefined;
+  return new JupiterSwapV2Client({ apiBaseUrl: apiBase });
+}
 
 /**
  * Process a 402 challenge from a specialist endpoint.
@@ -47,12 +63,13 @@ export async function processX402Challenge(
       ok: false,
       error: "Specialist returned 402 but no x402-request header found.",
       trace,
+      metadata: { swap_used: false },
     };
   }
 
   trace.push("x402:challenge_header_found");
 
-  let parsed;
+  let parsed: X402Request;
   try {
     parsed = parseX402Header(raw);
     trace.push(`x402:parsed:amount=${parsed.amount}:currency=${parsed.currency}`);
@@ -62,18 +79,30 @@ export async function processX402Challenge(
       ok: false,
       error: `Failed to parse x402-request header: ${err instanceof Error ? err.message : String(err)}`,
       trace,
+      metadata: { swap_used: false },
     };
   }
 
+  const swapClient = getJupiterSwapClient();
+  if (swapClient) {
+    trace.push(`x402:jupiter_enabled:${process.env.JUPITER_API_BASE?.trim() || "https://api.jup.ag"}`);
+  }
+
   // Inject payer hint if not already present
-  const enriched = {
+  const enriched: X402Request = {
     ...parsed,
     payerAddress: parsed.payerAddress ?? orchestratorWallet,
   };
 
+  const slippageCandidate = Number(process.env.JUPITER_SLIPPAGE_BPS ?? 50);
+  const slippageBps = Number.isFinite(slippageCandidate) ? slippageCandidate : 50;
+
   let receipt: PaymentReceipt;
   try {
-    receipt = await sendPayment(enriched);
+    receipt = await sendPayment(enriched, {
+      swapClient,
+      slippageBps,
+    });
     trace.push(`x402:payment_sent:tx=${receipt.txSignature}:slot=${receipt.slot}`);
   } catch (err) {
     trace.push("x402:payment_send_error");
@@ -81,7 +110,20 @@ export async function processX402Challenge(
       ok: false,
       error: `x402 sendPayment failed: ${err instanceof Error ? err.message : String(err)}`,
       trace,
+      metadata: { swap_used: false },
     };
+  }
+
+  const metadata: X402ChallengeMetadata = receipt.swap?.performed
+    ? {
+        swap_used: true,
+        orderId: receipt.swap.orderId,
+        executeId: receipt.swap.executeId,
+      }
+    : { swap_used: false };
+
+  if (metadata.swap_used) {
+    trace.push(`x402:swap_used:order=${metadata.orderId}:execute=${metadata.executeId}`);
   }
 
   return {
@@ -89,5 +131,6 @@ export async function processX402Challenge(
     receiptHeader: JSON.stringify(receipt),
     receipt,
     trace,
+    metadata,
   };
 }

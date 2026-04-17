@@ -19,7 +19,9 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@reddi/x402-solana": ["./packages/x402-solana/src/index.ts"],
+      "@reddi/x402-solana/*": ["./packages/x402-solana/src/*"]
     }
   },
   "include": [
