@@ -50,6 +50,7 @@ export async function POST(req: Request) {
     const jupiterClient = getJupiterClient();
     const result = await executePlannerSpecialistCall({
       prompt: body.prompt,
+      consumerWallet: body.consumerWallet,
       swapClient: jupiterClient ?? undefined,
       slippageBps: getJupiterSlippageBps(),
       policy: {

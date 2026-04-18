@@ -22,6 +22,8 @@ import {
   type SwapClient,
   type X402Request,
 } from "@reddi/x402-solana";
+import { emitTorqueEvent } from "@/lib/torque/client";
+import { TORQUE_EVENTS } from "@/lib/torque/events";
 
 export type X402ChallengeMetadata = {
   swap_used: boolean;
@@ -132,6 +134,17 @@ export async function processX402Challenge(
   if (metadata.swap_used) {
     trace.push(`x402:swap_used:order=${metadata.orderId}:execute=${metadata.executeId}`);
   }
+
+  void emitTorqueEvent({
+    userPubkey: enriched.paymentAddress,
+    eventName: TORQUE_EVENTS.SPECIALIST_JOB_COMPLETED,
+    fields: {
+      jobId: enriched.nonce,
+      lamports: enriched.amount,
+      txSignature: receipt.txSignature,
+      settlementMode: receipt.swap?.performed ? "swap" : "direct",
+    },
+  });
 
   return {
     ok: true,

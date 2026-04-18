@@ -19,6 +19,8 @@ import { createHash, randomBytes } from "crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 import { DEVNET_RPC, ESCROW_PROGRAM_ID, RATING_SEED, AGENT_SEED, IX } from "@/lib/program";
+import { emitTorqueEvent } from "@/lib/torque/client";
+import { TORQUE_EVENTS } from "@/lib/torque/events";
 
 // ── Commitment store ──────────────────────────────────────────────────────────
 // Persists salt + score for later reveal. Keyed by runId.
@@ -233,6 +235,16 @@ export async function commitReputationRating(
     const commits = readCommits();
     commits.push(entry);
     writeCommits(commits);
+
+    void emitTorqueEvent({
+      userPubkey: operator.publicKey.toBase58(),
+      eventName: TORQUE_EVENTS.RATING_SUBMITTED,
+      fields: {
+        jobId: Buffer.from(jobId).toString("hex"),
+        score,
+        txSignature: sig,
+      },
+    });
 
     return { ok: true, commitHash: commitHashHex, txSignature: sig, ratingPda: rPda.toBase58(), trace };
   } catch (err) {
