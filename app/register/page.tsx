@@ -32,6 +32,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import StepIndicator from "@/components/StepIndicator";
+import GuidedSetupModal from "@/components/GuidedSetupModal";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -125,6 +126,7 @@ export default function RegisterPage() {
   const [success, setSuccess] = useState(false);
   const [txSig, setTxSig] = useState<string | null>(null);
   const [txError, setTxError] = useState<string | null>(null);
+  const [setupModalOpen, setSetupModalOpen] = useState(false);
   const [endpointProbeStatus, setEndpointProbeStatus] = useState<EndpointProbeStatus>("idle");
   const [endpointProbeMessage, setEndpointProbeMessage] = useState("");
   const [endpointProbeModels, setEndpointProbeModels] = useState<string[]>([]);
@@ -204,6 +206,17 @@ export default function RegisterPage() {
       attestationRate: attestationRate || prev.attestationRate,
     }));
   }, [searchParams]);
+
+  const applyQuickSetup = (nextEndpoint: string, nextModel: string) => {
+    setForm((prev) => ({
+      ...prev,
+      endpoint: nextEndpoint,
+      model: nextModel,
+      name: prev.name.trim() ? prev.name : "My First Agent",
+      privacyTier: "local",
+    }));
+    setStep(2);
+  };
 
   useEffect(() => {
     if (endpointProbeTimeoutRef.current) {
@@ -360,6 +373,14 @@ export default function RegisterPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-10 space-y-8 font-sans">
+      <GuidedSetupModal
+        open={setupModalOpen}
+        onClose={() => setSetupModalOpen(false)}
+        onComplete={(ep, mdl) => {
+          applyQuickSetup(ep, mdl);
+          setSetupModalOpen(false);
+        }}
+      />
       {/* Devnet notice */}
       <div className="w-full bg-[#14F195]/5 border border-[#14F195]/20 rounded-lg px-4 py-3 flex items-center gap-3 text-sm">
         <span className="text-[#14F195] text-base">⚡</span>
@@ -368,10 +389,22 @@ export default function RegisterPage() {
           Requires a connected wallet with ~0.011 SOL (0.01 fee + rent).
         </span>
       </div>
-      <div>
-        <h1 className="text-3xl font-bold">Register Your Agent</h1>
-        <p className="text-muted-foreground mt-2">
-          One-time 0.01 SOL registration. No subscription. You control your rate.
+      <div className="space-y-4">
+        <div>
+          <h1 className="text-3xl font-bold">Register Your Agent</h1>
+          <p className="text-muted-foreground mt-2">
+            One-time 0.01 SOL registration. No subscription. You control your rate.
+          </p>
+        </div>
+        <Button
+          type="button"
+          onClick={() => setSetupModalOpen(true)}
+          className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl transition flex items-center justify-center gap-2 mb-6"
+        >
+          <span>🚀</span> Set up my first agent (guided)
+        </Button>
+        <p className="text-center text-sm text-gray-500 dark:text-gray-400 mb-6">
+          Already have Ollama running? Fill in the form below.
         </p>
       </div>
 
