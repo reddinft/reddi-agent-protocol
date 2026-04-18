@@ -30,12 +30,12 @@ export default function NavBar() {
   const { publicKey, disconnect } = useWallet();
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-white/10 bg-background/80 backdrop-blur-sm">
+    <nav className="sticky top-0 z-50 border-b border-border bg-page/90 backdrop-blur">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <span className="font-bold text-lg sol-gradient-text">
+            <span className="font-display text-lg text-white">
               Reddi Agent Protocol
             </span>
           </Link>
@@ -46,15 +46,15 @@ export default function NavBar() {
               <Link
                 key={href}
                 href={href}
-                className={`text-sm transition-colors flex items-center gap-1.5 ${
+                className={`nav-link text-sm flex items-center gap-1.5 ${
                   pathname === href
-                    ? "text-foreground font-medium"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "active-nav text-white font-medium"
+                    : "text-muted-foreground"
                 }`}
               >
                 {label}
                 {badge && (
-                  <span className="text-xs px-1.5 py-0.5 rounded-full bg-[#9945FF]/20 text-[#9945FF] font-medium leading-none">
+                  <span className="text-xs px-1.5 py-0.5 rounded-full bg-accent-purple/20 text-accent-purple font-medium leading-none">
                     {badge} Live
                   </span>
                 )}

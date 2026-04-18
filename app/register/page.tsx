@@ -19,6 +19,8 @@ import {
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import LinkButton from "@/components/LinkButton";
+import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/ui/page-header";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -317,7 +319,7 @@ export default function RegisterPage() {
 
   if (success) {
     return (
-      <div className="max-w-xl mx-auto px-4 py-16 text-center space-y-6">
+      <div className="max-w-xl mx-auto px-4 py-16 text-center space-y-6 bg-page">
         <div className="text-5xl">{txError ? "⚠️" : "🎉"}</div>
         <h1 className="text-3xl font-bold sol-gradient-text">
           {txError ? "Transaction failed." : "Your agent is live."}
@@ -335,7 +337,7 @@ export default function RegisterPage() {
           </div>
         )}
         {txSig && (
-          <div className="p-4 rounded-lg border border-white/10 bg-card/30 text-left">
+          <div className="p-4 rounded-lg border border-border bg-surface/80 text-left">
             <p className="text-xs text-muted-foreground mb-1">
               {txError ? "Transaction (simulated)" : "Transaction"}
             </p>
@@ -354,7 +356,7 @@ export default function RegisterPage() {
           </div>
         )}
         {form.endpoint && (
-          <div className="p-4 rounded-lg border border-white/10 bg-card/30 text-left">
+          <div className="p-4 rounded-lg border border-border bg-surface/80 text-left">
             <p className="text-xs text-muted-foreground mb-1">Your endpoint</p>
             <p className="font-mono text-sm text-foreground">{form.endpoint}</p>
           </div>
@@ -372,7 +374,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-10 space-y-8 font-sans">
+    <div className="max-w-2xl mx-auto px-4 py-10 space-y-8 bg-page font-sans">
       <GuidedSetupModal
         open={setupModalOpen}
         onClose={() => setSetupModalOpen(false)}
@@ -382,20 +384,19 @@ export default function RegisterPage() {
         }}
       />
       {/* Devnet notice */}
-      <div className="w-full bg-[#14F195]/5 border border-[#14F195]/20 rounded-lg px-4 py-3 flex items-center gap-3 text-sm">
-        <span className="text-[#14F195] text-base">⚡</span>
+      <Card className="flex items-center gap-3 p-4 text-sm border-accent-green/20 bg-accent-green/10">
+        <span className="text-accent-green text-base">⚡</span>
         <span className="text-muted-foreground">
-          <span className="font-semibold text-[#14F195]">Devnet</span> — registration submits a real on-chain transaction.
+          <span className="font-semibold text-accent-green">Devnet</span> — registration submits a real on-chain transaction.
           Requires a connected wallet with ~0.011 SOL (0.01 fee + rent).
         </span>
-      </div>
+      </Card>
+      <PageHeader
+        label="Registration"
+        title="Register Your Agent"
+        subtitle="One-time 0.01 SOL registration. No subscription. You control your rate."
+      />
       <div className="space-y-4">
-        <div>
-          <h1 className="text-3xl font-bold">Register Your Agent</h1>
-          <p className="text-muted-foreground mt-2">
-            One-time 0.01 SOL registration. No subscription. You control your rate.
-          </p>
-        </div>
         <Button
           type="button"
           onClick={() => setSetupModalOpen(true)}
@@ -432,7 +433,7 @@ export default function RegisterPage() {
 
       {/* Step 1: Connect */}
       {step === 1 && (
-        <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm space-y-4">
+        <div className="rounded-2xl border border-border bg-surface/80 p-6 shadow-card space-y-4">
           <h2 className="text-lg font-semibold">Connect Your Wallet</h2>
           <p className="text-sm text-muted-foreground">
             Your wallet address becomes the owner keypair for your agent PDA.
@@ -479,7 +480,7 @@ export default function RegisterPage() {
 
       {/* Step 2: Fill details */}
       {step === 2 && (
-        <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm space-y-5 font-sans">
+        <div className="rounded-2xl border border-border bg-surface/80 p-6 shadow-card space-y-4">
           <h2 className="text-lg font-semibold">Agent Details</h2>
 
           <div className="space-y-5">
@@ -823,7 +824,7 @@ export default function RegisterPage() {
       )}
       {/* Step 3: Review & confirm */}
       {step === 3 && (
-        <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm space-y-5 font-sans">
+        <div className="rounded-2xl border border-border bg-surface/80 p-6 shadow-card space-y-4">
           <h2 className="text-lg font-semibold">Review & Confirm</h2>
 
           {/* Summary */}

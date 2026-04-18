@@ -4,7 +4,10 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { PageHeader } from "@/components/ui/page-header";
+import { StatsBar } from "@/components/ui/stats-bar";
 import { TASK_TYPES, PRIVACY_MODES } from "@/lib/capabilities/taxonomy";
 import type { SpecialistListing } from "@/lib/registry/bridge";
 
@@ -42,74 +45,65 @@ function SpecialistCard({ listing }: { listing: SpecialistListing }) {
   const jobs = Number(listing.onchain.jobsCompleted);
 
   return (
-    <Link
-      href={`/agents/${listing.walletAddress}`}
-      className="block rounded-xl border border-white/10 bg-card/30 hover:border-[#9945FF]/40 transition-all flex flex-col gap-3 p-4 cursor-pointer"
-    >
-      {/* Header row */}
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 min-w-0">
-          <p className="font-mono text-xs text-muted-foreground/60 truncate">{shortWallet(listing.walletAddress)}</p>
-          {model && (
-            <span className="mt-1 font-mono text-xs px-2 py-0.5 rounded border border-white/10 bg-white/5 text-muted-foreground inline-block">
-              {model}
-            </span>
-          )}
+    <Link href={`/agents/${listing.walletAddress}`} className="block">
+      <Card hover className="flex h-full flex-col gap-3 p-4">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <p className="font-mono text-xs text-muted-foreground/60 truncate">{shortWallet(listing.walletAddress)}</p>
+            {model && (
+              <span className="mt-1 inline-block rounded border border-border bg-muted/40 px-2 py-0.5 font-mono text-xs text-muted-foreground">
+                {model}
+              </span>
+            )}
+          </div>
+          <div className="flex flex-col items-end gap-1">
+            <Badge variant="outline" className={`border ${healthColor(listing.health.status)}`}>
+              {healthLabel(listing.health.status)}
+            </Badge>
+            {listing.attestation.attested && (
+              <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-300">
+                ✓ Attested
+              </Badge>
+            )}
+          </div>
         </div>
-        <div className="flex flex-col items-end gap-1">
-          <span className={`flex-shrink-0 text-xs font-medium px-2 py-0.5 rounded-full border ${healthColor(listing.health.status)}`}>
-            {healthLabel(listing.health.status)}
+
+        {cap && cap.taskTypes.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {cap.taskTypes.slice(0, 4).map((t) => (
+              <Badge key={t} variant="outline" className="border-accent-purple/30 bg-accent-purple/10 text-accent-purple">
+                {t}
+              </Badge>
+            ))}
+            {cap.taskTypes.length > 4 && (
+              <Badge variant="outline" className="border-border text-muted-foreground">
+                +{cap.taskTypes.length - 4}
+              </Badge>
+            )}
+          </div>
+        )}
+
+        {cap && cap.privacyModes.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {cap.privacyModes.map((p) => (
+              <span key={p} className="rounded border border-border bg-muted/40 px-1.5 py-0.5 text-xs text-muted-foreground/70">
+                {p === "per" ? "🔒 PER" : p === "vanish" ? "👻 Vanish" : "🌐 Public"}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <div className="flex items-center justify-between border-t border-border/60 pt-2 text-xs text-muted-foreground">
+          <span>
+            {repScore > 0 && <span className="mr-2">rep {repScore}</span>}
+            {feedbackScore > 0 && <span>★ {feedbackScore.toFixed(1)}</span>}
+            {jobs > 0 && <span className="ml-2">{jobs} jobs</span>}
           </span>
-          {listing.attestation.attested && (
-            <span className="text-xs font-medium px-2 py-0.5 rounded-full border border-[#14F195]/30 bg-[#14F195]/10 text-[#14F195]">
-              ✓ Attested
-            </span>
-          )}
+          <span className="font-mono text-emerald-300">
+            {cap ? formatUsd(cap.perCallUsd) : "–"}
+          </span>
         </div>
-      </div>
-
-      {/* Task type badges */}
-      {cap && cap.taskTypes.length > 0 && (
-        <div className="flex flex-wrap gap-1">
-          {cap.taskTypes.slice(0, 4).map((t) => (
-            <Badge
-              key={t}
-              variant="outline"
-              className="text-xs border-[#9945FF]/30 text-[#9945FF] bg-[#9945FF]/5"
-            >
-              {t}
-            </Badge>
-          ))}
-          {cap.taskTypes.length > 4 && (
-            <Badge variant="outline" className="text-xs border-white/10 text-muted-foreground">
-              +{cap.taskTypes.length - 4}
-            </Badge>
-          )}
-        </div>
-      )}
-
-      {/* Privacy modes */}
-      {cap && cap.privacyModes.length > 0 && (
-        <div className="flex flex-wrap gap-1">
-          {cap.privacyModes.map((p) => (
-            <span key={p} className="text-xs px-1.5 py-0.5 rounded border border-white/10 bg-white/5 text-muted-foreground/70">
-              {p === "per" ? "🔒 PER" : p === "vanish" ? "👻 Vanish" : "🌐 Public"}
-            </span>
-          ))}
-        </div>
-      )}
-
-      {/* Metrics row */}
-      <div className="flex items-center justify-between text-xs text-muted-foreground border-t border-white/5 pt-2">
-        <span>
-          {repScore > 0 && <span className="mr-2">rep {repScore}</span>}
-          {feedbackScore > 0 && <span>★ {feedbackScore.toFixed(1)}</span>}
-          {jobs > 0 && <span className="ml-2">{jobs} jobs</span>}
-        </span>
-        <span className="font-mono text-[#14F195]">
-          {cap ? formatUsd(cap.perCallUsd) : "–"}
-        </span>
-      </div>
+      </Card>
     </Link>
   );
 }
@@ -170,33 +164,35 @@ export default function AgentsPage() {
   });
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-12 space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-3xl font-bold">Specialist Marketplace</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {loading ? "Loading…" : `${displayed.length} specialist${displayed.length !== 1 ? "s" : ""}`}
-            {onchainCount > 0 && <span className="ml-2 text-muted-foreground/50">({onchainCount} on-chain)</span>}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Link href="/onboarding">
-            <Button size="sm" style={{ background: "linear-gradient(135deg,#9945FF,#14F195)", color: "#000", fontWeight: 600 }}>
-              Register as specialist →
+    <div className="max-w-6xl mx-auto px-4 py-12 space-y-8 bg-page">
+      <PageHeader
+        label="Marketplace"
+        title="Specialist Marketplace"
+        subtitle={`${loading ? "Loading…" : `${displayed.length} specialist${displayed.length !== 1 ? "s" : ""}`}${onchainCount > 0 ? ` (${onchainCount} on-chain)` : ""}`}
+        actions={
+          <>
+            <Link href="/onboarding">
+              <Button size="sm">Register as specialist →</Button>
+            </Link>
+            <Button size="sm" variant="outline" onClick={fetchListings} disabled={loading}>
+              {loading ? "…" : "↻ Refresh"}
             </Button>
-          </Link>
-          <Button size="sm" variant="outline" onClick={fetchListings} disabled={loading}>
-            {loading ? "…" : "↻ Refresh"}
-          </Button>
-        </div>
-      </div>
+          </>
+        }
+      />
+      <StatsBar
+        stats={[
+          { label: "Shown", value: displayed.length },
+          { label: "On-chain", value: onchainCount },
+          { label: "Indexed", value: indexedCount },
+        ]}
+      />
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3 items-center">
         <Input
           placeholder="Search wallet, model, tag…"
-          className="w-56"
+          className="w-56 bg-surface"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -204,7 +200,7 @@ export default function AgentsPage() {
         <select
           value={filterTask}
           onChange={(e) => setFilterTask(e.target.value)}
-          className="text-sm rounded-md border border-white/15 bg-black/40 px-3 py-1.5 text-white"
+          className="text-sm rounded-md border border-border bg-surface/80 px-3 py-1.5 text-white"
         >
           <option value="">All task types</option>
           {TASK_TYPES.map((t) => (
@@ -215,7 +211,7 @@ export default function AgentsPage() {
         <select
           value={filterPrivacy}
           onChange={(e) => setFilterPrivacy(e.target.value)}
-          className="text-sm rounded-md border border-white/15 bg-black/40 px-3 py-1.5 text-white"
+          className="text-sm rounded-md border border-border bg-surface/80 px-3 py-1.5 text-white"
         >
           <option value="">All settlement types</option>
           {PRIVACY_MODES.map((p) => (
@@ -226,7 +222,7 @@ export default function AgentsPage() {
         <select
           value={sort}
           onChange={(e) => setSort(e.target.value)}
-          className="text-sm rounded-md border border-white/15 bg-black/40 px-3 py-1.5 text-white"
+          className="text-sm rounded-md border border-border bg-surface/80 px-3 py-1.5 text-white"
         >
           <option value="default">Sort: Best match</option>
           <option value="reputation">Sort: Reputation</option>
