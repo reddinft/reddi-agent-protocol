@@ -8,6 +8,7 @@
 import { executePlannerSpecialistCall } from "@/lib/onboarding/planner-execution";
 import { readPolicy } from "@/lib/orchestrator/policy";
 import { recordSpend } from "@/lib/orchestrator/policy";
+import { getJupiterClient, getJupiterSlippageBps } from "@/lib/jupiter-client";
 import type { InvokeInput, InvokeOutput } from "@/lib/mcp/tools";
 
 export const runtime = "nodejs";
@@ -46,8 +47,11 @@ export async function POST(req: Request) {
     }
 
     const policyOverride = body.policy ?? {};
+    const jupiterClient = getJupiterClient();
     const result = await executePlannerSpecialistCall({
       prompt: body.prompt,
+      swapClient: jupiterClient ?? undefined,
+      slippageBps: getJupiterSlippageBps(),
       policy: {
         requiredPrivacyMode:
           (policyOverride.preferredPrivacyMode ?? savedPolicy.preferredPrivacyMode) as "public" | "per" | "vanish" | undefined,
