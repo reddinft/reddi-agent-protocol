@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import {
   Connection,
@@ -32,6 +32,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import StepIndicator from "@/components/StepIndicator";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  ChevronDown,
+  CircleHelp,
+  ExternalLink,
+  Loader2,
+  XCircle,
+} from "lucide-react";
 
 const WalletMultiButton = dynamic(
   async () =>
@@ -42,6 +51,9 @@ const WalletMultiButton = dynamic(
 type Step = 1 | 2 | 3;
 type AgentType = "primary" | "attestation" | "both";
 type PrivacyTier = "local" | "tee" | "cloud";
+type EndpointProbeStatus = "idle" | "checking" | "reachable" | "no_ollama" | "unreachable";
+type HelpItem = { text: string; href?: string; code?: string };
+type HelpStep = { title: string; items: HelpItem[] };
 
 interface FormData {
   name: string;
@@ -71,6 +83,37 @@ const INITIAL_FORM: FormData = {
 
 const REGISTRATION_FEE_SOL = 0.01;
 const RENT_SOL = 0.00057;
+const ENDPOINT_HELP_STEPS: HelpStep[] = [
+  {
+    title: "Install and start Ollama",
+    items: [
+      { text: "Download Ollama", href: "https://ollama.com/download" },
+      { text: "Pull a model", code: "ollama pull qwen2.5:7b" },
+      { text: "Ollama runs at http://localhost:11434 by default" },
+    ],
+  },
+  {
+    title: "Expose it with localtunnel",
+    items: [
+      { text: "Install", code: "npm install -g localtunnel" },
+      { text: "Run", code: "lt --port 11434 --subdomain my-agent" },
+      { text: "Your endpoint will be", code: "https://my-agent.loca.lt" },
+      { text: "Note: localtunnel URLs expire when the process stops" },
+    ],
+  },
+  {
+    title: "Or use ngrok (more stable)",
+    items: [
+      { text: "Install", href: "https://ngrok.com/download" },
+      { text: "Run", code: "ngrok http 11434" },
+      { text: "Copy the https:// forwarding URL" },
+    ],
+  },
+  {
+    title: "Paste the public URL below",
+    items: [{ text: "Then probe it to confirm the endpoint is reachable." }],
+  },
+];
 
 export default function RegisterPage() {
   const { connected, publicKey, sendTransaction } = useWallet();
@@ -82,6 +125,66 @@ export default function RegisterPage() {
   const [success, setSuccess] = useState(false);
   const [txSig, setTxSig] = useState<string | null>(null);
   const [txError, setTxError] = useState<string | null>(null);
+  const [endpointProbeStatus, setEndpointProbeStatus] = useState<EndpointProbeStatus>("idle");
+  const [endpointProbeMessage, setEndpointProbeMessage] = useState("");
+  const [endpointProbeModels, setEndpointProbeModels] = useState<string[]>([]);
+  const endpointProbeTimeoutRef = useRef<number | null>(null);
+  const endpointProbeRequestRef = useRef(0);
+
+  const runEndpointProbe = async (rawEndpoint: string) => {
+    const endpoint = rawEndpoint.trim();
+    if (!endpoint) {
+      setEndpointProbeStatus("idle");
+      setEndpointProbeMessage("");
+      setEndpointProbeModels([]);
+      return;
+    }
+
+    const requestId = ++endpointProbeRequestRef.current;
+    setEndpointProbeStatus("checking");
+    setEndpointProbeMessage("");
+    setEndpointProbeModels([]);
+
+    try {
+      const res = await fetch("/api/register/probe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ endpoint }),
+      });
+      const data = await res.json().catch(() => null);
+      if (requestId !== endpointProbeRequestRef.current) return;
+
+      if (!res.ok || !data) {
+        setEndpointProbeStatus("unreachable");
+        setEndpointProbeMessage("Check the URL and ensure it is publicly accessible.");
+        return;
+      }
+
+      if (data.status === "ollama_detected") {
+        setEndpointProbeStatus("reachable");
+        setEndpointProbeModels(Array.isArray(data.models) ? data.models : []);
+        setEndpointProbeMessage(
+          Array.isArray(data.models) && data.models.length > 0
+            ? `Ollama detected, models: ${data.models.slice(0, 3).join(", ")}`
+            : "Endpoint reachable."
+        );
+        return;
+      }
+
+      if (data.status === "reachable") {
+        setEndpointProbeStatus("no_ollama");
+        setEndpointProbeMessage("Endpoint responded, but /api/tags did not look like Ollama.");
+        return;
+      }
+
+      setEndpointProbeStatus("unreachable");
+      setEndpointProbeMessage(data.error || "Check the URL and ensure it is publicly accessible.");
+    } catch {
+      if (requestId !== endpointProbeRequestRef.current) return;
+      setEndpointProbeStatus("unreachable");
+      setEndpointProbeMessage("Check the URL and ensure it is publicly accessible.");
+    }
+  };
 
   useEffect(() => {
     const endpoint = searchParams.get("endpoint")?.trim();
@@ -101,6 +204,30 @@ export default function RegisterPage() {
       attestationRate: attestationRate || prev.attestationRate,
     }));
   }, [searchParams]);
+
+  useEffect(() => {
+    if (endpointProbeTimeoutRef.current) {
+      window.clearTimeout(endpointProbeTimeoutRef.current);
+    }
+
+    const endpoint = form.endpoint.trim();
+    if (!endpoint) {
+      setEndpointProbeStatus("idle");
+      setEndpointProbeMessage("");
+      setEndpointProbeModels([]);
+      return;
+    }
+
+    endpointProbeTimeoutRef.current = window.setTimeout(() => {
+      void runEndpointProbe(endpoint);
+    }, 800);
+
+    return () => {
+      if (endpointProbeTimeoutRef.current) {
+        window.clearTimeout(endpointProbeTimeoutRef.current);
+      }
+    };
+  }, [form.endpoint]);
 
   const isJudge = form.agentType === "attestation" || form.agentType === "both";
 
@@ -232,7 +359,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-10 space-y-8">
+    <div className="max-w-2xl mx-auto px-4 py-10 space-y-8 font-sans">
       {/* Devnet notice */}
       <div className="w-full bg-[#14F195]/5 border border-[#14F195]/20 rounded-lg px-4 py-3 flex items-center gap-3 text-sm">
         <span className="text-[#14F195] text-base">⚡</span>
@@ -272,7 +399,7 @@ export default function RegisterPage() {
 
       {/* Step 1: Connect */}
       {step === 1 && (
-        <div className="p-6 rounded-xl border border-white/10 bg-card/30 space-y-4">
+        <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm space-y-4">
           <h2 className="text-lg font-semibold">Connect Your Wallet</h2>
           <p className="text-sm text-muted-foreground">
             Your wallet address becomes the owner keypair for your agent PDA.
@@ -319,33 +446,35 @@ export default function RegisterPage() {
 
       {/* Step 2: Fill details */}
       {step === 2 && (
-        <div className="p-6 rounded-xl border border-white/10 bg-card/30 space-y-5">
+        <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm space-y-5 font-sans">
           <h2 className="text-lg font-semibold">Agent Details</h2>
 
-          <div className="grid gap-4">
+          <div className="space-y-5">
             {/* Name */}
             <div className="space-y-1.5">
-              <Label htmlFor="name">Agent Name</Label>
+              <Label htmlFor="name" className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
+                Agent Name
+              </Label>
               <Input
                 id="name"
                 placeholder="e.g. ollama-research"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="bg-background/50 border-white/10"
+                className="!w-full !rounded-lg !border !border-gray-200 dark:!border-gray-700 !bg-white dark:!bg-gray-900 !px-3 !py-2 !text-sm focus:!ring-2 focus:!ring-blue-500 focus:!outline-none"
               />
             </div>
 
             {/* Agent Type */}
             <div className="space-y-1.5">
-              <Label>Agent Type</Label>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">Agent Type</Label>
               <Select
                 value={form.agentType}
                 onValueChange={(v) => setForm({ ...form, agentType: v as AgentType })}
               >
-                <SelectTrigger className="bg-background/50 border-white/10">
+                <SelectTrigger className="!w-full !min-w-[180px] !rounded-lg !border !border-gray-200 dark:!border-gray-700 !bg-white dark:!bg-gray-900 !px-3 !py-2 !text-sm focus:!ring-2 focus:!ring-blue-500 focus:!outline-none">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="min-w-[240px] rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg">
                   <SelectItem value="primary">Primary (Specialist)</SelectItem>
                   <SelectItem value="attestation">Attestation (Judge)</SelectItem>
                   <SelectItem value="both">Both</SelectItem>
@@ -353,44 +482,195 @@ export default function RegisterPage() {
               </Select>
             </div>
 
+            {/* Helper */}
+            <details className="group rounded-2xl border border-blue-100 dark:border-blue-900/40 bg-blue-50/70 dark:bg-blue-950/20 p-4">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-blue-950 dark:text-blue-100">
+                <span className="flex items-center gap-2">
+                  <ChevronDown className="h-4 w-4 shrink-0 transition-transform group-open:rotate-180" />
+                  How to set up your endpoint
+                </span>
+                <span className="text-xs font-medium text-blue-700 dark:text-blue-300">Collapsed by default</span>
+              </summary>
+              <div className="mt-4 space-y-3">
+                {ENDPOINT_HELP_STEPS.map((stepItem, idx) => (
+                  <div
+                    key={stepItem.title}
+                    className="rounded-xl border border-blue-100 dark:border-blue-900/40 bg-white dark:bg-gray-950/60 p-4 shadow-sm"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-semibold text-white">
+                        {idx + 1}
+                      </span>
+                      <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                        {stepItem.title}
+                      </h3>
+                    </div>
+                    <div className="mt-3 space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                      {stepItem.items.map((item) => (
+                        <div key={item.text} className="flex gap-2">
+                          <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500" />
+                          <div className="min-w-0 flex-1">
+                            {item.href ? (
+                              <a
+                                href={item.href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 font-medium text-blue-700 underline-offset-4 hover:underline dark:text-blue-300"
+                              >
+                                {item.text}
+                                <ExternalLink className="h-3.5 w-3.5" />
+                              </a>
+                            ) : (
+                              <span>{item.text}</span>
+                            )}
+                            {item.code && (
+                              <code className="mt-1 block rounded-md bg-gray-100 px-3 py-2 font-mono text-xs text-gray-900 dark:bg-gray-800 dark:text-gray-100">
+                                {item.code}
+                              </code>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </details>
+
             {/* Endpoint */}
             <div className="space-y-1.5">
-              <Label htmlFor="endpoint">Service Endpoint URL</Label>
+              <div className="flex items-center justify-between gap-3">
+                <Label htmlFor="endpoint" className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-0 block">
+                  Service Endpoint URL
+                </Label>
+                <a
+                  href="/docs/HARNESS-COMPUTE-BOUNDARY.md"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Local = runs on your machine, TEE = enclave execution, Cloud = disclosed cloud infrastructure"
+                  className="inline-flex items-center text-gray-400 transition hover:text-gray-600 dark:hover:text-gray-200"
+                >
+                  <CircleHelp className="h-4 w-4" />
+                </a>
+              </div>
               <Input
                 id="endpoint"
                 placeholder="https://agent.yourdomain.com"
                 value={form.endpoint}
-                onChange={(e) => setForm({ ...form, endpoint: e.target.value })}
-                className="bg-background/50 border-white/10"
+                onChange={(e) => {
+                  setForm({ ...form, endpoint: e.target.value });
+                  setEndpointProbeStatus("idle");
+                  setEndpointProbeMessage("");
+                  setEndpointProbeModels([]);
+                }}
+                onBlur={() => {
+                  if (endpointProbeTimeoutRef.current) {
+                    window.clearTimeout(endpointProbeTimeoutRef.current);
+                  }
+                  void runEndpointProbe(form.endpoint);
+                }}
+                className={`!w-full !rounded-lg !border !border-gray-200 dark:!border-gray-700 !bg-white dark:!bg-gray-900 !px-3 !py-2 !text-sm focus:!ring-2 focus:!ring-blue-500 focus:!outline-none ${
+                  endpointProbeStatus === "checking"
+                    ? "!border-blue-400"
+                    : endpointProbeStatus === "reachable"
+                      ? "!border-green-400"
+                      : endpointProbeStatus === "no_ollama"
+                        ? "!border-yellow-400"
+                        : endpointProbeStatus === "unreachable"
+                          ? "!border-red-400"
+                          : ""
+                }`}
               />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 Your HTTP 402 server URL. Must be publicly reachable.
               </p>
+              {endpointProbeStatus !== "idle" && (
+                <div
+                  className={`inline-flex items-start gap-2 rounded-full border px-3 py-2 text-xs font-medium ${
+                    endpointProbeStatus === "checking"
+                      ? "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900/40 dark:bg-blue-950/20 dark:text-blue-200"
+                      : endpointProbeStatus === "reachable"
+                        ? "border-green-200 bg-green-50 text-green-700 dark:border-green-900/40 dark:bg-green-950/20 dark:text-green-200"
+                        : endpointProbeStatus === "no_ollama"
+                          ? "border-yellow-200 bg-yellow-50 text-yellow-700 dark:border-yellow-900/40 dark:bg-yellow-950/20 dark:text-yellow-200"
+                          : "border-red-200 bg-red-50 text-red-700 dark:border-red-900/40 dark:bg-red-950/20 dark:text-red-200"
+                  }`}
+                >
+                  {endpointProbeStatus === "checking" ? (
+                    <Loader2 className="mt-0.5 h-4 w-4 animate-spin" />
+                  ) : endpointProbeStatus === "reachable" ? (
+                    <CheckCircle2 className="mt-0.5 h-4 w-4" />
+                  ) : endpointProbeStatus === "no_ollama" ? (
+                    <AlertTriangle className="mt-0.5 h-4 w-4" />
+                  ) : (
+                    <XCircle className="mt-0.5 h-4 w-4" />
+                  )}
+                  <div className="min-w-0">
+                    <p>
+                      {endpointProbeStatus === "checking"
+                        ? "Checking…"
+                        : endpointProbeStatus === "reachable"
+                          ? "Endpoint reachable"
+                          : endpointProbeStatus === "no_ollama"
+                            ? "Reachable, but no Ollama detected"
+                            : "Unreachable"}
+                    </p>
+                    {endpointProbeMessage && <p className="mt-0.5 text-[11px] font-normal">{endpointProbeMessage}</p>}
+                    {endpointProbeModels.length > 0 && endpointProbeStatus === "reachable" && (
+                      <p className="mt-0.5 text-[11px] font-normal">Models: {endpointProbeModels.slice(0, 3).join(", ")}</p>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Model */}
             <div className="space-y-1.5">
-              <Label htmlFor="model">Model Name</Label>
+              <div className="flex items-center justify-between gap-3">
+                <Label htmlFor="model" className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-0 block">
+                  Model Name
+                </Label>
+                <a
+                  href="https://ollama.com/library"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Browse available Ollama models"
+                  className="inline-flex items-center text-gray-400 transition hover:text-gray-600 dark:hover:text-gray-200"
+                >
+                  <CircleHelp className="h-4 w-4" />
+                </a>
+              </div>
               <Input
                 id="model"
                 placeholder="e.g. qwen3:8b"
                 value={form.model}
                 onChange={(e) => setForm({ ...form, model: e.target.value })}
-                className="bg-background/50 border-white/10"
+                className="!w-full !rounded-lg !border !border-gray-200 dark:!border-gray-700 !bg-white dark:!bg-gray-900 !px-3 !py-2 !text-sm focus:!ring-2 focus:!ring-blue-500 focus:!outline-none"
               />
             </div>
 
             {/* Privacy Tier */}
             <div className="space-y-1.5">
-              <Label>Privacy Tier</Label>
+              <div className="flex items-center justify-between gap-3">
+                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-0 block">Privacy Tier</Label>
+                <a
+                  href="/docs/HARNESS-COMPUTE-BOUNDARY.md"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Local = runs on your machine, TEE = enclave execution, Cloud = disclosed cloud infrastructure"
+                  className="inline-flex items-center text-gray-400 transition hover:text-gray-600 dark:hover:text-gray-200"
+                >
+                  <CircleHelp className="h-4 w-4" />
+                </a>
+              </div>
               <Select
                 value={form.privacyTier}
                 onValueChange={(v) => setForm({ ...form, privacyTier: v as PrivacyTier })}
               >
-                <SelectTrigger className="bg-background/50 border-white/10">
+                <SelectTrigger className="!w-full !min-w-[180px] !rounded-lg !border !border-gray-200 dark:!border-gray-700 !bg-white dark:!bg-gray-900 !px-3 !py-2 !text-sm focus:!ring-2 focus:!ring-blue-500 focus:!outline-none">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="min-w-[240px] rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg">
                   <SelectItem value="local">Local — runs on your hardware, never leaves</SelectItem>
                   <SelectItem value="tee">TEE — cryptographic attestation of enclave execution</SelectItem>
                   <SelectItem value="cloud">Cloud-Disclosed — cloud infrastructure, disclosed</SelectItem>
@@ -401,7 +681,9 @@ export default function RegisterPage() {
             {/* Primary Rate */}
             {(form.agentType === "primary" || form.agentType === "both") && (
               <div className="space-y-1.5">
-                <Label htmlFor="rate">Primary Rate (SOL per call)</Label>
+                <Label htmlFor="rate" className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
+                  Primary Rate (SOL per call)
+                </Label>
                 <Input
                   id="rate"
                   type="number"
@@ -410,7 +692,7 @@ export default function RegisterPage() {
                   placeholder="0.001"
                   value={form.primaryRate}
                   onChange={(e) => setForm({ ...form, primaryRate: e.target.value })}
-                  className="bg-background/50 border-white/10"
+                  className="!w-full !rounded-lg !border !border-gray-200 dark:!border-gray-700 !bg-white dark:!bg-gray-900 !px-3 !py-2 !text-sm focus:!ring-2 focus:!ring-blue-500 focus:!outline-none"
                 />
               </div>
             )}
@@ -418,7 +700,9 @@ export default function RegisterPage() {
             {/* Attestation Rate */}
             {isJudge && (
               <div className="space-y-1.5">
-                <Label htmlFor="attest-rate">Attestation Rate (SOL per judging)</Label>
+                <Label htmlFor="attest-rate" className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
+                  Attestation Rate (SOL per judging)
+                </Label>
                 <Input
                   id="attest-rate"
                   type="number"
@@ -427,15 +711,15 @@ export default function RegisterPage() {
                   placeholder="0.0005"
                   value={form.attestationRate}
                   onChange={(e) => setForm({ ...form, attestationRate: e.target.value })}
-                  className="bg-background/50 border-white/10"
+                  className="!w-full !rounded-lg !border !border-gray-200 dark:!border-gray-700 !bg-white dark:!bg-gray-900 !px-3 !py-2 !text-sm focus:!ring-2 focus:!ring-blue-500 focus:!outline-none"
                 />
               </div>
             )}
 
             {/* Min Consumer Rep */}
             <div className="space-y-2">
-              <div className="flex justify-between">
-                <Label>Min Consumer Reputation</Label>
+              <div className="flex justify-between gap-3">
+                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-0 block">Min Consumer Reputation</Label>
                 <span className="text-sm text-muted-foreground font-mono">
                   {form.minConsumerRep === 0 ? "No minimum" : `≥ ${form.minConsumerRep}★`}
                 </span>
@@ -450,9 +734,9 @@ export default function RegisterPage() {
             </div>
 
             {/* Accept Unrated */}
-            <div className="flex items-center justify-between p-3 rounded-lg border border-white/10 bg-background/30">
+            <div className="flex items-center justify-between rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950/40 p-4">
               <div>
-                <p className="text-sm font-medium">Accept Unrated Consumers</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Accept Unrated Consumers</p>
                 <p className="text-xs text-muted-foreground">
                   Allow consumers with no reputation history to hire you
                 </p>
@@ -473,43 +757,40 @@ export default function RegisterPage() {
 
             {/* Description */}
             <div className="space-y-1.5">
-              <Label htmlFor="desc">Agent Description</Label>
+              <Label htmlFor="desc" className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
+                Agent Description
+              </Label>
               <Textarea
                 id="desc"
                 placeholder="What does your agent specialise in? What tasks does it handle well?"
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
-                className="bg-background/50 border-white/10 min-h-20 resize-none"
+                className="!min-h-20 !w-full !rounded-lg !border !border-gray-200 dark:!border-gray-700 !bg-white dark:!bg-gray-900 !px-3 !py-2 !text-sm focus:!ring-2 focus:!ring-blue-500 focus:!outline-none resize-none"
               />
             </div>
           </div>
 
-          <div className="flex gap-3">
+          <div className="grid gap-3 sm:grid-cols-2">
             <Button
               variant="outline"
               onClick={() => setStep(1)}
-              className="border-white/10"
+              className="border-gray-200 dark:border-gray-700"
             >
               Back
             </Button>
             <Button
               onClick={() => setStep(3)}
               disabled={!form.name || !form.model}
-              style={form.name && form.model ? {
-                background: "linear-gradient(135deg, #9945FF, #14F195)",
-                color: "#000",
-                fontWeight: 600,
-              } : {}}
+              className="w-full !rounded-lg !bg-blue-600 !px-4 !py-2.5 !font-semibold !text-white !transition hover:!bg-blue-700 disabled:!bg-blue-300"
             >
               Review & Register →
             </Button>
           </div>
         </div>
       )}
-
       {/* Step 3: Review & confirm */}
       {step === 3 && (
-        <div className="p-6 rounded-xl border border-white/10 bg-card/30 space-y-5">
+        <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm space-y-5 font-sans">
           <h2 className="text-lg font-semibold">Review & Confirm</h2>
 
           {/* Summary */}
@@ -525,26 +806,26 @@ export default function RegisterPage() {
               ["Min Consumer Rep", form.minConsumerRep === 0 ? "No minimum" : `≥ ${form.minConsumerRep}★`],
               ["Accept Unrated", form.acceptUnrated ? "Yes" : "No"],
             ].map(([label, value]) => (
-              <div key={label} className="flex justify-between text-sm">
+              <div key={label} className="flex justify-between gap-4 text-sm">
                 <span className="text-muted-foreground">{label}</span>
-                <span className="font-mono text-right max-w-xs truncate">{value}</span>
+                <span className="max-w-xs truncate font-mono text-right">{value}</span>
               </div>
             ))}
           </div>
 
           {/* Fee breakdown */}
-          <div className="p-4 rounded-lg border border-[#9945FF]/20 bg-[#9945FF]/5 space-y-2">
-            <p className="text-sm font-semibold">Fee Breakdown</p>
+          <div className="space-y-2 rounded-xl border border-blue-100 bg-blue-50/70 p-4 dark:border-blue-900/40 dark:bg-blue-950/20">
+            <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">Fee Breakdown</p>
             <div className="space-y-1 text-sm">
-              <div className="flex justify-between">
+              <div className="flex justify-between gap-4">
                 <span className="text-muted-foreground">Registration fee</span>
                 <span className="font-mono">{REGISTRATION_FEE_SOL} SOL</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between gap-4">
                 <span className="text-muted-foreground">Account rent (~0.00057 SOL)</span>
                 <span className="font-mono">{RENT_SOL} SOL</span>
               </div>
-              <div className="flex justify-between border-t border-white/10 pt-1 font-semibold">
+              <div className="flex justify-between gap-4 border-t border-blue-200 pt-1 font-semibold dark:border-blue-900/40">
                 <span>Total</span>
                 <span className="font-mono text-[#14F195]">
                   ~{(REGISTRATION_FEE_SOL + RENT_SOL).toFixed(5)} SOL
@@ -554,8 +835,8 @@ export default function RegisterPage() {
           </div>
 
           {/* Instruction preview */}
-          <div className="p-4 rounded-lg border border-white/10 bg-black/30 text-xs font-mono space-y-1">
-            <p className="text-muted-foreground text-xs mb-2">Instruction being built:</p>
+          <div className="space-y-1 rounded-xl border border-gray-200 bg-gray-50 p-4 text-xs font-mono dark:border-gray-700 dark:bg-gray-950/50">
+            <p className="mb-2 text-xs text-muted-foreground">Instruction being built:</p>
             <p className="text-green-400">register_agent(</p>
             <p className="pl-4 text-foreground/80">agent_type: {form.agentType === "primary" ? 0 : form.agentType === "attestation" ? 1 : 2},</p>
             <p className="pl-4 text-foreground/80">privacy_tier: {form.privacyTier === "local" ? 0 : form.privacyTier === "tee" ? 1 : 2},</p>
@@ -564,25 +845,21 @@ export default function RegisterPage() {
             <p className="pl-4 text-foreground/80">min_consumer_rep: {Math.round(form.minConsumerRep * 10)},</p>
             <p className="pl-4 text-foreground/80">accept_unrated: {form.acceptUnrated.toString()},</p>
             <p className="text-green-400">)</p>
-            <p className="text-yellow-400/60 mt-2">Simulation mode, program not yet deployed to this network</p>
+            <p className="mt-2 text-yellow-400/60">Simulation mode, program not yet deployed to this network</p>
           </div>
 
-          <div className="flex gap-3">
+          <div className="grid gap-3 sm:grid-cols-2">
             <Button
               variant="outline"
               onClick={() => setStep(2)}
-              className="border-white/10"
+              className="border-gray-200 dark:border-gray-700"
             >
               Back
             </Button>
             <Button
               onClick={handleRegister}
               disabled={registering}
-              style={{
-                background: "linear-gradient(135deg, #9945FF, #14F195)",
-                color: "#000",
-                fontWeight: 600,
-              }}
+              className="w-full !rounded-lg !bg-blue-600 !px-4 !py-2.5 !font-semibold !text-white !transition hover:!bg-blue-700 disabled:!bg-blue-300"
             >
               {registering ? "Registering..." : "Register Agent (0.01 SOL)"}
             </Button>
