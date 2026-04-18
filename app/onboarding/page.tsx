@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import StepIndicator from "@/components/StepIndicator";
 import { showToast } from "@/components/ui/toast";
 import { RUNTIME_CAPABILITIES } from "@/lib/capabilities/taxonomy";
+import { emitOnboardingCompletedEvent } from "@/lib/onboarding/torque-onboarding";
 import {
   AGENT_TYPE_ENUM,
   agentPda,
@@ -93,6 +94,7 @@ type WizardState = {
   plannerFeedbackNote: string;
   plannerFeedbackSent: boolean;
   plannerFeedbackNote2: string;
+  onboardingCompletedEventSent: boolean;
 };
 
 const STORAGE_KEY = "reddi-onboarding-wizard-v1";
@@ -156,6 +158,7 @@ const INITIAL_STATE: WizardState = {
   plannerFeedbackNote: "",
   plannerFeedbackSent: false,
   plannerFeedbackNote2: "",
+  onboardingCompletedEventSent: false,
 };
 
 const STEPS = [
@@ -1841,6 +1844,32 @@ export default function OnboardingPage() {
             <Button
               disabled={!state.attested}
               style={{ background: "linear-gradient(135deg, #9945FF, #14F195)", color: "#000" }}
+              onClick={async () => {
+                if (state.onboardingCompletedEventSent) {
+                  showToast("Onboarding already completed", "success");
+                  return;
+                }
+
+                const userPubkey = state.walletAddress || publicKey?.toBase58();
+                if (!userPubkey) {
+                  showToast("Connect wallet to finalize onboarding", "error");
+                  return;
+                }
+
+                try {
+                  await emitOnboardingCompletedEvent({
+                    userPubkey,
+                    attested: state.attested,
+                    plannerStatus: state.plannerStatus,
+                    feedbackSent: state.plannerFeedbackSent,
+                  });
+                } catch {
+                  // Torque is non-critical; completion should not be blocked
+                }
+
+                setState((s) => ({ ...s, onboardingCompletedEventSent: true }));
+                showToast("Onboarding complete", "success");
+              }}
             >
               Onboarding complete ✓
             </Button>

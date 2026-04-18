@@ -52,6 +52,7 @@ describe("Torque client", () => {
 
     it("calls fetch with correct Authorization header", async () => {
       process.env.TORQUE_API_TOKEN = "test-token-123";
+      process.env.TORQUE_PROJECT_ID = "proj-abc";
       process.env.TORQUE_API_BASE = "https://api.torque.so";
       const mockFetch = jest.fn().mockResolvedValue({ ok: true } as Response);
       global.fetch = mockFetch;
@@ -68,8 +69,17 @@ describe("Torque client", () => {
           headers: expect.objectContaining({
             Authorization: "Bearer test-token-123",
           }),
+          body: expect.stringContaining('"projectId":"proj-abc"'),
         })
       );
+
+      const call = mockFetch.mock.calls[0];
+      const requestBody = JSON.parse(call[1].body as string);
+      expect(requestBody).toMatchObject({
+        projectId: "proj-abc",
+        userPubkey: "wallet123",
+        eventName: "specialist_job_completed",
+      });
     });
   });
 
@@ -96,6 +106,25 @@ describe("Torque client", () => {
       const { getLeaderboard } = await import("../torque/client");
       const result = await getLeaderboard();
       expect(result).toEqual([]);
+    });
+
+    it("returns leaderboard entries on success", async () => {
+      process.env.TORQUE_API_TOKEN = "test-token";
+      process.env.TORQUE_LEADERBOARD_CAMPAIGN_ID = "camp-123";
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          entries: [
+            { userPubkey: "wallet1", rank: 1, value: 100 },
+            { userPubkey: "wallet2", rank: 2, value: 90 },
+          ],
+        }),
+      } as unknown as Response);
+
+      const { getLeaderboard } = await import("../torque/client");
+      const result = await getLeaderboard();
+      expect(result).toHaveLength(2);
+      expect(result[0]).toMatchObject({ userPubkey: "wallet1", rank: 1, value: 100 });
     });
   });
 });

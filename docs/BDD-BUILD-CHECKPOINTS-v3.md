@@ -176,7 +176,10 @@ Checkpoint status:
 - Scenario G2.6: /leaderboard does not expose raw API tokens
 
 Checkpoint status:
-- G1.1-G1.5: ✅ implemented (torque-client.test.ts)
-- G1.6-G1.8: ✅ implemented (wired in x402-settlement, planner-execution, reputation-signal)
-- G2.1-G2.2: ✅ implemented (torque-client.test.ts)
-- G2.3-G2.6: ✅ implemented (e2e/leaderboard.spec.ts)
+- G1.1-G1.5: ✅ implemented (`lib/__tests__/torque-client.test.ts`)
+- G1.6: ✅ implemented (wired in `lib/onboarding/x402-settlement.ts`)
+- G1.7: ✅ implemented (wizard completion action emits `ONBOARDING_COMPLETED` via `lib/onboarding/torque-onboarding.ts`; payload/route covered by `lib/__tests__/torque-onboarding-event.test.ts` + `lib/__tests__/torque-event-route.test.ts`)
+- G1.8: ✅ implemented (wired in `lib/onboarding/reputation-signal.ts`)
+- G2.1-G2.2: ✅ implemented (`lib/__tests__/torque-client.test.ts`, `lib/__tests__/torque-leaderboard-route.test.ts`)
+- G2.3-G2.6: ✅ implemented (`e2e/leaderboard.spec.ts`)
+- API route validation: ✅ implemented (`lib/__tests__/torque-event-route.test.ts`)
