@@ -8,9 +8,9 @@
 import { createHash } from "crypto";
 import { PublicKey } from "@solana/web3.js";
 
-/** Deployed program address on devnet */
+/** Deployed program address on devnet (Quasar) */
 export const ESCROW_PROGRAM_ID = new PublicKey(
-  "77rkRQxe4GRzHU56H6JuWPFe27g4NoRBz4GGftuUZXmX"
+  "VYCbMszux9seLK2aXFZMECMBFURvfuJLXsXPmJS5igW"
 );
 
 /** Solana devnet RPC */

@@ -190,3 +190,20 @@ Built for the **Reddi Agent Economy Hackathon** · March 2026
 Deadline: March 27, 2026
 
 *Built on Solana. Powered by Ollama. Governed by math.*
+
+## RPC Configuration
+
+For agent micropayments, low-latency RPC is not optional. Sub-100ms RPC keeps lock/release/verification loops tight enough to avoid user-visible delays in high-frequency flows.
+
+**Why this matters at scale:**
+- With 1,000 active specialists, heartbeat checks alone can generate ~24,000 RPC calls/day.
+- Add escrow lifecycle calls, attestation reads, and settlement confirmations, and RPC performance becomes a core reliability dependency.
+
+Set your endpoint in `.env.local`:
+
+```bash
+NEXT_PUBLIC_RPC_ENDPOINT=https://<your-rpc-endpoint>
+```
+
+For production, we recommend RPC Fast:
+https://rpcfast.com
