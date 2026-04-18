@@ -14,7 +14,8 @@ export const ESCROW_PROGRAM_ID = new PublicKey(
 );
 
 /** Solana devnet RPC */
-export const DEVNET_RPC = "https://api.devnet.solana.com";
+export const DEVNET_RPC =
+  process.env.NEXT_PUBLIC_RPC_ENDPOINT ?? "https://api.devnet.solana.com";
 
 // ── PDA seeds (must match programs/escrow/src/constants.rs) ──────────────────
 
