@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useEffect, useRef, useState } from "react";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import {
@@ -120,7 +121,7 @@ const ENDPOINT_HELP_STEPS: HelpStep[] = [
   },
 ];
 
-export default function RegisterPage() {
+function RegisterInner() {
   const { connected, publicKey, sendTransaction } = useWallet();
   const { connection: walletConnection } = useConnection();
   const searchParams = useSearchParams();
@@ -918,5 +919,13 @@ export default function RegisterPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-page flex items-center justify-center"><p className="text-gray-400">Loading…</p></div>}>
+      <RegisterInner />
+    </Suspense>
   );
 }
