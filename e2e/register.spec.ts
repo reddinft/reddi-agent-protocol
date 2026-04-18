@@ -9,6 +9,7 @@ test.describe('/register page', () => {
   test('shows connect-wallet prerequisite', async ({ page }) => {
     await page.goto('/register')
     await expect(page.getByRole('heading', { name: /connect your wallet/i })).toBeVisible()
+    await expect(page.locator('main').getByRole('button', { name: /select wallet/i })).toBeVisible()
   })
 
   test.skip('shows 0.01 SOL registration fee in step indicator', async ({ page }) => {

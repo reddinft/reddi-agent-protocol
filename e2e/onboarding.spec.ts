@@ -22,7 +22,7 @@ test.describe('/onboarding page', () => {
     }
   })
 
-  test.skip('consent gates next button — both checkboxes required', async ({ page }) => {
+  test('consent gates next button — both checkboxes required', async ({ page }) => {
     await page.goto('/onboarding')
     const nextBtn = page.getByRole('button', { name: 'Next', exact: true })
     await expect(nextBtn).toBeDisabled()
@@ -31,17 +31,16 @@ test.describe('/onboarding page', () => {
     await expect(nextBtn).toBeDisabled()
 
     await page.getByLabel(/I consent to protocol-funded onboarding transactions/i).check()
-    await page.waitForTimeout(5000)
-    await expect(nextBtn).toBeEnabled({ timeout: 10000 })
+    await expect(nextBtn).toBeEnabled()
   })
 
-  test.skip('next button advances to step 2 after consent', async ({ page }) => {
+  test('next button advances to step 2 after consent', async ({ page }) => {
     await page.goto('/onboarding')
     await completeStep1(page)
     await expect(page.getByText(/Runtime Setup/i)).toBeVisible()
   })
 
-  test.skip('back button returns to previous step', async ({ page }) => {
+  test('back button returns to previous step', async ({ page }) => {
     await page.goto('/onboarding')
     await completeStep1(page)
     await page.getByRole('button', { name: 'Back', exact: true }).click()
@@ -50,14 +49,14 @@ test.describe('/onboarding page', () => {
 
   // ── Step 2 — Runtime ───────────────────────────────────────────────────────
 
-  test.skip('step 2 runtime — platform selector renders and defaults to macos', async ({ page }) => {
+  test('step 2 runtime — platform selector renders and defaults to macos', async ({ page }) => {
     await page.goto('/onboarding')
     await completeStep1(page)
     await expect(page.locator('select').first()).toHaveValue('macos')
     await expect(page.getByRole('button', { name: /Run runtime bootstrap/i })).toBeVisible()
   })
 
-  test.skip('step 2 runtime — next is disabled until runtime is confirmed ready', async ({ page }) => {
+  test('step 2 runtime — next is disabled until runtime is confirmed ready', async ({ page }) => {
     await page.goto('/onboarding')
     await completeStep1(page)
     const nextBtn = page.getByRole('button', { name: 'Next', exact: true })
@@ -66,75 +65,32 @@ test.describe('/onboarding page', () => {
 
   // ── Step 3 — Endpoint ─────────────────────────────────────────────────────
 
-  test.skip('step 3 endpoint — accessible from step 2 via localStore state injection', async ({ page }) => {
-    await page.addInitScript(() => {
-      const state = {
-        consentExposeEndpoint: true,
-        consentProtocolOps: true,
-        platform: 'macos',
-        ollamaPort: '11434',
-        protocolDomain: 'https://reddi.tech',
-        runtimeReady: true,
-        runtimeNote: 'Ollama OK',
-        runtimeTokenStored: false,
-        hasWallet: 'yes',
-        walletAddress: '',
-        walletPassphrase: '',
-        walletBackupConfirmed: false,
-        walletStatusNote: '',
-        sponsorshipReady: false,
-        sponsorshipNote: '',
-        sponsorshipLamports: 0,
-        endpointUrl: '',
-        endpointStatus: 'pending',
-        endpointNote: '',
-        endpointTunnelCommand: '',
-        endpointProxyCommand: '',
-        endpointProxyPort: 0,
-        endpointAuthHeader: 'x-reddi-agent-token',
-        endpointAuthTokenPreview: '',
-        endpointAuthToken: '',
-        healthcheckStatus: 'pending',
-        healthcheckNote: '',
-        attested: false,
-        attestationNote: '',
-        attestationJobIdHex: '',
-        attestationPda: '',
-        attestationOperator: '',
-        attestationConsumer: '',
-        attestationResolution: 'pending',
-        attestationResolutionSig: '',
-        attestationOperatorReady: false,
-        attestationOperatorStatusNote: '',
-        capabilityTaskTypes: 'summarize, classify',
-        capabilityInputModes: 'text',
-        capabilityOutputModes: 'text',
-        capabilityPrivacyModes: 'public, per',
-        capabilityTags: 'onboarding, default',
-        capabilityBaseUsd: '0',
-        capabilityPerCallUsd: '0',
-        capabilitySaved: false,
-        capabilityNote: '',
-        plannerPrompt: 'Test prompt',
-        plannerRunId: '',
-        plannerStatus: 'idle',
-        plannerNote: '',
-        plannerResponsePreview: '',
-        plannerX402Tx: '',
-        plannerFeedbackScore: '8',
-        plannerFeedbackNote: '',
-        plannerFeedbackSent: false,
-        plannerFeedbackNote2: '',
-      }
-      localStorage.setItem('reddi-onboarding-wizard-v1', JSON.stringify(state))
+  test('step 3 endpoint — accessible from step 2 via UI flow', async ({ page }) => {
+    await page.route('/api/onboarding/runtime', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          ok: true,
+          result: {
+            ready: true,
+            ollama: { running: true },
+            token: { storedInKeychain: true, note: 'ok' },
+            installHint: null,
+          },
+        }),
+      })
     })
+
     await page.goto('/onboarding')
+    await completeStep1(page)
+    await expect(page.getByRole('heading', { name: /2\. Runtime setup/i })).toBeVisible()
+    await page.getByRole('button', { name: /Run runtime bootstrap/i }).click()
+    await expect(page.getByText(/Runtime ready/i)).toBeVisible()
     const nextBtn = page.getByRole('button', { name: 'Next', exact: true })
-    await expect(nextBtn).toBeEnabled({ timeout: 10000 })
+    await expect(nextBtn).toBeEnabled()
     await nextBtn.click()
-    await expect(nextBtn).toBeEnabled({ timeout: 10000 })
-    await nextBtn.click()
-    await expect(page.getByText(/Endpoint setup/i)).toBeVisible()
+    await expect(page.getByRole('heading', { name: /3\. Endpoint setup/i })).toBeVisible()
   })
 
   // ── Step 8 — Planner UI ───────────────────────────────────────────────────
@@ -280,11 +236,9 @@ test.describe('/onboarding page', () => {
     for (let i = 0; i < 7; i++) {
       await page.getByRole('button', { name: 'Next', exact: true }).click()
     }
-    // Next should be disabled because idle and no feedback sent
     const nextBtn = page.getByRole('button', { name: 'Next', exact: true })
     await expect(nextBtn).toBeDisabled()
 
-    // Inject completed state via localStorage + reload
     await page.evaluate(() => {
       const raw = localStorage.getItem('reddi-onboarding-wizard-v1')
       const state = raw ? JSON.parse(raw) : {}
@@ -295,7 +249,6 @@ test.describe('/onboarding page', () => {
     for (let i = 0; i < 7; i++) {
       await page.getByRole('button', { name: 'Next', exact: true }).click()
     }
-    // Feedback sent → final step button "Onboarding complete"
     await expect(page.getByRole('button', { name: /Onboarding complete/i })).toBeVisible()
   })
 
@@ -351,7 +304,6 @@ test.describe('/onboarding page', () => {
     const res = await request.post('/api/onboarding/planner/execute', {
       data: { prompt: 'What is the capital of France?' },
     })
-    // ok may be false (no specialists registered in test env) but shape must be valid
     const body = await res.json()
     expect(typeof body.ok).toBe('boolean')
     expect(body.result).toBeDefined()

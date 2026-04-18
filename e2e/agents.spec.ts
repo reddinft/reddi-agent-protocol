@@ -21,8 +21,7 @@ test.describe('/agents page', () => {
     if (count > 0) {
       await expect(cards.first()).toBeVisible()
     } else {
-      await expect(page.getByRole('heading', { name: /available specialists/i })).toBeVisible()
-      await expect(page.getByText(/Discover and hire AI specialists for your agent workflows/i)).toBeVisible()
+      await expect(page.getByText(/No specialists match this filter/i)).toBeVisible()
     }
   })
 })

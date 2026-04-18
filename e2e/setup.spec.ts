@@ -17,31 +17,31 @@ test.describe('/setup page', () => {
     await expect(endpointInput).toHaveValue(/ngrok/)
   })
 
-  test.skip('skills tab contains default Research Specialist skill', async ({ page }) => {
+  test('skills tab contains default Research Specialist skill', async ({ page }) => {
     await page.goto('/setup')
     await page.getByRole('tab', { name: /skills/i }).click()
     await expect(page.getByText(/Research Specialist/i).first()).toBeVisible()
   })
 
-  test.skip('skills tab shows system prompt preview toggle', async ({ page }) => {
+  test('skills tab shows system prompt preview toggle', async ({ page }) => {
     await page.goto('/setup')
     await page.getByRole('tab', { name: /skills/i }).click()
     await expect(page.getByText(/Preview combined system prompt/i)).toBeVisible()
   })
 
-  test.skip('register tab links to /register', async ({ page }) => {
+  test('register tab links to /register', async ({ page }) => {
     await page.goto('/setup')
     await page.getByRole('tab', { name: /register/i }).click()
-    const registerLink = page.locator('a[href="/register"]').first()
+    const registerLink = page.getByRole('link', { name: /go to registration/i })
     await expect(registerLink).toBeVisible()
     const href = await registerLink.getAttribute('href')
     expect(href).toContain('/register')
   })
 
-  test.skip('Register CTA links to /register', async ({ page }) => {
+  test('Register CTA links to /register', async ({ page }) => {
     await page.goto('/setup')
     await page.getByRole('tab', { name: /register/i }).click()
-    const registerLink = page.locator('a[href="/register"]').first()
+    const registerLink = page.getByRole('link', { name: /go to registration/i })
     await expect(registerLink).toBeVisible()
     const href = await registerLink.getAttribute('href')
     expect(href).toContain('/register')
