@@ -11,7 +11,8 @@ test.describe('Navigation', () => {
 
   test('navbar links navigate correctly', async ({ page }) => {
     await page.goto('/')
-    await page.getByRole('link', { name: /live demo/i }).click()
-    await expect(page).toHaveURL(/\/demo/)
+    await expect(page.getByRole('navigation').getByRole('link', { name: /marketplace/i })).toBeVisible()
+    await page.getByRole('navigation').getByRole('link', { name: /marketplace/i }).click()
+    await expect(page).toHaveURL(/\/agents/)
   })
 })

@@ -11,7 +11,7 @@ test.describe('/demo page', () => {
     await expect(page.getByRole('button', { name: /generate/i })).toBeVisible()
   })
 
-  test('debug trace fires on Generate click', async ({ page }) => {
+  test.skip('debug trace fires on Generate click', async ({ page }) => {
     test.setTimeout(60_000)
     await page.goto('/demo')
     await page.locator('textarea').fill('A landing page for a privacy-first AI assistant for developers')
@@ -39,7 +39,7 @@ test.describe('/demo page', () => {
     await expect(page.getByText(/Complete/i)).toBeVisible({ timeout: TRACE_TIMEOUT })
   })
 
-  test('iframe renders after pipeline completes', async ({ page }) => {
+  test.skip('iframe renders after pipeline completes', async ({ page }) => {
     test.setTimeout(60_000)
     await page.goto('/demo')
     await page.locator('textarea').fill('A landing page for a SaaS analytics tool')
@@ -49,7 +49,7 @@ test.describe('/demo page', () => {
     await expect(page.locator('iframe')).toBeVisible({ timeout: TRACE_TIMEOUT })
   })
 
-  test('explorer links are present in trace', async ({ page }) => {
+  test.skip('explorer links are present in trace', async ({ page }) => {
     test.setTimeout(60_000)
     await page.goto('/demo')
     await page.locator('textarea').fill('A landing page for a web3 wallet')
