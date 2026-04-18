@@ -29,7 +29,7 @@ import {
   computeSpecialistRankingScore,
   type SpecialistIndexEntry,
 } from "@/lib/onboarding/specialist-index";
-import type { TaskTypeId, InputModeId, OutputModeId, PrivacyModeId } from "@/lib/capabilities/taxonomy";
+import type { TaskTypeId, InputModeId, OutputModeId, PrivacyModeId, RuntimeCapability, ContextRequirement } from "@/lib/capabilities/taxonomy";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -49,6 +49,8 @@ export type SpecialistListing = {
     tags: string[];
     baseUsd: number;
     perCallUsd: number;
+    context_requirements: ContextRequirement[];
+    runtime_capabilities: RuntimeCapability[];
   } | null;
   /** Live health state */
   health: {
@@ -207,6 +209,8 @@ export async function fetchSpecialistListings(): Promise<{
           tags: normalizeArray<string>(cap.tags ?? []),
           baseUsd: typeof cap.pricing === "object" ? (cap.pricing?.baseUsd ?? 0) : 0,
           perCallUsd: typeof cap.pricing === "object" ? (cap.pricing?.perCallUsd ?? 0) : 0,
+          context_requirements: Array.isArray(cap.context_requirements) ? cap.context_requirements : [],
+          runtime_capabilities: Array.isArray(cap.runtime_capabilities) ? normalizeArray<RuntimeCapability>(cap.runtime_capabilities) : [],
         }
       : null;
 
@@ -313,6 +317,8 @@ function buildFromIndexOnly(entry: SpecialistIndexEntry): SpecialistListing {
           tags: normalizeArray(cap.tags ?? []),
           baseUsd: typeof cap.pricing === "object" ? (cap.pricing?.baseUsd ?? 0) : 0,
           perCallUsd: typeof cap.pricing === "object" ? (cap.pricing?.perCallUsd ?? 0) : 0,
+          context_requirements: Array.isArray(cap.context_requirements) ? cap.context_requirements : [],
+          runtime_capabilities: Array.isArray(cap.runtime_capabilities) ? normalizeArray<RuntimeCapability>(cap.runtime_capabilities) : [],
         }
       : null,
     health: {

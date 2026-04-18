@@ -35,6 +35,8 @@ function emptyCapabilities(): CapabilityInput {
     privacyModes: [],
     pricing: { baseUsd: 0, perCallUsd: 0 },
     tags: [],
+    context_requirements: [],
+    runtime_capabilities: [],
   };
 }
 

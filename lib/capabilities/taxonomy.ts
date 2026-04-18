@@ -62,6 +62,70 @@ export const OUTPUT_MODES = [
 export type OutputModeId = typeof OUTPUT_MODES[number]["id"];
 export const OUTPUT_MODE_IDS = OUTPUT_MODES.map((m) => m.id);
 
+// ── Context Requirements ─────────────────────────────────────────────────────
+
+/**
+ * A declared input contract entry, what the caller must provide to invoke this specialist.
+ * Mirrors OpenAI's Manifest concept for our x402 protocol.
+ */
+export interface ContextRequirement {
+  key: string;
+  type: 'text' | 'url' | 'file_ref' | 'number' | 'boolean' | 'json';
+  required: boolean;
+  description?: string;
+  default?: string | number | boolean;
+}
+
+export const CONTEXT_REQUIREMENT_TYPES = [
+  'text',
+  'url',
+  'file_ref',
+  'number',
+  'boolean',
+  'json',
+] as const;
+
+export type ContextRequirementType = typeof CONTEXT_REQUIREMENT_TYPES[number];
+
+// ── Runtime Capabilities ──────────────────────────────────────────────────────
+
+/**
+ * Typed runtime capabilities, what the specialist execution environment can do.
+ */
+export const RUNTIME_CAPABILITIES = [
+  'code_execution',
+  'file_read',
+  'file_write',
+  'web_search',
+  'stateful',
+  'long_running',
+  'multimodal',
+  'streaming',
+] as const;
+
+export type RuntimeCapability = typeof RUNTIME_CAPABILITIES[number];
+
+export function isValidContextRequirementType(v: string): v is ContextRequirementType {
+  return CONTEXT_REQUIREMENT_TYPES.includes(v as ContextRequirementType);
+}
+
+export function isValidRuntimeCapability(v: string): v is RuntimeCapability {
+  return RUNTIME_CAPABILITIES.includes(v as RuntimeCapability);
+}
+
+// ── Capability Profiles ───────────────────────────────────────────────────────
+
+export type CapabilityProfile = {
+  taskTypes: TaskTypeId[];
+  inputModes: InputModeId[];
+  outputModes: OutputModeId[];
+  privacyModes: PrivacyModeId[];
+  tags?: string[];
+  pricing: { baseUsd: number; perCallUsd?: number };
+  context_requirements?: ContextRequirement[];
+  runtime_capabilities?: RuntimeCapability[];
+};
+
 // ── Privacy Modes ─────────────────────────────────────────────────────────────
 
 export const PRIVACY_MODES = [

@@ -35,6 +35,18 @@ export async function POST(req: Request) {
         ? body.privacyModes.map(String) as Array<"public" | "per" | "vanish">
         : [],
       tags: Array.isArray(body.tags) ? body.tags.map(String) : [],
+      context_requirements: Array.isArray(body.context_requirements)
+        ? body.context_requirements.map((req: { key?: unknown; type?: unknown; required?: unknown; description?: unknown; default?: unknown }) => ({
+            key: String(req.key || ""),
+            type: String(req.type || "text") as "text" | "url" | "file_ref" | "number" | "boolean" | "json",
+            required: Boolean(req.required),
+            description: typeof req.description === "string" ? req.description : undefined,
+            default: req.default as string | number | boolean | undefined,
+          }))
+        : [],
+      runtime_capabilities: Array.isArray(body.runtime_capabilities)
+        ? body.runtime_capabilities.map(String) as Array<"code_execution" | "file_read" | "file_write" | "web_search" | "stateful" | "long_running" | "multimodal" | "streaming">
+        : [],
     });
 
     upsertSpecialistIndex(walletAddress, result.record.capabilities, {

@@ -8,6 +8,7 @@
 import { fetchSpecialistListings } from "@/lib/registry/bridge";
 import { readPolicy } from "@/lib/orchestrator/policy";
 import type { ResolveInput, ResolveOutput } from "@/lib/mcp/tools";
+import { isValidRuntimeCapability } from "@/lib/capabilities/taxonomy";
 
 export const runtime = "nodejs";
 
@@ -20,6 +21,9 @@ export async function POST(req: Request) {
 
     const savedPolicy = readPolicy();
     const policyOverride = body.policy ?? {};
+    const requiredCapabilities = Array.isArray(body.required_capabilities)
+      ? body.required_capabilities.filter(isValidRuntimeCapability)
+      : [];
 
     const maxPerCallUsd =
       policyOverride.maxPerCallUsd ?? savedPolicy.maxPerTaskUsd ?? 0;
@@ -39,6 +43,10 @@ export async function POST(req: Request) {
         if (requireAttestation && !l.attestation.attested) return false;
         if (minReputation > 0 && l.onchain.reputationScore < minReputation) return false;
         if (maxPerCallUsd > 0 && l.capabilities && l.capabilities.perCallUsd > maxPerCallUsd) return false;
+        if (requiredCapabilities.length > 0) {
+          const specialistCapabilities = l.capabilities?.runtime_capabilities ?? [];
+          if (!requiredCapabilities.every((cap) => specialistCapabilities.includes(cap))) return false;
+        }
         if (!l.health.endpointUrl) return false;
         return true;
       })
@@ -49,6 +57,9 @@ export async function POST(req: Request) {
         if (l.signals.feedbackCount > 0) reasons.push(`feedback:${l.signals.avgFeedbackScore.toFixed(1)}`);
         if (l.capabilities?.privacyModes.includes(preferredPrivacyMode as never)) {
           reasons.push(`supports:${preferredPrivacyMode}`);
+        }
+        if (requiredCapabilities.length > 0) {
+          reasons.push(`requires:${requiredCapabilities.join(",")}`);
         }
         const score =
           (l.attestation.attested ? 30 : 0) +
@@ -106,7 +117,7 @@ export async function GET() {
     tool: "resolve_specialist",
     description: "Find the best specialist candidate for a task.",
     schema: {
-      input: { task: "string", taskTypeHint: "string?", policy: "PolicyOverride?" },
+      input: { task: "string", taskTypeHint: "string?", required_capabilities: "string[]?", policy: "PolicyOverride?" },
       output: { ok: "boolean", candidate: "SpecialistCandidate | null", alternativeCount: "number" },
     },
   });

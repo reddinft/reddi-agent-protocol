@@ -23,6 +23,8 @@ export type ResolveInput = {
   task: string;
   /** Optional taxonomy ID hint (e.g. "summarize", "code") */
   taskTypeHint?: string;
+  /** Explicit runtime capabilities required to fulfill the request */
+  required_capabilities?: string[];
   /** Policy overrides — merged with saved orchestrator policy */
   policy?: {
     maxPerCallUsd?: number;
@@ -110,6 +112,11 @@ export const MCP_TOOL_SCHEMAS = [
           type: "string",
           enum: ["summarize","classify","extract","generate","analyze","code","translate","qa","plan","review","search","embed","transcribe","vision","custom"],
           description: "Optional task category hint to improve candidate matching.",
+        },
+        required_capabilities: {
+          type: "array",
+          items: { type: "string" },
+          description: "Runtime capabilities required from the specialist.",
         },
         policy: {
           type: "object",

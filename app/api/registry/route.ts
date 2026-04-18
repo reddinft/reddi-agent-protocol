@@ -9,6 +9,7 @@ export const runtime = "nodejs";
  *   taskType   — filter by task type ID
  *   inputMode  — filter by input mode ID
  *   privacyMode — filter by privacy mode ID
+ *   runtimeCap — filter by runtime capability
  *   attested   — "true" to require attestation
  *   health     — "pass" to require health pass
  *   sortBy    — "ranking" | "reputation" | "cost" | "feedback" (default: default bridge sort)
@@ -21,6 +22,7 @@ export async function GET(req: Request) {
     const filterPrivacyMode = searchParams.get("privacyMode");
     const filterAttested = searchParams.get("attested") === "true";
     const filterHealth = searchParams.get("health");
+    const filterRuntimeCap = searchParams.get("runtimeCap");
     const sort = searchParams.get("sortBy") ?? searchParams.get("sort") ?? "default";
 
     const { ok, listings, onchainCount, indexedCount, error } =
@@ -48,6 +50,11 @@ export async function GET(req: Request) {
     }
     if (filterHealth === "pass") {
       results = results.filter((l) => l.health.status === "pass");
+    }
+    if (filterRuntimeCap) {
+      results = results.filter((l) =>
+        l.capabilities?.runtime_capabilities?.includes(filterRuntimeCap as never)
+      );
     }
 
     if (sort === "ranking") {

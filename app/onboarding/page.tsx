@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import StepIndicator from "@/components/StepIndicator";
+import { RUNTIME_CAPABILITIES } from "@/lib/capabilities/taxonomy";
 import {
   AGENT_TYPE_ENUM,
   agentPda,
@@ -70,6 +71,13 @@ type WizardState = {
   capabilityOutputModes: string;
   capabilityPrivacyModes: string;
   capabilityTags: string;
+  capabilityRuntimeCapabilities: string[];
+  capabilityContextRequirements: {
+    key: string;
+    type: "text" | "url" | "file_ref" | "number" | "boolean" | "json";
+    required: boolean;
+    description: string;
+  }[];
   capabilityBaseUsd: string;
   capabilityPerCallUsd: string;
   capabilitySaved: boolean;
@@ -131,6 +139,8 @@ const INITIAL_STATE: WizardState = {
   capabilityOutputModes: "text",
   capabilityPrivacyModes: "public, per",
   capabilityTags: "onboarding, default",
+  capabilityRuntimeCapabilities: [],
+  capabilityContextRequirements: [],
   capabilityBaseUsd: "0",
   capabilityPerCallUsd: "0",
   capabilitySaved: false,
@@ -174,6 +184,28 @@ function hexToJobId(hex: string): Uint8Array {
     out[i] = Number.parseInt(hex.slice(i * 2, i * 2 + 2), 16);
   }
   return out;
+}
+
+const RUNTIME_CAPABILITY_LABELS: Record<string, string> = {
+  code_execution: "Can execute code",
+  file_read: "Can read files/documents",
+  file_write: "Produces file artifacts",
+  web_search: "Can search the web",
+  stateful: "Supports resumable sessions",
+  long_running: "Handles long tasks (>30s)",
+  multimodal: "Accepts images/audio/video",
+  streaming: "Streams responses",
+};
+
+const CONTEXT_REQUIREMENT_TYPES = ["text", "url", "file_ref", "number", "boolean", "json"] as const;
+
+function createRequirement() {
+  return {
+    key: "",
+    type: "text" as const,
+    required: true,
+    description: "",
+  };
 }
 
 export default function OnboardingPage() {
@@ -1075,6 +1107,142 @@ export default function OnboardingPage() {
                 }
                 placeholder="tags (comma separated)"
               />
+
+              <details className="rounded-lg border border-white/10 bg-black/20 p-3">
+                <summary className="cursor-pointer text-sm font-medium">Runtime capabilities</summary>
+                <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                  {RUNTIME_CAPABILITIES.map((capability) => (
+                    <label key={capability} className="flex items-center gap-2 text-sm cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={state.capabilityRuntimeCapabilities.includes(capability)}
+                        onChange={(e) =>
+                          setState((s) => ({
+                            ...s,
+                            capabilityRuntimeCapabilities: e.target.checked
+                              ? Array.from(new Set([...s.capabilityRuntimeCapabilities, capability]))
+                              : s.capabilityRuntimeCapabilities.filter((item) => item !== capability),
+                            capabilitySaved: false,
+                            capabilityNote: "",
+                          }))
+                        }
+                        className="accent-[#9945FF]"
+                      />
+                      <span>{RUNTIME_CAPABILITY_LABELS[capability] ?? capability}</span>
+                    </label>
+                  ))}
+                </div>
+              </details>
+
+              <details className="rounded-lg border border-white/10 bg-black/20 p-3">
+                <summary className="cursor-pointer text-sm font-medium">Context requirements</summary>
+                <div className="mt-3 space-y-3">
+                  {state.capabilityContextRequirements.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">Optional, add only if this specialist needs structured inputs.</p>
+                  ) : (
+                    state.capabilityContextRequirements.map((req, idx) => (
+                      <div key={`${idx}-${req.key}`} className="grid gap-2 rounded-md border border-white/10 bg-black/30 p-3">
+                        <div className="grid sm:grid-cols-4 gap-2">
+                          <Input
+                            value={req.key}
+                            onChange={(e) =>
+                              setState((s) => ({
+                                ...s,
+                                capabilityContextRequirements: s.capabilityContextRequirements.map((item, itemIdx) =>
+                                  itemIdx === idx ? { ...item, key: e.target.value } : item
+                                ),
+                                capabilitySaved: false,
+                                capabilityNote: "",
+                              }))
+                            }
+                            placeholder="key"
+                          />
+                          <select
+                            value={req.type}
+                            onChange={(e) =>
+                              setState((s) => ({
+                                ...s,
+                                capabilityContextRequirements: s.capabilityContextRequirements.map((item, itemIdx) =>
+                                  itemIdx === idx ? { ...item, type: e.target.value as typeof req.type } : item
+                                ),
+                                capabilitySaved: false,
+                                capabilityNote: "",
+                              }))
+                            }
+                            className="w-full bg-background border border-white/10 rounded-md px-3 py-2 text-sm"
+                          >
+                            {CONTEXT_REQUIREMENT_TYPES.map((type) => (
+                              <option key={type} value={type}>{type}</option>
+                            ))}
+                          </select>
+                          <label className="flex items-center gap-2 text-sm cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={req.required}
+                              onChange={(e) =>
+                                setState((s) => ({
+                                  ...s,
+                                  capabilityContextRequirements: s.capabilityContextRequirements.map((item, itemIdx) =>
+                                    itemIdx === idx ? { ...item, required: e.target.checked } : item
+                                  ),
+                                  capabilitySaved: false,
+                                  capabilityNote: "",
+                                }))
+                              }
+                              className="accent-[#9945FF]"
+                            />
+                            Required
+                          </label>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() =>
+                              setState((s) => ({
+                                ...s,
+                                capabilityContextRequirements: s.capabilityContextRequirements.filter((_, itemIdx) => itemIdx !== idx),
+                                capabilitySaved: false,
+                                capabilityNote: "",
+                              }))
+                            }
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                        <Input
+                          value={req.description}
+                          onChange={(e) =>
+                            setState((s) => ({
+                              ...s,
+                              capabilityContextRequirements: s.capabilityContextRequirements.map((item, itemIdx) =>
+                                itemIdx === idx ? { ...item, description: e.target.value } : item
+                              ),
+                              capabilitySaved: false,
+                              capabilityNote: "",
+                            }))
+                          }
+                          placeholder="description (optional)"
+                        />
+                      </div>
+                    ))
+                  )}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={state.capabilityContextRequirements.length >= 5}
+                    onClick={() =>
+                      setState((s) => ({
+                        ...s,
+                        capabilityContextRequirements: [...s.capabilityContextRequirements, createRequirement()],
+                        capabilitySaved: false,
+                        capabilityNote: "",
+                      }))
+                    }
+                  >
+                    + Add requirement
+                  </Button>
+                </div>
+              </details>
+
               <Button
                 variant="outline"
                 disabled={capabilityLoading || !state.walletAddress || !registered}
@@ -1097,6 +1265,13 @@ export default function OnboardingPage() {
                         outputModes: splitList(state.capabilityOutputModes),
                         privacyModes: splitList(state.capabilityPrivacyModes),
                         tags: splitList(state.capabilityTags),
+                        context_requirements: state.capabilityContextRequirements.map((req) => ({
+                          key: req.key,
+                          type: req.type,
+                          required: req.required,
+                          description: req.description || undefined,
+                        })),
+                        runtime_capabilities: state.capabilityRuntimeCapabilities,
                         endpointUrl: state.endpointUrl,
                         healthcheckStatus: state.healthcheckStatus,
                         attested: state.attested,

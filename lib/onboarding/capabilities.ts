@@ -3,6 +3,8 @@ import "server-only";
 import { mkdirSync, readFileSync, writeFileSync } from "fs";
 import { createHash } from "crypto";
 import { join } from "path";
+import type { ContextRequirement, RuntimeCapability } from "@/lib/capabilities/taxonomy";
+import { isValidContextRequirementType, isValidRuntimeCapability } from "@/lib/capabilities/taxonomy";
 
 export type CapabilityInput = {
   taskTypes: string[];
@@ -14,6 +16,8 @@ export type CapabilityInput = {
   };
   privacyModes: Array<"public" | "per" | "vanish">;
   tags?: string[];
+  context_requirements?: ContextRequirement[];
+  runtime_capabilities?: RuntimeCapability[];
 };
 
 export type CapabilityRecord = {
@@ -30,10 +34,12 @@ export type CapabilityRecord = {
  */
 export function computeCapabilityHash(walletAddress: string, caps: ReturnType<typeof validateCapabilities>): string {
   const canonical = {
+    context_requirements: normalizeContextRequirements(caps.context_requirements ?? []),
     inputModes: [...caps.inputModes].sort(),
     outputModes: [...caps.outputModes].sort(),
     pricing: { baseUsd: caps.pricing.baseUsd, perCallUsd: caps.pricing.perCallUsd ?? 0 },
     privacyModes: [...caps.privacyModes].sort(),
+    runtime_capabilities: [...(caps.runtime_capabilities ?? [])].sort(),
     tags: [...(caps.tags ?? [])].sort(),
     taskTypes: [...caps.taskTypes].sort(),
     version: "1",
@@ -46,6 +52,19 @@ const CAPABILITY_PATH = join(process.cwd(), "data", "onboarding", "specialist-ca
 
 function normalizeList(values: string[]) {
   return Array.from(new Set(values.map((v) => v.trim()).filter(Boolean)));
+}
+
+function normalizeContextRequirements(values: ContextRequirement[]) {
+  return values
+    .map((req) => ({
+      key: String(req.key || "").trim(),
+      type: req.type,
+      required: Boolean(req.required),
+      description: req.description ? String(req.description).trim() : undefined,
+      default: req.default,
+    }))
+    .filter((req) => req.key.length > 0)
+    .sort((a, b) => a.key.localeCompare(b.key));
 }
 
 function readAll(): CapabilityRecord[] {
@@ -67,6 +86,8 @@ export function validateCapabilities(input: CapabilityInput) {
   const outputModes = normalizeList(input.outputModes || []);
   const tags = normalizeList(input.tags || []);
   const privacyModes = Array.from(new Set((input.privacyModes || []).filter(Boolean)));
+  const runtimeCapabilities = Array.from(new Set((input.runtime_capabilities || []).filter(Boolean)));
+  const contextRequirements = Array.isArray(input.context_requirements) ? input.context_requirements : [];
 
   if (taskTypes.length === 0) throw new Error("At least one task type is required.");
   if (inputModes.length === 0) throw new Error("At least one input mode is required.");
@@ -76,6 +97,25 @@ export function validateCapabilities(input: CapabilityInput) {
   for (const mode of privacyModes) {
     if (!["public", "per", "vanish"].includes(mode)) {
       throw new Error(`Unsupported privacy mode: ${mode}`);
+    }
+  }
+
+  for (const capability of runtimeCapabilities) {
+    if (!isValidRuntimeCapability(capability)) {
+      throw new Error(`Unsupported runtime capability: ${capability}`);
+    }
+  }
+
+  if (contextRequirements.length > 5) {
+    throw new Error("context_requirements may contain at most 5 entries.");
+  }
+
+  for (const requirement of contextRequirements) {
+    if (!isValidContextRequirementType(requirement.type)) {
+      throw new Error(`Unsupported context requirement type: ${requirement.type}`);
+    }
+    if (!String(requirement.key || "").trim()) {
+      throw new Error("context_requirements[].key is required.");
     }
   }
 
@@ -100,6 +140,8 @@ export function validateCapabilities(input: CapabilityInput) {
       baseUsd,
       perCallUsd,
     },
+    context_requirements: normalizeContextRequirements(contextRequirements),
+    runtime_capabilities: runtimeCapabilities as RuntimeCapability[],
   };
 }
 
