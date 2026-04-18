@@ -213,6 +213,9 @@ export async function commitReputationRating(
       maxRetries: 2,
     });
     trace.push(`reputation:commit_tx=${sig}`);
+    console.log(
+      `[REPUTATION_EVENT] mint: job=${Buffer.from(jobId).toString("hex")} specialist=${specialistWallet} score=${score} tx=${sig}`
+    );
 
     // Persist commit entry for later reveal
     const entry: CommitEntry = {
@@ -311,6 +314,12 @@ export async function revealReputationRating(runId: string): Promise<ReputationR
       maxRetries: 2,
     });
     trace.push(`reputation:reveal_tx=${sig}`);
+    const consumerScore = score;
+    const specialistScore = "pending";
+    const newReputation = "updated";
+    console.log(
+      `[REPUTATION_EVENT] reveal: job=${entry.jobIdHex} consumer_score=${consumerScore} specialist_score=${specialistScore} new_reputation=${newReputation ?? "updated"}`
+    );
 
     // Mark as revealed
     const idx = commits.findIndex((e) => e.runId === runId && !e.revealed);
