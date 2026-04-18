@@ -1,5 +1,6 @@
 "use client"
 
+import { Suspense } from "react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import dynamic from "next/dynamic"
@@ -76,7 +77,7 @@ function launchConfetti() {
 
 const STEPS = ["Describe task", "Select specialist", "Execute", "Feedback"]
 
-export default function PlannerPage() {
+function PlannerInner() {
   const { connected } = useWallet()
   const searchParams = useSearchParams()
   const preferredWallet = searchParams.get("specialist") ?? ""
@@ -389,5 +390,13 @@ export default function PlannerPage() {
         </div>
       ) : null}
     </div>
+  )
+}
+
+export default function PlannerPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-page flex items-center justify-center"><p className="text-gray-400">Loading planner…</p></div>}>
+      <PlannerInner />
+    </Suspense>
   )
 }
