@@ -154,3 +154,29 @@ Checkpoint status:
 3. ✅ C4: `reveal_rating` fully wired (`lib/onboarding/reputation-signal.ts`) — commit hash/salt persisted in `data/onboarding/rating-commits.json`; `POST /api/onboarding/planner/reveal` triggers reveal with correct Rust layout.
 4. ✅ C5: Consumer planner UI added as onboarding Step 8 — prompt entry, specialist call execution with x402 tx display, 1-10 feedback + on-chain reputation commit result shown inline.
 5. ✅ E2E: 18 Playwright tests covering all 8 onboarding steps (UI gates, nav, step 8 planner idle/disabled/enabled/feedback), all planner API routes (execute, feedback, reveal, capabilities), and correct error shapes.
+
+## Bucket G — Torque Protocol Retention Layer
+
+### Use Case G1: Event emission
+- Scenario G1.1: isTorqueEnabled returns true when TORQUE_API_TOKEN is set
+- Scenario G1.2: isTorqueEnabled returns false when token not set
+- Scenario G1.3: emitTorqueEvent sends correctly-shaped POST with Authorization header
+- Scenario G1.4: emitTorqueEvent is a no-op (no throw) when token missing
+- Scenario G1.5: emitTorqueEvent fails silently when API unreachable
+- Scenario G1.6: SPECIALIST_JOB_COMPLETED emitted after release_escrow confirms
+- Scenario G1.7: CONSUMER_QUERY_RUN emitted after planner invoke
+- Scenario G1.8: RATING_SUBMITTED emitted after commit_rating succeeds
+
+### Use Case G2: Leaderboard UI
+- Scenario G2.1: getLeaderboard returns empty array when no token/campaign configured
+- Scenario G2.2: getLeaderboard returns empty array on fetch failure
+- Scenario G2.3: /leaderboard renders without server error
+- Scenario G2.4: /leaderboard shows table or empty state
+- Scenario G2.5: /leaderboard contains Torque attribution
+- Scenario G2.6: /leaderboard does not expose raw API tokens
+
+Checkpoint status:
+- G1.1-G1.5: ✅ implemented (torque-client.test.ts)
+- G1.6-G1.8: ✅ implemented (wired in x402-settlement, planner-execution, reputation-signal)
+- G2.1-G2.2: ✅ implemented (torque-client.test.ts)
+- G2.3-G2.6: ✅ implemented (e2e/leaderboard.spec.ts)

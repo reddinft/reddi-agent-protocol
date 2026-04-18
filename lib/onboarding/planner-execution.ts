@@ -6,6 +6,8 @@ import { join } from "path";
 import type { SwapClient } from "@reddi/x402-solana";
 import { routePlannerPolicy, type PlannerPolicyInput } from "@/lib/onboarding/planner-router";
 import { processX402Challenge } from "@/lib/onboarding/x402-settlement";
+import { emitTorqueEvent } from "@/lib/torque/client";
+import { TORQUE_EVENTS } from "@/lib/torque/events";
 
 export type PlannerExecuteInput = {
   prompt: string;
@@ -197,6 +199,18 @@ export async function executePlannerSpecialistCall(input: PlannerExecuteInput) {
       };
       appendRun(run);
 
+      if (second.ok) {
+        void emitTorqueEvent({
+          userPubkey: "unknown",
+          eventName: TORQUE_EVENTS.CONSUMER_QUERY_RUN,
+          fields: {
+            taskType: "planner_query",
+            specialistWallet: routed.selected.walletAddress,
+            success: true,
+          },
+        });
+      }
+
       return {
         ok: second.ok,
         result: run,
@@ -223,6 +237,18 @@ export async function executePlannerSpecialistCall(input: PlannerExecuteInput) {
     };
 
     appendRun(run);
+
+    if (first.ok) {
+      void emitTorqueEvent({
+        userPubkey: "unknown",
+        eventName: TORQUE_EVENTS.CONSUMER_QUERY_RUN,
+        fields: {
+          taskType: "planner_query",
+          specialistWallet: routed.selected.walletAddress,
+          success: true,
+        },
+      });
+    }
 
     return {
       ok: first.ok,
