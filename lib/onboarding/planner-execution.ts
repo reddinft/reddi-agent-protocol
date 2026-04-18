@@ -14,6 +14,8 @@ export type PlannerExecuteInput = {
   policy?: PlannerPolicyInput;
   swapClient?: SwapClient;
   slippageBps?: number;
+  /** Consumer wallet address — used for Torque event attribution */
+  consumerWallet?: string;
 };
 
 export type PlannerRunRecord = {
@@ -201,7 +203,7 @@ export async function executePlannerSpecialistCall(input: PlannerExecuteInput) {
 
       if (second.ok) {
         void emitTorqueEvent({
-          userPubkey: "unknown",
+          userPubkey: input.consumerWallet ?? "unknown",
           eventName: TORQUE_EVENTS.CONSUMER_QUERY_RUN,
           fields: {
             taskType: "planner_query",
@@ -240,7 +242,7 @@ export async function executePlannerSpecialistCall(input: PlannerExecuteInput) {
 
     if (first.ok) {
       void emitTorqueEvent({
-        userPubkey: "unknown",
+        userPubkey: input.consumerWallet ?? "unknown",
         eventName: TORQUE_EVENTS.CONSUMER_QUERY_RUN,
         fields: {
           taskType: "planner_query",

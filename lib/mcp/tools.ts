@@ -57,6 +57,8 @@ export type InvokeInput = {
   prompt: string;
   /** Optional: target a specific specialist wallet */
   targetWallet?: string;
+  /** Consumer wallet address — used for Torque event attribution */
+  consumerWallet?: string;
   /** Policy overrides */
   policy?: {
     maxPerCallUsd?: number;
