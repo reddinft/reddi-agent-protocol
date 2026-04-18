@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import StepIndicator from "@/components/StepIndicator";
+import { showToast } from "@/components/ui/toast";
 import { RUNTIME_CAPABILITIES } from "@/lib/capabilities/taxonomy";
 import {
   AGENT_TYPE_ENUM,
@@ -235,6 +236,15 @@ export default function OnboardingPage() {
   const [attestationLoading, setAttestationLoading] = useState(false);
   const [attestationOperatorCheckLoading, setAttestationOperatorCheckLoading] = useState(false);
   const [capabilityLoading, setCapabilityLoading] = useState(false);
+  const prevStepRef = useRef(step);
+
+  useEffect(() => {
+    if (prevStepRef.current !== step) {
+      showToast(`Onboarding step ${step} complete`, "success");
+      prevStepRef.current = step;
+    }
+  }, [step]);
+
   const [state, setState] = useState<WizardState>(() => {
     if (typeof window === "undefined") return INITIAL_STATE;
     try {

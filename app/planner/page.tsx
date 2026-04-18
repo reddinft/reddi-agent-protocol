@@ -1,364 +1,404 @@
-"use client";
+"use client"
 
-import { useEffect, useState, useCallback } from "react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { PageHeader } from "@/components/ui/page-header";
-import { TASK_TYPES, PRIVACY_MODES } from "@/lib/capabilities/taxonomy";
-import type { OrchestratorPolicy } from "@/lib/orchestrator/policy";
+import { useEffect, useMemo, useRef, useState } from "react"
+import Link from "next/link"
+import dynamic from "next/dynamic"
+import { useSearchParams } from "next/navigation"
+import { useWallet } from "@solana/wallet-adapter-react"
 
-type RunRecord = {
-  runId: string;
-  createdAt: string;
-  selectedWallet?: string;
-  endpointUrl?: string;
-  status: "completed" | "failed";
-  challengeSeen: boolean;
-  paymentSatisfied: boolean;
-  x402TxSignature?: string;
-  responsePreview?: string;
-  error?: string;
-  trace?: string[];
-};
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { Modal } from "@/components/ui/modal"
+import { PageHeader } from "@/components/ui/page-header"
+import { Textarea } from "@/components/ui/textarea"
+import { showToast } from "@/components/ui/toast"
+import { TASK_TYPES, PRIVACY_MODES } from "@/lib/capabilities/taxonomy"
+import type { SpecialistListing } from "@/lib/registry/bridge"
 
-type Candidate = {
-  walletAddress: string;
-  endpointUrl?: string;
-  score?: number;
-  reasons?: string[];
-};
+const WalletMultiButton = dynamic(async () => (await import("@solana/wallet-adapter-react-ui")).WalletMultiButton, { ssr: false })
 
-type ExecuteResult = {
-  ok: boolean;
-  result?: {
-    result?: RunRecord;
-  };
-  candidates?: Candidate[];
-  error?: string;
-};
+type PlannerRun = {
+  runId: string
+  createdAt: string
+  selectedWallet?: string
+  endpointUrl?: string
+  status: "completed" | "failed"
+  challengeSeen: boolean
+  paymentAttempted: boolean
+  paymentSatisfied: boolean
+  x402TxSignature?: string
+  x402ReceiptNonce?: string
+  responsePreview?: string
+  error?: string
+  trace: string[]
+}
+
+type ResolveResult = {
+  ok: boolean
+  candidate: {
+    walletAddress: string
+    endpointUrl: string
+    taskTypes: string[]
+    privacyModes: string[]
+    perCallUsd: number
+    attested: boolean
+    healthStatus: string
+    reputationScore: number
+    avgFeedbackScore: number
+    selectionReasons: string[]
+  } | null
+  alternativeCount: number
+  error?: string
+}
+
+function shortWallet(wallet: string) {
+  return wallet.length > 12 ? `${wallet.slice(0, 6)}…${wallet.slice(-4)}` : wallet
+}
+
+function avatarGradient(seed: string) {
+  const palette = [
+    "from-indigo-500/80 to-sky-500/30",
+    "from-fuchsia-500/80 to-pink-500/30",
+    "from-emerald-500/80 to-teal-500/30",
+    "from-amber-500/80 to-orange-500/30",
+  ]
+  const index = [...seed].reduce((acc, char) => acc + char.charCodeAt(0), 0) % palette.length
+  return palette[index]
+}
+
+function launchConfetti() {
+  const colors = ["#818cf8", "#f472b6", "#22c55e", "#fb923c", "#facc15"]
+  for (let i = 0; i < 40; i++) {
+    const el = document.createElement("div")
+    el.className = "confetti-piece"
+    el.style.cssText = `
+      position: fixed; width: 10px; height: 10px; z-index: 200;
+      left: ${Math.random() * 100}vw; top: -10px;
+      background: ${colors[Math.floor(Math.random() * 5)]};
+      border-radius: ${Math.random() > 0.5 ? "50%" : "0"};
+      animation: confettiFall 2s ease-out forwards;
+      animation-delay: ${Math.random() * 0.5}s;
+    `
+    document.body.appendChild(el)
+    window.setTimeout(() => el.remove(), 2500)
+  }
+}
+
+const STEPS = ["Describe task", "Select specialist", "Execute", "Feedback"]
 
 export default function PlannerPage() {
-  const [policy, setPolicy] = useState<OrchestratorPolicy | null>(null);
-  const [prompt, setPrompt] = useState("");
-  const [taskTypeHint, setTaskTypeHint] = useState("");
-  const [privacyOverride, setPrivacyOverride] = useState("");
-  const [requireAttestation, setRequireAttestation] = useState<boolean | null>(null);
+  const { connected } = useWallet()
+  const searchParams = useSearchParams()
+  const preferredWallet = searchParams.get("specialist") ?? ""
 
-  const [status, setStatus] = useState<"idle" | "running" | "done" | "error">("idle");
-  const [runResult, setRunResult] = useState<RunRecord | null>(null);
-  const [candidates, setCandidates] = useState<Candidate[]>([]);
-  const [execError, setExecError] = useState("");
-
-  const [feedbackScore, setFeedbackScore] = useState("8");
-  const [feedbackNote, setFeedbackNote] = useState("");
-  const [feedbackSent, setFeedbackSent] = useState(false);
-  const [feedbackMsg, setFeedbackMsg] = useState("");
+  const [step, setStep] = useState(0)
+  const [prompt, setPrompt] = useState("")
+  const [taskType, setTaskType] = useState<string>(TASK_TYPES[0].id)
+  const [privacyMode, setPrivacyMode] = useState<"public" | "per" | "vanish">("public")
+  const [loadingCandidates, setLoadingCandidates] = useState(false)
+  const [candidates, setCandidates] = useState<SpecialistListing[]>([])
+  const [selectedWallet, setSelectedWallet] = useState<string>(preferredWallet)
+  const [resolved, setResolved] = useState<ResolveResult | null>(null)
+  const [executing, setExecuting] = useState(false)
+  const [run, setRun] = useState<PlannerRun | null>(null)
+  const [rating, setRating] = useState(5)
+  const [note, setNote] = useState("")
+  const [submitted, setSubmitted] = useState(false)
+  const [completeOpen, setCompleteOpen] = useState(false)
+  const [allAgents, setAllAgents] = useState<SpecialistListing[]>([])
+  const prevStep = useRef(step)
 
   useEffect(() => {
-    fetch("/api/orchestrator/policy")
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.ok) setPolicy(d.policy);
-      })
-      .catch(() => {});
-  }, []);
-
-  const execute = useCallback(async () => {
-    if (!prompt.trim()) return;
-    setStatus("running");
-    setRunResult(null);
-    setCandidates([]);
-    setExecError("");
-    setFeedbackSent(false);
-    setFeedbackMsg("");
-
-    const body: Record<string, unknown> = { prompt };
-    const pol: Record<string, unknown> = {};
-    if (privacyOverride) pol.requiredPrivacyMode = privacyOverride;
-    if (requireAttestation !== null) pol.requiresAttested = requireAttestation;
-    if (policy) {
-      pol.requiresHealthPass = true;
-      if (policy.requireAttestation) pol.requiresAttested = true;
-      if (policy.maxPerTaskUsd > 0) pol.maxPerCallUsd = policy.maxPerTaskUsd;
+    let cancelled = false
+    async function load() {
+      try {
+        const res = await fetch("/api/registry")
+        const data = await res.json()
+        if (!cancelled) setAllAgents(data.listings ?? [])
+      } catch {
+        if (!cancelled) setAllAgents([])
+      }
     }
-    if (Object.keys(pol).length) body.policy = pol;
+    void load()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
+  useEffect(() => {
+    if (prevStep.current !== step) {
+      showToast(`Step ${step + 1} of 4`, "info")
+      prevStep.current = step
+    }
+  }, [step])
+
+  const topCandidates = useMemo(() => {
+    const scored = [...allAgents]
+      .filter((agent) => agent.health.status !== "fail")
+      .sort((a, b) => {
+        const aScore = (a.attestation.attested ? 40 : 0) + (a.health.status === "pass" ? 20 : 0) + a.onchain.reputationScore / 500 + a.signals.avgFeedbackScore * 4
+        const bScore = (b.attestation.attested ? 40 : 0) + (b.health.status === "pass" ? 20 : 0) + b.onchain.reputationScore / 500 + b.signals.avgFeedbackScore * 4
+        return bScore - aScore
+      })
+    return scored.slice(0, 3)
+  }, [allAgents])
+
+  useEffect(() => {
+    if (!preferredWallet) return
+    setSelectedWallet(preferredWallet)
+  }, [preferredWallet])
+
+  async function findSpecialists() {
+    if (!prompt.trim()) return
+    setLoadingCandidates(true)
+    try {
+      const res = await fetch("/api/planner/tools/resolve", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          task: prompt,
+          taskTypeHint: taskType,
+          policy: { preferredPrivacyMode: privacyMode },
+        }),
+      })
+      const data: ResolveResult = await res.json()
+      setResolved(data)
+      setCandidates(topCandidates)
+      setSelectedWallet(data.candidate?.walletAddress ?? topCandidates[0]?.walletAddress ?? "")
+      setStep(1)
+      showToast(data.ok ? "Specialists resolved" : data.error ?? "No eligible specialist", data.ok ? "success" : "error")
+    } finally {
+      setLoadingCandidates(false)
+    }
+  }
+
+  async function executeRun() {
+    if (!prompt.trim()) return
+    setExecuting(true)
     try {
       const res = await fetch("/api/onboarding/planner/execute", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      const data: ExecuteResult = await res.json();
-      setCandidates(data.candidates ?? []);
-      if (data.ok && data.result?.result) {
-        setRunResult(data.result.result);
-        setStatus("done");
+        body: JSON.stringify({
+          prompt,
+          policy: {
+            requiredPrivacyMode: privacyMode,
+            requiresHealthPass: true,
+          },
+        }),
+      })
+      const data = await res.json()
+      const nextRun = data.result?.result ?? data.result ?? null
+      setRun(nextRun)
+      if (data.ok) {
+        setStep(2)
+        showToast("Execution complete", "success")
       } else {
-        setExecError(data.error ?? data.result?.result?.error ?? "No eligible specialist found.");
-        setRunResult(data.result?.result ?? null);
-        setStatus("error");
+        setStep(2)
+        showToast(data.error ?? nextRun?.error ?? "Execution failed", "error")
       }
-    } catch (e) {
-      setExecError(e instanceof Error ? e.message : "Request failed");
-      setStatus("error");
-    }
-  }, [prompt, privacyOverride, requireAttestation, policy]);
-
-  async function sendFeedback() {
-    if (!runResult?.runId) return;
-    const score = Math.max(1, Math.min(10, parseInt(feedbackScore, 10) || 5));
-    try {
-      const res = await fetch("/api/onboarding/planner/feedback", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ runId: runResult.runId, score, notes: feedbackNote || undefined }),
-      });
-      const data = await res.json();
-      setFeedbackSent(true);
-      setFeedbackMsg(
-        data.ok
-          ? `✓ Saved${data.result?.reputationCommit?.ok ? " + on-chain reputation committed" : ""}.`
-          : `Error: ${data.error}`
-      );
-    } catch (e) {
-      setFeedbackMsg(e instanceof Error ? e.message : "Feedback failed");
+    } finally {
+      setExecuting(false)
     }
   }
 
-  const policyActive = policy?.enabled;
+  async function submitFeedback() {
+    if (!run?.runId) return
+    const res = await fetch("/api/onboarding/planner/feedback", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ runId: run.runId, score: rating, notes: note || undefined }),
+    })
+    const data = await res.json()
+    setSubmitted(true)
+    setCompleteOpen(true)
+    if (data.ok) {
+      launchConfetti()
+      showToast("Rating committed", "success")
+    } else {
+      showToast(data.error ?? "Feedback failed", "error")
+    }
+  }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-12 space-y-8 bg-page">
-      <PageHeader
-        label="Execution"
-        title="Planner"
-        subtitle="Run a task, the planner selects the best available specialist, negotiates payment, and delivers the result."
-        actions={
-          <>
-            <Link href="/orchestrator">
-              <Button size="sm" variant="outline">
-                ⚙ Settings
-              </Button>
-            </Link>
+    <div className="min-h-screen bg-page">
+      <Modal open={!connected} onClose={() => {}}>
+        <div className="p-8 text-center">
+          <div className="mb-4 text-4xl">🔗</div>
+          <h2 className="mb-2 font-display text-xl text-white">Connect Your Wallet</h2>
+          <p className="mb-6 text-sm text-gray-400">You need a Solana wallet to use the planner or register as a specialist.</p>
+          <WalletMultiButton />
+        </div>
+      </Modal>
+
+      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8 space-y-8">
+        <PageHeader
+          label="Mission mode"
+          title="Planner"
+          subtitle="Describe the task, inspect candidates, execute the call, then commit feedback on-chain."
+          actions={
             <Link href="/runs">
-              <Button size="sm" variant="outline">
-                History →
-              </Button>
+              <Button variant="outline" size="sm">Run history →</Button>
             </Link>
-          </>
-        }
-      />
-
-      {policy && (
-        <div
-          className={`rounded-lg border px-4 py-2.5 text-xs flex items-center justify-between gap-4 ${
-            policyActive
-              ? "border-accent-green/30 bg-accent-green/10 text-accent-green"
-              : "border-yellow-500/30 bg-yellow-950/20 text-yellow-300"
-          }`}
-        >
-          <span>
-            {policyActive
-              ? `✓ Marketplace active — budget $${policy.maxPerTaskUsd}/task · $${policy.dailyBudgetUsd}/day · ${policy.preferredPrivacyMode} settlement`
-              : "⚠ Specialist marketplace is disabled in settings."}
-          </span>
-          {!policyActive && (
-            <Link href="/orchestrator">
-              <Button size="sm" variant="outline" className="text-xs h-6 px-2">
-                Enable →
-              </Button>
-            </Link>
-          )}
-        </div>
-      )}
-
-      <Card className="p-5 space-y-2">
-        <Label className="section-label">Task prompt</Label>
-        <textarea
-          rows={4}
-          placeholder="Describe the task you want a specialist to complete…"
-          className="w-full rounded-lg border border-border bg-surface/80 px-3 py-2 text-sm text-white resize-none focus:outline-none focus:ring-1 focus:ring-ring"
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          disabled={status === "running"}
+          }
         />
-      </Card>
 
-      <Card className="p-5 space-y-3">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Task type hint</Label>
-            <select
-              value={taskTypeHint}
-              onChange={(e) => setTaskTypeHint(e.target.value)}
-              className="w-full rounded-md border border-border bg-surface/80 px-3 py-1.5 text-sm text-white"
-            >
-              <option value="">Auto-detect</option>
-              {TASK_TYPES.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Settlement override</Label>
-            <select
-              value={privacyOverride}
-              onChange={(e) => setPrivacyOverride(e.target.value)}
-              className="w-full rounded-md border border-border bg-surface/80 px-3 py-1.5 text-sm text-white"
-            >
-              <option value="">Use policy default</option>
-              {PRIVACY_MODES.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Attestation</Label>
-            <select
-              value={requireAttestation === null ? "" : String(requireAttestation)}
-              onChange={(e) => setRequireAttestation(e.target.value === "" ? null : e.target.value === "true")}
-              className="w-full rounded-md border border-border bg-surface/80 px-3 py-1.5 text-sm text-white"
-            >
-              <option value="">Use policy default</option>
-              <option value="true">Require attested</option>
-              <option value="false">Any specialist</option>
-            </select>
+        <div className="flex justify-center gap-2">
+          {STEPS.map((_, index) => (
+            <div key={index} className={`step-dot ${index < step ? "completed" : ""} ${index === step ? "current" : ""}`} />
+          ))}
+        </div>
+
+        <div className="rounded-xl bg-surface p-6 glow-border">
+          <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+            <Card className="space-y-4 p-6">
+              <p className="section-label">STEP {step + 1} OF 4</p>
+              <h3 className="font-display text-2xl text-white">{STEPS[step]}</h3>
+              <p className="text-sm leading-6 text-gray-400">
+                {step === 0 && "Explain the task, pick the category, and choose a settlement mode."}
+                {step === 1 && "Review the best available specialists before you execute."}
+                {step === 2 && "Watch payment negotiation and completion status."}
+                {step === 3 && "Commit your rating to the protocol."}
+              </p>
+            </Card>
+
+            <Card className="space-y-4 p-6">
+              {step === 0 ? (
+                <>
+                  <Textarea
+                    className="code-area min-h-44"
+                    placeholder="Describe the task you want a specialist to complete…"
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                  />
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <label className="space-y-2 text-sm text-gray-400">
+                      <span>Task type</span>
+                      <select className="w-full rounded-lg border border-border bg-page px-3 py-2 text-white" value={taskType} onChange={(e) => setTaskType(e.target.value)}>
+                        {TASK_TYPES.map((task) => <option key={task.id} value={task.id}>{task.label}</option>)}
+                      </select>
+                    </label>
+                    <label className="space-y-2 text-sm text-gray-400">
+                      <span>Settlement</span>
+                      <select className="w-full rounded-lg border border-border bg-page px-3 py-2 text-white" value={privacyMode} onChange={(e) => setPrivacyMode(e.target.value as "public" | "per" | "vanish") }>
+                        {PRIVACY_MODES.map((mode) => <option key={mode.id} value={mode.id}>{mode.label}</option>)}
+                      </select>
+                    </label>
+                  </div>
+                  <Button className="w-full" disabled={!prompt.trim() || loadingCandidates} onClick={findSpecialists}>
+                    {loadingCandidates ? "Finding specialists…" : "Find Specialists →"}
+                  </Button>
+                </>
+              ) : null}
+
+              {step === 1 ? (
+                <div className="space-y-3">
+                  <p className="text-sm text-gray-400">Resolved candidates, best match is preselected.</p>
+                  {resolved ? (
+                    <p className="text-xs text-gray-500">
+                      {resolved.candidate ? `Reasons: ${resolved.candidate.selectionReasons.join(" · ")}` : resolved.error}
+                    </p>
+                  ) : null}
+                  <div className="space-y-3">
+                    {candidates.map((agent, index) => {
+                      const selected = selectedWallet === agent.walletAddress
+                      return (
+                        <button
+                          key={agent.walletAddress}
+                          onClick={() => setSelectedWallet(agent.walletAddress)}
+                          className={`w-full rounded-xl border p-4 text-left transition ${selected ? "ring-2 ring-indigo-500 border-indigo-500/40 bg-indigo-500/10" : "border-white/10 bg-white/5 hover:border-white/20"}`}
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className="font-medium text-white">{agent.onchain.model || shortWallet(agent.walletAddress)}</p>
+                              <p className="text-xs text-gray-400">{shortWallet(agent.walletAddress)}</p>
+                            </div>
+                            <Badge variant="outline" className="border-white/10 bg-white/5 text-gray-300">#{index + 1}</Badge>
+                          </div>
+                          <div className="mt-3 flex flex-wrap gap-2 text-xs text-gray-400">
+                            <span>⭐ {Math.round(agent.onchain.reputationScore / 100)}</span>
+                            <span>◎ {(Number(agent.onchain.rateLamports) / 1_000_000_000).toFixed(4)} SOL</span>
+                            <span>{agent.health.status}</span>
+                          </div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                  <Button className="w-full" disabled={!selectedWallet || executing} onClick={executeRun}>
+                    {executing ? "Executing…" : "Execute with this specialist →"}
+                  </Button>
+                </div>
+              ) : null}
+
+              {step === 2 && run ? (
+                <div className="space-y-4">
+                  <div className="rounded-xl border border-white/10 bg-black/30 p-4">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="outline" className={run.status === "completed" ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border-red-500/30 bg-red-500/10 text-red-300"}>
+                        {run.status}
+                      </Badge>
+                      <span className="font-mono text-xs text-gray-400">{run.runId}</span>
+                    </div>
+                    <div className="mt-3 space-y-2 text-sm text-gray-300">
+                      <p>Payment: {run.paymentSatisfied ? "confirmed" : run.paymentAttempted ? "sent" : "pending"}</p>
+                      <p>Escrow: {run.challengeSeen ? "x402 challenge seen" : "not required"}</p>
+                      {run.x402TxSignature ? <p className="font-mono text-xs text-gray-400">tx {run.x402TxSignature}</p> : null}
+                    </div>
+                  </div>
+                  <pre className="code-area min-h-40 overflow-auto rounded-xl p-4 text-sm text-gray-200">{run.responsePreview || "No response preview."}</pre>
+                  <details className="rounded-xl border border-white/10 bg-white/5 p-4 text-sm text-gray-300">
+                    <summary className="cursor-pointer text-white">Receipt</summary>
+                    <div className="mt-3 space-y-1 font-mono text-xs text-gray-400">
+                      <p>tx: {run.x402TxSignature ?? "n/a"}</p>
+                      <p>nonce: {run.x402ReceiptNonce ?? "n/a"}</p>
+                      <p>status: {run.status}</p>
+                    </div>
+                  </details>
+                  <Button className="w-full" onClick={() => setStep(3)}>
+                    Continue to feedback →
+                  </Button>
+                </div>
+              ) : null}
+
+              {step === 3 ? (
+                <div className="space-y-4">
+                  <div className="flex gap-1">
+                    {Array.from({ length: 5 }).map((_, index) => (
+                      <button key={index} onClick={() => setRating(index + 1)} className={`text-3xl transition ${index < rating ? "text-indigo-400" : "text-white/20"}`}>★</button>
+                    ))}
+                  </div>
+                  <Textarea
+                    className="min-h-28"
+                    placeholder="Optional feedback note"
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                  />
+                  <Button className="w-full" disabled={!run?.runId || submitted} onClick={() => void submitFeedback()}>
+                    {submitted ? "Committed ✓" : "Submit & Commit Rating"}
+                  </Button>
+                </div>
+              ) : null}
+            </Card>
           </div>
         </div>
-      </Card>
+      </div>
 
-      <Button
-        className="w-full py-5 text-base font-semibold"
-        style={status !== "running" && prompt.trim() ? { background: "linear-gradient(135deg,#9945FF,#14F195)", color: "#000" } : {}}
-        disabled={status === "running" || !prompt.trim()}
-        onClick={execute}
-      >
-        {status === "running" ? "Finding specialist + executing…" : "Run task →"}
-      </Button>
-
-      {candidates.length > 0 && (
-        <Card className="p-4 space-y-2">
-          <p className="section-label">Candidate selection</p>
-          <div className="space-y-1">
-            {candidates.map((c, i) => (
-              <div
-                key={c.walletAddress}
-                className={`rounded-lg border px-3 py-2 text-xs flex items-start gap-3 ${
-                  i === 0 ? "border-accent-green/30 bg-accent-green/10" : "border-border bg-surface/40"
-                }`}
-              >
-                <span className={i === 0 ? "text-accent-green font-medium" : "text-muted-foreground"}>
-                  {i === 0 ? "✓ Selected" : `#${i + 1}`}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <span className="font-mono text-muted-foreground/70">{c.walletAddress.slice(0, 8)}…</span>
-                  {c.reasons && c.reasons.length > 0 && (
-                    <div className="mt-1 flex flex-wrap gap-1">
-                      {c.reasons.map((r) => (
-                        <Badge key={r} variant="outline" className="px-1.5 py-0 text-xs text-muted-foreground/60">
-                          {r}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
-
-      {(status === "done" || status === "error") && (
-        <Card
-          className={`p-5 space-y-3 ${
-            status === "done" ? "border-accent-green/30 bg-accent-green/10" : "border-red-500/30 bg-red-950/20"
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <span className={`text-sm font-semibold ${status === "done" ? "text-accent-green" : "text-red-300"}`}>
-              {status === "done" ? "✓ Task completed" : "✗ Task failed"}
-            </span>
-            {runResult?.runId && <span className="font-mono text-xs text-muted-foreground/60">{runResult.runId}</span>}
-          </div>
-
-          {runResult?.x402TxSignature && <p className="text-xs font-mono text-muted-foreground/70">x402 tx: {runResult.x402TxSignature}</p>}
-
-          {runResult?.trace && runResult.trace.length > 0 && (
-            <details className="text-xs">
-              <summary className="cursor-pointer text-muted-foreground/50 hover:text-muted-foreground">
-                Execution trace ({runResult.trace.length} steps)
-              </summary>
-              <div className="mt-2 space-y-0.5">
-                {runResult.trace.map((t, i) => (
-                  <div key={i} className="font-mono text-muted-foreground/60">
-                    {t}
-                  </div>
-                ))}
-              </div>
-            </details>
-          )}
-
-          {execError && <p className="text-sm text-red-300">{execError}</p>}
-
-          {runResult?.responsePreview && (
-            <div className="border-t border-border pt-3">
-              <p className="mb-1 text-xs text-muted-foreground">Response</p>
-              <p className="whitespace-pre-wrap text-sm text-white">{runResult.responsePreview}</p>
-            </div>
-          )}
-        </Card>
-      )}
-
-      {status === "done" && runResult?.runId && !feedbackSent && (
-        <Card className="p-5 space-y-3">
-          <h3 className="section-label">Rate this specialist call</h3>
-          <p className="text-xs text-muted-foreground">
-            Your feedback improves routing. Scores ≥3 trigger an on-chain reputation commit.
-          </p>
-          <div className="flex items-center gap-3">
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Score (1–10)</Label>
-              <Input type="number" min={1} max={10} className="w-20 text-center" value={feedbackScore} onChange={(e) => setFeedbackScore(e.target.value)} />
-            </div>
-            <div className="flex-1 space-y-1">
-              <Label className="text-xs text-muted-foreground">Notes (optional)</Label>
-              <Input placeholder="What was good or bad about this result?" value={feedbackNote} onChange={(e) => setFeedbackNote(e.target.value)} />
+      {completeOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+          <div className="max-w-md rounded-2xl bg-surface p-8 text-center glow-border">
+            <div className="mb-4 text-6xl">🎉</div>
+            <h2 className="font-display text-3xl text-white">Task Complete!</h2>
+            <p className="mt-2 text-sm text-gray-400">Your rating has been committed on-chain.</p>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+              <Link href="/runs">
+                <Button>View run history →</Button>
+              </Link>
+              <Button variant="outline" onClick={() => setCompleteOpen(false)}>Close</Button>
             </div>
           </div>
-          <Button size="sm" onClick={sendFeedback}>
-            Submit feedback
-          </Button>
-        </Card>
-      )}
-
-      {feedbackMsg && <p className="text-xs text-muted-foreground">{feedbackMsg}</p>}
-
-      {status === "idle" && !prompt && (
-        <Card className="p-6 text-center space-y-3">
-          <p className="text-sm text-muted-foreground">No specialists registered yet?</p>
-          <div className="flex flex-wrap justify-center gap-3">
-            <Link href="/onboarding">
-              <Button size="sm" variant="outline">
-                Register as specialist →
-              </Button>
-            </Link>
-            <Link href="/agents">
-              <Button size="sm" variant="outline">
-                Browse marketplace →
-              </Button>
-            </Link>
-          </div>
-        </Card>
-      )}
+        </div>
+      ) : null}
     </div>
-  );
+  )
 }
