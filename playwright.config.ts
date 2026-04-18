@@ -7,7 +7,7 @@ export default defineConfig({
   retries: 1,
   timeout: 30_000,
   use: {
-    baseURL: 'http://localhost:3010',
+    baseURL: 'http://127.0.0.1:3010',
     trace: 'on-first-retry',
     screenshot: 'on',
     video: 'on',
@@ -17,7 +17,7 @@ export default defineConfig({
   ],
   webServer: {
     command: 'node node_modules/next/dist/bin/next dev --port 3010',
-    url: 'http://localhost:3010',
+    url: 'http://127.0.0.1:3010',
     reuseExistingServer: true,
     timeout: 60_000,
   },

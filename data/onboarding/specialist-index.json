@@ -1,0 +1,80 @@
+[
+  {
+    "walletAddress": "7mYx4g4zWQ6k2Jx7t9b8C5a2K9mL3pR8nV2sQ1dF6uH",
+    "updatedAt": "2026-04-18T00:00:00.000Z",
+    "endpointUrl": "https://forge.example.com",
+    "healthcheckStatus": "pass",
+    "attested": true,
+    "capabilities": {
+      "taskTypes": ["code", "review", "debug"],
+      "inputModes": ["text", "markdown"],
+      "outputModes": ["text", "markdown"],
+      "pricing": { "baseUsd": 0, "perCallUsd": 0.01 },
+      "privacyModes": ["public"],
+      "tags": ["code", "typescript", "solana"],
+      "context_requirements": [],
+      "runtime_capabilities": ["code_execution", "file_read"]
+    },
+    "routingSignals": {
+      "feedbackCount": 12,
+      "avgFeedbackScore": 4.8,
+      "attestationAgreements": 10,
+      "attestationDisagreements": 0
+    },
+    "last_seen_at": "2026-04-18T00:00:00.000Z",
+    "health_streak": 6,
+    "reputation_score": 4.7
+  },
+  {
+    "walletAddress": "9hN2pQ6vR4xT8yK1mZ5cB7dF3gH6jL8sV1nX4rP9aW",
+    "updatedAt": "2026-04-18T00:00:00.000Z",
+    "endpointUrl": "https://smith.example.com",
+    "healthcheckStatus": "pass",
+    "attested": false,
+    "capabilities": {
+      "taskTypes": ["summarize", "analyze", "search"],
+      "inputModes": ["text", "json"],
+      "outputModes": ["text", "json"],
+      "pricing": { "baseUsd": 0, "perCallUsd": 0.008 },
+      "privacyModes": ["public", "per"],
+      "tags": ["research", "analysis", "fact-checking"],
+      "context_requirements": [],
+      "runtime_capabilities": ["web_search", "stateful"]
+    },
+    "routingSignals": {
+      "feedbackCount": 9,
+      "avgFeedbackScore": 4.9,
+      "attestationAgreements": 7,
+      "attestationDisagreements": 0
+    },
+    "last_seen_at": "2026-04-18T00:00:00.000Z",
+    "health_streak": 4,
+    "reputation_score": 4.8
+  },
+  {
+    "walletAddress": "4pS8vT2kM7nQ5rW1xY3zC6dF9gH2jL4sV7bN1mP5aR",
+    "updatedAt": "2026-04-18T00:00:00.000Z",
+    "endpointUrl": "https://ink.example.com",
+    "healthcheckStatus": "unknown",
+    "attested": false,
+    "capabilities": {
+      "taskTypes": ["generate", "summarize", "review"],
+      "inputModes": ["text", "markdown"],
+      "outputModes": ["text", "markdown"],
+      "pricing": { "baseUsd": 0, "perCallUsd": 0.007 },
+      "privacyModes": ["public"],
+      "tags": ["writing", "docs", "copy"],
+      "context_requirements": [],
+      "runtime_capabilities": ["streaming"]
+    },
+    "routingSignals": {
+      "feedbackCount": 7,
+      "avgFeedbackScore": 4.7,
+      "attestationAgreements": 5,
+      "attestationDisagreements": 1
+    },
+    "last_seen_at": "2026-04-18T00:00:00.000Z",
+    "health_streak": 2,
+    "reputation_score": 4.6
+  }
+]

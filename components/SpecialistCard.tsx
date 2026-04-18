@@ -55,7 +55,7 @@ export function SpecialistCard({
       : "bg-slate-600 text-slate-100"
 
   return (
-    <Link href={`/agents/${wallet}`} className="block h-full">
+    <Link href={`/agents/${wallet}`} className="block h-full" data-testid="agent-card">
       <Card hover className="h-full overflow-hidden">
         <div className={cn("relative h-36 bg-gradient-to-br", avatarGradient(wallet))}>
           <div className="absolute inset-0 bg-page/55" />
