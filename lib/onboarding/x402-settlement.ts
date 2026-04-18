@@ -19,6 +19,7 @@ import {
   parseX402Header,
   sendPayment,
   type PaymentReceipt,
+  type SwapClient,
   type X402Request,
 } from "@reddi/x402-solana";
 
@@ -38,8 +39,13 @@ export type X402ChallengeResult =
     }
   | { ok: false; error: string; trace: string[]; metadata: X402ChallengeMetadata };
 
+export type ProcessX402ChallengeOptions = {
+  swapClient?: SwapClient;
+  slippageBps?: number;
+};
+
 export function getJupiterSwapClient() {
-  const apiBase = process.env.JUPITER_API_BASE?.trim() || "https://api.jup.ag";
+  const apiBase = process.env.JUPITER_API_BASE?.trim() || "https://api.jup.ag/swap/v2";
   if (!apiBase) return undefined;
   return new JupiterSwapV2Client({ apiBaseUrl: apiBase });
 }
@@ -52,7 +58,8 @@ export function getJupiterSwapClient() {
  */
 export async function processX402Challenge(
   responseHeaders: Record<string, string>,
-  orchestratorWallet?: string
+  orchestratorWallet?: string,
+  options: ProcessX402ChallengeOptions = {}
 ): Promise<X402ChallengeResult> {
   const trace: string[] = [];
 
@@ -83,9 +90,9 @@ export async function processX402Challenge(
     };
   }
 
-  const swapClient = getJupiterSwapClient();
+  const swapClient = options.swapClient ?? getJupiterSwapClient();
   if (swapClient) {
-    trace.push(`x402:jupiter_enabled:${process.env.JUPITER_API_BASE?.trim() || "https://api.jup.ag"}`);
+    trace.push(`x402:jupiter_enabled:${process.env.JUPITER_API_BASE?.trim() || "https://api.jup.ag/swap/v2"}`);
   }
 
   // Inject payer hint if not already present
@@ -94,7 +101,7 @@ export async function processX402Challenge(
     payerAddress: parsed.payerAddress ?? orchestratorWallet,
   };
 
-  const slippageCandidate = Number(process.env.JUPITER_SLIPPAGE_BPS ?? 50);
+  const slippageCandidate = Number(options.slippageBps ?? process.env.JUPITER_SLIPPAGE_BPS ?? 50);
   const slippageBps = Number.isFinite(slippageCandidate) ? slippageCandidate : 50;
 
   let receipt: PaymentReceipt;

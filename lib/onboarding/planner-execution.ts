@@ -3,12 +3,15 @@ import "server-only";
 import { createHash, randomUUID } from "crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
+import type { SwapClient } from "@reddi/x402-solana";
 import { routePlannerPolicy, type PlannerPolicyInput } from "@/lib/onboarding/planner-router";
 import { processX402Challenge } from "@/lib/onboarding/x402-settlement";
 
 export type PlannerExecuteInput = {
   prompt: string;
   policy?: PlannerPolicyInput;
+  swapClient?: SwapClient;
+  slippageBps?: number;
 };
 
 export type PlannerRunRecord = {
@@ -133,7 +136,11 @@ export async function executePlannerSpecialistCall(input: PlannerExecuteInput) {
       // Process the x402 challenge — parse header, build payment receipt
       const settlement = await processX402Challenge(
         challengeHeaders,
-        routed.selected.walletAddress
+        routed.selected.walletAddress,
+        {
+          swapClient: input.swapClient,
+          slippageBps: input.slippageBps,
+        }
       );
 
       if (!settlement.ok) {
