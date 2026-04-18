@@ -35,6 +35,8 @@ import {
 } from "@/components/ui/select";
 import StepIndicator from "@/components/StepIndicator";
 import GuidedSetupModal from "@/components/GuidedSetupModal";
+import { Modal } from "@/components/ui/modal";
+import { showToast } from "@/components/ui/toast";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -300,6 +302,7 @@ export default function RegisterPage() {
 
       setTxSig(sig);
       setSuccess(true);
+      showToast("Registration confirmed", "success");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       // Graceful fallback: show error but don't crash the page
@@ -312,10 +315,24 @@ export default function RegisterPage() {
       ).join("");
       setTxSig(mockSig);
       setSuccess(true);
+      showToast("Registration failed, showing simulated signature", "error");
     } finally {
       setRegistering(false);
     }
   };
+
+  if (!connected) {
+    return (
+      <Modal open={true} onClose={() => {}}>
+        <div className="p-8 text-center">
+          <div className="mb-4 text-4xl">🔗</div>
+          <h2 className="mb-2 font-display text-xl text-white">Connect Your Wallet</h2>
+          <p className="mb-6 text-sm text-gray-400">You need a Solana wallet to register a specialist.</p>
+          <WalletMultiButton />
+        </div>
+      </Modal>
+    )
+  }
 
   if (success) {
     return (

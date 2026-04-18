@@ -1,321 +1,169 @@
-"use client";
+"use client"
 
-import { useEffect, useState, useCallback } from "react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { useEffect, useMemo, useState } from "react"
+import Link from "next/link"
+
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { PageHeader } from "@/components/ui/page-header"
+import type { SpecialistListing } from "@/lib/registry/bridge"
 
 type RunRecord = {
-  runId: string;
-  createdAt: string;
-  selectedWallet?: string;
-  endpointUrl?: string;
-  status: "completed" | "failed";
-  challengeSeen: boolean;
-  paymentSatisfied: boolean;
-  x402TxSignature?: string;
-  x402ReceiptNonce?: string;
-  reputationCommitTx?: string;
-  responsePreview?: string;
-  error?: string;
-  trace?: string[];
-};
-
-type FeedbackRecord = {
-  id: string;
-  runId: string;
-  walletAddress: string;
-  score: number;
-  notes?: string;
-  createdAt: string;
-  reputationCommit?: {
-    ok: boolean;
-    txSignature?: string;
-    commitHash?: string;
-    ratingPda?: string;
-    error?: string;
-  };
-};
+  runId: string
+  createdAt: string
+  selectedWallet?: string
+  endpointUrl?: string
+  status: "completed" | "failed"
+  challengeSeen: boolean
+  paymentSatisfied: boolean
+  x402TxSignature?: string
+  x402ReceiptNonce?: string
+  responsePreview?: string
+  error?: string
+  trace?: string[]
+}
 
 type CommitRecord = {
-  runId: string;
-  jobIdHex: string;
-  score: number;
-  commitHashHex: string;
-  specialistWallet: string;
-  ratingPda: string;
-  commitTx: string;
-  createdAt: string;
-  revealed: boolean;
-  revealTx?: string;
-};
+  runId: string
+  revealed: boolean
+}
 
-function shortWallet(w: string) {
-  if (!w || w.length < 12) return w;
-  return `${w.slice(0, 6)}…${w.slice(-4)}`;
+function shortWallet(wallet: string) {
+  return wallet.length > 12 ? `${wallet.slice(0, 6)}…${wallet.slice(-4)}` : wallet
 }
 
 function timeAgo(iso: string) {
-  const diff = Date.now() - new Date(iso).getTime();
-  const m = Math.floor(diff / 60000);
-  if (m < 1) return "just now";
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
+  const diff = Date.now() - new Date(iso).getTime()
+  const m = Math.floor(diff / 60000)
+  if (m < 1) return "just now"
+  if (m < 60) return `${m}m ago`
+  const h = Math.floor(m / 60)
+  if (h < 24) return `${h}h ago`
+  return `${Math.floor(h / 24)}d ago`
 }
 
 export default function RunHistoryPage() {
-  const [runs, setRuns] = useState<RunRecord[]>([]);
-  const [feedback, setFeedback] = useState<FeedbackRecord[]>([]);
-  const [commits, setCommits] = useState<CommitRecord[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [revealingId, setRevealingId] = useState<string | null>(null);
-  const [revealMsg, setRevealMsg] = useState<Record<string, string>>({});
+  const [runs, setRuns] = useState<RunRecord[]>([])
+  const [listings, setListings] = useState<SpecialistListing[]>([])
+  const [commits, setCommits] = useState<CommitRecord[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [runsRes, feedbackRes, commitsRes] = await Promise.all([
-        fetch("/api/onboarding/planner/execute"),
-        fetch("/api/onboarding/planner/feedback"),
-        fetch("/api/onboarding/planner/reveal"),
-      ]);
-      const [runsData, feedbackData, commitsData] = await Promise.all([
-        runsRes.json(), feedbackRes.json(), commitsRes.json(),
-      ]);
+  useEffect(() => {
+    let cancelled = false
+    async function load() {
+      setLoading(true)
+      try {
+        const [runsRes, registryRes, revealRes] = await Promise.all([
+          fetch("/api/planner/runs"),
+          fetch("/api/registry"),
+          fetch("/api/onboarding/planner/reveal"),
+        ])
+        const [runsData, registryData, revealData] = await Promise.all([runsRes.json(), registryRes.json(), revealRes.json()])
+        if (cancelled) return
+        setRuns((runsData.result?.results ?? []).slice().reverse())
+        setListings(registryData.listings ?? [])
+        setCommits(revealData.result?.commits ?? [])
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+    void load()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
-      const allRuns: RunRecord[] = runsData.result?.results ?? [];
-      setRuns([...allRuns].reverse()); // newest first
-      setFeedback(feedbackData.result?.results ?? []);
-      setCommits(commitsData.result?.commits ?? []);
-    } catch { /* silent */ }
-    finally { setLoading(false); }
-  }, []);
+  const commitByRun = useMemo(() => Object.fromEntries(commits.map((commit) => [commit.runId, commit])), [commits])
+  const byWallet = useMemo(() => Object.fromEntries(listings.map((agent) => [agent.walletAddress, agent])), [listings])
 
-  useEffect(() => { load(); }, [load]);
-
-  async function revealRating(runId: string) {
-    setRevealingId(runId);
-    try {
-      const res = await fetch("/api/onboarding/planner/reveal", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ runId }),
-      });
-      const data = await res.json();
-      setRevealMsg((m) => ({
-        ...m,
-        [runId]: data.ok
-          ? `✓ Revealed on-chain: ${data.result?.txSignature ?? "ok"}`
-          : `Error: ${data.result?.error ?? data.error}`,
-      }));
-      if (data.ok) load(); // refresh
-    } catch (e) {
-      setRevealMsg((m) => ({ ...m, [runId]: e instanceof Error ? e.message : "Failed" }));
-    } finally {
-      setRevealingId(null);
+  async function reveal(runId: string) {
+    const res = await fetch("/api/onboarding/planner/reveal", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ runId }),
+    })
+    const data = await res.json()
+    if (data.ok) {
+      setCommits((current) => current.map((commit) => (commit.runId === runId ? { ...commit, revealed: true } : commit)))
     }
   }
 
-  const feedbackByRun = Object.fromEntries(feedback.map((f) => [f.runId, f]));
-  const commitByRun = Object.fromEntries(commits.map((c) => [c.runId, c]));
-
-  // Spending summary
-  const totalSpend = runs.filter((r) => r.paymentSatisfied).length;
-  const completed = runs.filter((r) => r.status === "completed").length;
-  const pendingReveal = commits.filter((c) => !c.revealed).length;
-
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12 space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-3xl font-bold">Run History</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            All planner specialist calls, receipts, and reputation commits.
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Link href="/planner">
-            <Button size="sm" style={{ background: "linear-gradient(135deg,#9945FF,#14F195)", color: "#000", fontWeight: 600 }}>
-              New run →
-            </Button>
-          </Link>
-          <Button size="sm" variant="outline" onClick={load} disabled={loading}>
-            {loading ? "…" : "↻ Refresh"}
-          </Button>
-        </div>
-      </div>
+    <div className="min-h-screen bg-page">
+      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8 space-y-8">
+        <PageHeader
+          label="History"
+          title="Run History"
+          subtitle="Your past specialist invocations"
+          actions={
+            <Link href="/planner">
+              <Button size="sm">New run →</Button>
+            </Link>
+          }
+        />
 
-      {/* Summary cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {[
-          { label: "Total runs", value: runs.length },
-          { label: "Completed", value: completed },
-          { label: "Paid calls", value: totalSpend },
-          { label: "Pending reveals", value: pendingReveal },
-        ].map(({ label, value }) => (
-          <div key={label} className="rounded-lg border border-white/10 bg-card/30 p-4 text-center">
-            <p className="text-2xl font-bold">{value}</p>
-            <p className="text-xs text-muted-foreground mt-1">{label}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Pending reputation reveals */}
-      {pendingReveal > 0 && (
-        <div className="rounded-xl border border-yellow-500/30 bg-yellow-950/10 p-4 space-y-3">
-          <div className="flex items-center gap-2">
-            <span className="text-yellow-300 font-semibold text-sm">⏳ {pendingReveal} pending reputation reveal{pendingReveal > 1 ? "s" : ""}</span>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            These commits are on-chain but not yet revealed. Reveal to apply reputation updates to the specialist.
-          </p>
-          <div className="space-y-2">
-            {commits.filter((c) => !c.revealed).map((c) => (
-              <div key={c.runId} className="flex items-center justify-between gap-3 text-xs">
-                <div>
-                  <span className="font-mono text-muted-foreground/70">{shortWallet(c.specialistWallet)}</span>
-                  <span className="mx-2 text-muted-foreground/40">·</span>
-                  <span className="text-muted-foreground/60">score {c.score}/10</span>
-                  <span className="mx-2 text-muted-foreground/40">·</span>
-                  <span className="text-muted-foreground/40">{timeAgo(c.createdAt)}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {revealMsg[c.runId] && <span className="text-xs text-muted-foreground">{revealMsg[c.runId]}</span>}
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="h-6 text-xs px-2"
-                    disabled={revealingId === c.runId}
-                    onClick={() => revealRating(c.runId)}
-                  >
-                    {revealingId === c.runId ? "Revealing…" : "Reveal"}
-                  </Button>
-                </div>
-              </div>
+        {loading ? (
+          <div className="space-y-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-24 animate-pulse rounded-xl bg-surface glow-border" />
             ))}
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="space-y-4">
+            {runs.map((run) => {
+              const specialist = run.selectedWallet ? byWallet[run.selectedWallet] : undefined
+              const commit = commitByRun[run.runId]
+              const stepReached = run.status === "completed" ? 4 : run.challengeSeen ? 3 : 2
+              const pendingReveal = Boolean(commit && !commit.revealed)
 
-      {/* Run list */}
-      {loading ? (
-        <div className="space-y-3">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="rounded-xl border border-white/10 bg-white/5 h-24 animate-pulse" />
-          ))}
-        </div>
-      ) : runs.length === 0 ? (
-        <div className="text-center py-20 space-y-3">
-          <p className="text-muted-foreground">No runs yet.</p>
-          <Link href="/planner">
-            <Button style={{ background: "linear-gradient(135deg,#9945FF,#14F195)", color: "#000" }}>
-              Run your first task →
-            </Button>
-          </Link>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {runs.map((run) => {
-            const fb = feedbackByRun[run.runId];
-            const commit = commitByRun[run.runId];
-
-            return (
-              <div
-                key={run.runId}
-                className={`rounded-xl border p-4 space-y-2 ${
-                  run.status === "completed"
-                    ? "border-white/10 bg-card/20"
-                    : "border-red-500/20 bg-red-950/10"
-                }`}
-              >
-                {/* Run header */}
-                <div className="flex items-start justify-between gap-3 flex-wrap">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Badge
-                      variant="outline"
-                      className={run.status === "completed"
-                        ? "border-green-500/30 text-green-400 bg-green-500/5"
-                        : "border-red-500/30 text-red-400 bg-red-500/5"}
-                    >
-                      {run.status}
-                    </Badge>
-                    {run.paymentSatisfied && (
-                      <Badge variant="outline" className="border-[#14F195]/30 text-[#14F195] bg-[#14F195]/5 text-xs">
-                        paid
+              return (
+                <Card key={run.runId} className="flex items-center gap-4 p-5">
+                  <div className={`h-12 w-12 rounded-xl bg-gradient-to-br ${run.status === "completed" ? "from-indigo-500 to-sky-500" : "from-fuchsia-500 to-pink-500"}`} />
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="font-medium text-white">{specialist?.onchain.model || shortWallet(run.selectedWallet || run.runId)}</h3>
+                      <Badge variant="outline" className="border-white/10 bg-white/5 text-gray-300">
+                        {timeAgo(run.createdAt)}
                       </Badge>
-                    )}
-                    {run.challengeSeen && !run.paymentSatisfied && (
-                      <Badge variant="outline" className="border-yellow-500/30 text-yellow-400 text-xs">
-                        402 challenge
+                      <Badge variant="outline" className={run.status === "completed" ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border-red-500/30 bg-red-500/10 text-red-300"}>
+                        {run.status}
                       </Badge>
-                    )}
-                    <span className="font-mono text-xs text-muted-foreground/50">{run.runId}</span>
+                    </div>
+                    <p className="text-sm text-gray-400">{run.selectedWallet ? shortWallet(run.selectedWallet) : "Auto-selected specialist"}</p>
+                    <div className="flex items-center gap-2 text-xs text-gray-400">
+                      <span>Step {stepReached}/4</span>
+                      <span>•</span>
+                      <span>{run.challengeSeen ? "x402 negotiation" : "direct call"}</span>
+                      {run.x402ReceiptNonce ? <><span>•</span><span className="font-mono">{run.x402ReceiptNonce}</span></> : null}
+                    </div>
+                    <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+                      <div className={`h-full rounded-full ${run.status === "completed" ? "bg-emerald-400" : "bg-indigo-500"}`} style={{ width: `${stepReached * 25}%` }} />
+                    </div>
                   </div>
-                  <span className="text-xs text-muted-foreground/50">{timeAgo(run.createdAt)}</span>
-                </div>
-
-                {/* Specialist + endpoint */}
-                {run.selectedWallet && (
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground/70">
-                    <Link href={`/agents/${run.selectedWallet}`} className="font-mono hover:text-white transition-colors">
-                      {shortWallet(run.selectedWallet)}
+                  <div className="flex flex-col items-end gap-2">
+                    {pendingReveal ? (
+                      <Button size="sm" variant="outline" onClick={() => void reveal(run.runId)}>
+                        Reveal
+                      </Button>
+                    ) : (
+                      <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-300">Done ✓</Badge>
+                    )}
+                    <Link href={run.selectedWallet ? `/agents/${run.selectedWallet}` : "/agents"} className="text-xs text-gray-400 hover:text-white">
+                      View specialist
                     </Link>
-                    {run.endpointUrl && (
-                      <span className="truncate text-muted-foreground/40">{run.endpointUrl}</span>
-                    )}
                   </div>
-                )}
-
-                {/* x402 tx */}
-                {run.x402TxSignature && (
-                  <p className="text-xs font-mono text-muted-foreground/50">
-                    x402 tx: {run.x402TxSignature}
-                  </p>
-                )}
-
-                {/* Response preview */}
-                {run.responsePreview && (
-                  <p className="text-xs text-muted-foreground/80 line-clamp-2 border-t border-white/5 pt-2">
-                    {run.responsePreview}
-                  </p>
-                )}
-
-                {/* Error */}
-                {run.error && (
-                  <p className="text-xs text-red-400/80">{run.error}</p>
-                )}
-
-                {/* Feedback + reputation state */}
-                <div className="flex items-center gap-3 flex-wrap pt-1 border-t border-white/5">
-                  {fb ? (
-                    <span className="text-xs text-muted-foreground">
-                      ★ {fb.score}/10
-                      {fb.reputationCommit?.ok && (
-                        <span className="ml-1 text-[#14F195]">· rep committed</span>
-                      )}
-                      {commit && !commit.revealed && (
-                        <span className="ml-1 text-yellow-400">· reveal pending</span>
-                      )}
-                      {commit?.revealed && (
-                        <span className="ml-1 text-[#14F195]">· revealed ✓</span>
-                      )}
-                    </span>
-                  ) : (
-                    run.status === "completed" && (
-                      <Link href="/planner" className="text-xs text-muted-foreground/40 hover:text-muted-foreground">
-                        No feedback given
-                      </Link>
-                    )
-                  )}
-                </div>
+                </Card>
+              )
+            })}
+            {runs.length === 0 ? (
+              <div className="rounded-xl bg-surface p-10 text-center text-gray-400 glow-border">
+                No runs yet.
               </div>
-            );
-          })}
-        </div>
-      )}
+            ) : null}
+          </div>
+        )}
+      </div>
     </div>
-  );
+  )
 }

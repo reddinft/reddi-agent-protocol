@@ -188,7 +188,7 @@
     left: 50%;
     transform: translateX(-50%);
     z-index: 100;
-    @apply px-6 py-3 rounded-xl font-medium;
+    @apply px-6 py-3 rounded-xl font-medium shadow-card;
     animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards;
   }
   @keyframes toastIn {
@@ -197,6 +197,14 @@
   }
   @keyframes toastOut {
     to { opacity: 0; transform: translateX(-50%) translateY(1rem); }
+  }
+
+  .confetti-piece {
+    animation: confettiFall 2s ease-out forwards;
+  }
+  @keyframes confettiFall {
+    0%   { opacity: 1; transform: translateY(0) rotate(0deg); }
+    100% { opacity: 0; transform: translateY(100vh) rotate(720deg); }
   }
 }
 

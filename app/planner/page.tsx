@@ -56,17 +56,6 @@ function shortWallet(wallet: string) {
   return wallet.length > 12 ? `${wallet.slice(0, 6)}…${wallet.slice(-4)}` : wallet
 }
 
-function avatarGradient(seed: string) {
-  const palette = [
-    "from-indigo-500/80 to-sky-500/30",
-    "from-fuchsia-500/80 to-pink-500/30",
-    "from-emerald-500/80 to-teal-500/30",
-    "from-amber-500/80 to-orange-500/30",
-  ]
-  const index = [...seed].reduce((acc, char) => acc + char.charCodeAt(0), 0) % palette.length
-  return palette[index]
-}
-
 function launchConfetti() {
   const colors = ["#818cf8", "#f472b6", "#22c55e", "#fb923c", "#facc15"]
   for (let i = 0; i < 40; i++) {
