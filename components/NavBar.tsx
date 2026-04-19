@@ -21,7 +21,10 @@ const navLinks: { href: string; label: string; badge?: string }[] = [
   { href: "/runs", label: "History" },
   { href: "/leaderboard", label: "Leaderboard" },
   { href: "/onboarding", label: "Register" },
-  { href: "/specialist", label: "My Dashboard" },
+  { href: "/dashboard", label: "Dashboards" },
+  { href: "/specialist", label: "Specialist" },
+  { href: "/attestation", label: "Attestation" },
+  { href: "/consumer", label: "Consumer" },
   { href: "/audit", label: "Audit Trail" },
   { href: "/orchestrator", label: "Settings" },
 ];

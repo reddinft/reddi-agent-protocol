@@ -322,5 +322,17 @@ For each iteration:
 - Verified:
   - sweep summary artifact indicates 8/8 step passes (`artifacts/bdd-sweep/20260419-180815/SUMMARY.md`).
 
+## Iteration 33 retrospective (completed)
+- New scope execution (post-closure) per user directive:
+  - keep one-agent-per-wallet unchanged
+  - implement authenticated devnet banner and role dashboards
+- Delivered:
+  - `components/DevnetModeBanner.tsx` + layout wiring
+  - dashboard hub + dedicated attestation/consumer dashboards
+  - consumer-list API route + route-unit test
+  - nav routing updates
+- Verified:
+  - `npx jest lib/__tests__/onboarding-consumers-route.test.ts lib/__tests__/onboarding-routes-core.test.ts lib/__tests__/onboarding-routes-support.test.ts lib/__tests__/onboarding-routes-wrappers.test.ts --runInBand` -> 20/20 passing.
+
 ## Next iteration candidates
-1. Maintain mode: continue CI guards/sweeps; open new iteration only for new scope or regressions.
+1. Add lightweight e2e smoke checks for `/dashboard`, `/attestation`, and `/consumer` pages.

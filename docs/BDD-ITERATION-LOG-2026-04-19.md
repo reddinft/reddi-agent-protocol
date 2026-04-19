@@ -349,5 +349,22 @@ This log is append-amended each loop: plan review -> implementation -> verificat
 - Retrospective amendments:
   - Comprehensive review cycle now has explicit closure snapshot with residual-risk callouts.
 
+## Iteration 33
+- Focus: execute new scope request after closure snapshot (keep 1-agent-per-wallet, deliver devnet banner + role dashboards).
+- Delivered:
+  - Global authenticated devnet banner via `components/DevnetModeBanner.tsx` injected in `app/layout.tsx`.
+  - Dashboard hub refresh in `app/dashboard/page.tsx` with role routing.
+  - New role dashboards:
+    - `app/attestation/page.tsx`
+    - `app/consumer/page.tsx`
+  - New consumer stats API route: `app/api/onboarding/consumers/route.ts`
+  - Nav updates to expose dashboard routes.
+  - New route test: `lib/__tests__/onboarding-consumers-route.test.ts`.
+- Verified:
+  - `npx jest lib/__tests__/onboarding-consumers-route.test.ts lib/__tests__/onboarding-routes-core.test.ts lib/__tests__/onboarding-routes-support.test.ts lib/__tests__/onboarding-routes-wrappers.test.ts --runInBand` -> 4 suites, 20/20 pass
+- Retrospective amendments:
+  - Confirmed wallet limit remains unchanged (one-agent-per-wallet) per user direction.
+  - Added explicit surfaces for specialist, attestation, and consumer owners to view protocol stats.
+
 ## Next loop candidates
-1. Maintain mode: keep CI/reporting lanes running and only open new iterations when new scope or regressions appear.
+1. Add lightweight e2e smoke checks for new `/dashboard`, `/attestation`, and `/consumer` surfaces.

@@ -99,4 +99,7 @@ Per iteration:
 
 ## Immediate Iteration Target
 - Completed: end-to-end confidence pass + closure snapshot published.
-- Operate in maintain mode with CI guards/sweeps; reopen gap-closure loop only on new scope or regressions.
+- Reopened for new scope request (while preserving one-agent-per-wallet):
+  - authenticated devnet-mode banner across app surfaces
+  - owner dashboards for specialist, attestation, and consumer roles
+- Current status: implemented; next hardening target is lightweight e2e smoke checks for the new dashboard pages.
