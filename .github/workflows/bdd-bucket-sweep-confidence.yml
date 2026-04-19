@@ -24,14 +24,14 @@ jobs:
         run: npm ci
 
       - name: Run representative BDD bucket sweep (non-blocking)
-        run: npm run test:bdd:sweep | tee bdd-bucket-sweep.log
+        run: npm run test:bdd:sweep
         continue-on-error: true
 
-      - name: Upload sweep log
+      - name: Upload sweep artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: bdd-bucket-sweep-log-${{ github.run_id }}
-          path: bdd-bucket-sweep.log
+          name: bdd-bucket-sweep-artifacts-${{ github.run_id }}
+          path: artifacts/bdd-sweep/
           if-no-files-found: warn
           retention-days: 14

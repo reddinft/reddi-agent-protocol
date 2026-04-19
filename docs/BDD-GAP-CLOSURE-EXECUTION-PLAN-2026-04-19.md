@@ -231,5 +231,15 @@ For each iteration:
 - Verified:
   - local sweep remains green (`npm run test:bdd:sweep`) -> 19 suites, 80/80 pass
 
+## Iteration 23 retrospective (completed)
+- Added structured sweep artifact generation in `run-bdd-bucket-sweep.sh`:
+  - `artifacts/bdd-sweep/<timestamp>/SUMMARY.md`
+  - `artifacts/bdd-sweep/<timestamp>/bdd-sweep.log`
+  - `artifacts/bdd-sweep/<timestamp>/steps.tsv`
+- Updated CI confidence lane to upload full sweep artifact directory:
+  - `.github/workflows/bdd-bucket-sweep-confidence.yml` now uploads `artifacts/bdd-sweep/`.
+- Verified:
+  - `npm run test:bdd:sweep` generated summary artifact with per-step pass/fail table.
+
 ## Next iteration candidates
-1. Add sweep markdown summary artifact generation and publish in CI artifacts.
+1. Add a small helper script to emit latest sweep summary as one-line quick status for chat updates.

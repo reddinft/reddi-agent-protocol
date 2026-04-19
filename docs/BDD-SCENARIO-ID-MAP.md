@@ -124,3 +124,4 @@ Lanes:
 5. PR-time CI enforcement for drift guard is wired: `.github/workflows/bdd-index-guard.yml`.
 6. One-command representative bucket confidence sweep is available: `npm run test:bdd:sweep`.
 7. CI/manual-dispatch confidence lane is wired: `.github/workflows/bdd-bucket-sweep-confidence.yml`.
+8. Sweep lane now produces structured artifacts per run (`artifacts/bdd-sweep/<timestamp>/SUMMARY.md`, log, steps table).

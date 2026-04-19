@@ -234,5 +234,20 @@ This log is append-amended each loop: plan review -> implementation -> verificat
 - Retrospective amendments:
   - BDD confidence lane now has both local one-command execution and CI-run artifact capture.
 
+## Iteration 23
+- Focus: add structured markdown summary artifacts to bucket sweep and upload them in CI.
+- Delivered:
+  - `scripts/run-bdd-bucket-sweep.sh` now writes timestamped artifacts:
+    - `artifacts/bdd-sweep/<timestamp>/SUMMARY.md`
+    - `artifacts/bdd-sweep/<timestamp>/bdd-sweep.log`
+    - `artifacts/bdd-sweep/<timestamp>/steps.tsv`
+  - `.github/workflows/bdd-bucket-sweep-confidence.yml` updated to upload `artifacts/bdd-sweep/` instead of a single log file.
+  - `docs/bdd/FEATURE-INDEX.md` updated with summary/log artifact paths.
+- Verified:
+  - `npm run test:bdd:sweep` produced summary artifact at `artifacts/bdd-sweep/20260419-171809/SUMMARY.md`.
+  - Summary includes per-step pass/fail table and artifact links.
+- Retrospective amendments:
+  - CI confidence lane now preserves structured sweep summaries, not raw logs only.
+
 ## Next loop candidates
-1. Add summary artifact generation for sweep (markdown snapshot) and upload in CI.
+1. Add a tiny parser script to aggregate latest sweep SUMMARY.md into a short status line for quick chat updates.

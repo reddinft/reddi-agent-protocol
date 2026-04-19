@@ -54,6 +54,9 @@ Purpose: single lookup from BDD feature file -> bucket -> executable verificatio
 - Run representative verification across all active buckets:
   - `npm run test:bdd:sweep`
   - (script: `scripts/run-bdd-bucket-sweep.sh`)
+- Output artifacts per run:
+  - `artifacts/bdd-sweep/<timestamp>/SUMMARY.md`
+  - `artifacts/bdd-sweep/<timestamp>/bdd-sweep.log`
 
 ## Suggested cadence
 - Per iteration: run only affected bucket commands.
