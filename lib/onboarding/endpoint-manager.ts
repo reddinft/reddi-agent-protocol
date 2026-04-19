@@ -250,16 +250,18 @@ export async function createOrRotateEndpoint(input: EndpointActionInput): Promis
   const localOk = await checkLocalRuntime(input.port);
   const localProxyOk = await checkLocalTokenProxy(proxyPort, token);
   const remoteOk = await checkRemoteEndpoint(endpointUrl, token);
-  const heartbeatOk = localOk && (localProxyOk || remoteOk);
+  const heartbeatOk = localOk && remoteOk;
   const heartbeatCheckedAt = new Date().toISOString();
 
   const note = heartbeatOk
     ? "Endpoint reachable through scoped token-gated proxy (x402 public paths bypass token)."
     : !localOk
     ? "Local Ollama runtime is unreachable on the selected port. Restart runtime and retry."
-    : !localProxyOk
+    : !localProxyOk && !remoteOk
     ? `Token-gated proxy is not running. Start it first: ${proxyCommand}`
-    : `Tunnel appears down. Re-open tunnel: ${tunnelCommand}`;
+    : !remoteOk
+    ? `Tunnel appears down. Re-open tunnel: ${tunnelCommand}`
+    : `Endpoint check failed. Re-run endpoint onboarding.`;
 
   const profile: SpecialistProfile = {
     updatedAt: heartbeatCheckedAt,
@@ -328,15 +330,17 @@ export async function heartbeatEndpoint(input: {
   const localProxyOk = await checkLocalTokenProxy(proxyPort, token);
   const remoteOk = await checkRemoteEndpoint(endpointUrl, token);
 
-  const heartbeatOk = localOk && (localProxyOk || remoteOk);
+  const heartbeatOk = localOk && remoteOk;
   const heartbeatCheckedAt = new Date().toISOString();
   const note = heartbeatOk
     ? "Endpoint reachable through scoped token-gated proxy (x402 public paths bypass token)."
     : !localOk
     ? "Local runtime is offline. Re-run runtime bootstrap."
-    : !localProxyOk
+    : !localProxyOk && !remoteOk
     ? `Token-gated proxy is offline. Start it with: ${proxyCommand}`
-    : `Endpoint heartbeat failed. Re-open tunnel with: ${tunnelCommand}`;
+    : !remoteOk
+    ? `Endpoint heartbeat failed. Re-open tunnel with: ${tunnelCommand}`
+    : "Endpoint heartbeat failed. Re-run endpoint onboarding.";
 
   const profile: SpecialistProfile = {
     updatedAt: heartbeatCheckedAt,

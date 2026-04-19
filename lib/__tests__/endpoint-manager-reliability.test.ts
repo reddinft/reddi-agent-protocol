@@ -49,6 +49,27 @@ describe("endpoint manager reliability contracts (E1)", () => {
     expect(hb.note).toMatch(/reachable through scoped token-gated proxy/i);
   });
 
+  it("heartbeat reports tunnel remediation when runtime/proxy are up but remote is down", async () => {
+    global.fetch = jest.fn(async () => ({ ok: true, status: 200 })) as unknown as typeof fetch;
+    await createOrRotateEndpoint({
+      consentExposeEndpoint: true,
+      port: 11434,
+      endpointUrl: "https://agent.example",
+    });
+
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValueOnce({ ok: true, status: 200 }) // local runtime
+      .mockResolvedValueOnce({ ok: true, status: 200 }) // local proxy
+      .mockRejectedValueOnce(new Error("remote offline")); // remote endpoint
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    const hb = await heartbeatEndpoint({});
+    expect(hb.status).toBe("offline");
+    expect(hb.heartbeatOk).toBe(false);
+    expect(hb.note).toMatch(/Re-open tunnel/i);
+  });
+
   it("heartbeat reports proxy remediation when runtime is up but proxy/remote are down", async () => {
     global.fetch = jest.fn(async () => ({ ok: true, status: 200 })) as unknown as typeof fetch;
     await createOrRotateEndpoint({

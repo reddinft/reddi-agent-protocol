@@ -313,5 +313,18 @@ This log is append-amended each loop: plan review -> implementation -> verificat
   - Scenario map + feature index updated with direct E1 evidence.
   - Comprehensive plan updated: E1 contracts added; remaining reliability follow-up is remediation-branch semantics review.
 
+## Iteration 30
+- Focus: resolve endpoint remediation-branch semantics gap from reliability follow-up.
+- Delivered:
+  - Updated `lib/onboarding/endpoint-manager.ts` heartbeat semantics:
+    - online now requires local runtime **and** remote endpoint reachability
+    - remediation branches now distinguish proxy-offline vs tunnel-down deterministically
+  - Expanded E1 test coverage in `lib/__tests__/endpoint-manager-reliability.test.ts` to assert tunnel-remediation branch reachability.
+- Verified:
+  - `npx jest lib/__tests__/endpoint-manager-reliability.test.ts lib/__tests__/endpoint-security-compat.test.ts --runInBand` -> 2 suites, 7/7 pass
+- Retrospective amendments:
+  - Comprehensive plan updated to mark E1 semantics follow-up closed.
+  - Reliability guidance branch no longer theoretical, now test-backed.
+
 ## Next loop candidates
-1. Review endpoint remediation-branch semantics and decide whether tunnel guidance branch should be made reachable or removed.
+1. Continue P2 reporting polish: add `$GITHUB_STEP_SUMMARY` output to sweep confidence workflow.

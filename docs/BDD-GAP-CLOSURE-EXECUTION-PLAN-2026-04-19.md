@@ -293,5 +293,15 @@ For each iteration:
 - Plan amendment:
   - E1 is now route/unit-backed; remaining follow-up is remediation-branch semantics review for tunnel-guidance reachability.
 
+## Iteration 30 retrospective (completed)
+- Reviewed and resolved endpoint remediation-branch semantics.
+- Implemented in `lib/onboarding/endpoint-manager.ts`:
+  - online status requires local runtime + remote endpoint reachability
+  - proxy-offline and tunnel-down remediation branches are now explicit and reachable
+- Verified:
+  - `npx jest lib/__tests__/endpoint-manager-reliability.test.ts lib/__tests__/endpoint-security-compat.test.ts --runInBand` -> 7/7 passing.
+- Plan amendment:
+  - E1 follow-up closed; move to reporting polish (`$GITHUB_STEP_SUMMARY`).
+
 ## Next iteration candidates
-1. Review endpoint remediation-branch semantics and decide whether tunnel guidance branch should be made reachable or removed.
+1. Continue P2 reporting polish: add `$GITHUB_STEP_SUMMARY` output to sweep confidence workflow.
