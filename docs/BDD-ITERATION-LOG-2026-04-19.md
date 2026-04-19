@@ -210,5 +210,17 @@ This log is append-amended each loop: plan review -> implementation -> verificat
 - Retrospective amendments:
   - Drift guard now has both local and PR-time enforcement.
 
+## Iteration 21
+- Focus: add one-command representative per-bucket verification sweep.
+- Delivered:
+  - `scripts/run-bdd-bucket-sweep.sh`
+  - npm command: `test:bdd:sweep`
+  - FEATURE-INDEX updated with sweep command section
+- Verified:
+  - `npm run test:bdd:sweep` -> all representative bucket suites green
+  - Aggregate observed in run output: 19 suites, 80/80 tests passing
+- Retrospective amendments:
+  - Per-bucket confidence checks are now runnable from a single command.
+
 ## Next loop candidates
-1. Add a single command/script to run a representative per-bucket verification sweep.
+1. Add CI/manual-dispatch workflow for `test:bdd:sweep` (non-blocking confidence lane).

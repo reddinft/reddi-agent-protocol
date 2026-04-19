@@ -50,6 +50,11 @@ Purpose: single lookup from BDD feature file -> bucket -> executable verificatio
   - `npm run test:bdd:index`
   - (script: `scripts/check-bdd-feature-index.sh`)
 
+## One-command representative sweep
+- Run representative verification across all active buckets:
+  - `npm run test:bdd:sweep`
+  - (script: `scripts/run-bdd-bucket-sweep.sh`)
+
 ## Suggested cadence
 - Per iteration: run only affected bucket commands.
 - End-of-day confidence sweep: run representative command per bucket.

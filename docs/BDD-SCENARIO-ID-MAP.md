@@ -122,3 +122,4 @@ Lanes:
 3. Operational verification index is now available at `docs/bdd/FEATURE-INDEX.md`.
 4. Index drift guard command is available: `npm run test:bdd:index`.
 5. PR-time CI enforcement for drift guard is wired: `.github/workflows/bdd-index-guard.yml`.
+6. One-command representative bucket confidence sweep is available: `npm run test:bdd:sweep`.

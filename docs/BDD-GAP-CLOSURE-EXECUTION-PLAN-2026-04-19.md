@@ -212,5 +212,14 @@ For each iteration:
 - Verified:
   - local guard command remains green (`npm run test:bdd:index` -> OK)
 
+## Iteration 21 retrospective (completed)
+- Added one-command representative per-bucket sweep:
+  - `scripts/run-bdd-bucket-sweep.sh`
+  - npm command `test:bdd:sweep`
+- Verified:
+  - `npm run test:bdd:sweep` -> representative suites across buckets A-H all green
+  - aggregate in run output: 19 suites, 80/80 tests passing
+- FEATURE-INDEX updated with sweep command section.
+
 ## Next iteration candidates
-1. Add a single command/script to run a representative per-bucket verification sweep.
+1. Add CI/manual-dispatch workflow for `test:bdd:sweep` (non-blocking confidence lane).
