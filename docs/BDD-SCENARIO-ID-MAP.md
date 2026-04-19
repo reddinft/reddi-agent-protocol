@@ -125,3 +125,4 @@ Lanes:
 6. One-command representative bucket confidence sweep is available: `npm run test:bdd:sweep`.
 7. CI/manual-dispatch confidence lane is wired: `.github/workflows/bdd-bucket-sweep-confidence.yml`.
 8. Sweep lane now produces structured artifacts per run (`artifacts/bdd-sweep/<timestamp>/SUMMARY.md`, log, steps table).
+9. Latest sweep quick-status command is available: `npm run test:bdd:status`.

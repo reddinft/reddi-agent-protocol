@@ -57,6 +57,9 @@ Purpose: single lookup from BDD feature file -> bucket -> executable verificatio
 - Output artifacts per run:
   - `artifacts/bdd-sweep/<timestamp>/SUMMARY.md`
   - `artifacts/bdd-sweep/<timestamp>/bdd-sweep.log`
+- One-line latest status helper:
+  - `npm run test:bdd:status`
+  - (script: `scripts/bdd-sweep-latest-status.sh`)
 
 ## Suggested cadence
 - Per iteration: run only affected bucket commands.

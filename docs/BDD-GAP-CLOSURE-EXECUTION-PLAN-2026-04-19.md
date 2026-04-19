@@ -241,5 +241,14 @@ For each iteration:
 - Verified:
   - `npm run test:bdd:sweep` generated summary artifact with per-step pass/fail table.
 
+## Iteration 24 retrospective (completed)
+- Added quick-status helper for latest sweep artifacts:
+  - `scripts/bdd-sweep-latest-status.sh`
+  - npm command `test:bdd:status`
+- Verified:
+  - `./scripts/bdd-sweep-latest-status.sh` outputs one-line status with timestamp, pass/total, fail count, and summary path
+  - `npm run test:bdd:status` matches script output
+- FEATURE-INDEX updated with status helper command.
+
 ## Next iteration candidates
-1. Add a small helper script to emit latest sweep summary as one-line quick status for chat updates.
+1. Add CI step to print `test:bdd:status` after sweep for faster workflow log readability.

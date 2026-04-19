@@ -249,5 +249,17 @@ This log is append-amended each loop: plan review -> implementation -> verificat
 - Retrospective amendments:
   - CI confidence lane now preserves structured sweep summaries, not raw logs only.
 
+## Iteration 24
+- Focus: add a chat-ready one-line status helper for latest sweep artifacts.
+- Delivered:
+  - `scripts/bdd-sweep-latest-status.sh`
+  - npm command `test:bdd:status`
+  - FEATURE-INDEX updated with status helper command
+- Verified:
+  - `./scripts/bdd-sweep-latest-status.sh` -> `BDD_SWEEP_STATUS ok ts=20260419-171809 passed=8/8 failed=0 ...`
+  - `npm run test:bdd:status` -> same one-line status output
+- Retrospective amendments:
+  - Sweep artifacts now support quick status extraction for chat updates without opening markdown manually.
+
 ## Next loop candidates
-1. Add a tiny parser script to aggregate latest sweep SUMMARY.md into a short status line for quick chat updates.
+1. Add CI step to print `test:bdd:status` after sweep for faster workflow log readability.
