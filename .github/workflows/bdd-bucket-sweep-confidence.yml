@@ -1,0 +1,56 @@
+name: BDD Bucket Sweep Confidence
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 19 * * *" # daily confidence sweep (UTC)
+
+jobs:
+  bdd-bucket-sweep:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run representative BDD bucket sweep (non-blocking)
+        run: npm run test:bdd:sweep
+        continue-on-error: true
+
+      - name: Print latest sweep quick status
+        if: always()
+        run: npm run test:bdd:status
+
+      - name: Write GitHub step summary
+        if: always()
+        run: |
+          STATUS_LINE="$(npm run -s test:bdd:status || true)"
+          SUMMARY_PATH="$(printf "%s" "$STATUS_LINE" | sed -n 's/.*summary=\(.*\)$/\1/p')"
+
+          {
+            echo "## BDD Bucket Sweep Confidence"
+            echo
+            echo "- Status line: \`${STATUS_LINE:-BDD_SWEEP_STATUS unavailable}\`"
+            if [ -n "$SUMMARY_PATH" ]; then
+              echo "- Summary artifact path: \`${SUMMARY_PATH}\`"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sweep artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bdd-bucket-sweep-artifacts-${{ github.run_id }}
+          path: artifacts/bdd-sweep/
+          if-no-files-found: warn
+          retention-days: 14
