@@ -284,5 +284,14 @@ For each iteration:
 - Plan amendment:
   - Bucket A onboarding route-contract expansion is now substantially closed; next highest gap is E1 deterministic reliability contracts.
 
+## Iteration 29 retrospective (completed)
+- Implemented E1 deterministic reliability contracts.
+- Added:
+  - `lib/__tests__/endpoint-manager-reliability.test.ts`
+- Verified:
+  - `npx jest lib/__tests__/endpoint-manager-reliability.test.ts lib/__tests__/endpoint-security-compat.test.ts --runInBand` -> 6/6 passing.
+- Plan amendment:
+  - E1 is now route/unit-backed; remaining follow-up is remediation-branch semantics review for tunnel-guidance reachability.
+
 ## Next iteration candidates
-1. Implement E1 deterministic reliability contracts (offline/online transitions + remediation guidance checks).
+1. Review endpoint remediation-branch semantics and decide whether tunnel guidance branch should be made reachable or removed.

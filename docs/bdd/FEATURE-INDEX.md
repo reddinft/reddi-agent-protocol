@@ -25,7 +25,7 @@ Purpose: single lookup from BDD feature file -> bucket -> executable verificatio
 ### Bucket D/E — Security + Reliability
 - Feature: `docs/bdd/features/bucket-d-e-reliability.feature`
 - Verify:
-  - `npx jest lib/__tests__/endpoint-security-compat.test.ts lib/__tests__/operator-key-rotation.test.ts lib/__tests__/onboarding-operator-status-routes.test.ts lib/__tests__/program-rpc-config.test.ts --runInBand`
+  - `npx jest lib/__tests__/endpoint-security-compat.test.ts lib/__tests__/endpoint-manager-reliability.test.ts lib/__tests__/operator-key-rotation.test.ts lib/__tests__/onboarding-operator-status-routes.test.ts lib/__tests__/program-rpc-config.test.ts --runInBand`
   - `npm run test:e2e:integration-lane`
 
 ### Bucket F — Jupiter Cross-Token Settlement

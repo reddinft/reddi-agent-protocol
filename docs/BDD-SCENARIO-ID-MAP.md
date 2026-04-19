@@ -70,9 +70,9 @@ Lanes:
 
 | ID | Scenario | Status | Evidence | Lane |
 |---|---|---|---|---|
-| E1.1 | Tunnel/proxy failure marks specialist offline | ✅ | endpoint/profile/heartbeat paths | route-unit/manual |
-| E1.2 | Quick-fix commands surfaced in UI | ✅ | onboarding endpoint responses | e2e-ui/manual |
-| E1.3 | Heartbeat restore flips online | ✅ | `/api/heartbeat` | route-unit/manual |
+| E1.1 | Tunnel/proxy failure marks specialist offline | ✅ | `lib/__tests__/endpoint-manager-reliability.test.ts` | route-unit |
+| E1.2 | Quick-fix commands surfaced in UI | ✅ | `lib/__tests__/endpoint-manager-reliability.test.ts` (remediation notes) | route-unit/manual |
+| E1.3 | Heartbeat restore flips online | ✅ | `lib/__tests__/endpoint-manager-reliability.test.ts` | route-unit |
 | E2.1 | Missing operator env gives recovery guidance | ✅ | operator key status checks | route-unit |
 | E2.2 | Operator rotation procedure documented/tested | ✅ | runbook + `operator-key-rotation.test.ts` | route-unit |
 | E3.1 | RPC env override respected | ✅ | `program-rpc-config.test.ts` | route-unit |

@@ -302,5 +302,16 @@ This log is append-amended each loop: plan review -> implementation -> verificat
   - Comprehensive review plan v2 updated: Bucket A route-contract expansion now slice 1+2+3 complete.
   - Feature index and scenario map refreshed to reference wrapper-route evidence.
 
+## Iteration 29
+- Focus: execute next highest gap, E1 deterministic reliability contracts.
+- Delivered:
+  - `lib/__tests__/endpoint-manager-reliability.test.ts`
+  - Covered behaviors: offline classification + remediation note, heartbeat recovery to online, proxy-offline quick-fix guidance.
+- Verified:
+  - `npx jest lib/__tests__/endpoint-manager-reliability.test.ts lib/__tests__/endpoint-security-compat.test.ts --runInBand` -> 2 suites, 6/6 pass
+- Retrospective amendments:
+  - Scenario map + feature index updated with direct E1 evidence.
+  - Comprehensive plan updated: E1 contracts added; remaining reliability follow-up is remediation-branch semantics review.
+
 ## Next loop candidates
-1. Implement E1 deterministic reliability contracts (offline/online transition + quick-fix guidance behavior).
+1. Review endpoint remediation-branch semantics and decide whether tunnel guidance branch should be made reachable or removed.

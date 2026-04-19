@@ -77,7 +77,10 @@ Validate that all built infrastructure is justified by BDD buckets/use-cases/sce
    - Add route tests for `/api/onboarding/capabilities`, `/api/onboarding/endpoint`, `/api/onboarding/runtime`, `/api/onboarding/audit`.
 
 3. **Bucket E1 runtime reliability explicit contracts**
-   - Add focused checks for offline/online transitions and quick-fix surfacing behavior where feasible via deterministic mocks.
+   - ✅ Added focused checks for offline/online transitions and quick-fix surfacing behavior:
+     - `lib/__tests__/endpoint-manager-reliability.test.ts`
+   - Remaining reliability follow-up:
+     - Evaluate remediation-branch logic for tunnel guidance text, because current heartbeat/status formula makes some tunnel-note conditions hard to hit deterministically.
 
 ### P2
 4. **Confidence-lane reporting polish**
@@ -94,4 +97,4 @@ Per iteration:
 5. Commit with an intelligent scoped message.
 
 ## Immediate Iteration Target
-- Continue P1: tighten E1 deterministic reliability contracts (offline/online transitions and quick-fix guidance behavior) with route-unit evidence where feasible.
+- Continue P1 reliability hardening: review endpoint remediation-branch semantics and decide whether tunnel guidance branch should be made reachable or removed.
