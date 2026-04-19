@@ -303,5 +303,15 @@ For each iteration:
 - Plan amendment:
   - E1 follow-up closed; move to reporting polish (`$GITHUB_STEP_SUMMARY`).
 
+## Iteration 31 retrospective (completed)
+- Completed P2 reporting polish by adding GitHub step summary output.
+- Implemented in:
+  - `.github/workflows/bdd-bucket-sweep-confidence.yml`
+- Behavior:
+  - writes `## BDD Bucket Sweep Confidence` block to `$GITHUB_STEP_SUMMARY`
+  - includes quick status line and summary artifact path when available
+- Verified:
+  - local dry-run of summary block using `npm run -s test:bdd:status` output renders expected markdown.
+
 ## Next iteration candidates
-1. Continue P2 reporting polish: add `$GITHUB_STEP_SUMMARY` output to sweep confidence workflow.
+1. Run end-to-end confidence pass (`test:bdd:index` + `test:bdd:sweep`) and publish final gap-closure snapshot note.

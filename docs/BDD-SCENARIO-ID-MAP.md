@@ -127,4 +127,5 @@ Lanes:
 8. Sweep lane now produces structured artifacts per run (`artifacts/bdd-sweep/<timestamp>/SUMMARY.md`, log, steps table).
 9. Latest sweep quick-status command is available: `npm run test:bdd:status`.
 10. Sweep CI workflow now prints quick status in logs after each run (`bdd-bucket-sweep-confidence.yml`).
-11. E1 deterministic reliability contracts are now directly covered (`endpoint-manager-reliability.test.ts`); remaining focus has shifted to reporting polish (`$GITHUB_STEP_SUMMARY` for sweep CI).
+11. E1 deterministic reliability contracts are now directly covered (`endpoint-manager-reliability.test.ts`).
+12. Sweep CI reporting polish is complete: workflow now writes `$GITHUB_STEP_SUMMARY` with quick status + summary artifact path.

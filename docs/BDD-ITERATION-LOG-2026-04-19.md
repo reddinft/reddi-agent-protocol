@@ -326,5 +326,17 @@ This log is append-amended each loop: plan review -> implementation -> verificat
   - Comprehensive plan updated to mark E1 semantics follow-up closed.
   - Reliability guidance branch no longer theoretical, now test-backed.
 
+## Iteration 31
+- Focus: finish P2 reporting polish by adding GitHub step summary output for sweep workflow.
+- Delivered:
+  - `.github/workflows/bdd-bucket-sweep-confidence.yml` now writes a `$GITHUB_STEP_SUMMARY` section with:
+    - one-line sweep status
+    - latest summary artifact path (when available)
+- Verified:
+  - local dry-run of summary block renders expected markdown using `npm run -s test:bdd:status` output.
+  - quick-status command remains green.
+- Retrospective amendments:
+  - CI run pages now show sweep status inline without opening full logs/artifacts.
+
 ## Next loop candidates
-1. Continue P2 reporting polish: add `$GITHUB_STEP_SUMMARY` output to sweep confidence workflow.
+1. Run one end-to-end confidence pass (`test:bdd:index` + `test:bdd:sweep`) and publish a final gap-closure snapshot note.

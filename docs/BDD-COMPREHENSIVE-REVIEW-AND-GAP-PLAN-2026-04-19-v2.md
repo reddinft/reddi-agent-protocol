@@ -85,7 +85,7 @@ Validate that all built infrastructure is justified by BDD buckets/use-cases/sce
 
 ### P2
 4. **Confidence-lane reporting polish**
-   - Keep sweep artifacts + quick status, and add workflow step summary output for at-a-glance CI run interpretation.
+   - ✅ Keep sweep artifacts + quick status, and add workflow step summary output for at-a-glance CI run interpretation.
 
 ---
 
@@ -98,4 +98,4 @@ Per iteration:
 5. Commit with an intelligent scoped message.
 
 ## Immediate Iteration Target
-- Continue P2 reporting polish (GitHub step summary output for sweep confidence workflow).
+- Run end-to-end confidence pass and publish final gap-closure snapshot note (coverage status + residual risks).
