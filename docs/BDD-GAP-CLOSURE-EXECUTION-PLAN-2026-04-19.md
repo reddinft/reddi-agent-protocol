@@ -275,5 +275,14 @@ For each iteration:
 - Plan amendment:
   - Bucket A core onboarding route coverage substantially closed; remaining wrappers moved to next candidate list.
 
+## Iteration 28 retrospective (completed)
+- Added onboarding wrapper-route contracts:
+  - `lib/__tests__/onboarding-routes-wrappers.test.ts`
+  - scope: `/api/onboarding/wallet/recovery`, `/api/onboarding/settlement-config`, `/api/onboarding/planner/execute`, `/api/onboarding/planner/feedback`, `/api/onboarding/planner/reveal`
+- Verified:
+  - `npx jest lib/__tests__/onboarding-routes-core.test.ts lib/__tests__/onboarding-routes-support.test.ts lib/__tests__/onboarding-routes-wrappers.test.ts --runInBand` -> 18/18 passing.
+- Plan amendment:
+  - Bucket A onboarding route-contract expansion is now substantially closed; next highest gap is E1 deterministic reliability contracts.
+
 ## Next iteration candidates
-1. Add contracts for remaining onboarding wrappers (`wallet/recovery`, `settlement-config`, `planner/execute|feedback|reveal`).
+1. Implement E1 deterministic reliability contracts (offline/online transitions + remediation guidance checks).

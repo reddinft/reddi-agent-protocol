@@ -29,7 +29,7 @@ Lanes:
 | A2.3 | On-chain `attest_quality` succeeds | ✅ | `lib/__tests__/onboarding-routes-core.test.ts` (+ integration/manual) | route-unit/integration |
 | A2.4 | Audit trail persisted | ✅ | `lib/__tests__/onboarding-routes-support.test.ts` | route-unit |
 | A2.5 | Missing operator signer fails explicitly | ✅ | `lib/__tests__/operator-key-rotation.test.ts` | route-unit |
-| A2.6 | Confirm/dispute flow completes | ✅ | onboarding Step 7 + planner settlement | e2e-ui/route-unit |
+| A2.6 | Confirm/dispute flow completes | ✅ | onboarding Step 7 + planner settlement + `onboarding-routes-wrappers.test.ts` | e2e-ui/route-unit |
 
 ## Bucket B — Discovery + Capability Index
 
@@ -127,3 +127,4 @@ Lanes:
 8. Sweep lane now produces structured artifacts per run (`artifacts/bdd-sweep/<timestamp>/SUMMARY.md`, log, steps table).
 9. Latest sweep quick-status command is available: `npm run test:bdd:status`.
 10. Sweep CI workflow now prints quick status in logs after each run (`bdd-bucket-sweep-confidence.yml`).
+11. Remaining substantive gap emphasis is E1 deterministic reliability contracts (offline/online transition + remediation guidance assertions).

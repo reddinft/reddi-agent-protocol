@@ -291,5 +291,16 @@ This log is append-amended each loop: plan review -> implementation -> verificat
   - Comprehensive plan updated: Bucket A core route-contract expansion marked slice 1+2 complete.
   - Scenario map + feature index updated with direct route-test evidence.
 
+## Iteration 28
+- Focus: close remaining onboarding wrapper-route contract gaps from comprehensive plan.
+- Delivered:
+  - `lib/__tests__/onboarding-routes-wrappers.test.ts`
+  - Covered wrappers: `/wallet/recovery`, `/settlement-config`, `/planner/execute`, `/planner/feedback`, `/planner/reveal`
+- Verified:
+  - `npx jest lib/__tests__/onboarding-routes-core.test.ts lib/__tests__/onboarding-routes-support.test.ts lib/__tests__/onboarding-routes-wrappers.test.ts --runInBand` -> 3 suites, 18/18 pass
+- Retrospective amendments:
+  - Comprehensive review plan v2 updated: Bucket A route-contract expansion now slice 1+2+3 complete.
+  - Feature index and scenario map refreshed to reference wrapper-route evidence.
+
 ## Next loop candidates
-1. Add contracts for remaining onboarding wrappers (`wallet/recovery`, `settlement-config`, `planner/execute|feedback|reveal`).
+1. Implement E1 deterministic reliability contracts (offline/online transition + quick-fix guidance behavior).
