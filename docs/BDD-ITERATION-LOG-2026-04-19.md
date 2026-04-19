@@ -178,5 +178,14 @@ This log is append-amended each loop: plan review -> implementation -> verificat
   - Gherkin extraction now covers Buckets A, B, C, D/E, F, G, and H.
   - Remaining extraction work is effectively closed for listed buckets.
 
+## Iteration 18
+- Focus: add a single index linking all Gherkin features to executable verification commands.
+- Delivered: `docs/bdd/FEATURE-INDEX.md`.
+- Verified:
+  - `rg` confirms all 7 feature files are referenced in index.
+  - feature count cross-check: index references = 7, `docs/bdd/features` files = 7.
+- Retrospective amendments:
+  - BDD feature extraction now has an operational command index for fast per-bucket verification.
+
 ## Next loop candidates
-1. Add a generated index doc linking all feature files to mapped test commands.
+1. Add a lightweight script to validate feature-index coverage automatically (prevent drift).

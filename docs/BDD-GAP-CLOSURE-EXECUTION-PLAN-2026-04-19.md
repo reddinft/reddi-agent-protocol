@@ -188,5 +188,11 @@ For each iteration:
     - `npx jest lib/__tests__/jupiter-client.test.ts lib/__tests__/planner-invoke-route.test.ts lib/__tests__/torque-client.test.ts lib/__tests__/torque-event-route.test.ts lib/__tests__/torque-leaderboard-route.test.ts lib/__tests__/torque-onboarding-event.test.ts --runInBand` -> 25/25
     - `cd packages/x402-solana && npm test -- --runInBand tests/payment.test.ts` -> 19/19
 
+## Iteration 18 retrospective (completed)
+- Added: `docs/bdd/FEATURE-INDEX.md` linking each bucket feature file to mapped verification commands.
+- Verified:
+  - index references all current feature files (7/7 coverage).
+  - `rg` + directory count cross-check confirms no missing bucket feature linkage.
+
 ## Next iteration candidates
-1. Add a generated index doc linking all feature files to mapped test commands.
+1. Add a lightweight script to validate feature-index coverage automatically (prevent drift).

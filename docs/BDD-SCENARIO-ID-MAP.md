@@ -119,3 +119,4 @@ Lanes:
 ## Current Gaps (from map)
 1. Integration lane is telemetry-backed (including probe-vs-selected model mismatch), but infra availability remains environment-dependent (expected for runtime-backed lane).
 2. Scenario map promotion to executable Gherkin now spans all active buckets (`docs/bdd/features/bucket-a-onboarding.feature`, `docs/bdd/features/bucket-b-discovery.feature`, `docs/bdd/features/bucket-c-planner-consumption.feature`, `docs/bdd/features/bucket-d-e-reliability.feature`, `docs/bdd/features/bucket-f-jupiter-settlement.feature`, `docs/bdd/features/bucket-g-torque-retention.feature`, `docs/bdd/features/bucket-h-consumer-orchestrator.feature`).
+3. Operational verification index is now available at `docs/bdd/FEATURE-INDEX.md`.
