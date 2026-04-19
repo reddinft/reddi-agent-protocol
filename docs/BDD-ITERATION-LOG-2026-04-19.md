@@ -338,5 +338,16 @@ This log is append-amended each loop: plan review -> implementation -> verificat
 - Retrospective amendments:
   - CI run pages now show sweep status inline without opening full logs/artifacts.
 
+## Iteration 32
+- Focus: run end-to-end confidence pass and publish final gap-closure snapshot note.
+- Delivered:
+  - Executed `npm run test:bdd:index` (PASS)
+  - Executed `npm run test:bdd:sweep` (PASS)
+  - Added `docs/BDD-GAP-CLOSURE-SNAPSHOT-2026-04-19.md`
+- Verified:
+  - Sweep artifact `artifacts/bdd-sweep/20260419-180815/SUMMARY.md` shows 8/8 step passes.
+- Retrospective amendments:
+  - Comprehensive review cycle now has explicit closure snapshot with residual-risk callouts.
+
 ## Next loop candidates
-1. Run one end-to-end confidence pass (`test:bdd:index` + `test:bdd:sweep`) and publish a final gap-closure snapshot note.
+1. Maintain mode: keep CI/reporting lanes running and only open new iterations when new scope or regressions appear.

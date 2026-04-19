@@ -313,5 +313,14 @@ For each iteration:
 - Verified:
   - local dry-run of summary block using `npm run -s test:bdd:status` output renders expected markdown.
 
+## Iteration 32 retrospective (completed)
+- Ran end-to-end confidence pass:
+  - `npm run test:bdd:index` -> PASS
+  - `npm run test:bdd:sweep` -> PASS
+- Added closure snapshot:
+  - `docs/BDD-GAP-CLOSURE-SNAPSHOT-2026-04-19.md`
+- Verified:
+  - sweep summary artifact indicates 8/8 step passes (`artifacts/bdd-sweep/20260419-180815/SUMMARY.md`).
+
 ## Next iteration candidates
-1. Run end-to-end confidence pass (`test:bdd:index` + `test:bdd:sweep`) and publish final gap-closure snapshot note.
+1. Maintain mode: continue CI guards/sweeps; open new iteration only for new scope or regressions.

@@ -129,3 +129,4 @@ Lanes:
 10. Sweep CI workflow now prints quick status in logs after each run (`bdd-bucket-sweep-confidence.yml`).
 11. E1 deterministic reliability contracts are now directly covered (`endpoint-manager-reliability.test.ts`).
 12. Sweep CI reporting polish is complete: workflow now writes `$GITHUB_STEP_SUMMARY` with quick status + summary artifact path.
+13. Closure snapshot published: `docs/BDD-GAP-CLOSURE-SNAPSHOT-2026-04-19.md` (includes residual-risk register + maintain-mode recommendation).

@@ -98,4 +98,5 @@ Per iteration:
 5. Commit with an intelligent scoped message.
 
 ## Immediate Iteration Target
-- Run end-to-end confidence pass and publish final gap-closure snapshot note (coverage status + residual risks).
+- Completed: end-to-end confidence pass + closure snapshot published.
+- Operate in maintain mode with CI guards/sweeps; reopen gap-closure loop only on new scope or regressions.
