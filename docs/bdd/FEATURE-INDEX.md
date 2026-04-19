@@ -45,6 +45,11 @@ Purpose: single lookup from BDD feature file -> bucket -> executable verificatio
 - Verify:
   - `npx jest lib/__tests__/planner-register-consumer-route.test.ts lib/__tests__/planner-tools-manifest-route.test.ts lib/__tests__/planner-resolve-route.test.ts lib/__tests__/planner-resolve-attestor-route.test.ts lib/__tests__/planner-invoke-route.test.ts lib/__tests__/planner-release-route.test.ts lib/__tests__/planner-signal-route.test.ts lib/__tests__/planner-auditability.test.ts --runInBand`
 
+## Drift guard
+- Validate index coverage against feature files:
+  - `npm run test:bdd:index`
+  - (script: `scripts/check-bdd-feature-index.sh`)
+
 ## Suggested cadence
 - Per iteration: run only affected bucket commands.
 - End-of-day confidence sweep: run representative command per bucket.

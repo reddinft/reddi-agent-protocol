@@ -194,5 +194,14 @@ For each iteration:
   - index references all current feature files (7/7 coverage).
   - `rg` + directory count cross-check confirms no missing bucket feature linkage.
 
+## Iteration 19 retrospective (completed)
+- Added BDD feature-index drift guard automation:
+  - `scripts/check-bdd-feature-index.sh`
+  - npm command `test:bdd:index`
+- Verified:
+  - `./scripts/check-bdd-feature-index.sh` -> OK
+  - `npm run test:bdd:index` -> OK
+- FEATURE-INDEX now includes the drift-guard command section.
+
 ## Next iteration candidates
-1. Add a lightweight script to validate feature-index coverage automatically (prevent drift).
+1. Add CI workflow step to run `npm run test:bdd:index` on PRs touching `docs/bdd/**`.

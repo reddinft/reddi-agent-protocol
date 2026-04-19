@@ -187,5 +187,17 @@ This log is append-amended each loop: plan review -> implementation -> verificat
 - Retrospective amendments:
   - BDD feature extraction now has an operational command index for fast per-bucket verification.
 
+## Iteration 19
+- Focus: add drift-check automation so feature index cannot silently fall out of sync.
+- Delivered:
+  - `scripts/check-bdd-feature-index.sh`
+  - npm command: `test:bdd:index`
+  - FEATURE-INDEX drift-guard section updated
+- Verified:
+  - `./scripts/check-bdd-feature-index.sh` -> OK
+  - `npm run test:bdd:index` -> OK
+- Retrospective amendments:
+  - Index maintenance is now enforceable as a command, not just manual convention.
+
 ## Next loop candidates
-1. Add a lightweight script to validate feature-index coverage automatically (prevent drift).
+1. Add CI workflow step to run `npm run test:bdd:index` on PRs touching `docs/bdd/**`.
