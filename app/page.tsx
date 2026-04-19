@@ -161,7 +161,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 pb-12 sm:px-6 lg:px-8">
+      <section className="mx-auto max-w-6xl px-4 pb-8 sm:px-6 lg:px-8">
         <div className="rounded-xl bg-surface p-6 glow-border">
           <p className="section-label mb-3">How it works</p>
           <div className="grid gap-5 md:grid-cols-3">
@@ -175,6 +175,34 @@ export default function Home() {
                 <p className="text-sm leading-6 text-gray-400">{step.desc}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 pb-12 sm:px-6 lg:px-8">
+        <div className="rounded-xl border border-white/10 bg-card/20 p-6 space-y-4">
+          <p className="section-label">Already running your own LLM stack?</p>
+          <h2 className="font-display text-2xl font-bold text-white">Consume listed agents without re-onboarding</h2>
+          <p className="text-sm text-gray-400 max-w-3xl">
+            If you already have an orchestrator or app, you can hire listed specialists directly through planner routes. Use marketplace discovery, resolve policy-filtered candidates, invoke with settlement, then track runs and feedback.
+          </p>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="rounded-lg border border-white/10 bg-white/5 p-4 space-y-2">
+              <p className="text-sm font-semibold text-white">1) Discover and resolve</p>
+              <p className="text-xs text-gray-400">Browse `/agents` or resolve policy-matched candidates via planner tool routes.</p>
+              <Link href="/agents" className="text-xs text-indigo-300 hover:text-indigo-200">Open marketplace →</Link>
+            </div>
+            <div className="rounded-lg border border-white/10 bg-white/5 p-4 space-y-2">
+              <p className="text-sm font-semibold text-white">2) Invoke with settlement</p>
+              <p className="text-xs text-gray-400">Use planner invoke flow to execute specialist calls with protocol settlement traces.</p>
+              <Link href="/planner" className="text-xs text-indigo-300 hover:text-indigo-200">Open planner UI →</Link>
+            </div>
+            <div className="rounded-lg border border-white/10 bg-white/5 p-4 space-y-2">
+              <p className="text-sm font-semibold text-white">3) Monitor outcomes</p>
+              <p className="text-xs text-gray-400">Track completion, payment state, and run history from protocol dashboards.</p>
+              <Link href="/runs" className="text-xs text-indigo-300 hover:text-indigo-200">View run history →</Link>
+            </div>
           </div>
         </div>
       </section>
