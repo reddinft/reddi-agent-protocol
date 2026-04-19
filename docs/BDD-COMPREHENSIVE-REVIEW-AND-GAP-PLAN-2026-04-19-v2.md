@@ -51,13 +51,20 @@ Validate that all built infrastructure is justified by BDD buckets/use-cases/sce
 ## Key Remaining Gaps (prioritized)
 
 ### P0 (in progress)
-1. ✅ **Bucket A route-contract expansion (slice 1 complete)**
+1. ✅ **Bucket A route-contract expansion (slice 1+2 complete)**
    - Added direct tests for onboarding APIs:
      - `/api/onboarding/wallet`
      - `/api/onboarding/healthcheck`
      - `/api/onboarding/attestation`
-   - Evidence: `lib/__tests__/onboarding-routes-core.test.ts` (6/6 pass)
-   - Remaining in Bucket A expansion: extend direct contracts for runtime/endpoint/capabilities/audit routes.
+     - `/api/onboarding/runtime`
+     - `/api/onboarding/endpoint`
+     - `/api/onboarding/capabilities` (GET/POST)
+     - `/api/onboarding/audit` (GET)
+   - Evidence:
+     - `lib/__tests__/onboarding-routes-core.test.ts`
+     - `lib/__tests__/onboarding-routes-support.test.ts`
+     - combined run: 13/13 pass
+   - Remaining in Bucket A expansion: add direct contracts for wallet recovery + settlement-config + planner execute/feedback/reveal onboarding wrappers (lower priority vs core onboarding path).
 
 ### P1
 2. **Bucket A/B onboarding support routes**
@@ -81,4 +88,4 @@ Per iteration:
 5. Commit with an intelligent scoped message.
 
 ## Immediate Iteration Target
-- Continue P0.2: extend onboarding route contracts for runtime + endpoint + capabilities + audit.
+- Continue P1: add targeted contracts for remaining onboarding support wrappers (`wallet/recovery`, `settlement-config`, `planner/execute|feedback|reveal`) and tighten E1 deterministic reliability contracts.

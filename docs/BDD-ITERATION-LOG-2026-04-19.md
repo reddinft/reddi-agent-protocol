@@ -280,5 +280,16 @@ This log is append-amended each loop: plan review -> implementation -> verificat
   - Comprehensive plan updated (`BDD-COMPREHENSIVE-REVIEW-AND-GAP-PLAN-2026-04-19-v2.md`) to mark P0 slice 1 complete.
   - Scenario map and feature index updated to reference new onboarding route test evidence.
 
+## Iteration 27
+- Focus: continue comprehensive-review P0 by expanding onboarding route contracts.
+- Delivered:
+  - `lib/__tests__/onboarding-routes-support.test.ts`
+  - Covered routes: `/api/onboarding/runtime`, `/api/onboarding/endpoint`, `/api/onboarding/capabilities` (GET/POST), `/api/onboarding/audit` (GET)
+- Verified:
+  - `npx jest lib/__tests__/onboarding-routes-core.test.ts lib/__tests__/onboarding-routes-support.test.ts --runInBand` -> 2 suites, 13/13 pass
+- Retrospective amendments:
+  - Comprehensive plan updated: Bucket A core route-contract expansion marked slice 1+2 complete.
+  - Scenario map + feature index updated with direct route-test evidence.
+
 ## Next loop candidates
-1. Continue comprehensive-review P0 with route tests for onboarding runtime + endpoint + capabilities + audit.
+1. Add contracts for remaining onboarding wrappers (`wallet/recovery`, `settlement-config`, `planner/execute|feedback|reveal`).

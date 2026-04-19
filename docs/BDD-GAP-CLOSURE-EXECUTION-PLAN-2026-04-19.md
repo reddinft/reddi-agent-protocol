@@ -265,5 +265,15 @@ For each iteration:
   - `npx jest lib/__tests__/onboarding-routes-core.test.ts --runInBand` -> 6/6 passing.
 - Updated mapping docs to reflect direct route-test evidence.
 
+## Iteration 27 retrospective (completed)
+- Continued comprehensive-review P0 onboarding contract expansion with support routes.
+- Added direct contracts:
+  - `lib/__tests__/onboarding-routes-support.test.ts`
+  - scope: `/api/onboarding/runtime`, `/api/onboarding/endpoint`, `/api/onboarding/capabilities` (GET/POST), `/api/onboarding/audit` (GET)
+- Verified:
+  - `npx jest lib/__tests__/onboarding-routes-core.test.ts lib/__tests__/onboarding-routes-support.test.ts --runInBand` -> 13/13 passing.
+- Plan amendment:
+  - Bucket A core onboarding route coverage substantially closed; remaining wrappers moved to next candidate list.
+
 ## Next iteration candidates
-1. Continue P0 with onboarding route tests for runtime + endpoint + capabilities + audit.
+1. Add contracts for remaining onboarding wrappers (`wallet/recovery`, `settlement-config`, `planner/execute|feedback|reveal`).
