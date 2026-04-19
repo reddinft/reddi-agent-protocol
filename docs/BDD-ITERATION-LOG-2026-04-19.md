@@ -270,5 +270,15 @@ This log is append-amended each loop: plan review -> implementation -> verificat
 - Retrospective amendments:
   - CI logs now surface a compact status line without opening artifacts.
 
+## Iteration 26
+- Focus: execute comprehensive-review P0 start by adding direct onboarding route contracts.
+- Delivered:
+  - `lib/__tests__/onboarding-routes-core.test.ts` covering wallet, healthcheck, and attestation routes.
+- Verified:
+  - `npx jest lib/__tests__/onboarding-routes-core.test.ts --runInBand` -> 1 suite, 6/6 pass.
+- Retrospective amendments:
+  - Comprehensive plan updated (`BDD-COMPREHENSIVE-REVIEW-AND-GAP-PLAN-2026-04-19-v2.md`) to mark P0 slice 1 complete.
+  - Scenario map and feature index updated to reference new onboarding route test evidence.
+
 ## Next loop candidates
-1. Add GitHub step summary (`$GITHUB_STEP_SUMMARY`) with latest sweep status and summary artifact path.
+1. Continue comprehensive-review P0 with route tests for onboarding runtime + endpoint + capabilities + audit.

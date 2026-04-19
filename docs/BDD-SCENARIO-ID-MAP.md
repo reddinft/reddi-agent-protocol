@@ -19,14 +19,14 @@ Lanes:
 | A1.1 | Consent denied blocks endpoint exposure + registration | ✅ | `app/onboarding/page.tsx`, `e2e/onboarding.spec.ts` | e2e-ui |
 | A1.2 | Runtime bootstrap succeeds | ✅ | `app/api/onboarding/runtime/route.ts` | route-unit/manual |
 | A1.3 | Token-gated proxy + tunnel setup succeeds | ✅ | `lib/onboarding/endpoint-manager.ts` | route-unit |
-| A1.4 | Wallet existing path completes | ✅ | `app/api/onboarding/wallet/route.ts` | route-unit |
-| A1.5 | Wallet bootstrap path enforces encrypted key + backup | ✅ | `lib/onboarding/wallet-sponsorship.ts` | route-unit |
-| A1.6 | Sponsorship cap enforced | ✅ | `lib/onboarding/wallet-sponsorship.ts` | route-unit |
+| A1.4 | Wallet existing path completes | ✅ | `lib/__tests__/onboarding-routes-core.test.ts` | route-unit |
+| A1.5 | Wallet bootstrap path enforces encrypted key + backup | ✅ | `lib/__tests__/onboarding-routes-core.test.ts` | route-unit |
+| A1.6 | Sponsorship cap enforced | ✅ | `lib/__tests__/onboarding-routes-core.test.ts` | route-unit |
 | A1.7 | Register tx preflight shown before signing | ✅ | `app/onboarding/page.tsx` | e2e-ui/manual |
 | A1.8 | Register tx succeeds on-chain | ✅ | `app/onboarding/page.tsx` | integration/manual |
-| A2.1 | Healthcheck fail blocks attestation | ✅ | `app/api/onboarding/attestation/route.ts` | route-unit |
-| A2.2 | Healthcheck pass includes runtime/public probe | ✅ | `app/api/onboarding/healthcheck/route.ts` | route-unit |
-| A2.3 | On-chain `attest_quality` succeeds | ✅ | `lib/onboarding/onchain-attestation.ts` | integration/manual |
+| A2.1 | Healthcheck fail blocks attestation | ✅ | `lib/__tests__/onboarding-routes-core.test.ts` | route-unit |
+| A2.2 | Healthcheck pass includes runtime/public probe | ✅ | `lib/__tests__/onboarding-routes-core.test.ts` | route-unit |
+| A2.3 | On-chain `attest_quality` succeeds | ✅ | `lib/__tests__/onboarding-routes-core.test.ts` (+ integration/manual) | route-unit/integration |
 | A2.4 | Audit trail persisted | ✅ | `app/api/onboarding/audit/route.ts` | route-unit |
 | A2.5 | Missing operator signer fails explicitly | ✅ | `lib/__tests__/operator-key-rotation.test.ts` | route-unit |
 | A2.6 | Confirm/dispute flow completes | ✅ | onboarding Step 7 + planner settlement | e2e-ui/route-unit |

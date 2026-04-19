@@ -9,7 +9,7 @@ Purpose: single lookup from BDD feature file -> bucket -> executable verificatio
 ### Bucket A — Onboarding
 - Feature: `docs/bdd/features/bucket-a-onboarding.feature`
 - Verify:
-  - `npx jest lib/__tests__/operator-key-rotation.test.ts lib/__tests__/onboarding-operator-status-routes.test.ts --runInBand`
+  - `npx jest lib/__tests__/onboarding-routes-core.test.ts lib/__tests__/operator-key-rotation.test.ts lib/__tests__/onboarding-operator-status-routes.test.ts --runInBand`
   - `npx playwright test e2e/onboarding.spec.ts --grep "consent gates|next button advances|back button returns|step 2 runtime — next is disabled|run button disabled when prompt is empty"`
 
 ### Bucket B — Discovery + Capability Index

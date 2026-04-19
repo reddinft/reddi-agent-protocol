@@ -256,5 +256,14 @@ For each iteration:
 - Verified:
   - local quick-status command remains green (`npm run test:bdd:status`).
 
+## Iteration 26 retrospective (completed)
+- Began execution of comprehensive review v2 P0 onboarding contract expansion.
+- Added direct onboarding route tests:
+  - `lib/__tests__/onboarding-routes-core.test.ts`
+  - scope: `/api/onboarding/wallet`, `/api/onboarding/healthcheck`, `/api/onboarding/attestation`
+- Verified:
+  - `npx jest lib/__tests__/onboarding-routes-core.test.ts --runInBand` -> 6/6 passing.
+- Updated mapping docs to reflect direct route-test evidence.
+
 ## Next iteration candidates
-1. Add GitHub step summary output (`$GITHUB_STEP_SUMMARY`) with latest sweep status and summary artifact path.
+1. Continue P0 with onboarding route tests for runtime + endpoint + capabilities + audit.
