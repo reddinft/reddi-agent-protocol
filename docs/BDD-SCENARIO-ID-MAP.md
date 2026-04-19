@@ -121,3 +121,4 @@ Lanes:
 2. Scenario map promotion to executable Gherkin now spans all active buckets (`docs/bdd/features/bucket-a-onboarding.feature`, `docs/bdd/features/bucket-b-discovery.feature`, `docs/bdd/features/bucket-c-planner-consumption.feature`, `docs/bdd/features/bucket-d-e-reliability.feature`, `docs/bdd/features/bucket-f-jupiter-settlement.feature`, `docs/bdd/features/bucket-g-torque-retention.feature`, `docs/bdd/features/bucket-h-consumer-orchestrator.feature`).
 3. Operational verification index is now available at `docs/bdd/FEATURE-INDEX.md`.
 4. Index drift guard command is available: `npm run test:bdd:index`.
+5. PR-time CI enforcement for drift guard is wired: `.github/workflows/bdd-index-guard.yml`.

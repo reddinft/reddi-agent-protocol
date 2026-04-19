@@ -199,5 +199,16 @@ This log is append-amended each loop: plan review -> implementation -> verificat
 - Retrospective amendments:
   - Index maintenance is now enforceable as a command, not just manual convention.
 
+## Iteration 20
+- Focus: enforce BDD index drift guard in CI on relevant PR changes.
+- Delivered:
+  - `.github/workflows/bdd-index-guard.yml`
+  - Triggered on PRs touching `docs/bdd/**`, guard script, or package manifests.
+  - Runs `npm run test:bdd:index` in CI.
+- Verified:
+  - local command remains green: `npm run test:bdd:index` -> OK
+- Retrospective amendments:
+  - Drift guard now has both local and PR-time enforcement.
+
 ## Next loop candidates
-1. Add CI workflow step to run `npm run test:bdd:index` on PRs touching `docs/bdd/**`.
+1. Add a single command/script to run a representative per-bucket verification sweep.

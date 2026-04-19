@@ -203,5 +203,14 @@ For each iteration:
   - `npm run test:bdd:index` -> OK
 - FEATURE-INDEX now includes the drift-guard command section.
 
+## Iteration 20 retrospective (completed)
+- Added PR-time CI enforcement for BDD index drift guard:
+  - `.github/workflows/bdd-index-guard.yml`
+- Workflow behavior:
+  - triggers on pull requests touching `docs/bdd/**`, guard script, or package manifests
+  - runs `npm run test:bdd:index`
+- Verified:
+  - local guard command remains green (`npm run test:bdd:index` -> OK)
+
 ## Next iteration candidates
-1. Add CI workflow step to run `npm run test:bdd:index` on PRs touching `docs/bdd/**`.
+1. Add a single command/script to run a representative per-bucket verification sweep.
