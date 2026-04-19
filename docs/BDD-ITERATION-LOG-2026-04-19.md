@@ -222,5 +222,17 @@ This log is append-amended each loop: plan review -> implementation -> verificat
 - Retrospective amendments:
   - Per-bucket confidence checks are now runnable from a single command.
 
+## Iteration 22
+- Focus: wire CI/manual-dispatch confidence lane for one-command bucket sweep.
+- Delivered:
+  - `.github/workflows/bdd-bucket-sweep-confidence.yml`
+  - triggers: daily schedule + manual dispatch
+  - runs `npm run test:bdd:sweep` (non-blocking) and uploads sweep log artifact (14-day retention)
+- Verified:
+  - Local representative sweep still green: `npm run test:bdd:sweep`
+  - Aggregate observed: 19 suites, 80/80 tests passing
+- Retrospective amendments:
+  - BDD confidence lane now has both local one-command execution and CI-run artifact capture.
+
 ## Next loop candidates
-1. Add CI/manual-dispatch workflow for `test:bdd:sweep` (non-blocking confidence lane).
+1. Add summary artifact generation for sweep (markdown snapshot) and upload in CI.

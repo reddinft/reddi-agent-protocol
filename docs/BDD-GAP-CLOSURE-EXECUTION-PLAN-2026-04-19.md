@@ -221,5 +221,15 @@ For each iteration:
   - aggregate in run output: 19 suites, 80/80 tests passing
 - FEATURE-INDEX updated with sweep command section.
 
+## Iteration 22 retrospective (completed)
+- Added CI/manual-dispatch BDD confidence lane for representative bucket sweep:
+  - `.github/workflows/bdd-bucket-sweep-confidence.yml`
+- Workflow behavior:
+  - scheduled daily + manual dispatch
+  - runs `npm run test:bdd:sweep` with non-blocking step semantics
+  - uploads `bdd-bucket-sweep.log` artifact (14-day retention)
+- Verified:
+  - local sweep remains green (`npm run test:bdd:sweep`) -> 19 suites, 80/80 pass
+
 ## Next iteration candidates
-1. Add CI/manual-dispatch workflow for `test:bdd:sweep` (non-blocking confidence lane).
+1. Add sweep markdown summary artifact generation and publish in CI artifacts.

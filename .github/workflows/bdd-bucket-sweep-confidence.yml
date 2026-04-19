@@ -1,0 +1,37 @@
+name: BDD Bucket Sweep Confidence
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 19 * * *" # daily confidence sweep (UTC)
+
+jobs:
+  bdd-bucket-sweep:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run representative BDD bucket sweep (non-blocking)
+        run: npm run test:bdd:sweep | tee bdd-bucket-sweep.log
+        continue-on-error: true
+
+      - name: Upload sweep log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bdd-bucket-sweep-log-${{ github.run_id }}
+          path: bdd-bucket-sweep.log
+          if-no-files-found: warn
+          retention-days: 14
