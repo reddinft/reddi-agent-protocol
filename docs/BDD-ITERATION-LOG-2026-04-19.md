@@ -261,5 +261,14 @@ This log is append-amended each loop: plan review -> implementation -> verificat
 - Retrospective amendments:
   - Sweep artifacts now support quick status extraction for chat updates without opening markdown manually.
 
+## Iteration 25
+- Focus: print one-line quick status directly in CI sweep workflow logs.
+- Delivered:
+  - `.github/workflows/bdd-bucket-sweep-confidence.yml` now runs `npm run test:bdd:status` after sweep (always).
+- Verified:
+  - Local status helper remains green: `npm run test:bdd:status`.
+- Retrospective amendments:
+  - CI logs now surface a compact status line without opening artifacts.
+
 ## Next loop candidates
-1. Add CI step to print `test:bdd:status` after sweep for faster workflow log readability.
+1. Add GitHub step summary (`$GITHUB_STEP_SUMMARY`) with latest sweep status and summary artifact path.

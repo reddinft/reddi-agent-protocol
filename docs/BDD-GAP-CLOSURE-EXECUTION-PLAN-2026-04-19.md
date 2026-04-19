@@ -250,5 +250,11 @@ For each iteration:
   - `npm run test:bdd:status` matches script output
 - FEATURE-INDEX updated with status helper command.
 
+## Iteration 25 retrospective (completed)
+- Added CI quick-status log step in sweep confidence workflow:
+  - `.github/workflows/bdd-bucket-sweep-confidence.yml` now runs `npm run test:bdd:status` after sweep (always).
+- Verified:
+  - local quick-status command remains green (`npm run test:bdd:status`).
+
 ## Next iteration candidates
-1. Add CI step to print `test:bdd:status` after sweep for faster workflow log readability.
+1. Add GitHub step summary output (`$GITHUB_STEP_SUMMARY`) with latest sweep status and summary artifact path.
