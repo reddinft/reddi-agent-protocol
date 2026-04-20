@@ -9,6 +9,7 @@ import {
   PhantomWalletAdapter,
   SolflareWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
+import type { WalletAdapter } from "@solana/wallet-adapter-base";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { PlaywrightWalletAdapter } from "@/lib/wallet/playwright-wallet-adapter";
 import "@solana/wallet-adapter-react-ui/styles.css";
@@ -23,7 +24,10 @@ const WalletProvider: FC<Props> = ({ children }) => {
   const enablePlaywrightWallet = process.env.NEXT_PUBLIC_ENABLE_PLAYWRIGHT_WALLET === "true";
 
   const wallets = useMemo(() => {
-    const adapters = [new PhantomWalletAdapter(), new SolflareWalletAdapter()];
+    const adapters: WalletAdapter[] = [
+      new PhantomWalletAdapter(),
+      new SolflareWalletAdapter(),
+    ];
     if (enablePlaywrightWallet) {
       adapters.unshift(new PlaywrightWalletAdapter());
     }
