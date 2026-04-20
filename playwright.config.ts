@@ -16,7 +16,7 @@ export default defineConfig({
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } }
   ],
   webServer: {
-    command: 'node node_modules/next/dist/bin/next dev --port 3010',
+    command: 'NEXT_PUBLIC_ENABLE_PLAYWRIGHT_WALLET=true node node_modules/next/dist/bin/next dev --port 3010',
     url: 'http://127.0.0.1:3010',
     reuseExistingServer: true,
     timeout: 60_000,
