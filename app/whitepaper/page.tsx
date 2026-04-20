@@ -6,7 +6,7 @@ const phases = [
   { phase: "Phase 2", title: "Whitepaper draft", status: "Complete (v1 draft)" },
   { phase: "Phase 3", title: "Screenshot evidence", status: "Complete (initial pack)" },
   { phase: "Phase 4", title: "Web integration", status: "Complete (this page)" },
-  { phase: "Phase 5", title: "QA and publication", status: "Pending review" },
+  { phase: "Phase 5", title: "QA and publication", status: "In progress (threat + benchmark appendices added)" },
 ];
 
 const screenshots = [
@@ -31,6 +31,12 @@ export default function WhitepaperPage() {
           <div className="flex flex-wrap gap-3">
             <Link href="https://github.com/nissan/reddi-agent-protocol/blob/main/docs/whitepaper/WHITEPAPER-v1.md" className="rounded-lg bg-white text-black px-4 py-2 text-sm font-medium">
               Read whitepaper draft
+            </Link>
+            <Link href="https://github.com/nissan/reddi-agent-protocol/blob/main/docs/whitepaper/APPENDIX-THREAT-MODEL.md" className="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium text-white/90">
+              Threat model appendix
+            </Link>
+            <Link href="https://github.com/nissan/reddi-agent-protocol/blob/main/docs/whitepaper/APPENDIX-BENCHMARK-METHODOLOGY.md" className="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium text-white/90">
+              Benchmark appendix
             </Link>
             <Link href="https://github.com/nissan/reddi-agent-protocol/tree/main/docs/whitepaper" className="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium text-white/90">
               Open docs folder
@@ -72,8 +78,8 @@ export default function WhitepaperPage() {
           <h2 className="font-display text-2xl font-semibold">What is next</h2>
           <ul className="list-disc pl-5 text-sm text-gray-300 space-y-1">
             <li>Technical peer review of whitepaper claims against code and tests.</li>
-            <li>Add benchmark appendix and formal threat matrix.</li>
-            <li>Publish polished final whitepaper with versioning.</li>
+            <li>Add versioned benchmark results and threat-control residual risk ratings.</li>
+            <li>Publish final whitepaper v1.0 with changelog and review sign-off.</li>
           </ul>
         </section>
       </div>

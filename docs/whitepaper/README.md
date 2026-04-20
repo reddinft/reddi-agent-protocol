@@ -8,6 +8,8 @@ This folder contains the phased documentation program for publishing a protocol-
 - `RESEARCH-SOURCES.md` — internal/external references and claims ledger inputs
 - `WHITEPAPER-v1.md` — main whitepaper draft
 - `SCREENSHOT-EVIDENCE.md` — screenshot map and capture requirements
+- `APPENDIX-THREAT-MODEL.md` — threat matrix with controls and residual risks
+- `APPENDIX-BENCHMARK-METHODOLOGY.md` — reproducibility and benchmark lanes
 
 ## Publishing intent
 
