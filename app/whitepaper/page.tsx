@@ -6,7 +6,7 @@ const phases = [
   { phase: "Phase 2", title: "Whitepaper draft", status: "Complete (v1 draft)" },
   { phase: "Phase 3", title: "Screenshot evidence", status: "Complete (initial pack)" },
   { phase: "Phase 4", title: "Web integration", status: "Complete (this page)" },
-  { phase: "Phase 5", title: "QA and publication", status: "In progress (threat + benchmark appendices added)" },
+  { phase: "Phase 5", title: "QA and publication", status: "Complete (v1.0 candidate package)" },
 ];
 
 const screenshots = [
@@ -30,7 +30,7 @@ export default function WhitepaperPage() {
           </p>
           <div className="flex flex-wrap gap-3">
             <Link href="https://github.com/nissan/reddi-agent-protocol/blob/main/docs/whitepaper/WHITEPAPER-v1.md" className="rounded-lg bg-white text-black px-4 py-2 text-sm font-medium">
-              Read whitepaper draft
+              Read whitepaper v1.0 candidate
             </Link>
             <Link href="https://github.com/nissan/reddi-agent-protocol/blob/main/docs/whitepaper/APPENDIX-THREAT-MODEL.md" className="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium text-white/90">
               Threat model appendix
@@ -40,6 +40,12 @@ export default function WhitepaperPage() {
             </Link>
             <Link href="https://github.com/nissan/reddi-agent-protocol/tree/main/docs/whitepaper" className="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium text-white/90">
               Open docs folder
+            </Link>
+            <Link href="https://github.com/nissan/reddi-agent-protocol/blob/main/docs/whitepaper/CLAIMS-TRACEABILITY.md" className="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium text-white/90">
+              Claims matrix
+            </Link>
+            <Link href="https://github.com/nissan/reddi-agent-protocol/blob/main/docs/whitepaper/GLOSSARY.md" className="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium text-white/90">
+              Glossary
             </Link>
           </div>
         </header>
@@ -77,9 +83,9 @@ export default function WhitepaperPage() {
         <section className="rounded-xl border border-white/10 bg-card/30 p-5 space-y-3">
           <h2 className="font-display text-2xl font-semibold">What is next</h2>
           <ul className="list-disc pl-5 text-sm text-gray-300 space-y-1">
-            <li>Technical peer review of whitepaper claims against code and tests.</li>
-            <li>Add versioned benchmark results and threat-control residual risk ratings.</li>
-            <li>Publish final whitepaper v1.0 with changelog and review sign-off.</li>
+            <li>Run final technical review pass and sign-off on claim wording.</li>
+            <li>Attach dated benchmark result snapshots to Appendix B.</li>
+            <li>Tag whitepaper release version and publish announcement.</li>
           </ul>
         </section>
       </div>
