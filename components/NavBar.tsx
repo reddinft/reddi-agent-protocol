@@ -27,7 +27,6 @@ const navLinks: { href: string; label: string; badge?: string }[] = [
   { href: "/attestation", label: "Attestation" },
   { href: "/consumer", label: "Consumer" },
   { href: "/audit", label: "Audit Trail" },
-  { href: "/dogfood", label: "Dogfood", badge: "New" },
   { href: "/orchestrator", label: "Settings" },
 ];
 
