@@ -1675,7 +1675,16 @@ export default function OnboardingPage() {
               <p className="text-xs text-yellow-400">Healthcheck must pass before attestation can be recorded.</p>
             )}
             {!state.attestationOperatorReady && (
-              <p className="text-xs text-yellow-400">Operator signer key must be configured before recording attestation.</p>
+              <>
+                <p className="text-xs text-yellow-400">Operator signer key must be configured before recording attestation.</p>
+                <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-3 text-xs text-yellow-200">
+                  <p className="mb-1">Quick fix: set <span className="font-mono">ONBOARDING_ATTEST_OPERATOR_SECRET_KEY</span> as a 64-byte JSON array, restart the app, then click "Check attestor key status" again.</p>
+                  <p className="font-mono break-all">Example format: [12,34,56,...,64 bytes total]</p>
+                  <Link href="https://github.com/nissan/reddi-agent-protocol/blob/main/docs/ONBOARDING-ATTESTATION-OPERATOR-SETUP.md" className="mt-2 inline-block underline">
+                    Operator setup and recovery guide →
+                  </Link>
+                </div>
+              </>
             )}
             {state.attestationOperatorStatusNote && (
               <div className="rounded-lg border border-white/10 bg-black/30 p-3 text-xs text-muted-foreground">
