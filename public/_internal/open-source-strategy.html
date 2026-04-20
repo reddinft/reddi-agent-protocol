@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Open Source Strategy — Reddi Agent Protocol</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --card: #20243a;
+      --border: #2a2d45;
+      --accent: #818cf8;
+      --accent2: #f472b6;
+      --green: #4ade80;
+      --amber: #fbbf24;
+      --red: #f87171;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, sans-serif; line-height: 1.65; }
+
+    .hero {
+      background: linear-gradient(135deg, #1a1d27 0%, #0f1117 60%, #1a0a1e 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 3rem 2rem 2.5rem;
+      text-align: center;
+    }
+    .tag {
+      display: inline-block;
+      background: rgba(129,140,248,0.12);
+      border: 1px solid rgba(129,140,248,0.25);
+      color: var(--accent);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: clamp(1.75rem, 4vw, 2.5rem);
+      font-weight: 800;
+      background: linear-gradient(135deg, #fff 0%, #818cf8 60%, #f472b6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.75rem;
+    }
+    .hero p { color: var(--muted); max-width: 580px; margin: 0 auto; font-size: 1rem; }
+
+    .container { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 2.5rem 0 1.25rem;
+    }
+    .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    /* Architecture diagram */
+    .arch-diagram {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .arch-row {
+      display: grid;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    .arch-row.cols-3 { grid-template-columns: repeat(3, 1fr); }
+    .arch-row.cols-2 { grid-template-columns: repeat(2, 1fr); }
+    .arch-row.cols-1 { grid-template-columns: 1fr; }
+    .arch-block {
+      border-radius: 10px;
+      padding: 1rem;
+      border: 1px solid;
+      position: relative;
+    }
+    .arch-block.open {
+      background: rgba(74,222,128,0.05);
+      border-color: rgba(74,222,128,0.2);
+    }
+    .arch-block.closed {
+      background: rgba(248,113,113,0.05);
+      border-color: rgba(248,113,113,0.2);
+    }
+    .arch-block.partial {
+      background: rgba(251,191,36,0.05);
+      border-color: rgba(251,191,36,0.2);
+    }
+    .arch-block-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.4rem;
+    }
+    .open .arch-block-label { color: var(--green); }
+    .closed .arch-block-label { color: var(--red); }
+    .partial .arch-block-label { color: var(--amber); }
+    .arch-block-name { font-size: 0.9rem; font-weight: 700; color: #fff; }
+    .arch-block-desc { font-size: 0.75rem; color: var(--muted); margin-top: 0.25rem; }
+
+    .arch-arrow {
+      text-align: center;
+      color: var(--border);
+      font-size: 1.25rem;
+      line-height: 1;
+      margin: 0.25rem 0;
+    }
+
+    /* File tree cards */
+    .component-grid {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+    .component-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .component-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+    .component-card.open::before { background: var(--green); }
+    .component-card.closed::before { background: var(--red); }
+    .component-card.partial::before { background: var(--amber); }
+
+    .component-card .status-pill {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      display: inline-block;
+      margin-bottom: 0.6rem;
+    }
+    .open .status-pill { background: rgba(74,222,128,0.12); color: var(--green); border: 1px solid rgba(74,222,128,0.25); }
+    .closed .status-pill { background: rgba(248,113,113,0.12); color: var(--red); border: 1px solid rgba(248,113,113,0.25); }
+    .partial .status-pill { background: rgba(251,191,36,0.1); color: var(--amber); border: 1px solid rgba(251,191,36,0.2); }
+
+    .component-card h3 { font-size: 0.95rem; font-weight: 700; color: #fff; margin-bottom: 0.35rem; }
+    .component-card .path { font-size: 0.7rem; font-family: monospace; color: var(--accent); margin-bottom: 0.5rem; }
+    .component-card p { font-size: 0.8rem; color: var(--muted); }
+
+    .reason-block {
+      margin-top: 0.75rem;
+      padding: 0.65rem 0.85rem;
+      border-radius: 8px;
+      font-size: 0.78rem;
+    }
+    .open .reason-block { background: rgba(74,222,128,0.06); border: 1px solid rgba(74,222,128,0.12); color: #a7f3d0; }
+    .closed .reason-block { background: rgba(248,113,113,0.06); border: 1px solid rgba(248,113,113,0.12); color: #fca5a5; }
+    .partial .reason-block { background: rgba(251,191,36,0.06); border: 1px solid rgba(251,191,36,0.12); color: #fde68a; }
+
+    /* Repo split box */
+    .repo-split {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: 1fr 1fr;
+      margin-top: 1rem;
+    }
+    @media (max-width: 600px) { .repo-split { grid-template-columns: 1fr; } .arch-row.cols-3 { grid-template-columns: 1fr; } }
+    .repo-box {
+      border-radius: 12px;
+      padding: 1.25rem;
+      border: 1px solid;
+    }
+    .repo-box.open-box {
+      background: rgba(74,222,128,0.04);
+      border-color: rgba(74,222,128,0.2);
+    }
+    .repo-box.private-box {
+      background: rgba(248,113,113,0.04);
+      border-color: rgba(248,113,113,0.2);
+    }
+    .repo-box h3 { font-size: 0.85rem; font-weight: 700; margin-bottom: 0.6rem; }
+    .open-box h3 { color: var(--green); }
+    .private-box h3 { color: var(--red); }
+    .repo-box ul { list-style: none; font-size: 0.8rem; color: var(--muted); }
+    .repo-box ul li { padding: 0.2rem 0; padding-left: 1.25rem; position: relative; font-family: monospace; }
+    .repo-box ul li::before { position: absolute; left: 0; }
+    .open-box ul li::before { content: '📂'; font-size: 0.7rem; }
+    .private-box ul li::before { content: '🔒'; font-size: 0.7rem; }
+    .repo-box .license-tag {
+      display: inline-block;
+      margin-top: 0.75rem;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.2rem 0.6rem;
+      border-radius: 6px;
+    }
+    .open-box .license-tag { background: rgba(74,222,128,0.1); color: var(--green); }
+    .private-box .license-tag { background: rgba(248,113,113,0.1); color: var(--red); }
+
+    /* Moat summary */
+    .moat-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--red);
+      border-radius: 0 10px 10px 0;
+      padding: 1rem 1.25rem;
+      margin-bottom: 0.75rem;
+    }
+    .moat-item h4 { color: #fff; font-size: 0.9rem; margin-bottom: 0.35rem; }
+    .moat-item p { font-size: 0.8rem; color: var(--muted); }
+    .moat-item .analogy { font-size: 0.75rem; color: var(--accent); margin-top: 0.35rem; font-style: italic; }
+
+    .callout {
+      background: rgba(129,140,248,0.06);
+      border: 1px solid rgba(129,140,248,0.18);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      margin-top: 2rem;
+    }
+    .callout h3 { color: var(--accent); font-size: 0.95rem; margin-bottom: 0.5rem; }
+    .callout p { font-size: 0.875rem; color: var(--muted); }
+
+    footer { text-align: center; padding: 2rem; color: var(--muted); font-size: 0.78rem; border-top: 1px solid var(--border); margin-top: 2rem; }
+
+    code { font-family: monospace; font-size: 0.85em; background: rgba(129,140,248,0.1); padding: 0.1em 0.35em; border-radius: 4px; color: var(--accent); }
+  </style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="tag">Architecture Decision</div>
+  <h1>Open Source Strategy</h1>
+  <p>What to open, what to protect, and how to restructure the repo for audits, hackathon credibility, and long-term moat.</p>
+</div>
+
+<div class="container">
+
+  <!-- Architecture overview -->
+  <div class="section-title">System Architecture — Open vs Closed</div>
+
+  <div class="arch-diagram">
+    <!-- Layer 1: consumers -->
+    <div class="arch-row cols-3">
+      <div class="arch-block open">
+        <div class="arch-block-label">Open Source</div>
+        <div class="arch-block-name">Web App UI</div>
+        <div class="arch-block-desc">Next.js frontend, pages, components, design system</div>
+      </div>
+      <div class="arch-block open">
+        <div class="arch-block-label">Open Source</div>
+        <div class="arch-block-name">MCP Tools</div>
+        <div class="arch-block-desc">Capability taxonomy, tool schema, agent API surface</div>
+      </div>
+      <div class="arch-block open">
+        <div class="arch-block-label">Open Source</div>
+        <div class="arch-block-name">Ecosystem Plugins</div>
+        <div class="arch-block-desc">ElizaOS, Sendai x402 integrations</div>
+      </div>
+    </div>
+    <div class="arch-arrow">↓</div>
+
+    <!-- Layer 2: orchestration -->
+    <div class="arch-row cols-2">
+      <div class="arch-block closed">
+        <div class="arch-block-label">Close Source 🔒 Moat</div>
+        <div class="arch-block-name">Orchestration Engine</div>
+        <div class="arch-block-desc">Policy engine, spend tracking, specialist routing, ranking algorithm, fallback logic</div>
+      </div>
+      <div class="arch-block partial">
+        <div class="arch-block-label">Open (sanitised) ⚠️</div>
+        <div class="arch-block-name">Registry Bridge</div>
+        <div class="arch-block-desc">On-chain → off-chain merge layer. Open the interface; consider closing the ranking signals data model</div>
+      </div>
+    </div>
+    <div class="arch-arrow">↓</div>
+
+    <!-- Layer 3: protocol -->
+    <div class="arch-row cols-2">
+      <div class="arch-block open">
+        <div class="arch-block-label">Open Source + Audited</div>
+        <div class="arch-block-name">Anchor Programs</div>
+        <div class="arch-block-desc">Registry, escrow, reputation, attestation, dispute, PER — on-chain truth</div>
+      </div>
+      <div class="arch-block open">
+        <div class="arch-block-label">Open Source SDK</div>
+        <div class="arch-block-name">x402-solana Package</div>
+        <div class="arch-block-desc">Payment parsing, middleware, nonce, Jupiter swap client</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Component breakdown -->
+  <div class="section-title">Component-by-Component Decision</div>
+
+  <div class="component-grid">
+
+    <!-- Anchor programs -->
+    <div class="component-card open">
+      <span class="status-pill">✅ Open Source · Audit Required</span>
+      <h3>Anchor Programs</h3>
+      <div class="path">programs/escrow/</div>
+      <p>Registry, escrow lock/release, reputation commit/reveal, attestation, dispute, PER privacy release, agent deregister.</p>
+      <div class="reason-block">
+        Open = trust. Auditable = credible. This IS the protocol. Judges, investors, and users need to read it. Closed smart contracts are a red flag in this space. Needs a proper Adevar Labs (or similar) security audit before mainnet.
+      </div>
+    </div>
+
+    <!-- x402-solana package -->
+    <div class="component-card open">
+      <span class="status-pill">✅ Open Source SDK</span>
+      <h3>x402-solana Package</h3>
+      <div class="path">packages/x402-solana/</div>
+      <p>Payment header parsing, middleware, nonce replay protection, Jupiter auto-swap client.</p>
+      <div class="reason-block">
+        This is an ecosystem contribution, not the product. Publishing this on npm as <code>@reddi/x402-solana</code> gives us credibility, developer adoption, and hackathon points. The more people use this SDK, the larger our protocol network grows.
+      </div>
+    </div>
+
+    <!-- ElizaOS + Sendai plugins -->
+    <div class="component-card open">
+      <span class="status-pill">✅ Open Source Plugins</span>
+      <h3>Ecosystem Plugins</h3>
+      <div class="path">packages/eliza-plugin-x402/ · packages/sendai-x402/</div>
+      <p>ElizaOS and Sendai integrations wiring x402 payments into popular agent frameworks.</p>
+      <div class="reason-block">
+        Distribution channels. Open-sourcing plugins for the top 2–3 agent frameworks means Reddi protocol gets discovered by every ElizaOS and Sendai developer. Network effect > moat here.
+      </div>
+    </div>
+
+    <!-- PER client -->
+    <div class="component-card open">
+      <span class="status-pill">✅ Open Source</span>
+      <h3>PER Client</h3>
+      <div class="path">packages/per-client/</div>
+      <p>Privacy-Enabling Relay client — privacy-preserving payment path for sensitive specialist invocations.</p>
+      <div class="reason-block">
+        The PER mechanism only works if the community trusts it. Open source is the only way to establish that trust. The on-chain program (<code>release_escrow_per.rs</code>) is already open — the client needs to match.
+      </div>
+    </div>
+
+    <!-- Capability taxonomy -->
+    <div class="component-card open">
+      <span class="status-pill">✅ Open Standard</span>
+      <h3>Capability Taxonomy</h3>
+      <div class="path">lib/capabilities/taxonomy.ts</div>
+      <p>Task types, input/output modes, privacy modes, runtime capability schema.</p>
+      <div class="reason-block">
+        This is a standard, not a product. The more agents and orchestrators adopt our taxonomy, the more our registry becomes the canonical agent directory. Open standards compound; closed ones fragment.
+      </div>
+    </div>
+
+    <!-- MCP tools -->
+    <div class="component-card open">
+      <span class="status-pill">✅ Open Source</span>
+      <h3>MCP Tools &amp; Context Contracts</h3>
+      <div class="path">lib/mcp/ · docs/context-contracts/</div>
+      <p>invoke_specialist, resolve_specialist, heartbeat tool schema; runtime capability + context boundary specs.</p>
+      <div class="reason-block">
+        Tool schemas need to be public for AI agent frameworks to integrate. This is the API surface of our protocol — keeping it closed prevents the ecosystem from building on it.
+      </div>
+    </div>
+
+    <!-- UI components / design system -->
+    <div class="component-card open">
+      <span class="status-pill">✅ Open Source</span>
+      <h3>Web App + Design System</h3>
+      <div class="path">app/ · components/</div>
+      <p>Next.js pages, DM Sans + Fraunces design system, atomic UI components, marketplace, planner, register flows.</p>
+      <div class="reason-block">
+        The UI is a demo vehicle, not the moat. Hackathon judges need to see it. The design language is reproducible. Open-sourcing it actually helps — developers fork it to build their own specialist UIs, which grows the ecosystem.
+      </div>
+    </div>
+
+    <!-- Specialist ranking algorithm -->
+    <div class="component-card closed">
+      <span class="status-pill">🔒 Close Source · Core Moat</span>
+      <h3>Specialist Ranking Algorithm</h3>
+      <div class="path">lib/onboarding/specialist-index.ts → computeSpecialistRankingScore()</div>
+      <p>Weighted scoring across feedback count, avg score, attestation agreement ratio, health streak, reputation score, price — determines which specialist wins every dispatch.</p>
+      <div class="reason-block">
+        This IS the product's intelligence. The ranking algorithm is how Reddi differentiates from a dumb registry. It's how trust compounds over time and how quality rises to the top. Open-sourcing it lets any competitor clone the dispatch logic in hours. <strong>Keep closed.</strong>
+      </div>
+      <div class="moat-item" style="margin-top:0.75rem;border-left-color:var(--red);">
+        <div class="analogy">Like Uber's driver dispatch algorithm or Google's PageRank — the ranking logic IS the defensible asset. The parameters, weights, and signal definitions are the secret sauce.</div>
+      </div>
+    </div>
+
+    <!-- Policy / orchestration engine -->
+    <div class="component-card closed">
+      <span class="status-pill">🔒 Close Source · Moat</span>
+      <h3>Orchestration Policy Engine</h3>
+      <div class="path">lib/orchestrator/policy.ts · app/api/planner/tools/invoke/route.ts</div>
+      <p>Budget enforcement, daily spend tracking, privacy mode routing, attestation gates, fallback logic, maxPerCallUsd enforcement.</p>
+      <div class="reason-block">
+        The policy engine is what enterprise customers will pay for. Multi-tenant budget controls, per-task cost caps, attestation gates — this is the "management plane" of the protocol. Competitors can build on our open contracts but can't replicate this runtime intelligence without significant engineering. <strong>Keep closed, or offer as a paid managed service.</strong>
+      </div>
+    </div>
+
+    <!-- Registry bridge / routing signals -->
+    <div class="component-card partial">
+      <span class="status-pill">⚠️ Open interface · Close signals</span>
+      <h3>Registry Bridge + Routing Signals</h3>
+      <div class="path">lib/registry/bridge.ts · data/onboarding/specialist-index.json</div>
+      <p>Merges on-chain + off-chain data. The routing signals (feedbackCount, avgFeedbackScore, attestationAgreements, health_streak) accumulate over time into a data moat.</p>
+      <div class="reason-block">
+        Open the <em>interface</em> (SpecialistListing type, merge logic) so external tools can build on it. But the <em>routing signals data model</em> and the way signals are weighted into ranking is the growing data asset. As the network scales, the data moat grows larger — protect the signal schema.
+      </div>
+    </div>
+
+    <!-- API routes - onboarding -->
+    <div class="component-card open">
+      <span class="status-pill">✅ Open Source</span>
+      <h3>API Routes — Onboarding</h3>
+      <div class="path">app/api/onboarding/ · app/api/register/</div>
+      <p>Attestation, healthcheck, capabilities, endpoint probe, runtime check, local Ollama detection.</p>
+      <div class="reason-block">
+        These are the onboarding rails — anyone building a specialist node needs to understand how to pass these checks. Open = easier adoption, faster ecosystem growth.
+      </div>
+    </div>
+
+    <!-- Walrus integration -->
+    <div class="component-card partial">
+      <span class="status-pill">⚠️ Review before publishing</span>
+      <h3>Walrus Storage Integration</h3>
+      <div class="path">lib/walrus.ts</div>
+      <p>Decentralised storage integration — likely for attestation records or audit trail.</p>
+      <div class="reason-block">
+        Review what data goes to Walrus and whether any of it reveals routing signal data or proprietary schema. If it's just audit logs, open it. If attestation data reveals ranking signals, sanitise first.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Repo split recommendation -->
+  <div class="section-title">Recommended Repo Structure</div>
+
+  <div class="repo-split">
+    <div class="repo-box open-box">
+      <h3>📂 reddi-agent-protocol (public)</h3>
+      <ul>
+        <li>programs/escrow/</li>
+        <li>packages/x402-solana/</li>
+        <li>packages/eliza-plugin-x402/</li>
+        <li>packages/sendai-x402/</li>
+        <li>packages/per-client/</li>
+        <li>lib/capabilities/taxonomy.ts</li>
+        <li>lib/mcp/tools.ts</li>
+        <li>lib/program.ts</li>
+        <li>docs/context-contracts/</li>
+        <li>app/ (UI + pages)</li>
+        <li>components/</li>
+        <li>app/api/onboarding/</li>
+        <li>app/api/registry/route.ts</li>
+      </ul>
+      <span class="license-tag">Apache 2.0 / MIT</span>
+    </div>
+    <div class="repo-box private-box">
+      <h3>🔒 reddi-agent-app (private)</h3>
+      <ul>
+        <li>lib/orchestrator/</li>
+        <li>lib/onboarding/specialist-index.ts</li>
+        <li>lib/registry/bridge.ts (signals only)</li>
+        <li>app/api/planner/tools/invoke/</li>
+        <li>app/api/planner/tools/resolve/</li>
+        <li>app/api/orchestrator/policy/</li>
+        <li>data/orchestrator/</li>
+        <li>data/onboarding/ (runtime signals)</li>
+        <li>.env.* files</li>
+        <li>lib/walrus.ts (pending review)</li>
+      </ul>
+      <span class="license-tag">Proprietary / BUSL</span>
+    </div>
+  </div>
+
+  <!-- What to do right now for hackathon -->
+  <div class="section-title">What to Do Now — Hackathon Phase</div>
+
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.5rem;margin-bottom:1rem;">
+    <h3 style="color:#fff;font-size:1rem;margin-bottom:1rem;">For the hackathon submission (keep everything public)</h3>
+    <p style="font-size:0.875rem;color:var(--muted);margin-bottom:1rem;">
+      Judges need to see all the code. For now, the entire repo stays public. The strategic split happens <em>after</em> the hackathon when you're protecting production IP. Focus on:
+    </p>
+    <ol style="font-size:0.875rem;color:var(--text);padding-left:1.25rem;line-height:2;">
+      <li>Extract <code>programs/escrow/</code> + <code>packages/x402-solana/</code> into a <strong>standalone README</strong> with audit instructions — makes it easy for Adevar Labs to scope the audit bounty submission</li>
+      <li>Add a <code>SECURITY.md</code> with the threat model (escrow attack vectors, replay protection, PER privacy guarantees) — needed for Adevar submission</li>
+      <li>Add a <code>packages/x402-solana/README.md</code> calling it a standalone SDK — makes the ecosystem contribution obvious to judges and RPC Fast</li>
+      <li>Add <code>ARCHITECTURE.md</code> at repo root showing the open/closed layer diagram — transparency signal for investors</li>
+    </ol>
+  </div>
+
+  <!-- Core moat summary -->
+  <div class="section-title">The Core Moat — What Competitors Cannot Clone</div>
+
+  <div class="moat-item">
+    <h4>1. The Ranking Algorithm + Accumulated Signals</h4>
+    <p>Every specialist invocation generates routing signals — feedback scores, attestation agreement rates, health streaks. These signals compound into a data moat over time. A competitor can fork the contracts; they cannot fork 6 months of real-world quality signals.</p>
+    <p class="analogy">Analogy: GitHub's contribution graph — the data IS the moat, not the rendering.</p>
+  </div>
+
+  <div class="moat-item">
+    <h4>2. The Policy Engine — Trust-Gated Dispatching</h4>
+    <p>Budget caps, attestation gates, privacy-mode routing, fallback chains — this is enterprise-grade orchestration logic. It took weeks to build and requires deep domain expertise to get right. Open-sourcing it gives competitors a free head start on the hardest part.</p>
+    <p class="analogy">Analogy: Cloudflare's WAF ruleset — the infrastructure is open but the rules engine is proprietary.</p>
+  </div>
+
+  <div class="moat-item">
+    <h4>3. The Specialist Registry Network Effect</h4>
+    <p>The value of the protocol grows with the number of registered, attested, and health-passing specialists. This is a network effect moat — not code. Every new specialist makes the registry more valuable, which attracts more orchestrators, which attracts more specialists.</p>
+    <p class="analogy">Analogy: Stripe's merchant network — the rails are open; the trust network is the barrier to entry.</p>
+  </div>
+
+  <div class="callout">
+    <h3>🎯 Strategic Summary</h3>
+    <p><strong>Open what enables adoption. Close what powers quality.</strong><br><br>
+    The Anchor programs and x402 SDK are the protocol rails — they must be open, audited, and trusted. The ranking algorithm and policy engine are the intelligence layer — they are the product that enterprises will pay for. The more developers build on the open rails, the more valuable the closed intelligence layer becomes.</p>
+  </div>
+
+</div>
+
+<footer>
+  Reddi Agent Protocol · Architecture Decision · 2026-04-18 AEST<br>
+  <span style="opacity:0.4">Internal strategy document — not for public distribution</span>
+</footer>
+
+</body>
+</html>
