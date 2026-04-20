@@ -1,6 +1,6 @@
-# Reddi Agent Protocol — Whitepaper (v1 Draft)
+# Reddi Agent Protocol — Whitepaper (v1.0 Candidate)
 
-_Status: Draft for iterative release_
+_Status: Candidate for publication review_
 
 ## Abstract
 
@@ -130,3 +130,9 @@ Reddi Agent Protocol treats agent commerce as a protocol problem, not just a UX 
 
 - Appendix A: `APPENDIX-THREAT-MODEL.md`
 - Appendix B: `APPENDIX-BENCHMARK-METHODOLOGY.md`
+
+## Companion docs
+
+- Glossary: `GLOSSARY.md`
+- Claims traceability: `CLAIMS-TRACEABILITY.md`
+- Changelog: `CHANGELOG.md`
