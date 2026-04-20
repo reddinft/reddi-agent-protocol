@@ -2,6 +2,20 @@ import { fetchSpecialistListings } from "@/lib/registry/bridge";
 
 export const runtime = "nodejs";
 
+function parseCsv(value: string | null): string[] {
+  if (!value) return [];
+  return value
+    .split(",")
+    .map((v) => v.trim())
+    .filter(Boolean);
+}
+
+function asEpochMs(value: string | null): number {
+  if (!value) return -1;
+  const parsed = Date.parse(value);
+  return Number.isNaN(parsed) ? -1 : parsed;
+}
+
 /**
  * GET /api/registry
  * Returns merged on-chain + off-chain specialist listings.
@@ -12,6 +26,8 @@ export const runtime = "nodejs";
  *   runtimeCap — filter by runtime capability
  *   attested   — "true" to require attestation
  *   health     — "pass" to require health pass
+ *   tag       — filter by one capability tag
+ *   tags      — CSV filter by one or more capability tags
  *   sortBy    — "ranking" | "reputation" | "cost" | "feedback" (default: default bridge sort)
  */
 export async function GET(req: Request) {
@@ -23,6 +39,8 @@ export async function GET(req: Request) {
     const filterAttested = searchParams.get("attested") === "true";
     const filterHealth = searchParams.get("health");
     const filterRuntimeCap = searchParams.get("runtimeCap");
+    const filterTag = searchParams.get("tag");
+    const filterTags = parseCsv(searchParams.get("tags"));
     const sort = searchParams.get("sortBy") ?? searchParams.get("sort") ?? "default";
 
     const { ok, listings, onchainCount, indexedCount, error } =
@@ -56,9 +74,31 @@ export async function GET(req: Request) {
         l.capabilities?.runtime_capabilities?.includes(filterRuntimeCap as never)
       );
     }
+    if (filterTag) {
+      results = results.filter((l) => l.capabilities?.tags?.includes(filterTag));
+    }
+    if (filterTags.length > 0) {
+      results = results.filter((l) =>
+        filterTags.some((tag) => l.capabilities?.tags?.includes(tag))
+      );
+    }
 
     if (sort === "ranking") {
-      results = [...results].sort((a, b) => b.ranking_score - a.ranking_score);
+      results = [...results].sort((a, b) => {
+        if (a.ranking_score !== b.ranking_score) {
+          return b.ranking_score - a.ranking_score;
+        }
+
+        const aFreshness = asEpochMs(a.health.lastCheckedAt);
+        const bFreshness = asEpochMs(b.health.lastCheckedAt);
+        if (aFreshness !== bFreshness) {
+          return bFreshness - aFreshness;
+        }
+
+        const aCost = a.capabilities?.perCallUsd ?? Number.POSITIVE_INFINITY;
+        const bCost = b.capabilities?.perCallUsd ?? Number.POSITIVE_INFINITY;
+        return aCost - bCost;
+      });
     } else if (sort === "reputation") {
       results = [...results].sort(
         (a, b) => b.onchain.reputationScore - a.onchain.reputationScore
