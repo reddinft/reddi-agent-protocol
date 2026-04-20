@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 
 const WalletMultiButton = dynamic(
@@ -38,6 +38,14 @@ export default function NavBar() {
   const pathname = usePathname();
   const { publicKey, disconnect } = useWallet();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const desktopMoreRef = useRef<HTMLDetailsElement | null>(null);
+
+  useEffect(() => {
+    setMobileOpen(false);
+    if (desktopMoreRef.current?.open) {
+      desktopMoreRef.current.open = false;
+    }
+  }, [pathname]);
 
   const walletControl = publicKey ? (
     <button
@@ -92,7 +100,7 @@ export default function NavBar() {
               </Link>
             ))}
 
-            <details className="relative group">
+            <details ref={desktopMoreRef} className="relative group">
               <summary className="list-none cursor-pointer text-sm text-muted-foreground hover:text-white select-none">
                 More
               </summary>
@@ -101,6 +109,9 @@ export default function NavBar() {
                   <Link
                     key={href}
                     href={href}
+                    onClick={() => {
+                      if (desktopMoreRef.current) desktopMoreRef.current.open = false;
+                    }}
                     className={`flex items-center justify-between rounded-md px-3 py-2 text-sm ${
                       pathname === href ? "text-white bg-white/10" : "text-muted-foreground hover:text-white hover:bg-white/5"
                     }`}
