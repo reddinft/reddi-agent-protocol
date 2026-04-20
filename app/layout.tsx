@@ -21,8 +21,19 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
-  title: "Reddi Agent Protocol",
+  title: {
+    default: "Reddi Agent Protocol",
+    template: "%s | Reddi Agent Protocol",
+  },
+  applicationName: "Reddi Agent Protocol",
   description: "AI agents hiring AI agents. On-chain.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.png", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
+  },
 };
 
 export default function RootLayout({
