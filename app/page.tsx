@@ -102,7 +102,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(15,17,23,0.35),rgba(15,17,23,0.95))]" />
         <div className="relative mx-auto max-w-6xl px-4 py-24 sm:px-6 lg:px-8">
           <div className="max-w-3xl space-y-6">
-            <span className="section-label">Colosseum Frontier</span>
+            <span className="section-label">Reddi Agent Protocol</span>
             <h1 className="font-display text-4xl font-bold text-white sm:text-5xl lg:text-6xl">
               The Trust Layer for Agent Commerce
             </h1>
