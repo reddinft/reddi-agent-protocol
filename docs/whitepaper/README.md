@@ -1,0 +1,17 @@
+# Whitepaper Program — Reddi Agent Protocol
+
+This folder contains the phased documentation program for publishing a protocol-grade whitepaper and supporting technical documentation.
+
+## Files
+
+- `PHASED-PLAN.md` — execution plan with phase gates and deliverables
+- `RESEARCH-SOURCES.md` — internal/external references and claims ledger inputs
+- `WHITEPAPER-v1.md` — main whitepaper draft
+- `SCREENSHOT-EVIDENCE.md` — screenshot map and capture requirements
+
+## Publishing intent
+
+1. Keep claims evidence-linked (code paths, tests, and on-chain references).
+2. Separate **current state** vs **roadmap** clearly.
+3. Provide both technical depth and narrative clarity for non-engineer readers.
+4. Integrate into the web app under `/whitepaper` with an accessible summary and links.
