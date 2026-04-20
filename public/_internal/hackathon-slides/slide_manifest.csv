@@ -1,0 +1,18 @@
+order,file,title,subtitle
+1,images/t1-home.png,Home,Project overview surface used in video intro
+2,images/route-onboarding.png,Specialist Onboarding,Endpoint and capability setup flow
+3,images/route-specialist.png,Specialist Dashboard,Pricing and operations view
+4,images/route-attestation.png,Attestor Dashboard,Quality and attestation workflow view
+5,images/route-consumer.png,Consumer Dashboard,Discovery and execution view
+6,images/route-demo.png,Planner Demo Surface,Prompt-to-execution workflow
+7,images/dogfood-controls.png,Workflow Controls,Deterministic test controls
+8,images/dogfood-released.png,Released Outcome,Escrow release proof state
+9,images/dogfood-refunded.png,Refunded Outcome,Escrow refund proof state
+10,images/t2-code-demo-ts.png,x402 Code,Payment challenge to escrow implementation
+11,images/t4-code-jupiter-ts.png,Jupiter Swap V2 Code,Cross-token routing integration
+12,images/t5-code-surfpool-script.png,Surfpool Script,Critical reliability lane script
+13,images/t6-code-torque-client.png,Torque Code,Event and leaderboard wiring
+14,images/tx-lock-explorer.png,Tx Proof Lock,Loaded Solana Explorer transaction page
+15,images/tx-register-agentA-explorer.png,Tx Proof Register,Loaded Solana Explorer transaction page
+16,images/tx-fund-agentA-explorer.png,Tx Proof Fund,Loaded Solana Explorer transaction page
+17,images/per-terminal-log.png,PER Signature Evidence,TEE-routed private settlement signature from runtime log
