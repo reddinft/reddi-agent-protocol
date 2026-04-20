@@ -1,0 +1,5 @@
+export const DOGFOOD_SPECIALIST_WALLET = "dogfoodSpec11111111111111111111111111111111";
+export const DOGFOOD_ATTESTOR_WALLET = "dogfoodAttest111111111111111111111111111111";
+
+export const DOGFOOD_TAG = "dogfood-ping-haiku";
+
