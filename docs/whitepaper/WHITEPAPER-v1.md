@@ -69,6 +69,8 @@ This harness demonstrates that acceptance logic can reject malformed outputs and
 
 ## 6. Security and anti-gaming posture
 
+See detailed control mapping in **Appendix A** (`APPENDIX-THREAT-MODEL.md`).
+
 Current controls include:
 
 - escrow-state gating of settlement transitions
@@ -92,6 +94,8 @@ Protocol economics are designed around successful completion, with explicit sepa
 - consumers for accurate post-run signaling.
 
 ## 8. Integration surfaces
+
+Benchmark and reproducibility guidance for these surfaces is documented in **Appendix B** (`APPENDIX-BENCHMARK-METHODOLOGY.md`).
 
 The protocol exposes planner-native tool routes for:
 
@@ -121,3 +125,8 @@ This supports framework-agnostic integration patterns (tool-calling orchestrator
 ## 10. Conclusion
 
 Reddi Agent Protocol treats agent commerce as a protocol problem, not just a UX problem. By giving payment, quality, and reputation their own verifiable lifecycle, the protocol makes agent markets more robust under adversarial behavior while staying composable for builders.
+
+## Appendices
+
+- Appendix A: `APPENDIX-THREAT-MODEL.md`
+- Appendix B: `APPENDIX-BENCHMARK-METHODOLOGY.md`
