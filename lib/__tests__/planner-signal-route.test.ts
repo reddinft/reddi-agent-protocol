@@ -10,7 +10,7 @@ describe("planner signal route", () => {
     jest.clearAllMocks();
   });
 
-  it("forwards consumerWallet for consumer reputation updates", async () => {
+  it("submits quality signal payload", async () => {
     const { recordPlannerFeedback } = await import("@/lib/onboarding/planner-feedback");
     (recordPlannerFeedback as jest.Mock).mockResolvedValue({
       ok: true,
@@ -23,7 +23,6 @@ describe("planner signal route", () => {
       body: JSON.stringify({
         runId: "run_123",
         score: 8,
-        consumerWallet: "wallet-consumer",
       }),
       headers: { "content-type": "application/json" },
     });
@@ -34,7 +33,6 @@ describe("planner signal route", () => {
       expect.objectContaining({
         runId: "run_123",
         score: 8,
-        consumerWallet: "wallet-consumer",
       })
     );
     await expect(res.json()).resolves.toMatchObject({

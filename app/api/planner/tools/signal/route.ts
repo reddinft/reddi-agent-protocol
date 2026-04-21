@@ -38,7 +38,6 @@ export async function POST(req: Request) {
     const result = await recordPlannerFeedback({
       runId: body.runId,
       score: body.score,
-      consumerWallet: body.consumerWallet,
       notes: body.notes,
       agreesWithAttestation: body.agreesWithAttestation,
     });
