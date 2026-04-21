@@ -15,52 +15,132 @@ interface GuidedSetupModalProps {
 
 type Platform = "macos" | "linux" | "windows";
 type StepStatus = "idle" | "checking" | "done" | "error";
+type RuntimeChoice = "ollama" | "llama_cpp" | "vllm" | "lm_studio";
 
 type ProbeResult = {
   ok?: boolean;
   status?: string;
+  runtimeStatus?: string;
+  detectedRuntime?: string;
   models?: string[];
   error?: string;
 };
 
-async function probeLocalOllamaTags() {
-  const res = await fetch("http://127.0.0.1:11434/api/tags", {
-    method: "GET",
-    signal: AbortSignal.timeout(3000),
-  });
-  if (!res.ok) return { ok: false as const, models: [] as string[] };
-
-  const data = (await res.json().catch(() => null)) as
-    | { models?: Array<{ name?: string }> }
-    | null;
-  const models = Array.isArray(data?.models)
-    ? data.models
-        .map((entry) => entry?.name)
-        .filter((name): name is string => Boolean(name))
-    : [];
-
-  return { ok: true as const, models };
-}
-
 const STEP_BADGE = "w-7 h-7 rounded-full bg-blue-600 text-white text-sm font-bold flex items-center justify-center";
 
-const OLLAMA_COMMANDS: Record<Platform, string> = {
-  macos: "brew install ollama\n# or download from https://ollama.com/download",
-  linux: "curl -fsSL https://ollama.com/install.sh | sh",
-  windows: "Download installer from https://ollama.com/download",
-};
-
-const MODEL_COMMAND = "ollama pull smollm2:135m";
-const VERIFY_OLLAMA_COMMAND = "curl -s http://127.0.0.1:11434/api/tags";
-const VERIFY_MODEL_COMMAND = "ollama list";
 const CLOUDFLARED_INSTALL: Record<Platform, string> = {
   macos: "brew install cloudflared",
   linux:
     "curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o cloudflared && chmod +x cloudflared && sudo mv cloudflared /usr/local/bin/",
   windows: "winget install Cloudflare.cloudflared",
 };
-const CLOUDTUNNEL_COMMAND = "cloudflared tunnel --url http://localhost:11434";
-const SSH_FALLBACK = "ssh -R 80:localhost:11434 nokey@localhost.run";
+
+const RUNTIME_CONFIG: Record<
+  RuntimeChoice,
+  {
+    label: string;
+    defaultBaseUrl: string;
+    runtimeTarget: "ollama" | "llama_cpp" | "vllm" | "lm_studio";
+    install: Record<Platform, string>;
+    startCommand: string;
+    modelCommand: string;
+    verifyRuntime: (baseUrl: string) => string;
+    verifyModel: (baseUrl: string) => string;
+    modelHint: string;
+  }
+> = {
+  ollama: {
+    label: "Ollama",
+    defaultBaseUrl: "http://127.0.0.1:11434",
+    runtimeTarget: "ollama",
+    install: {
+      macos: "brew install ollama\n# or download from https://ollama.com/download",
+      linux: "curl -fsSL https://ollama.com/install.sh | sh",
+      windows: "Download installer from https://ollama.com/download",
+    },
+    startCommand: "ollama serve",
+    modelCommand: "ollama pull smollm2:135m",
+    verifyRuntime: (base) => `curl -s ${base.replace(/\/$/, "")}/api/tags`,
+    verifyModel: () => "ollama list",
+    modelHint: "Confirm smollm2:135m appears in the model list.",
+  },
+  llama_cpp: {
+    label: "llama.cpp",
+    defaultBaseUrl: "http://127.0.0.1:8080",
+    runtimeTarget: "llama_cpp",
+    install: {
+      macos: "brew install llama.cpp  # or build from source",
+      linux: "git clone https://github.com/ggerganov/llama.cpp && make -C llama.cpp",
+      windows: "Use llama.cpp release binaries or build with CMake",
+    },
+    startCommand: "./llama-server -m /path/to/model.gguf --port 8080",
+    modelCommand: "Use your GGUF model path in llama-server (example above).",
+    verifyRuntime: (base) => `curl -s ${base.replace(/\/$/, "")}/v1/models`,
+    verifyModel: (base) => `curl -s ${base.replace(/\/$/, "")}/v1/models`,
+    modelHint: "Confirm your loaded model appears in data[].id.",
+  },
+  vllm: {
+    label: "vLLM",
+    defaultBaseUrl: "http://127.0.0.1:8000",
+    runtimeTarget: "vllm",
+    install: {
+      macos: "pip install vllm  # GPU setup varies on macOS",
+      linux: "pip install vllm",
+      windows: "Use WSL/Linux environment, then pip install vllm",
+    },
+    startCommand: "python -m vllm.entrypoints.openai.api_server --model /path/to/model",
+    modelCommand: "Start vLLM with your target model path in --model.",
+    verifyRuntime: (base) => `curl -s ${base.replace(/\/$/, "")}/v1/models`,
+    verifyModel: (base) => `curl -s ${base.replace(/\/$/, "")}/v1/models`,
+    modelHint: "Confirm your model appears in data[].id.",
+  },
+  lm_studio: {
+    label: "LM Studio",
+    defaultBaseUrl: "http://127.0.0.1:1234",
+    runtimeTarget: "lm_studio",
+    install: {
+      macos: "Install LM Studio from https://lmstudio.ai",
+      linux: "Install LM Studio from https://lmstudio.ai",
+      windows: "Install LM Studio from https://lmstudio.ai",
+    },
+    startCommand: "Open Local Server tab → select model → Start Server",
+    modelCommand: "Load your model in LM Studio and start Local Server.",
+    verifyRuntime: (base) => `curl -s ${base.replace(/\/$/, "")}/v1/models`,
+    verifyModel: (base) => `curl -s ${base.replace(/\/$/, "")}/v1/models`,
+    modelHint: "Confirm your selected model appears in data[].id.",
+  },
+};
+
+function normalizeBaseUrl(raw: string) {
+  const value = raw.trim();
+  if (!value) throw new Error("Base URL is required");
+  return value.startsWith("http://") || value.startsWith("https://") ? value : `http://${value}`;
+}
+
+async function probeLocalRuntime(baseUrl: string, runtime: RuntimeChoice) {
+  const base = normalizeBaseUrl(baseUrl).replace(/\/$/, "");
+  const path = runtime === "ollama" ? "/api/tags" : "/v1/models";
+  const res = await fetch(`${base}${path}`, {
+    method: "GET",
+    signal: AbortSignal.timeout(3000),
+  });
+
+  if (!res.ok) return { ok: false as const, models: [] as string[] };
+
+  const data = (await res.json().catch(() => null)) as
+    | { models?: Array<{ name?: string }>; data?: Array<{ id?: string }> }
+    | null;
+
+  const models = runtime === "ollama"
+    ? Array.isArray(data?.models)
+      ? data.models.map((m) => m?.name).filter((name): name is string => Boolean(name))
+      : []
+    : Array.isArray(data?.data)
+      ? data.data.map((m) => m?.id).filter((id): id is string => Boolean(id))
+      : [];
+
+  return { ok: true as const, models };
+}
 
 function CommandBlock({ command }: { command: string }) {
   const [copied, setCopied] = useState(false);
@@ -120,7 +200,9 @@ function StepCard({
 
 export default function GuidedSetupModal({ open, onClose, onComplete }: GuidedSetupModalProps) {
   const [platform, setPlatform] = useState<Platform>("macos");
-  const [ollamaStatus, setOllamaStatus] = useState<StepStatus>("idle");
+  const [runtimeChoice, setRuntimeChoice] = useState<RuntimeChoice>("ollama");
+  const [runtimeBaseUrl, setRuntimeBaseUrl] = useState(RUNTIME_CONFIG.ollama.defaultBaseUrl);
+  const [runtimeStatus, setRuntimeStatus] = useState<StepStatus>("idle");
   const [modelStatus, setModelStatus] = useState<StepStatus>("idle");
   const [tunnelStatus, setTunnelStatus] = useState<StepStatus>("idle");
   const [endpointInput, setEndpointInput] = useState("");
@@ -131,50 +213,63 @@ export default function GuidedSetupModal({ open, onClose, onComplete }: GuidedSe
   const [summaryEndpoint, setSummaryEndpoint] = useState("");
   const [summaryModel, setSummaryModel] = useState("smollm2:135m");
 
-  const completedStep1 = ollamaStatus === "done";
+  const runtimeConfig = useMemo(() => RUNTIME_CONFIG[runtimeChoice], [runtimeChoice]);
+
+  const completedStep1 = runtimeStatus === "done";
   const completedStep2 = modelStatus === "done";
   const completedStep3 = tunnelStatus === "done";
   const completedStep4 = tunnelStatus === "done";
 
-  const selectedOllamaCommand = useMemo(() => OLLAMA_COMMANDS[platform], [platform]);
+  const selectedRuntimeInstall = useMemo(() => runtimeConfig.install[platform], [platform, runtimeConfig]);
   const selectedCloudflaredInstall = useMemo(() => CLOUDFLARED_INSTALL[platform], [platform]);
+  const tunnelCommand = useMemo(
+    () => `cloudflared tunnel --url ${runtimeBaseUrl || runtimeConfig.defaultBaseUrl}`,
+    [runtimeBaseUrl, runtimeConfig]
+  );
+  const sshFallback = useMemo(() => {
+    try {
+      const url = new URL(normalizeBaseUrl(runtimeBaseUrl || runtimeConfig.defaultBaseUrl));
+      const port = url.port || (url.protocol === "https:" ? "443" : "80");
+      return `ssh -R 80:localhost:${port} nokey@localhost.run`;
+    } catch {
+      return "ssh -R 80:localhost:11434 nokey@localhost.run";
+    }
+  }, [runtimeBaseUrl, runtimeConfig]);
 
-  const checkOllama = async () => {
-    setOllamaStatus("checking");
+  const checkRuntime = async () => {
+    setRuntimeStatus("checking");
     setDetailMessage("");
 
     try {
-      const local = await probeLocalOllamaTags();
+      const local = await probeLocalRuntime(runtimeBaseUrl, runtimeChoice);
       if (local.ok) {
-        setOllamaStatus("done");
-        setDetailMessage("Ollama detected on your machine (localhost:11434). ✅");
+        setRuntimeStatus("done");
+        setModels(local.models);
+        setDetailMessage(`${runtimeConfig.label} detected at ${runtimeBaseUrl}. ✅`);
         return;
       }
     } catch {
-      // fall through to API probe
+      // fall through to fallback probe
     }
 
     try {
-      const res = await fetch("/api/register/local-check", {
+      const res = await fetch("/api/register/probe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ check: "ollama" }),
+        body: JSON.stringify({ endpoint: runtimeBaseUrl, runtimeTarget: runtimeConfig.runtimeTarget }),
       });
       const data = (await res.json().catch(() => null)) as ProbeResult | null;
-      if (res.ok && data?.ok) {
-        setOllamaStatus("done");
-        setDetailMessage("Ollama looks good.");
+      if (res.ok && data?.ok && (data.runtimeStatus === "runtime_detected" || data.status === "ollama_detected")) {
+        setRuntimeStatus("done");
+        setModels(Array.isArray(data.models) ? data.models : []);
+        setDetailMessage(`${runtimeConfig.label} looks good.`);
         return;
       }
-      setOllamaStatus("error");
-      setDetailMessage(
-        "Could not detect Ollama on localhost:11434. Make sure `ollama serve` is running, then click Check Ollama again."
-      );
+      setRuntimeStatus("error");
+      setDetailMessage(`Could not detect ${runtimeConfig.label} at ${runtimeBaseUrl}. Confirm server is running and try again.`);
     } catch {
-      setOllamaStatus("error");
-      setDetailMessage(
-        "Could not detect Ollama on localhost:11434. Make sure `ollama serve` is running, then click Check Ollama again."
-      );
+      setRuntimeStatus("error");
+      setDetailMessage(`Could not detect ${runtimeConfig.label} at ${runtimeBaseUrl}. Confirm server is running and try again.`);
     }
   };
 
@@ -183,55 +278,32 @@ export default function GuidedSetupModal({ open, onClose, onComplete }: GuidedSe
     setDetailMessage("");
 
     try {
-      const local = await probeLocalOllamaTags();
+      const local = await probeLocalRuntime(runtimeBaseUrl, runtimeChoice);
       setModels(local.models);
-      const foundLocal = local.models.some((name) =>
-        name.replace(/:latest$/, "").startsWith("smollm2:135m")
-      );
-
-      if (foundLocal) {
+      if (local.ok && local.models.length > 0) {
         setModelStatus("done");
-        setModel("smollm2:135m");
-        setSummaryModel("smollm2:135m");
-        setDetailMessage("smollm2:135m is installed.");
+        const preferred = local.models[0] || model;
+        setModel(preferred);
+        setSummaryModel(preferred);
+        setDetailMessage(`Model endpoint is ready. Found ${local.models.length} model${local.models.length === 1 ? "" : "s"}.`);
         return;
       }
     } catch {
-      // fall through to API probe
+      // fall through
     }
 
-    try {
-      const res = await fetch("/api/register/local-check", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ check: "model", model: "smollm2:135m" }),
-      });
-      const data = (await res.json().catch(() => null)) as ProbeResult | null;
-      const availableModels = Array.isArray(data?.models) ? data.models : [];
-      setModels(availableModels);
-      if (res.ok && data?.ok) {
-        setModelStatus("done");
-        setModel("smollm2:135m");
-        setSummaryModel("smollm2:135m");
-        setDetailMessage("smollm2:135m is installed.");
-        return;
-      }
-      setModelStatus("error");
-      setDetailMessage("Pull smollm2:135m, then check again.");
-    } catch {
-      setModelStatus("error");
-      setDetailMessage("Could not check the model list.");
-    }
+    setModelStatus("error");
+    setDetailMessage(`Could not confirm loaded models yet for ${runtimeConfig.label}.`);
   };
 
-  const confirmOllamaManually = () => {
-    setOllamaStatus("done");
+  const confirmRuntimeManually = () => {
+    setRuntimeStatus("done");
     setDetailMessage("Manual override enabled for Step 1. Continuing to Step 2.");
   };
 
   const confirmModelManually = () => {
     setModelStatus("done");
-    setSummaryModel(model || "smollm2:135m");
+    setSummaryModel(model || "local-model");
     setDetailMessage("Manual override enabled for Step 2. Continuing to Step 3.");
   };
 
@@ -249,24 +321,24 @@ export default function GuidedSetupModal({ open, onClose, onComplete }: GuidedSe
       const res = await fetch("/api/register/probe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ endpoint: candidate }),
+        body: JSON.stringify({ endpoint: candidate, runtimeTarget: runtimeConfig.runtimeTarget }),
       });
       const data = (await res.json().catch(() => null)) as ProbeResult | null;
-      if (data?.status === "ollama_detected") {
-        const detectedModel = data.models?.[0] || model || "smollm2:135m";
+      if (data?.runtimeStatus === "runtime_detected" || data?.status === "ollama_detected") {
+        const detectedModel = data.models?.[0] || model || "local-model";
         setTunnelStatus("done");
         setEndpoint(candidate);
         setSummaryEndpoint(candidate);
         setSummaryModel(detectedModel);
         if (!model) setModel(detectedModel);
-        setDetailMessage("Tunnel is live and Ollama responded.");
+        setDetailMessage("Tunnel is live and runtime responded.");
         return;
       }
       if (data?.status === "reachable") {
         setTunnelStatus("error");
         setEndpoint(candidate);
         setSummaryEndpoint(candidate);
-        setDetailMessage("Tunnel is reachable, but no Ollama detected.");
+        setDetailMessage("Tunnel is reachable, but runtime API was not detected.");
         return;
       }
       setTunnelStatus("error");
@@ -277,7 +349,7 @@ export default function GuidedSetupModal({ open, onClose, onComplete }: GuidedSe
     }
   };
 
-  const finish = () => onComplete(summaryEndpoint || endpointInput.trim(), summaryModel || model || "smollm2:135m");
+  const finish = () => onComplete(summaryEndpoint || endpointInput.trim(), summaryModel || model || "local-model");
 
   if (!open) return null;
 
@@ -298,10 +370,31 @@ export default function GuidedSetupModal({ open, onClose, onComplete }: GuidedSe
         <div className="space-y-4">
           <StepCard
             index={1}
-            title="Install Ollama"
-            description="Get the local runtime onto your machine."
+            title="Install local runtime"
+            description="Choose your local runtime and verify the server is reachable."
             completed={completedStep1}
           >
+            <div className="space-y-2">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Runtime</p>
+              <select
+                value={runtimeChoice}
+                onChange={(e) => {
+                  const next = e.target.value as RuntimeChoice;
+                  setRuntimeChoice(next);
+                  setRuntimeBaseUrl(RUNTIME_CONFIG[next].defaultBaseUrl);
+                  setRuntimeStatus("idle");
+                  setModelStatus("idle");
+                  setDetailMessage("");
+                }}
+                className="w-full bg-background border border-white/10 rounded-md px-3 py-2 text-sm"
+              >
+                <option value="ollama">Ollama</option>
+                <option value="llama_cpp">llama.cpp</option>
+                <option value="vllm">vLLM</option>
+                <option value="lm_studio">LM Studio</option>
+              </select>
+            </div>
+
             <Tabs value={platform} onValueChange={(value) => setPlatform(value as Platform)}>
               <TabsList className="w-full justify-stretch">
                 <TabsTrigger value="macos" className="flex-1">macOS</TabsTrigger>
@@ -309,33 +402,49 @@ export default function GuidedSetupModal({ open, onClose, onComplete }: GuidedSe
                 <TabsTrigger value="windows" className="flex-1">Windows</TabsTrigger>
               </TabsList>
               <TabsContent value="macos" className="mt-4">
-                <CommandBlock command={selectedOllamaCommand} />
+                <CommandBlock command={selectedRuntimeInstall} />
               </TabsContent>
               <TabsContent value="linux" className="mt-4">
-                <CommandBlock command={selectedOllamaCommand} />
+                <CommandBlock command={selectedRuntimeInstall} />
               </TabsContent>
               <TabsContent value="windows" className="mt-4">
-                <CommandBlock command={selectedOllamaCommand} />
+                <CommandBlock command={selectedRuntimeInstall} />
               </TabsContent>
             </Tabs>
+
+            <div className="space-y-2">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Start server</p>
+              <CommandBlock command={runtimeConfig.startCommand} />
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Runtime base URL</p>
+              <Input
+                value={runtimeBaseUrl}
+                onChange={(e) => setRuntimeBaseUrl(e.target.value)}
+                placeholder={runtimeConfig.defaultBaseUrl}
+              />
+            </div>
+
             <div className="flex flex-wrap items-center gap-3">
-              <Button type="button" variant="outline" onClick={checkOllama} disabled={ollamaStatus === "checking"}>
-                {ollamaStatus === "checking" ? <Loader2 className="h-4 w-4 animate-spin" /> : "Check Ollama"}
+              <Button type="button" variant="outline" onClick={checkRuntime} disabled={runtimeStatus === "checking"}>
+                {runtimeStatus === "checking" ? <Loader2 className="h-4 w-4 animate-spin" /> : "Check runtime"}
               </Button>
-              {ollamaStatus === "done" && <span className="text-sm text-green-500">✅ Step 1 done</span>}
-              {ollamaStatus === "error" && <span className="text-sm text-red-500">Could not verify yet</span>}
-              {ollamaStatus === "error" && (
-                <Button type="button" variant="secondary" size="sm" onClick={confirmOllamaManually}>
+              {runtimeStatus === "done" && <span className="text-sm text-green-500">✅ Step 1 done</span>}
+              {runtimeStatus === "error" && <span className="text-sm text-red-500">Could not verify yet</span>}
+              {runtimeStatus === "error" && (
+                <Button type="button" variant="secondary" size="sm" onClick={confirmRuntimeManually}>
                   I verified manually, continue
                 </Button>
               )}
             </div>
-            {ollamaStatus === "error" && (
+
+            {runtimeStatus === "error" && (
               <div className="rounded-xl border border-amber-300/40 bg-amber-50/70 dark:bg-amber-900/10 p-3 space-y-2 text-sm">
                 <p className="text-muted-foreground">Manual verification:</p>
-                <CommandBlock command={VERIFY_OLLAMA_COMMAND} />
+                <CommandBlock command={runtimeConfig.verifyRuntime(runtimeBaseUrl || runtimeConfig.defaultBaseUrl)} />
                 <p className="text-xs text-muted-foreground">
-                  If this returns JSON with a <span className="font-mono">models</span> array, Ollama is reachable.
+                  If this returns model info, {runtimeConfig.label} is reachable.
                 </p>
               </div>
             )}
@@ -343,14 +452,14 @@ export default function GuidedSetupModal({ open, onClose, onComplete }: GuidedSe
 
           <StepCard
             index={2}
-            title="Pull smollm2:135m"
-            description="~100MB download, fast enough for a fresh setup."
+            title="Load your first model"
+            description="Confirm your selected runtime has at least one model loaded."
             completed={completedStep2}
             locked={!completedStep1}
           >
-            <CommandBlock command={MODEL_COMMAND} />
+            <CommandBlock command={runtimeConfig.modelCommand} />
             <div className="flex flex-wrap items-center gap-3">
-              <Button type="button" variant="outline" onClick={checkModel} disabled={modelStatus === "checking" || ollamaStatus !== "done"}>
+              <Button type="button" variant="outline" onClick={checkModel} disabled={modelStatus === "checking" || runtimeStatus !== "done"}>
                 {modelStatus === "checking" ? <Loader2 className="h-4 w-4 animate-spin" /> : "Check model"}
               </Button>
               {models.length > 0 && <span className="text-xs text-muted-foreground">Found: {models.slice(0, 3).join(", ")}</span>}
@@ -364,10 +473,8 @@ export default function GuidedSetupModal({ open, onClose, onComplete }: GuidedSe
             {modelStatus === "error" && (
               <div className="rounded-xl border border-amber-300/40 bg-amber-50/70 dark:bg-amber-900/10 p-3 space-y-2 text-sm">
                 <p className="text-muted-foreground">Manual verification:</p>
-                <CommandBlock command={VERIFY_MODEL_COMMAND} />
-                <p className="text-xs text-muted-foreground">
-                  Confirm <span className="font-mono">smollm2:135m</span> appears in the list.
-                </p>
+                <CommandBlock command={runtimeConfig.verifyModel(runtimeBaseUrl || runtimeConfig.defaultBaseUrl)} />
+                <p className="text-xs text-muted-foreground">{runtimeConfig.modelHint}</p>
               </div>
             )}
           </StepCard>
@@ -386,7 +493,7 @@ export default function GuidedSetupModal({ open, onClose, onComplete }: GuidedSe
               </div>
               <div className="space-y-2">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Start tunnel</p>
-                <CommandBlock command={CLOUDTUNNEL_COMMAND} />
+                <CommandBlock command={tunnelCommand} />
               </div>
               <div className="flex items-end gap-2">
                 <div className="flex-1 space-y-2">
@@ -406,7 +513,7 @@ export default function GuidedSetupModal({ open, onClose, onComplete }: GuidedSe
                   <span className="inline-flex items-center gap-2"><ChevronDown className="h-4 w-4" />Alternative: zero-install with SSH</span>
                 </summary>
                 <div className="mt-3 space-y-2 text-sm text-muted-foreground">
-                  <CommandBlock command={SSH_FALLBACK} />
+                  <CommandBlock command={sshFallback} />
                   <p>Copy the https:// URL from the terminal output above.</p>
                 </div>
               </details>
@@ -421,7 +528,7 @@ export default function GuidedSetupModal({ open, onClose, onComplete }: GuidedSe
             locked={!completedStep3}
           >
             <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950/60 p-4 space-y-2 text-sm">
-              <p>✅ Ollama: running</p>
+              <p>✅ Runtime: {runtimeConfig.label}</p>
               <p>✅ Model: {summaryModel || model}</p>
               <p className="break-all">✅ Endpoint: {summaryEndpoint || endpoint || "paste and check your URL first"}</p>
               <p className="text-muted-foreground">Your registration form will be pre-filled when you click continue.</p>
