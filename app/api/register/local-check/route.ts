@@ -8,6 +8,16 @@ type CheckBody = {
 };
 
 export async function POST(req: Request) {
+  if (process.env.NODE_ENV !== "development") {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Local checks only run in local development. Use a public tunnel URL (ngrok, cloudflared, or localtunnel) from hosted environments.",
+      },
+      { status: 403 }
+    );
+  }
+
   const body = (await req.json().catch(() => null)) as CheckBody | null;
   const check = body?.check;
   const model = body?.model ?? "";

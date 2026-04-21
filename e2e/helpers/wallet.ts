@@ -9,5 +9,5 @@ export async function enableMockWallet(page: Page) {
 }
 
 export async function connectMockWallet(page: Page) {
-  await expect(page.getByRole("button", { name: "1111...1111" })).toBeVisible({ timeout: 15000 });
+  await expect(page.getByRole("button", { name: /[1-9A-HJ-NP-Za-km-z]{4}\.\.\.[1-9A-HJ-NP-Za-km-z]{4}/ })).toBeVisible({ timeout: 15000 });
 }

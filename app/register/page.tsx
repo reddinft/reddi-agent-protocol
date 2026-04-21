@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense } from "react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import {
   Connection,
@@ -57,8 +57,7 @@ const WalletMultiButton = dynamic(
 type Step = 1 | 2 | 3;
 type AgentType = "primary" | "attestation" | "both";
 type PrivacyTier = "local" | "tee" | "cloud";
-type EndpointProbeStatus = "idle" | "checking" | "reachable" | "runtime_not_detected" | "unreachable";
-type RuntimeTarget = "auto" | "ollama" | "llama_cpp" | "vllm" | "lm_studio";
+type EndpointProbeStatus = "idle" | "checking" | "reachable" | "no_ollama" | "unreachable";
 type HelpItem = { text: string; href?: string; code?: string };
 type HelpStep = { title: string; items: HelpItem[] };
 
@@ -90,21 +89,40 @@ const INITIAL_FORM: FormData = {
 
 const REGISTRATION_FEE_SOL = 0.01;
 const RENT_SOL = 0.00057;
+
+function truncateMiddle(value: string, max = 240) {
+  if (value.length <= max) return value;
+  const head = Math.floor((max - 3) / 2);
+  const tail = max - 3 - head;
+  return `${value.slice(0, head)}...${value.slice(value.length - tail)}`;
+}
+
+function formatSimulationError(err: unknown, logs?: string[] | null) {
+  const base = typeof err === "string" ? err : JSON.stringify(err);
+  const logTail = (logs ?? []).slice(-8);
+  if (logTail.length === 0) return truncateMiddle(`Simulation failed: ${base}`);
+  return truncateMiddle(`Simulation failed: ${base}\nLogs:\n${logTail.join("\n")}`, 1200);
+}
+
+function formatRegisterError(err: unknown) {
+  if (err instanceof Error) return truncateMiddle(err.message, 1200);
+  return truncateMiddle(String(err), 1200);
+}
+
 const ENDPOINT_HELP_STEPS: HelpStep[] = [
   {
-    title: "Start a local runtime",
+    title: "Install and start Ollama",
     items: [
-      { text: "Ollama", code: "ollama serve  # default http://localhost:11434" },
-      { text: "llama.cpp", code: "./llama-server -m /path/to/model.gguf --port 8080" },
-      { text: "vLLM", code: "python -m vllm.entrypoints.openai.api_server --model /path/to/model" },
-      { text: "LM Studio: open Local Server tab, select model, Start Server" },
+      { text: "Download Ollama", href: "https://ollama.com/download" },
+      { text: "Pull a model", code: "ollama pull qwen2.5:7b" },
+      { text: "Ollama runs at http://localhost:11434 by default" },
     ],
   },
   {
     title: "Expose it with localtunnel",
     items: [
       { text: "Install", code: "npm install -g localtunnel" },
-      { text: "Run", code: "lt --port <runtime-port> --subdomain my-agent" },
+      { text: "Run", code: "lt --port 11434 --subdomain my-agent" },
       { text: "Your endpoint will be", code: "https://my-agent.loca.lt" },
       { text: "Note: localtunnel URLs expire when the process stops" },
     ],
@@ -113,13 +131,13 @@ const ENDPOINT_HELP_STEPS: HelpStep[] = [
     title: "Or use ngrok (more stable)",
     items: [
       { text: "Install", href: "https://ngrok.com/download" },
-      { text: "Run", code: "ngrok http <runtime-port>" },
+      { text: "Run", code: "ngrok http 11434" },
       { text: "Copy the https:// forwarding URL" },
     ],
   },
   {
     title: "Paste the public URL below",
-    items: [{ text: "Choose Runtime Type, then probe to confirm the endpoint and API shape." }],
+    items: [{ text: "Then probe it to confirm the endpoint is reachable." }],
   },
 ];
 
@@ -134,14 +152,13 @@ function RegisterInner() {
   const [txSig, setTxSig] = useState<string | null>(null);
   const [txError, setTxError] = useState<string | null>(null);
   const [setupModalOpen, setSetupModalOpen] = useState(false);
-  const [runtimeTarget, setRuntimeTarget] = useState<RuntimeTarget>("auto");
   const [endpointProbeStatus, setEndpointProbeStatus] = useState<EndpointProbeStatus>("idle");
   const [endpointProbeMessage, setEndpointProbeMessage] = useState("");
   const [endpointProbeModels, setEndpointProbeModels] = useState<string[]>([]);
   const endpointProbeTimeoutRef = useRef<number | null>(null);
   const endpointProbeRequestRef = useRef(0);
 
-  const runEndpointProbe = useCallback(async (rawEndpoint: string, runtime: RuntimeTarget = runtimeTarget) => {
+  const runEndpointProbe = async (rawEndpoint: string) => {
     const endpoint = rawEndpoint.trim();
     if (!endpoint) {
       setEndpointProbeStatus("idle");
@@ -159,55 +176,44 @@ function RegisterInner() {
       const res = await fetch("/api/register/probe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ endpoint, runtimeTarget: runtime }),
+        body: JSON.stringify({ endpoint }),
       });
       const data = await res.json().catch(() => null);
       if (requestId !== endpointProbeRequestRef.current) return;
 
       if (!res.ok || !data) {
         setEndpointProbeStatus("unreachable");
-        setEndpointProbeMessage("Check the URL and ensure it is publicly accessible.");
+        setEndpointProbeMessage("Could not reach endpoint. Use a public https URL from ngrok, cloudflared, or localtunnel.");
         return;
       }
 
-      if (data.runtimeStatus === "runtime_detected" || data.status === "ollama_detected") {
-        const detectedRuntime =
-          data.detectedRuntime === "ollama"
-            ? "Ollama"
-            : data.detectedRuntime === "openai_compatible"
-              ? "OpenAI-compatible runtime"
-              : "Runtime";
-        const probedModels = Array.isArray(data.models) ? data.models : [];
-
+      if (data.status === "ollama_detected") {
         setEndpointProbeStatus("reachable");
-        setEndpointProbeModels(probedModels);
+        setEndpointProbeModels(Array.isArray(data.models) ? data.models : []);
         setEndpointProbeMessage(
-          probedModels.length > 0
-            ? `${detectedRuntime} detected, models: ${probedModels.slice(0, 3).join(", ")}`
-            : `${detectedRuntime} detected.`
+          Array.isArray(data.models) && data.models.length > 0
+            ? `Ollama detected, models: ${data.models.slice(0, 3).join(", ")}`
+            : "Endpoint reachable."
         );
-
-        setForm((prev) => {
-          if (prev.model.trim() || probedModels.length === 0) return prev;
-          return { ...prev, model: probedModels[0] };
-        });
         return;
       }
 
       if (data.status === "reachable") {
-        setEndpointProbeStatus("runtime_not_detected");
-        setEndpointProbeMessage("Endpoint responded, but runtime API shape was not detected yet.");
+        setEndpointProbeStatus("no_ollama");
+        setEndpointProbeMessage("Endpoint is reachable, but /api/tags did not return an Ollama model list.");
         return;
       }
 
       setEndpointProbeStatus("unreachable");
-      setEndpointProbeMessage(data.error || "Check the URL and ensure it is publicly accessible.");
+      setEndpointProbeMessage(
+        data.error || "Could not reach endpoint. Use a public https URL from ngrok, cloudflared, or localtunnel."
+      );
     } catch {
       if (requestId !== endpointProbeRequestRef.current) return;
       setEndpointProbeStatus("unreachable");
-      setEndpointProbeMessage("Check the URL and ensure it is publicly accessible.");
+      setEndpointProbeMessage("Could not reach endpoint. Use a public https URL from ngrok, cloudflared, or localtunnel.");
     }
-  }, [runtimeTarget]);
+  };
 
   useEffect(() => {
     const endpoint = searchParams.get("endpoint")?.trim();
@@ -261,7 +267,7 @@ function RegisterInner() {
         window.clearTimeout(endpointProbeTimeoutRef.current);
       }
     };
-  }, [form.endpoint, runtimeTarget, runEndpointProbe]);
+  }, [form.endpoint]);
 
   const isJudge = form.agentType === "attestation" || form.agentType === "both";
 
@@ -314,25 +320,49 @@ function RegisterInner() {
       tx.feePayer = publicKey;
       tx.add(ix);
 
+      try {
+        const sim = await conn.simulateTransaction(tx, {
+          commitment: "processed",
+          replaceRecentBlockhash: true,
+          sigVerify: false,
+        });
+
+        if (sim.value.err) {
+          throw new Error(formatSimulationError(sim.value.err, sim.value.logs));
+        }
+      } catch (simErr: unknown) {
+        const simMsg = simErr instanceof Error ? simErr.message : String(simErr);
+        if (!/invalid arguments/i.test(simMsg)) {
+          throw simErr;
+        }
+        // Some local RPC harnesses reject simulateTransaction config args. In that case,
+        // continue to wallet send + confirmation so local Surfpool flows can still proceed.
+      }
+
       const sig = await sendTransaction(tx, conn);
-      await conn.confirmTransaction(sig, "confirmed");
+      const confirmation = await conn.confirmTransaction(sig, "confirmed");
+      if (confirmation.value.err) {
+        const txMeta = await conn
+          .getTransaction(sig, {
+            commitment: "confirmed",
+            maxSupportedTransactionVersion: 0,
+          })
+          .catch(() => null);
+
+        throw new Error(
+          formatSimulationError(confirmation.value.err, txMeta?.meta?.logMessages)
+        );
+      }
 
       setTxSig(sig);
       setSuccess(true);
       showToast("Registration confirmed", "success");
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      // Graceful fallback: show error but don't crash the page
+      const msg = formatRegisterError(err);
       setTxError(msg);
-      // Still allow user to see what would have happened (sim mode)
-      const mockSig = "5" + Array.from({ length: 87 }, () =>
-        "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"[
-          Math.floor(Math.random() * 58)
-        ]
-      ).join("");
-      setTxSig(mockSig);
-      setSuccess(true);
-      showToast("Registration failed, showing simulated signature", "error");
+      setTxSig(null);
+      setSuccess(false);
+      showToast("Registration failed", "error");
     } finally {
       setRegistering(false);
     }
@@ -607,35 +637,6 @@ function RegisterInner() {
 
             {/* Endpoint */}
             <div className="space-y-1.5">
-              <div className="space-y-1.5">
-                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-0 block">
-                  Runtime Type
-                </Label>
-                <Select
-                  value={runtimeTarget}
-                  onValueChange={(value) => {
-                    setRuntimeTarget(value as RuntimeTarget);
-                    setEndpointProbeStatus("idle");
-                    setEndpointProbeMessage("");
-                    setEndpointProbeModels([]);
-                  }}
-                >
-                  <SelectTrigger className="!w-full !min-w-[180px] !rounded-lg !border !border-gray-200 dark:!border-gray-700 !bg-white dark:!bg-gray-900 !px-3 !py-2 !text-sm focus:!ring-2 focus:!ring-blue-500 focus:!outline-none">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="min-w-[240px] rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg">
-                    <SelectItem value="auto">Auto detect</SelectItem>
-                    <SelectItem value="ollama">Ollama</SelectItem>
-                    <SelectItem value="llama_cpp">llama.cpp</SelectItem>
-                    <SelectItem value="vllm">vLLM</SelectItem>
-                    <SelectItem value="lm_studio">LM Studio</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Pick your local runtime for more accurate endpoint validation.
-                </p>
-              </div>
-
               <div className="flex items-center justify-between gap-3">
                 <Label htmlFor="endpoint" className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-0 block">
                   Service Endpoint URL
@@ -664,14 +665,14 @@ function RegisterInner() {
                   if (endpointProbeTimeoutRef.current) {
                     window.clearTimeout(endpointProbeTimeoutRef.current);
                   }
-                  void runEndpointProbe(form.endpoint, runtimeTarget);
+                  void runEndpointProbe(form.endpoint);
                 }}
                 className={`!w-full !rounded-lg !border !border-gray-200 dark:!border-gray-700 !bg-white dark:!bg-gray-900 !px-3 !py-2 !text-sm focus:!ring-2 focus:!ring-blue-500 focus:!outline-none ${
                   endpointProbeStatus === "checking"
                     ? "!border-blue-400"
                     : endpointProbeStatus === "reachable"
                       ? "!border-green-400"
-                      : endpointProbeStatus === "runtime_not_detected"
+                      : endpointProbeStatus === "no_ollama"
                         ? "!border-yellow-400"
                         : endpointProbeStatus === "unreachable"
                           ? "!border-red-400"
@@ -688,7 +689,7 @@ function RegisterInner() {
                       ? "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900/40 dark:bg-blue-950/20 dark:text-blue-200"
                       : endpointProbeStatus === "reachable"
                         ? "border-green-200 bg-green-50 text-green-700 dark:border-green-900/40 dark:bg-green-950/20 dark:text-green-200"
-                        : endpointProbeStatus === "runtime_not_detected"
+                        : endpointProbeStatus === "no_ollama"
                           ? "border-yellow-200 bg-yellow-50 text-yellow-700 dark:border-yellow-900/40 dark:bg-yellow-950/20 dark:text-yellow-200"
                           : "border-red-200 bg-red-50 text-red-700 dark:border-red-900/40 dark:bg-red-950/20 dark:text-red-200"
                   }`}
@@ -697,7 +698,7 @@ function RegisterInner() {
                     <Loader2 className="mt-0.5 h-4 w-4 animate-spin" />
                   ) : endpointProbeStatus === "reachable" ? (
                     <CheckCircle2 className="mt-0.5 h-4 w-4" />
-                  ) : endpointProbeStatus === "runtime_not_detected" ? (
+                  ) : endpointProbeStatus === "no_ollama" ? (
                     <AlertTriangle className="mt-0.5 h-4 w-4" />
                   ) : (
                     <XCircle className="mt-0.5 h-4 w-4" />
@@ -708,8 +709,8 @@ function RegisterInner() {
                         ? "Checking…"
                         : endpointProbeStatus === "reachable"
                           ? "Endpoint reachable"
-                          : endpointProbeStatus === "runtime_not_detected"
-                            ? "Reachable, but runtime not detected"
+                          : endpointProbeStatus === "no_ollama"
+                            ? "Reachable, but no Ollama detected"
                             : "Unreachable"}
                     </p>
                     {endpointProbeMessage && <p className="mt-0.5 text-[11px] font-normal">{endpointProbeMessage}</p>}
@@ -728,10 +729,10 @@ function RegisterInner() {
                   Model Name
                 </Label>
                 <a
-                  href={runtimeTarget === "ollama" ? "https://ollama.com/library" : "https://github.com/ggerganov/llama.cpp/tree/master/tools/server"}
+                  href="https://ollama.com/library"
                   target="_blank"
                   rel="noopener noreferrer"
-                  title={runtimeTarget === "ollama" ? "Browse available Ollama models" : "Runtime model reference (OpenAI-compatible local servers)"}
+                  title="Browse available Ollama models"
                   className="inline-flex items-center text-gray-400 transition hover:text-gray-600 dark:hover:text-gray-200"
                 >
                   <CircleHelp className="h-4 w-4" />
@@ -744,11 +745,6 @@ function RegisterInner() {
                 onChange={(e) => setForm({ ...form, model: e.target.value })}
                 className="!w-full !rounded-lg !border !border-gray-200 dark:!border-gray-700 !bg-white dark:!bg-gray-900 !px-3 !py-2 !text-sm focus:!ring-2 focus:!ring-blue-500 focus:!outline-none"
               />
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                {runtimeTarget === "ollama"
-                  ? "Use Ollama model names, for example qwen3:8b."
-                  : "Use the model id exposed by /v1/models for your local runtime."}
-              </p>
             </div>
 
             {/* Privacy Tier */}
@@ -966,6 +962,15 @@ function RegisterInner() {
               {registering ? "Registering..." : "Register Agent (0.01 SOL)"}
             </Button>
           </div>
+          {txError && (
+            <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3">
+              <p className="text-xs font-semibold text-red-300">Registration transaction failed</p>
+              <p className="mt-1 text-xs text-red-100/80">
+                Check the error details below, then retry. Common causes are low SOL balance, stale blockhash, or program revert.
+              </p>
+              <pre className="mt-1 whitespace-pre-wrap break-words font-mono text-xs text-red-100/90">{txError}</pre>
+            </div>
+          )}
         </div>
       )}
     </div>
