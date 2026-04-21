@@ -6,6 +6,7 @@
  * Scores ≥3 on completed runs trigger on-chain blind reputation commit.
  */
 import { recordPlannerFeedback } from "@/lib/onboarding/planner-feedback";
+import { validateOpenOnionAttestorPayload } from "@/lib/integrations/openonion/attestor/schema";
 import type { QualitySignalInput, QualitySignalOutput } from "@/lib/mcp/tools";
 
 export const runtime = "nodejs";
@@ -21,9 +22,23 @@ export async function POST(req: Request) {
       return Response.json({ ok: false, error: "score must be between 1 and 10" }, { status: 400 });
     }
 
+    if (body.attestorPayload) {
+      const validation = validateOpenOnionAttestorPayload(body.attestorPayload);
+      if (!validation.ok) {
+        return Response.json(
+          {
+            ok: false,
+            error: `Invalid attestor payload: ${validation.issues.join(" ")}`,
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     const result = await recordPlannerFeedback({
       runId: body.runId,
       score: body.score,
+      consumerWallet: body.consumerWallet,
       notes: body.notes,
       agreesWithAttestation: body.agreesWithAttestation,
     });
@@ -50,7 +65,7 @@ export async function GET() {
     tool: "submit_quality_signal",
     description: "Rate a completed specialist call. Triggers on-chain reputation commit for scores ≥3.",
     schema: {
-      input: { runId: "string", score: "number (1-10)", notes: "string?", agreesWithAttestation: "boolean?" },
+      input: { runId: "string", score: "number (1-10)", consumerWallet: "string?", notes: "string?", agreesWithAttestation: "boolean?" },
       output: { ok: "boolean", reputationCommitted: "boolean", reputationTxSignature: "string?" },
     },
   });

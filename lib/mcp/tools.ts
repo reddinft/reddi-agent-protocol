@@ -1,12 +1,15 @@
 /**
  * MCP Tool Interface for Reddi Agent Protocol
  *
- * Three tools that any agent framework (ElizaOS, OpenAI Agents SDK,
+ * Core tools that any agent framework (ElizaOS, OpenAI Agents SDK,
  * LangChain, CrewAI, custom) can call to access the specialist marketplace:
  *
- * 1. resolve_specialist   — find the best candidate for a task
- * 2. invoke_specialist    — execute a paid call against a specialist
- * 3. submit_quality_signal — rate a completed run (triggers rep commit)
+ * 1. register_consumer      — register consumer wallet + preferred integration mode
+ * 2. resolve_specialist     — find the best specialist for a task
+ * 3. resolve_attestor       — pick a judge/attestor candidate
+ * 4. invoke_specialist      — execute a paid call against a specialist
+ * 5. submit_quality_signal  — rate a completed run (triggers rep commit)
+ * 6. decide_settlement      — release/dispute after output evaluation
  *
  * Transport: HTTP POST endpoints at /api/planner/tools/*
  * Auth: optional x-reddi-agent-key header (env: REDDI_AGENT_API_KEY)
@@ -59,6 +62,10 @@ export type InvokeInput = {
   targetWallet?: string;
   /** Consumer wallet address — used for Torque event attribution */
   consumerWallet?: string;
+  /** Optional integration hint for consumer orchestration mode */
+  integrationMode?: "default" | "openonion";
+  /** Optional retry budget for OpenOnion consumer failover */
+  retryBudget?: number;
   /** Policy overrides */
   policy?: {
     maxPerCallUsd?: number;
@@ -78,15 +85,41 @@ export type InvokeOutput = {
   error?: string;
 };
 
+export type RegisterConsumerInput = {
+  walletAddress: string;
+  preferredIntegration?: "mcp" | "tools" | "skills";
+  metadata?: {
+    agentName?: string;
+    framework?: string;
+  };
+};
+
+export type ResolveAttestorInput = {
+  taskTypeHint?: string;
+  minAttestationAccuracy?: number;
+  maxPerCallUsd?: number;
+};
+
+export type SettlementDecisionInput = {
+  runId: string;
+  decision: "release" | "dispute";
+  notes?: string;
+  consumerWallet?: string;
+};
+
 export type QualitySignalInput = {
   /** Run ID from invoke_specialist */
   runId: string;
   /** Score 1–10 */
   score: number;
+  /** Optional consumer wallet used to update consumer reputation profile */
+  consumerWallet?: string;
   /** Optional text notes */
   notes?: string;
   /** Whether outcome matched attestation expectations */
   agreesWithAttestation?: boolean;
+  /** Optional OpenOnion attestor payload for schema-gated validation */
+  attestorPayload?: unknown;
 };
 
 export type QualitySignalOutput = {
@@ -99,6 +132,33 @@ export type QualitySignalOutput = {
 // ── OpenAI function-call schema definitions ──────────────────────────────────
 
 export const MCP_TOOL_SCHEMAS = [
+  {
+    name: "register_consumer",
+    description:
+      "Register a consumer wallet and integration preference (MCP, tools, or skills) before planner execution.",
+    parameters: {
+      type: "object",
+      properties: {
+        walletAddress: {
+          type: "string",
+          description: "Consumer wallet address used for identity and attribution.",
+        },
+        preferredIntegration: {
+          type: "string",
+          enum: ["mcp", "tools", "skills"],
+          description: "Preferred integration mode for the orchestrator.",
+        },
+        metadata: {
+          type: "object",
+          properties: {
+            agentName: { type: "string" },
+            framework: { type: "string" },
+          },
+        },
+      },
+      required: ["walletAddress"],
+    },
+  },
   {
     name: "resolve_specialist",
     description:
@@ -131,6 +191,19 @@ export const MCP_TOOL_SCHEMAS = [
         },
       },
       required: ["task"],
+    },
+  },
+  {
+    name: "resolve_attestor",
+    description:
+      "Find an attested specialist suitable to act as an attestor/judge for post-execution verification.",
+    parameters: {
+      type: "object",
+      properties: {
+        taskTypeHint: { type: "string" },
+        minAttestationAccuracy: { type: "number" },
+        maxPerCallUsd: { type: "number" },
+      },
     },
   },
   {
@@ -177,6 +250,10 @@ export const MCP_TOOL_SCHEMAS = [
           minimum: 1,
           maximum: 10,
         },
+        consumerWallet: {
+          type: "string",
+          description: "Optional consumer wallet used to update consumer reputation (baseline 3/5, rolling thereafter).",
+        },
         notes: {
           type: "string",
           description: "Optional notes about the result quality.",
@@ -189,6 +266,21 @@ export const MCP_TOOL_SCHEMAS = [
       required: ["runId", "score"],
     },
   },
+  {
+    name: "decide_settlement",
+    description:
+      "After evaluating specialist output, record release or dispute decision for a paid run.",
+    parameters: {
+      type: "object",
+      properties: {
+        runId: { type: "string", description: "Run ID returned by invoke_specialist." },
+        decision: { type: "string", enum: ["release", "dispute"] },
+        notes: { type: "string" },
+        consumerWallet: { type: "string" },
+      },
+      required: ["runId", "decision"],
+    },
+  },
 ];
 
 // ── ElizaOS action manifest ───────────────────────────────────────────────────
@@ -198,9 +290,21 @@ export const ELIZA_ACTION_MANIFEST = {
   version: "1.0.0",
   actions: [
     {
+      name: "REGISTER_CONSUMER",
+      description: "Register consumer wallet and integration preference.",
+      endpoint: "/api/planner/tools/register-consumer",
+      method: "POST",
+    },
+    {
       name: "RESOLVE_SPECIALIST",
       description: "Find the best specialist agent for a capability need.",
       endpoint: "/api/planner/tools/resolve",
+      method: "POST",
+    },
+    {
+      name: "RESOLVE_ATTESTOR",
+      description: "Find an attestor/judge specialist candidate.",
+      endpoint: "/api/planner/tools/resolve-attestor",
       method: "POST",
     },
     {
@@ -213,6 +317,12 @@ export const ELIZA_ACTION_MANIFEST = {
       name: "SUBMIT_QUALITY_SIGNAL",
       description: "Submit quality feedback for a completed specialist call.",
       endpoint: "/api/planner/tools/signal",
+      method: "POST",
+    },
+    {
+      name: "DECIDE_SETTLEMENT",
+      description: "Record release/dispute decision after output evaluation.",
+      endpoint: "/api/planner/tools/release",
       method: "POST",
     },
   ],

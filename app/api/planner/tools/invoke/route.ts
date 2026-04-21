@@ -6,6 +6,7 @@
  * Returns response + run receipt.
  */
 import { executePlannerSpecialistCall } from "@/lib/onboarding/planner-execution";
+import { runOpenOnionConsumerFlow } from "@/lib/integrations/openonion/consumer/orchestrator";
 import { readPolicy } from "@/lib/orchestrator/policy";
 import { recordSpend } from "@/lib/orchestrator/policy";
 import { getJupiterClient, getJupiterSlippageBps } from "@/lib/jupiter-client";
@@ -48,9 +49,10 @@ export async function POST(req: Request) {
 
     const policyOverride = body.policy ?? {};
     const jupiterClient = getJupiterClient();
-    const result = await executePlannerSpecialistCall({
+    const executionInput = {
       prompt: body.prompt,
       consumerWallet: body.consumerWallet,
+      preferredWallet: body.targetWallet,
       swapClient: jupiterClient ?? undefined,
       slippageBps: getJupiterSlippageBps(),
       policy: {
@@ -62,7 +64,14 @@ export async function POST(req: Request) {
           policyOverride.maxPerCallUsd ??
           (savedPolicy.maxPerTaskUsd > 0 ? savedPolicy.maxPerTaskUsd : undefined),
       },
-    });
+    };
+
+    const result = body.integrationMode === "openonion"
+      ? await runOpenOnionConsumerFlow({
+          ...executionInput,
+          retryBudget: body.retryBudget,
+        })
+      : await executePlannerSpecialistCall(executionInput);
 
     // Record spend if payment was made
     if (result.ok && result.result.paymentSatisfied) {
@@ -101,7 +110,7 @@ export async function GET() {
     tool: "invoke_specialist",
     description: "Execute a paid specialist call with automatic x402 payment negotiation.",
     schema: {
-      input: { prompt: "string", targetWallet: "string?", policy: "PolicyOverride?" },
+      input: { prompt: "string", targetWallet: "string?", consumerWallet: "string?", policy: "PolicyOverride?" },
       output: { ok: "boolean", runId: "string", response: "string", x402TxSignature: "string", durationMs: "number" },
     },
   });
