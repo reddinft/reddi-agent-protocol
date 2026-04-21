@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { isUnsafeHostedTarget } from "@/lib/integrations/openonion/network-policy";
+import { validateOpenOnionSpecialistProfile } from "@/lib/integrations/openonion/specialist/adapter";
 
 export const runtime = "nodejs";
 
@@ -14,14 +16,10 @@ function normalizeEndpoint(endpoint: string) {
   }
 }
 
-function isLoopbackHost(hostname: string) {
-  const host = hostname.toLowerCase();
-  return host === "localhost" || host === "127.0.0.1" || host === "::1";
-}
-
 export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
   const endpoint = body?.endpoint;
+  const integration = body?.integration;
 
   if (!endpoint || typeof endpoint !== "string") {
     return NextResponse.json({ ok: false, status: "invalid_url" }, { status: 400 });
@@ -30,15 +28,45 @@ export async function POST(req: Request) {
   try {
     const url = normalizeEndpoint(endpoint);
 
-    if (isLoopbackHost(url.hostname)) {
+    if (isUnsafeHostedTarget(url.hostname)) {
       return NextResponse.json(
         {
           ok: false,
           status: "invalid_url",
-          error: "Localhost cannot be reached from this app context. Use a public tunnel URL (ngrok, cloudflared, or localtunnel).",
+          error: "Localhost/private-network targets are blocked in hosted context. Use a public tunnel URL (ngrok, cloudflared, or localtunnel).",
         },
         { status: 400 }
       );
+    }
+
+    if (integration === "openonion") {
+      const contractRes = await fetch(`${url.origin}/.well-known/reddi-adapter.json`, {
+        signal: AbortSignal.timeout(5000),
+      }).catch(() => null);
+
+      if (!contractRes?.ok) {
+        return NextResponse.json(
+          {
+            ok: false,
+            status: "invalid_contract",
+            error: "OpenOnion adapter contract not found. Expose /.well-known/reddi-adapter.json with specialist adapter metadata.",
+          },
+          { status: 400 }
+        );
+      }
+
+      const contract = await contractRes.json().catch(() => null);
+      const validation = validateOpenOnionSpecialistProfile(contract);
+      if (!validation.ok) {
+        return NextResponse.json(
+          {
+            ok: false,
+            status: "invalid_contract",
+            error: `OpenOnion specialist adapter contract mismatch: ${validation.issues.join(" ")}`,
+          },
+          { status: 400 }
+        );
+      }
     }
 
     const tagsRes = await fetch(`${url.origin}/api/tags`, {
@@ -52,6 +80,7 @@ export async function POST(req: Request) {
         ok: true,
         status: hasModels ? "ollama_detected" : "reachable",
         models: hasModels ? body.models.map((m: { name?: string }) => m.name).filter(Boolean) : [],
+        integration,
       });
     }
 

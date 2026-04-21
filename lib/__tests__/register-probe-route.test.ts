@@ -1,84 +1,53 @@
-jest.mock("@/lib/onboarding/runtime-probe", () => ({
-  probeRuntimeEndpoint: jest.fn(),
-}));
+import { NextRequest } from "next/server";
 
-describe("POST /api/register/probe runtime normalization", () => {
+describe("register probe route", () => {
+  const originalFetch = global.fetch;
+
   beforeEach(() => {
     jest.resetModules();
     jest.clearAllMocks();
   });
 
-  it("returns legacy ollama_detected status for compatibility", async () => {
-    const { probeRuntimeEndpoint } = await import("@/lib/onboarding/runtime-probe");
-    (probeRuntimeEndpoint as jest.Mock).mockResolvedValue({
-      ok: true,
-      status: "runtime_detected",
-      detectedRuntime: "ollama",
-      models: ["qwen3:8b"],
-      hints: [],
-    });
-
-    const { POST } = await import("@/app/api/register/probe/route");
-    const req = new Request("http://localhost/api/register/probe", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ endpoint: "https://example.com" }),
-    });
-
-    const res = await POST(req);
-    expect(res.status).toBe(200);
-    const body = await res.json();
-    expect(body.status).toBe("ollama_detected");
-    expect(body.runtimeStatus).toBe("runtime_detected");
-    expect(body.detectedRuntime).toBe("ollama");
+  afterEach(() => {
+    global.fetch = originalFetch;
   });
 
-  it("maps non-ollama runtime_detected to reachable for legacy UI", async () => {
-    const { probeRuntimeEndpoint } = await import("@/lib/onboarding/runtime-probe");
-    (probeRuntimeEndpoint as jest.Mock).mockResolvedValue({
-      ok: true,
-      status: "runtime_detected",
-      detectedRuntime: "openai_compatible",
-      models: ["llama3.1"],
-      hints: [],
-    });
-
+  it("blocks private-network targets in hosted context", async () => {
     const { POST } = await import("@/app/api/register/probe/route");
-    const req = new Request("http://localhost/api/register/probe", {
+    const req = new NextRequest("http://localhost/api/register/probe", {
       method: "POST",
+      body: JSON.stringify({ endpoint: "http://192.168.1.10:11434" }),
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ endpoint: "https://example.com" }),
     });
 
-    const res = await POST(req);
-    expect(res.status).toBe(200);
-    const body = await res.json();
-    expect(body.status).toBe("reachable");
-    expect(body.runtimeStatus).toBe("runtime_detected");
-    expect(body.detectedRuntime).toBe("openai_compatible");
-  });
-
-  it("returns 400 for invalid URL status", async () => {
-    const { probeRuntimeEndpoint } = await import("@/lib/onboarding/runtime-probe");
-    (probeRuntimeEndpoint as jest.Mock).mockResolvedValue({
+    const res = await POST(req as unknown as Request);
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toMatchObject({
       ok: false,
       status: "invalid_url",
-      detectedRuntime: "unknown",
-      models: [],
-      hints: [],
-      error: "Invalid endpoint URL.",
     });
+  });
+
+  it("returns actionable contract mismatch error for openonion specialist", async () => {
+    global.fetch = jest
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ adapter: "openonion", role: "specialist" }),
+      }) as unknown as typeof fetch;
 
     const { POST } = await import("@/app/api/register/probe/route");
-    const req = new Request("http://localhost/api/register/probe", {
+    const req = new NextRequest("http://localhost/api/register/probe", {
       method: "POST",
+      body: JSON.stringify({ endpoint: "https://demo.openonion.ai", integration: "openonion" }),
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ endpoint: "bad url" }),
     });
 
-    const res = await POST(req);
+    const res = await POST(req as unknown as Request);
     expect(res.status).toBe(400);
-    const body = await res.json();
-    expect(body.status).toBe("invalid_url");
+    await expect(res.json()).resolves.toMatchObject({
+      ok: false,
+      status: "invalid_contract",
+    });
   });
 });
