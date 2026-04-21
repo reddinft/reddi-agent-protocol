@@ -23,6 +23,25 @@ type ProbeResult = {
   error?: string;
 };
 
+async function probeLocalOllamaTags() {
+  const res = await fetch("http://127.0.0.1:11434/api/tags", {
+    method: "GET",
+    signal: AbortSignal.timeout(3000),
+  });
+  if (!res.ok) return { ok: false as const, models: [] as string[] };
+
+  const data = (await res.json().catch(() => null)) as
+    | { models?: Array<{ name?: string }> }
+    | null;
+  const models = Array.isArray(data?.models)
+    ? data.models
+        .map((entry) => entry?.name)
+        .filter((name): name is string => Boolean(name))
+    : [];
+
+  return { ok: true as const, models };
+}
+
 const STEP_BADGE = "w-7 h-7 rounded-full bg-blue-600 text-white text-sm font-bold flex items-center justify-center";
 
 const OLLAMA_COMMANDS: Record<Platform, string> = {
@@ -121,6 +140,18 @@ export default function GuidedSetupModal({ open, onClose, onComplete }: GuidedSe
   const checkOllama = async () => {
     setOllamaStatus("checking");
     setDetailMessage("");
+
+    try {
+      const local = await probeLocalOllamaTags();
+      if (local.ok) {
+        setOllamaStatus("done");
+        setDetailMessage("Ollama detected on your machine (localhost:11434). ✅");
+        return;
+      }
+    } catch {
+      // fall through to API probe
+    }
+
     try {
       const res = await fetch("/api/register/local-check", {
         method: "POST",
@@ -134,16 +165,39 @@ export default function GuidedSetupModal({ open, onClose, onComplete }: GuidedSe
         return;
       }
       setOllamaStatus("error");
-      setDetailMessage("Ollama is not responding on localhost:11434.");
+      setDetailMessage(
+        "Could not detect Ollama on localhost:11434. Make sure `ollama serve` is running, then click Check Ollama again."
+      );
     } catch {
       setOllamaStatus("error");
-      setDetailMessage("Ollama is not responding on localhost:11434.");
+      setDetailMessage(
+        "Could not detect Ollama on localhost:11434. Make sure `ollama serve` is running, then click Check Ollama again."
+      );
     }
   };
 
   const checkModel = async () => {
     setModelStatus("checking");
     setDetailMessage("");
+
+    try {
+      const local = await probeLocalOllamaTags();
+      setModels(local.models);
+      const foundLocal = local.models.some((name) =>
+        name.replace(/:latest$/, "").startsWith("smollm2:135m")
+      );
+
+      if (foundLocal) {
+        setModelStatus("done");
+        setModel("smollm2:135m");
+        setSummaryModel("smollm2:135m");
+        setDetailMessage("smollm2:135m is installed.");
+        return;
+      }
+    } catch {
+      // fall through to API probe
+    }
+
     try {
       const res = await fetch("/api/register/local-check", {
         method: "POST",
@@ -256,6 +310,7 @@ export default function GuidedSetupModal({ open, onClose, onComplete }: GuidedSe
                 {ollamaStatus === "checking" ? <Loader2 className="h-4 w-4 animate-spin" /> : "Check Ollama"}
               </Button>
               {ollamaStatus === "done" && <span className="text-sm text-green-500">✅ Step 1 done</span>}
+              {ollamaStatus === "error" && <span className="text-sm text-red-500">Could not verify yet</span>}
             </div>
           </StepCard>
 
@@ -272,6 +327,7 @@ export default function GuidedSetupModal({ open, onClose, onComplete }: GuidedSe
                 {modelStatus === "checking" ? <Loader2 className="h-4 w-4 animate-spin" /> : "Check model"}
               </Button>
               {models.length > 0 && <span className="text-xs text-muted-foreground">Found: {models.slice(0, 3).join(", ")}</span>}
+              {modelStatus === "error" && <span className="text-sm text-red-500">Model not found yet</span>}
             </div>
           </StepCard>
 
