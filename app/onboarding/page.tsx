@@ -33,6 +33,7 @@ const WalletMultiButton = dynamic(
 type WizardState = {
   consentExposeEndpoint: boolean;
   consentProtocolOps: boolean;
+  runtimeType: "ollama" | "openai_local";
   platform: "macos" | "ubuntu" | "windows";
   ollamaPort: string;
   protocolDomain: string;
@@ -102,6 +103,7 @@ const STORAGE_KEY = "reddi-onboarding-wizard-v1";
 const INITIAL_STATE: WizardState = {
   consentExposeEndpoint: false,
   consentProtocolOps: false,
+  runtimeType: "ollama",
   platform: "macos",
   ollamaPort: "11434",
   protocolDomain: "https://reddi.tech",
@@ -290,7 +292,10 @@ export default function OnboardingPage() {
 
   const canContinue = useMemo(() => {
     if (step === 1) return state.consentExposeEndpoint && state.consentProtocolOps;
-    if (step === 2) return Number(state.ollamaPort) > 0 && state.runtimeReady;
+    if (step === 2) {
+      if (state.runtimeType === "ollama") return Number(state.ollamaPort) > 0 && state.runtimeReady;
+      return state.runtimeReady;
+    }
     if (step === 3) return state.endpointStatus === "online";
     if (step === 4) {
       const walletOk = state.walletAddress.length > 0;
@@ -455,7 +460,7 @@ export default function OnboardingPage() {
                 onChange={(e) => setState((s) => ({ ...s, consentExposeEndpoint: e.target.checked }))}
                 className="mt-1 accent-[#9945FF]"
               />
-              <span>I consent to exposing my local Ollama API through a tunnel endpoint.</span>
+              <span>I consent to exposing my local runtime API through a tunnel endpoint.</span>
             </label>
             <label className="flex items-start gap-3 text-sm cursor-pointer">
               <input
@@ -472,8 +477,26 @@ export default function OnboardingPage() {
         {step === 2 && (
           <div className="space-y-4">
             <h2 className="text-lg font-semibold">2. Runtime setup</h2>
-            <p className="text-sm text-muted-foreground">Wizard checks/install steps for Ollama by platform.</p>
+            <p className="text-sm text-muted-foreground">Wizard checks/install steps for Ollama or OpenAI-compatible local runtimes.</p>
             <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <Label className="mb-1 block">Runtime type</Label>
+                <select
+                  value={state.runtimeType}
+                  onChange={(e) =>
+                    setState((s) => ({
+                      ...s,
+                      runtimeType: e.target.value as WizardState["runtimeType"],
+                      runtimeReady: false,
+                      runtimeNote: "",
+                    }))
+                  }
+                  className="w-full bg-background border border-white/10 rounded-md px-3 py-2 text-sm"
+                >
+                  <option value="ollama">Ollama</option>
+                  <option value="openai_local">OpenAI-compatible local server (llama.cpp / vLLM / LM Studio)</option>
+                </select>
+              </div>
               <div>
                 <Label className="mb-1 block">Platform</Label>
                 <select
@@ -489,7 +512,7 @@ export default function OnboardingPage() {
                 </select>
               </div>
               <div>
-                <Label className="mb-1 block">Ollama API port</Label>
+                <Label className="mb-1 block">Local runtime API port</Label>
                 <Input
                   value={state.ollamaPort}
                   onChange={(e) =>
@@ -509,66 +532,83 @@ export default function OnboardingPage() {
                 placeholder="https://reddi.tech"
               />
             </div>
-            <Button
-              variant="outline"
-              disabled={
-                runtimeLoading ||
-                !state.consentExposeEndpoint ||
-                !state.consentProtocolOps ||
-                Number(state.ollamaPort) <= 0
-              }
-              onClick={async () => {
-                setRuntimeLoading(true);
-                try {
-                  const res = await fetch("/api/onboarding/runtime", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      platform: state.platform,
-                      port: Number(state.ollamaPort),
-                      protocolDomain: state.protocolDomain,
-                      consentExposeEndpoint: state.consentExposeEndpoint,
-                      consentProtocolOps: state.consentProtocolOps,
-                    }),
-                  });
-                  const data = await res.json();
-                  if (!res.ok || !data.ok) {
+            {state.runtimeType === "ollama" ? (
+              <Button
+                variant="outline"
+                disabled={
+                  runtimeLoading ||
+                  !state.consentExposeEndpoint ||
+                  !state.consentProtocolOps ||
+                  Number(state.ollamaPort) <= 0
+                }
+                onClick={async () => {
+                  setRuntimeLoading(true);
+                  try {
+                    const res = await fetch("/api/onboarding/runtime", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        platform: state.platform,
+                        port: Number(state.ollamaPort),
+                        protocolDomain: state.protocolDomain,
+                        consentExposeEndpoint: state.consentExposeEndpoint,
+                        consentProtocolOps: state.consentProtocolOps,
+                      }),
+                    });
+                    const data = await res.json();
+                    if (!res.ok || !data.ok) {
+                      setState((s) => ({
+                        ...s,
+                        runtimeReady: false,
+                        runtimeTokenStored: false,
+                        runtimeNote: data.error || "Runtime bootstrap failed",
+                      }));
+                      return;
+                    }
+
+                    const noteParts = [
+                      data.result.ollama.running ? "Ollama running" : "Ollama not running",
+                      data.result.token.storedInKeychain ? "token stored in keychain" : "token not stored in keychain",
+                      data.result.installHint ? `hint: ${data.result.installHint}` : null,
+                      data.result.token.note || null,
+                    ].filter(Boolean);
+
+                    setState((s) => ({
+                      ...s,
+                      runtimeReady: Boolean(data.result.ready),
+                      runtimeTokenStored: Boolean(data.result.token.storedInKeychain),
+                      runtimeNote: noteParts.join(" · "),
+                    }));
+                  } catch {
                     setState((s) => ({
                       ...s,
                       runtimeReady: false,
                       runtimeTokenStored: false,
-                      runtimeNote: data.error || "Runtime bootstrap failed",
+                      runtimeNote: "Runtime bootstrap failed",
                     }));
-                    return;
+                  } finally {
+                    setRuntimeLoading(false);
                   }
-
-                  const noteParts = [
-                    data.result.ollama.running ? "Ollama running" : "Ollama not running",
-                    data.result.token.storedInKeychain ? "token stored in keychain" : "token not stored in keychain",
-                    data.result.installHint ? `hint: ${data.result.installHint}` : null,
-                    data.result.token.note || null,
-                  ].filter(Boolean);
-
+                }}
+              >
+                {runtimeLoading ? "Bootstrapping runtime..." : "Run runtime bootstrap"}
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                onClick={() =>
                   setState((s) => ({
                     ...s,
-                    runtimeReady: Boolean(data.result.ready),
-                    runtimeTokenStored: Boolean(data.result.token.storedInKeychain),
-                    runtimeNote: noteParts.join(" · "),
-                  }));
-                } catch {
-                  setState((s) => ({
-                    ...s,
-                    runtimeReady: false,
+                    runtimeReady: true,
                     runtimeTokenStored: false,
-                    runtimeNote: "Runtime bootstrap failed",
-                  }));
-                } finally {
-                  setRuntimeLoading(false);
+                    runtimeNote:
+                      "Manual runtime mode enabled for OpenAI-compatible local server (llama.cpp/vLLM/LM Studio).",
+                  }))
                 }
-              }}
-            >
-              {runtimeLoading ? "Bootstrapping runtime..." : "Run runtime bootstrap"}
-            </Button>
+              >
+                Mark runtime ready (manual)
+              </Button>
+            )}
 
             {state.runtimeNote && (
               <div className="rounded-lg border border-white/10 bg-black/30 p-3 text-xs text-muted-foreground">
@@ -587,7 +627,7 @@ export default function OnboardingPage() {
         {step === 3 && (
           <div className="space-y-4">
             <h2 className="text-lg font-semibold">3. Endpoint setup</h2>
-            <p className="text-sm text-muted-foreground">Configure token-gated proxy + tunnel endpoint mapped to your local Ollama port.</p>
+            <p className="text-sm text-muted-foreground">Configure token-gated proxy + tunnel endpoint mapped to your local runtime port.</p>
             <div>
               <Label className="mb-1 block">Tunnel endpoint (optional override)</Label>
               <Input
@@ -717,6 +757,22 @@ export default function OnboardingPage() {
               >
                 {endpointHeartbeatLoading ? "Checking heartbeat..." : "Run endpoint heartbeat"}
               </Button>
+
+              {state.runtimeType === "openai_local" && state.endpointUrl && (
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    setState((s) => ({
+                      ...s,
+                      endpointStatus: "online",
+                      endpointNote:
+                        "Manual endpoint mode enabled for OpenAI-compatible runtime. Proceeding without Ollama-specific endpoint bootstrap.",
+                    }))
+                  }
+                >
+                  Mark endpoint online (manual)
+                </Button>
+              )}
             </div>
 
             <div className="rounded-lg border border-white/10 bg-black/30 p-3 text-xs text-muted-foreground">
