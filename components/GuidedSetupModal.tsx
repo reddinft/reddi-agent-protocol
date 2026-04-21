@@ -51,6 +51,8 @@ const OLLAMA_COMMANDS: Record<Platform, string> = {
 };
 
 const MODEL_COMMAND = "ollama pull smollm2:135m";
+const VERIFY_OLLAMA_COMMAND = "curl -s http://127.0.0.1:11434/api/tags";
+const VERIFY_MODEL_COMMAND = "ollama list";
 const CLOUDFLARED_INSTALL: Record<Platform, string> = {
   macos: "brew install cloudflared",
   linux:
@@ -222,6 +224,17 @@ export default function GuidedSetupModal({ open, onClose, onComplete }: GuidedSe
     }
   };
 
+  const confirmOllamaManually = () => {
+    setOllamaStatus("done");
+    setDetailMessage("Manual override enabled for Step 1. Continuing to Step 2.");
+  };
+
+  const confirmModelManually = () => {
+    setModelStatus("done");
+    setSummaryModel(model || "smollm2:135m");
+    setDetailMessage("Manual override enabled for Step 2. Continuing to Step 3.");
+  };
+
   const checkTunnel = async () => {
     const candidate = endpointInput.trim();
     if (!candidate) {
@@ -311,7 +324,21 @@ export default function GuidedSetupModal({ open, onClose, onComplete }: GuidedSe
               </Button>
               {ollamaStatus === "done" && <span className="text-sm text-green-500">✅ Step 1 done</span>}
               {ollamaStatus === "error" && <span className="text-sm text-red-500">Could not verify yet</span>}
+              {ollamaStatus === "error" && (
+                <Button type="button" variant="secondary" size="sm" onClick={confirmOllamaManually}>
+                  I verified manually, continue
+                </Button>
+              )}
             </div>
+            {ollamaStatus === "error" && (
+              <div className="rounded-xl border border-amber-300/40 bg-amber-50/70 dark:bg-amber-900/10 p-3 space-y-2 text-sm">
+                <p className="text-muted-foreground">Manual verification:</p>
+                <CommandBlock command={VERIFY_OLLAMA_COMMAND} />
+                <p className="text-xs text-muted-foreground">
+                  If this returns JSON with a <span className="font-mono">models</span> array, Ollama is reachable.
+                </p>
+              </div>
+            )}
           </StepCard>
 
           <StepCard
@@ -328,7 +355,21 @@ export default function GuidedSetupModal({ open, onClose, onComplete }: GuidedSe
               </Button>
               {models.length > 0 && <span className="text-xs text-muted-foreground">Found: {models.slice(0, 3).join(", ")}</span>}
               {modelStatus === "error" && <span className="text-sm text-red-500">Model not found yet</span>}
+              {modelStatus === "error" && (
+                <Button type="button" variant="secondary" size="sm" onClick={confirmModelManually}>
+                  I verified manually, continue
+                </Button>
+              )}
             </div>
+            {modelStatus === "error" && (
+              <div className="rounded-xl border border-amber-300/40 bg-amber-50/70 dark:bg-amber-900/10 p-3 space-y-2 text-sm">
+                <p className="text-muted-foreground">Manual verification:</p>
+                <CommandBlock command={VERIFY_MODEL_COMMAND} />
+                <p className="text-xs text-muted-foreground">
+                  Confirm <span className="font-mono">smollm2:135m</span> appears in the list.
+                </p>
+              </div>
+            )}
           </StepCard>
 
           <StepCard
