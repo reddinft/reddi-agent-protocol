@@ -424,6 +424,11 @@ export default function GuidedSetupModal({ open, onClose, onComplete }: GuidedSe
                 onChange={(e) => setRuntimeBaseUrl(e.target.value)}
                 placeholder={runtimeConfig.defaultBaseUrl}
               />
+              <p className="text-xs text-muted-foreground">
+                {runtimeChoice === "ollama"
+                  ? "Expected probe path: /api/tags"
+                  : "Expected probe path: /v1/models"}
+              </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
