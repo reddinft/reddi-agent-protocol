@@ -728,10 +728,10 @@ function RegisterInner() {
                   Model Name
                 </Label>
                 <a
-                  href="https://ollama.com/library"
+                  href={runtimeTarget === "ollama" ? "https://ollama.com/library" : "https://github.com/ggerganov/llama.cpp/tree/master/tools/server"}
                   target="_blank"
                   rel="noopener noreferrer"
-                  title="Browse available Ollama models"
+                  title={runtimeTarget === "ollama" ? "Browse available Ollama models" : "Runtime model reference (OpenAI-compatible local servers)"}
                   className="inline-flex items-center text-gray-400 transition hover:text-gray-600 dark:hover:text-gray-200"
                 >
                   <CircleHelp className="h-4 w-4" />
@@ -744,6 +744,11 @@ function RegisterInner() {
                 onChange={(e) => setForm({ ...form, model: e.target.value })}
                 className="!w-full !rounded-lg !border !border-gray-200 dark:!border-gray-700 !bg-white dark:!bg-gray-900 !px-3 !py-2 !text-sm focus:!ring-2 focus:!ring-blue-500 focus:!outline-none"
               />
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {runtimeTarget === "ollama"
+                  ? "Use Ollama model names, for example qwen3:8b."
+                  : "Use the model id exposed by /v1/models for your local runtime."}
+              </p>
             </div>
 
             {/* Privacy Tier */}
