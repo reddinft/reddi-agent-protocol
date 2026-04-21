@@ -321,11 +321,7 @@ function RegisterInner() {
       tx.add(ix);
 
       try {
-        const sim = await conn.simulateTransaction(tx, {
-          commitment: "processed",
-          replaceRecentBlockhash: true,
-          sigVerify: false,
-        });
+        const sim = await conn.simulateTransaction(tx);
 
         if (sim.value.err) {
           throw new Error(formatSimulationError(sim.value.err, sim.value.logs));
