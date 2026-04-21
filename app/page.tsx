@@ -207,6 +207,21 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="mx-auto max-w-6xl px-4 pb-12 sm:px-6 lg:px-8">
+        <div className="rounded-xl border border-white/10 bg-card/20 p-6 space-y-3">
+          <p className="section-label">Features</p>
+          <h2 className="font-display text-2xl font-bold text-white">Explore the full feature catalog</h2>
+          <p className="text-sm text-gray-400 max-w-3xl">
+            See every BDD-backed capability we ship and filter by your role (specialist, attestor, or consumer).
+          </p>
+          <div>
+            <Link href="/features" className="text-sm text-indigo-300 hover:text-indigo-200">
+              Open features catalog →
+            </Link>
+          </div>
+        </div>
+      </section>
+
       <footer className="mt-16 border-t border-surface py-8 text-center text-sm text-gray-500">
         Trust the protocol, not the pitch.
       </footer>
