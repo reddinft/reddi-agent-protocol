@@ -131,6 +131,14 @@ export function buildRegisterAgentData(
   rateLamports: bigint,
   minReputation: number
 ): Buffer {
+  const writeU64LE = (target: Uint8Array, offset: number, value: bigint) => {
+    let v = value;
+    for (let i = 0; i < 8; i += 1) {
+      target[offset + i] = Number(v & 0xffn);
+      v >>= 8n;
+    }
+  };
+
   const modelBytes = Buffer.from(model, "utf-8");
   const buf = Buffer.alloc(8 + 1 + 4 + modelBytes.length + 8 + 1);
   let o = 0;
@@ -138,7 +146,7 @@ export function buildRegisterAgentData(
   buf.writeUInt8(agentType, o); o += 1;
   buf.writeUInt32LE(modelBytes.length, o); o += 4;
   modelBytes.copy(buf, o); o += modelBytes.length;
-  buf.writeBigUInt64LE(rateLamports, o); o += 8;
+  writeU64LE(buf, o, rateLamports); o += 8;
   buf.writeUInt8(minReputation, o);
   return buf;
 }
