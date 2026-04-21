@@ -7,7 +7,7 @@ import {
   Connection,
   Keypair,
   PublicKey,
-  SendTransactionOptions,
+  SendOptions,
   Transaction,
   TransactionSignature,
   VersionedTransaction,
@@ -38,9 +38,10 @@ export class PlaywrightWalletAdapter extends BaseMessageSignerWalletAdapter {
   icon =
     "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='64' height='64' rx='12' fill='%23111827'/%3E%3Cpath d='M18 46V18h14c8 0 14 6 14 14s-6 14-14 14H18zm8-8h6c3.3 0 6-2.7 6-6s-2.7-6-6-6h-6v12z' fill='%239945FF'/%3E%3C/svg%3E";
 
-  readonly supportedTransactionVersions = new Set(["legacy", 0]);
+  readonly supportedTransactionVersions = new Set(["legacy", 0] as const);
   private _publicKey: PublicKey | null = null;
   private _connected = false;
+  private _connecting = false;
 
   get publicKey() {
     return this._publicKey;
@@ -50,14 +51,20 @@ export class PlaywrightWalletAdapter extends BaseMessageSignerWalletAdapter {
     return this._connected;
   }
 
+  get connecting() {
+    return this._connecting;
+  }
+
   get readyState() {
     return WalletReadyState.Installed;
   }
 
   async connect(): Promise<void> {
     if (this._connected) return;
+    this._connecting = true;
     this._publicKey = PLAYWRIGHT_PUBLIC_KEY;
     this._connected = true;
+    this._connecting = false;
     this.emit("connect", this._publicKey);
   }
 
@@ -71,7 +78,7 @@ export class PlaywrightWalletAdapter extends BaseMessageSignerWalletAdapter {
   async sendTransaction(
     transaction: Transaction | VersionedTransaction,
     connection: Connection,
-    options?: SendTransactionOptions
+    options?: SendOptions
   ): Promise<TransactionSignature> {
     if (PLAYWRIGHT_SIGNER) {
       if (transaction instanceof VersionedTransaction) {
