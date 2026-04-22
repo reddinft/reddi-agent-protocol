@@ -28,6 +28,17 @@ export type ResolveInput = {
   taskTypeHint?: string;
   /** Explicit runtime capabilities required to fulfill the request */
   required_capabilities?: string[];
+  /** Optional sort preference for the final candidate ordering */
+  sortBy?: "ranking" | "reputation" | "cost" | "feedback";
+  /** Optional discovery filters (parity with /api/registry) */
+  taskType?: string;
+  inputMode?: string;
+  privacyMode?: string;
+  runtimeCap?: string;
+  attested?: boolean;
+  health?: "pass" | "fail" | "pending";
+  tag?: string;
+  tags?: string[];
   /** Policy overrides — merged with saved orchestrator policy */
   policy?: {
     maxPerCallUsd?: number;
@@ -52,6 +63,17 @@ export type ResolveOutput = {
     selectionReasons: string[];
   } | null;
   alternativeCount: number;
+  appliedFilters?: {
+    sortBy: "ranking" | "reputation" | "cost" | "feedback";
+    taskType?: string;
+    inputMode?: string;
+    privacyMode?: string;
+    runtimeCap?: string;
+    attested?: boolean;
+    health?: "pass" | "fail" | "pending";
+    tag?: string;
+    tags?: string[];
+  };
   error?: string;
 };
 
@@ -179,6 +201,23 @@ export const MCP_TOOL_SCHEMAS = [
           type: "array",
           items: { type: "string" },
           description: "Runtime capabilities required from the specialist.",
+        },
+        sortBy: {
+          type: "string",
+          enum: ["ranking", "reputation", "cost", "feedback"],
+          description: "Optional ordering preference for candidate ranking.",
+        },
+        taskType: { type: "string", description: "Filter by task type taxonomy id." },
+        inputMode: { type: "string", description: "Filter by input mode taxonomy id." },
+        privacyMode: { type: "string", description: "Filter by required privacy mode." },
+        runtimeCap: { type: "string", description: "Filter by runtime capability id." },
+        attested: { type: "boolean", description: "Require attested specialists." },
+        health: { type: "string", enum: ["pass", "fail", "pending"] },
+        tag: { type: "string", description: "Filter by single capability tag." },
+        tags: {
+          type: "array",
+          items: { type: "string" },
+          description: "Filter by any matching capability tags.",
         },
         policy: {
           type: "object",

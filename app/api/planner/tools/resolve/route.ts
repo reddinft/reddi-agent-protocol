@@ -34,12 +34,35 @@ export async function POST(req: Request) {
     const preferredPrivacyMode =
       policyOverride.preferredPrivacyMode ?? savedPolicy.preferredPrivacyMode ?? "public";
 
+    const sortBy = body.sortBy ?? "ranking";
+    const filterTaskType = body.taskType;
+    const filterInputMode = body.inputMode;
+    const filterPrivacyMode = body.privacyMode;
+    const filterRuntimeCap = body.runtimeCap;
+    const filterAttested = body.attested === true;
+    const filterHealth = body.health;
+    const filterTag = body.tag;
+    const filterTags = Array.isArray(body.tags)
+      ? body.tags.map((t) => t.trim()).filter(Boolean)
+      : [];
+
     const { listings } = await fetchSpecialistListings();
 
     // Filter and score candidates
     const candidates = listings
       .filter((l) => {
         if (l.health.status === "fail") return false;
+        if (!l.health.endpointUrl) return false;
+
+        if (filterTaskType && !l.capabilities?.taskTypes.includes(filterTaskType as never)) return false;
+        if (filterInputMode && !l.capabilities?.inputModes.includes(filterInputMode as never)) return false;
+        if (filterPrivacyMode && !l.capabilities?.privacyModes.includes(filterPrivacyMode as never)) return false;
+        if (filterRuntimeCap && !l.capabilities?.runtime_capabilities?.includes(filterRuntimeCap as never)) return false;
+        if (filterAttested && !l.attestation.attested) return false;
+        if (filterHealth && l.health.status !== filterHealth) return false;
+        if (filterTag && !l.capabilities?.tags?.includes(filterTag)) return false;
+        if (filterTags.length > 0 && !filterTags.some((tag) => l.capabilities?.tags?.includes(tag))) return false;
+
         if (requireAttestation && !l.attestation.attested) return false;
         if (minReputation > 0 && l.onchain.reputationScore < minReputation) return false;
         if (maxPerCallUsd > 0 && l.capabilities && l.capabilities.perCallUsd > maxPerCallUsd) return false;
@@ -47,7 +70,6 @@ export async function POST(req: Request) {
           const specialistCapabilities = l.capabilities?.runtime_capabilities ?? [];
           if (!requiredCapabilities.every((cap) => specialistCapabilities.includes(cap))) return false;
         }
-        if (!l.health.endpointUrl) return false;
         return true;
       })
       .map((l) => {
@@ -70,13 +92,49 @@ export async function POST(req: Request) {
 
         return { listing: l, score, reasons };
       })
-      .sort((a, b) => b.score - a.score);
+      .sort((a, b) => {
+        if (sortBy === "reputation") {
+          return b.listing.onchain.reputationScore - a.listing.onchain.reputationScore;
+        }
+        if (sortBy === "cost") {
+          const aCost = a.listing.capabilities?.perCallUsd ?? Number.POSITIVE_INFINITY;
+          const bCost = b.listing.capabilities?.perCallUsd ?? Number.POSITIVE_INFINITY;
+          return aCost - bCost;
+        }
+        if (sortBy === "feedback") {
+          return b.listing.signals.avgFeedbackScore - a.listing.signals.avgFeedbackScore;
+        }
+
+        if (a.score !== b.score) return b.score - a.score;
+        if (a.listing.ranking_score !== b.listing.ranking_score) {
+          return b.listing.ranking_score - a.listing.ranking_score;
+        }
+        const aFreshness = Date.parse(a.listing.health.lastCheckedAt ?? "");
+        const bFreshness = Date.parse(b.listing.health.lastCheckedAt ?? "");
+        const safeA = Number.isFinite(aFreshness) ? aFreshness : -1;
+        const safeB = Number.isFinite(bFreshness) ? bFreshness : -1;
+        if (safeA !== safeB) return safeB - safeA;
+        const aCost = a.listing.capabilities?.perCallUsd ?? Number.POSITIVE_INFINITY;
+        const bCost = b.listing.capabilities?.perCallUsd ?? Number.POSITIVE_INFINITY;
+        return aCost - bCost;
+      });
 
     if (candidates.length === 0) {
       const output: ResolveOutput = {
         ok: false,
         candidate: null,
         alternativeCount: 0,
+        appliedFilters: {
+          sortBy,
+          taskType: filterTaskType,
+          inputMode: filterInputMode,
+          privacyMode: filterPrivacyMode,
+          runtimeCap: filterRuntimeCap,
+          attested: filterAttested || requireAttestation ? true : undefined,
+          health: filterHealth,
+          tag: filterTag,
+          tags: filterTags.length > 0 ? filterTags : undefined,
+        },
         error: "No eligible specialists found matching your policy.",
       };
       return Response.json(output, { status: 400 });
@@ -101,6 +159,17 @@ export async function POST(req: Request) {
         selectionReasons: best.reasons,
       },
       alternativeCount: candidates.length - 1,
+      appliedFilters: {
+        sortBy,
+        taskType: filterTaskType,
+        inputMode: filterInputMode,
+        privacyMode: filterPrivacyMode,
+        runtimeCap: filterRuntimeCap,
+        attested: filterAttested || requireAttestation ? true : undefined,
+        health: filterHealth,
+        tag: filterTag,
+        tags: filterTags.length > 0 ? filterTags : undefined,
+      },
     };
 
     return Response.json(output);
@@ -117,7 +186,21 @@ export async function GET() {
     tool: "resolve_specialist",
     description: "Find the best specialist candidate for a task.",
     schema: {
-      input: { task: "string", taskTypeHint: "string?", required_capabilities: "string[]?", policy: "PolicyOverride?" },
+      input: {
+        task: "string",
+        taskTypeHint: "string?",
+        required_capabilities: "string[]?",
+        sortBy: "ranking|reputation|cost|feedback?",
+        taskType: "string?",
+        inputMode: "string?",
+        privacyMode: "string?",
+        runtimeCap: "string?",
+        attested: "boolean?",
+        health: "pass|fail|pending?",
+        tag: "string?",
+        tags: "string[]?",
+        policy: "PolicyOverride?",
+      },
       output: { ok: "boolean", candidate: "SpecialistCandidate | null", alternativeCount: "number" },
     },
   });
