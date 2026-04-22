@@ -47,6 +47,22 @@ export async function POST(req: Request) {
       runtime_capabilities: Array.isArray(body.runtime_capabilities)
         ? body.runtime_capabilities.map(String) as Array<"code_execution" | "file_read" | "file_write" | "web_search" | "stateful" | "long_running" | "multimodal" | "streaming">
         : [],
+      agent_composition: body.agent_composition && typeof body.agent_composition === "object"
+        ? {
+            llm: typeof body.agent_composition.llm === "string" ? body.agent_composition.llm : undefined,
+            control_loop:
+              typeof body.agent_composition.control_loop === "string"
+                ? body.agent_composition.control_loop
+                : undefined,
+            tools: Array.isArray(body.agent_composition.tools) ? body.agent_composition.tools.map(String) : [],
+            memory: Array.isArray(body.agent_composition.memory) ? body.agent_composition.memory.map(String) : [],
+            goals: Array.isArray(body.agent_composition.goals) ? body.agent_composition.goals.map(String) : [],
+          }
+        : undefined,
+      quality_claims: Array.isArray(body.quality_claims) ? body.quality_claims.map(String) : [],
+      attestor_checkpoints: Array.isArray(body.attestor_checkpoints)
+        ? body.attestor_checkpoints.map(String)
+        : [],
     });
 
     upsertSpecialistIndex(walletAddress, result.record.capabilities, {
