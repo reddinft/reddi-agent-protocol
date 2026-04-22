@@ -35,3 +35,28 @@ This log follows `playbooks/bdd-gap-closure-loop/PLAYBOOK.md` and is updated eve
   - P0.2 baseline is now implemented and executable.
   - Next iteration should begin P1 by adding OpenClaw source profile + connector wrapper stubs and corresponding BDD scenario file for Bucket S (`S1-S5`).
 
+## Iteration 3
+- Focus: P1 OpenClaw source profile + connector wrapper stubs + Bucket-S BDD scaffold.
+- Delivered:
+  - Added OpenClaw source profile + registry access:
+    - `lib/integrations/source-adapter/profiles/openclaw.ts`
+    - `lib/integrations/source-adapter/profiles/index.ts`
+  - Added OpenClaw connector wrappers for planner routes:
+    - `lib/integrations/source-adapter/openclaw/connector.ts`
+    - resolve/invoke/signal wrappers + supervisor resolve→invoke orchestrator helper
+  - Added tests:
+    - `lib/__tests__/source-adapter-openclaw-profile.test.ts`
+    - `lib/__tests__/source-adapter-openclaw-connector.test.ts`
+  - Added Bucket-S feature scaffold:
+    - `docs/bdd/features/bucket-s-source-adapters.feature` (`@S1.1`..`@S5.1`)
+  - Updated BDD feature index:
+    - `docs/bdd/FEATURE-INDEX.md` now maps Bucket-S verification commands.
+- Verified:
+  - `npx jest lib/__tests__/source-adapter-schema.test.ts lib/__tests__/register-probe-route.test.ts lib/__tests__/source-adapter-openclaw-profile.test.ts lib/__tests__/source-adapter-openclaw-connector.test.ts --runInBand` -> 4 suites, 11/11 tests passing.
+  - `npm run test:bdd:index` -> PASS.
+  - `npm run test:source:conformance` -> PASS.
+  - Artifact evidence: `artifacts/source-conformance/20260422-213317-openclaw-smoke/SUMMARY.md`.
+- Retrospective:
+  - OpenClaw path now has profile + wrapper baseline with BDD scenario scaffold in place.
+  - Next iteration should start Hermes profile + strict attestor formatter checks, then extend Bucket-S parity scenarios.
+
