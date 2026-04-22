@@ -41,7 +41,7 @@ Implement source ecosystem onboarding (OpenClaw, Hermes, pi.dev) with infrastruc
 5. Commit scoped change.
 
 ## Active iteration target
-- Iteration 4: P2 Hermes source profile + strict attestor formatter checks + Bucket-S parity expansion.
+- Iteration 5: P3 pi source profile + extension-bundle compatibility checks + cross-source conformance matrix output.
 
 ## Re-ranking board
 
@@ -55,10 +55,10 @@ Implement source ecosystem onboarding (OpenClaw, Hermes, pi.dev) with infrastruc
 5. ✅ Add OpenClaw source profile and initial connector wrappers.
 6. ✅ Add `docs/bdd/features/bucket-s-source-adapters.feature` with S1-S5 tags for source onboarding flow.
 
-### P2 (active)
-7. Add Hermes source profile + strict attestor formatter checks.
-8. Extend Bucket-S scenarios with Hermes parity checks + verification commands.
+### P2 (complete)
+7. ✅ Add Hermes source profile + strict attestor formatter checks.
+8. ✅ Extend Bucket-S scenarios with Hermes parity checks + verification commands.
 
-### P3
+### P3 (active)
 9. Add pi source profile + canonical extension-bundle compatibility checks.
 10. Add cross-source conformance matrix output across openclaw/hermes/pi smoke runs.

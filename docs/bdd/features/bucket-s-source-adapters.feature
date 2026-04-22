@@ -40,3 +40,14 @@ Feature: Bucket S Source Adapter Onboarding
     When conformance script runs in smoke mode
     Then summary artifacts are written under `artifacts/source-conformance/...`
     And step pass/fail counts are captured for retrospective updates
+
+  @S3.2 @attestor @schema-integrity @hermes
+  Scenario: Hermes attestor formatter enforces rubric shape and score bounds
+    When a Hermes attestor payload contains drifted rubric values
+    Then formatter rejects deterministically with mismatch error
+    And no implicit attestation payload is returned
+
+  @S5.2 @conformance @cross-source-parity @hermes
+  Scenario: Hermes source profile resolves from registry
+    When source profile lookup is called for `hermes`
+    Then profile metadata is returned with supported roles and runtimes

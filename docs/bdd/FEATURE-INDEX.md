@@ -49,8 +49,9 @@ Purpose: single lookup from BDD feature file -> bucket -> executable verificatio
 ### Bucket S — Source Adapter Onboarding
 - Feature: `docs/bdd/features/bucket-s-source-adapters.feature`
 - Verify:
-  - `npx jest lib/__tests__/source-adapter-schema.test.ts lib/__tests__/register-probe-route.test.ts lib/__tests__/source-adapter-openclaw-profile.test.ts lib/__tests__/source-adapter-openclaw-connector.test.ts --runInBand`
+  - `npx jest lib/__tests__/source-adapter-schema.test.ts lib/__tests__/register-probe-route.test.ts lib/__tests__/source-adapter-openclaw-profile.test.ts lib/__tests__/source-adapter-openclaw-connector.test.ts lib/__tests__/source-adapter-hermes-profile.test.ts lib/__tests__/source-adapter-hermes-attestor.test.ts --runInBand`
   - `npm run test:source:conformance`
+  - `./scripts/run-source-conformance.sh --source hermes --mode smoke`
 
 ## Drift guard
 - Validate index coverage against feature files:
