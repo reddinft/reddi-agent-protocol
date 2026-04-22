@@ -12,6 +12,12 @@ const roleCopy: Record<FilterValue, string> = {
   consumer: "consumer/orchestrator agents",
 };
 
+const roleLabel: Record<AgentRole, string> = {
+  specialist: "Specialist",
+  attestor: "Attestor",
+  consumer: "Consumer",
+};
+
 export default function FeaturesPage() {
   const [role, setRole] = useState<FilterValue>("all");
 
@@ -30,7 +36,7 @@ export default function FeaturesPage() {
               Everything we have built
             </h1>
             <p className="mt-3 text-sm sm:text-base text-gray-400 max-w-3xl">
-              Exhaustive feature map sourced from our BDD feature specs and implemented OpenOnion onboarding flows.
+              This page explains what the platform can do in plain language, based on the real features we have already built and tested.
             </p>
           </div>
 
@@ -65,7 +71,7 @@ export default function FeaturesPage() {
                   {feature.bucket}
                 </span>
                 <span className="text-[11px] text-gray-400 uppercase tracking-wide">
-                  {feature.roles.join(" · ")}
+                  {feature.roles.map((r) => roleLabel[r]).join(" · ")}
                 </span>
               </div>
 
@@ -73,7 +79,7 @@ export default function FeaturesPage() {
               <p className="text-sm text-gray-400 leading-6">{feature.summary}</p>
 
               <div>
-                <p className="text-xs font-semibold text-gray-300 mb-1">Evidence</p>
+                <p className="text-xs font-semibold text-gray-300 mb-1">Built and tested in</p>
                 <ul className="space-y-1">
                   {feature.evidence.map((item) => (
                     <li key={`${feature.id}-${item}`} className="text-xs text-gray-400 font-mono break-all">
