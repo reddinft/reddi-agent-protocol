@@ -18,6 +18,15 @@ export type CapabilityInput = {
   tags?: string[];
   context_requirements?: ContextRequirement[];
   runtime_capabilities?: RuntimeCapability[];
+  agent_composition?: {
+    llm?: string;
+    control_loop?: string;
+    tools?: string[];
+    memory?: string[];
+    goals?: string[];
+  };
+  quality_claims?: string[];
+  attestor_checkpoints?: string[];
 };
 
 export type CapabilityRecord = {
@@ -34,11 +43,22 @@ export type CapabilityRecord = {
  */
 export function computeCapabilityHash(walletAddress: string, caps: ReturnType<typeof validateCapabilities>): string {
   const canonical = {
+    agent_composition: caps.agent_composition
+      ? {
+          llm: caps.agent_composition.llm,
+          control_loop: caps.agent_composition.control_loop,
+          tools: [...(caps.agent_composition.tools ?? [])].sort(),
+          memory: [...(caps.agent_composition.memory ?? [])].sort(),
+          goals: [...(caps.agent_composition.goals ?? [])].sort(),
+        }
+      : undefined,
+    attestor_checkpoints: [...(caps.attestor_checkpoints ?? [])].sort(),
     context_requirements: normalizeContextRequirements(caps.context_requirements ?? []),
     inputModes: [...caps.inputModes].sort(),
     outputModes: [...caps.outputModes].sort(),
     pricing: { baseUsd: caps.pricing.baseUsd, perCallUsd: caps.pricing.perCallUsd ?? 0 },
     privacyModes: [...caps.privacyModes].sort(),
+    quality_claims: [...(caps.quality_claims ?? [])].sort(),
     runtime_capabilities: [...(caps.runtime_capabilities ?? [])].sort(),
     tags: [...(caps.tags ?? [])].sort(),
     taskTypes: [...caps.taskTypes].sort(),
@@ -52,6 +72,10 @@ const CAPABILITY_PATH = join(process.cwd(), "data", "onboarding", "specialist-ca
 
 function normalizeList(values: string[]) {
   return Array.from(new Set(values.map((v) => v.trim()).filter(Boolean)));
+}
+
+function normalizeOptionalList(values: string[] | undefined, maxItems: number) {
+  return normalizeList(values ?? []).slice(0, maxItems);
 }
 
 function normalizeContextRequirements(values: ContextRequirement[]) {
@@ -88,6 +112,20 @@ export function validateCapabilities(input: CapabilityInput) {
   const privacyModes = Array.from(new Set((input.privacyModes || []).filter(Boolean)));
   const runtimeCapabilities = Array.from(new Set((input.runtime_capabilities || []).filter(Boolean)));
   const contextRequirements = Array.isArray(input.context_requirements) ? input.context_requirements : [];
+  const qualityClaims = normalizeOptionalList(input.quality_claims, 12);
+  const attestorCheckpoints = normalizeOptionalList(input.attestor_checkpoints, 12);
+  const agentComposition = input.agent_composition
+    ? {
+        llm: typeof input.agent_composition.llm === "string" ? input.agent_composition.llm.trim() : undefined,
+        control_loop:
+          typeof input.agent_composition.control_loop === "string"
+            ? input.agent_composition.control_loop.trim()
+            : undefined,
+        tools: normalizeOptionalList(input.agent_composition.tools, 12),
+        memory: normalizeOptionalList(input.agent_composition.memory, 12),
+        goals: normalizeOptionalList(input.agent_composition.goals, 12),
+      }
+    : undefined;
 
   if (taskTypes.length === 0) throw new Error("At least one task type is required.");
   if (inputModes.length === 0) throw new Error("At least one input mode is required.");
@@ -131,6 +169,8 @@ export function validateCapabilities(input: CapabilityInput) {
   }
 
   return {
+    agent_composition: agentComposition,
+    attestor_checkpoints: attestorCheckpoints,
     taskTypes,
     inputModes,
     outputModes,
@@ -140,6 +180,7 @@ export function validateCapabilities(input: CapabilityInput) {
       baseUsd,
       perCallUsd,
     },
+    quality_claims: qualityClaims,
     context_requirements: normalizeContextRequirements(contextRequirements),
     runtime_capabilities: runtimeCapabilities as RuntimeCapability[],
   };

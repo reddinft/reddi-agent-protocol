@@ -155,6 +155,15 @@ describe("onboarding support routes", () => {
           tags: ["onboarding"],
           context_requirements: [],
           runtime_capabilities: ["web_search"],
+          agent_composition: {
+            llm: "qwen2.5:7b",
+            control_loop: "plan-execute-review",
+            tools: ["web_search"],
+            memory: ["session"],
+            goals: ["accuracy", "latency"],
+          },
+          quality_claims: ["95% schema compliance"],
+          attestor_checkpoints: ["schema_contract_pass"],
           endpointUrl: "https://a.example",
           healthcheckStatus: "pass",
           attested: true,
@@ -166,6 +175,20 @@ describe("onboarding support routes", () => {
       const body = await res.json();
       expect(body.ok).toBe(true);
       expect(upsertCapabilities).toHaveBeenCalledTimes(1);
+      expect(upsertCapabilities).toHaveBeenCalledWith(
+        "w1",
+        expect.objectContaining({
+          agent_composition: {
+            llm: "qwen2.5:7b",
+            control_loop: "plan-execute-review",
+            tools: ["web_search"],
+            memory: ["session"],
+            goals: ["accuracy", "latency"],
+          },
+          quality_claims: ["95% schema compliance"],
+          attestor_checkpoints: ["schema_contract_pass"],
+        })
+      );
       expect(upsertSpecialistIndex).toHaveBeenCalledTimes(1);
     });
   });
