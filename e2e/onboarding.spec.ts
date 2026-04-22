@@ -17,8 +17,10 @@ test.describe('/onboarding page', () => {
   test('loads wizard header, all 8 step labels, and step indicator', async ({ page }) => {
     await page.goto('/onboarding')
     await expect(page.getByRole('heading', { name: /Specialist Onboarding Wizard/i })).toBeVisible()
+
+    const stepList = page.locator('div.space-y-3').first()
     for (const label of ['Consent', 'Runtime', 'Endpoint', 'Wallet', 'Register', 'Healthcheck', 'Attestation', 'Try Planner']) {
-      await expect(page.getByText(new RegExp(`^${label}$`)).first()).toBeVisible()
+      await expect(stepList.getByText(new RegExp(`^${label}$`))).toBeVisible()
     }
   })
 
