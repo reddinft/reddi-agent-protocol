@@ -47,6 +47,24 @@ export async function POST(req: Request) {
       capabilities: 0,
       endpoint: 0,
     };
+    const rejectedWalletSamples: Record<keyof typeof rejectionSummary, string[]> = {
+      sourcePolicy: [],
+      health: [],
+      attestation: [],
+      reputation: [],
+      cost: [],
+      capabilities: [],
+      endpoint: [],
+    };
+    const rejectionSampleLimit = 3;
+
+    const recordRejection = (reason: keyof typeof rejectionSummary, walletAddress: string) => {
+      rejectionSummary[reason] += 1;
+      const samples = rejectedWalletSamples[reason];
+      if (samples.length < rejectionSampleLimit) {
+        samples.push(walletAddress);
+      }
+    };
 
     // Filter and score candidates
     const eligibleListings = listings
@@ -60,34 +78,34 @@ export async function POST(req: Request) {
       .filter(({ listing: l, sourceDecision }) => {
 
         if (sourceDecision.reject) {
-          rejectionSummary.sourcePolicy += 1;
+          recordRejection("sourcePolicy", l.walletAddress);
           return false;
         }
         if (l.health.status === "fail") {
-          rejectionSummary.health += 1;
+          recordRejection("health", l.walletAddress);
           return false;
         }
         if (requireAttestation && !l.attestation.attested) {
-          rejectionSummary.attestation += 1;
+          recordRejection("attestation", l.walletAddress);
           return false;
         }
         if (minReputation > 0 && l.onchain.reputationScore < minReputation) {
-          rejectionSummary.reputation += 1;
+          recordRejection("reputation", l.walletAddress);
           return false;
         }
         if (maxPerCallUsd > 0 && l.capabilities && l.capabilities.perCallUsd > maxPerCallUsd) {
-          rejectionSummary.cost += 1;
+          recordRejection("cost", l.walletAddress);
           return false;
         }
         if (requiredCapabilities.length > 0) {
           const specialistCapabilities = l.capabilities?.runtime_capabilities ?? [];
           if (!requiredCapabilities.every((cap) => specialistCapabilities.includes(cap))) {
-            rejectionSummary.capabilities += 1;
+            recordRejection("capabilities", l.walletAddress);
             return false;
           }
         }
         if (!l.health.endpointUrl) {
-          rejectionSummary.endpoint += 1;
+          recordRejection("endpoint", l.walletAddress);
           return false;
         }
         return true;
@@ -130,6 +148,7 @@ export async function POST(req: Request) {
       totalListings: listings.length,
       acceptedCount: candidates.length,
       rejectedBy: rejectionSummary,
+      rejectedWalletSamples,
     };
 
     if (candidates.length === 0) {

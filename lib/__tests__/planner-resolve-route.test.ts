@@ -197,6 +197,9 @@ describe("planner resolve route", () => {
       rejectedBy: {
         sourcePolicy: 1,
       },
+      rejectedWalletSamples: {
+        sourcePolicy: ["wallet-hermes"],
+      },
     });
   });
 
@@ -242,6 +245,9 @@ describe("planner resolve route", () => {
       acceptedCount: 3,
       rejectedBy: {
         sourcePolicy: 0,
+      },
+      rejectedWalletSamples: {
+        sourcePolicy: [],
       },
     });
     expect(body.alternatives[0]).toMatchObject({

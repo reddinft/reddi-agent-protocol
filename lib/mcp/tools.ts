@@ -86,6 +86,15 @@ export type ResolveOutput = {
       capabilities: number;
       endpoint: number;
     };
+    rejectedWalletSamples: {
+      sourcePolicy: string[];
+      health: string[];
+      attestation: string[];
+      reputation: string[];
+      cost: string[];
+      capabilities: string[];
+      endpoint: string[];
+    };
   };
   error?: string;
 };
