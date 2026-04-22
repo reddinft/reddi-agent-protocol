@@ -25,6 +25,12 @@ export async function POST(req: Request) {
     const requiredCapabilities = Array.isArray(body.required_capabilities)
       ? body.required_capabilities.filter(isValidRuntimeCapability)
       : [];
+    const requiredAttestorCheckpoints = Array.isArray(body.required_attestor_checkpoints)
+      ? body.required_attestor_checkpoints.map(String).map((value) => value.trim()).filter(Boolean)
+      : [];
+    const requiredQualityClaims = Array.isArray(body.required_quality_claims)
+      ? body.required_quality_claims.map(String).map((value) => value.trim()).filter(Boolean)
+      : [];
 
     const maxPerCallUsd =
       policyOverride.maxPerCallUsd ?? savedPolicy.maxPerTaskUsd ?? 0;
@@ -46,6 +52,7 @@ export async function POST(req: Request) {
       cost: 0,
       capabilities: 0,
       endpoint: 0,
+      disclosure: 0,
     };
     const rejectedWalletSamples: Record<keyof typeof rejectionSummary, string[]> = {
       sourcePolicy: [],
@@ -55,6 +62,7 @@ export async function POST(req: Request) {
       cost: [],
       capabilities: [],
       endpoint: [],
+      disclosure: [],
     };
     const rejectionSampleLimit = 3;
 
@@ -108,6 +116,20 @@ export async function POST(req: Request) {
           recordRejection("endpoint", l.walletAddress);
           return false;
         }
+        if (requiredAttestorCheckpoints.length > 0) {
+          const checkpoints = l.capabilities?.attestor_checkpoints ?? [];
+          if (!requiredAttestorCheckpoints.every((checkpoint) => checkpoints.includes(checkpoint))) {
+            recordRejection("disclosure", l.walletAddress);
+            return false;
+          }
+        }
+        if (requiredQualityClaims.length > 0) {
+          const qualityClaims = l.capabilities?.quality_claims ?? [];
+          if (!requiredQualityClaims.every((claim) => qualityClaims.includes(claim))) {
+            recordRejection("disclosure", l.walletAddress);
+            return false;
+          }
+        }
         return true;
       })
       ;
@@ -130,6 +152,12 @@ export async function POST(req: Request) {
         }
         if (requiredCapabilities.length > 0) {
           reasons.push(`requires:${requiredCapabilities.join(",")}`);
+        }
+        if (requiredAttestorCheckpoints.length > 0) {
+          reasons.push(`requires:attestor_checkpoints=${requiredAttestorCheckpoints.join(",")}`);
+        }
+        if (requiredQualityClaims.length > 0) {
+          reasons.push(`requires:quality_claims=${requiredQualityClaims.join(",")}`);
         }
         reasons.push(...sourceDecision.reasons);
         const score =
@@ -219,7 +247,14 @@ export async function GET() {
     tool: "resolve_specialist",
     description: "Find the best specialist candidate for a task.",
     schema: {
-      input: { task: "string", taskTypeHint: "string?", required_capabilities: "string[]?", policy: "PolicyOverride?" },
+      input: {
+        task: "string",
+        taskTypeHint: "string?",
+        required_capabilities: "string[]?",
+        required_attestor_checkpoints: "string[]?",
+        required_quality_claims: "string[]?",
+        policy: "PolicyOverride?",
+      },
       output: {
         ok: "boolean",
         candidate: "SpecialistCandidate | null",
