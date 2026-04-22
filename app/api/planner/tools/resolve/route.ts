@@ -35,17 +35,20 @@ export async function POST(req: Request) {
     const preferredPrivacyMode =
       policyOverride.preferredPrivacyMode ?? savedPolicy.preferredPrivacyMode ?? "public";
     const preferredSource = policyOverride.preferredSource;
-    const strictSourceMatch = policyOverride.strictSourceMatch ?? false;
+    const strictSourceMatch = policyOverride.strictSourceMatch === true;
 
     const { listings } = await fetchSpecialistListings();
 
     // Filter and score candidates
     const candidates = listings
-      .filter((l) => {
-        const sourceDecision = evaluateSourceRoutingDecision(l, {
+      .map((l) => ({
+        listing: l,
+        sourceDecision: evaluateSourceRoutingDecision(l, {
           preferredSource,
           strictSourceMatch,
-        });
+        }),
+      }))
+      .filter(({ listing: l, sourceDecision }) => {
 
         if (sourceDecision.reject) return false;
         if (l.health.status === "fail") return false;
@@ -59,12 +62,15 @@ export async function POST(req: Request) {
         if (!l.health.endpointUrl) return false;
         return true;
       })
-      .map((l) => {
-        const sourceDecision = evaluateSourceRoutingDecision(l, {
-          preferredSource,
-          strictSourceMatch,
-        });
+      .map(({ listing: l, sourceDecision }) => {
         const reasons: string[] = [];
+        const sourceDecisionTrace = [
+          `source:requested=${sourceDecision.requestedSource ?? "none"}`,
+          `source:candidate=${sourceDecision.listingSource ?? "unknown"}`,
+          `source:strict=${strictSourceMatch}`,
+          `source:score_delta=${sourceDecision.scoreDelta}`,
+          ...sourceDecision.reasons,
+        ];
         if (l.attestation.attested) reasons.push("attested");
         if (l.health.status === "pass") reasons.push("online");
         if (l.signals.feedbackCount > 0) reasons.push(`feedback:${l.signals.avgFeedbackScore.toFixed(1)}`);
@@ -83,7 +89,7 @@ export async function POST(req: Request) {
           (l.capabilities?.privacyModes.includes(preferredPrivacyMode as never) ? 10 : 0) +
           sourceDecision.scoreDelta;
 
-        return { listing: l, score, reasons };
+        return { listing: l, score, reasons, sourceDecision, sourceDecisionTrace };
       })
       .sort((a, b) => b.score - a.score);
 
@@ -114,6 +120,13 @@ export async function POST(req: Request) {
         reputationScore: l.onchain.reputationScore,
         avgFeedbackScore: l.signals.avgFeedbackScore,
         selectionReasons: best.reasons,
+        sourceRouting: {
+          requestedSource: best.sourceDecision.requestedSource,
+          candidateSource: best.sourceDecision.listingSource,
+          strictSourceMatch,
+          scoreDelta: best.sourceDecision.scoreDelta,
+          decisionTrace: best.sourceDecisionTrace,
+        },
       },
       alternativeCount: candidates.length - 1,
     };
