@@ -1,6 +1,6 @@
 # BDD Feature Index
 
-_Last updated: 2026-04-19 AEST_
+_Last updated: 2026-04-22 AEST_
 
 Purpose: single lookup from BDD feature file -> bucket -> executable verification command(s).
 
@@ -45,6 +45,12 @@ Purpose: single lookup from BDD feature file -> bucket -> executable verificatio
 - Verify:
   - `npx jest lib/__tests__/planner-register-consumer-route.test.ts lib/__tests__/planner-tools-manifest-route.test.ts lib/__tests__/planner-resolve-route.test.ts lib/__tests__/planner-resolve-attestor-route.test.ts lib/__tests__/planner-invoke-route.test.ts lib/__tests__/planner-release-route.test.ts lib/__tests__/planner-signal-route.test.ts lib/__tests__/planner-auditability.test.ts lib/__tests__/dogfood-testing-specialist-route.test.ts lib/__tests__/dogfood-testing-attestor-route.test.ts lib/__tests__/dogfood-consumer-run-route.test.ts --runInBand`
   - `npx playwright test e2e/dogfood.spec.ts`
+
+### Bucket S — Source Adapter Onboarding
+- Feature: `docs/bdd/features/bucket-s-source-adapters.feature`
+- Verify:
+  - `npx jest lib/__tests__/source-adapter-schema.test.ts lib/__tests__/register-probe-route.test.ts lib/__tests__/source-adapter-openclaw-profile.test.ts lib/__tests__/source-adapter-openclaw-connector.test.ts --runInBand`
+  - `npm run test:source:conformance`
 
 ## Drift guard
 - Validate index coverage against feature files:
