@@ -1,6 +1,6 @@
 import { SOURCE_ADAPTER_VERSION, type SourceAdapterManifest, type SourceAdapterRole } from "@/lib/integrations/source-adapter/schema";
 
-export const PI_SOURCE_ID = "pi";
+export const PI_SOURCE_ID = "pi" as const;
 
 export const PI_SOURCE_PROFILE = {
   source: PI_SOURCE_ID,
