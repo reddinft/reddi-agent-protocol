@@ -68,6 +68,8 @@ type WizardState = {
   attestationResolution: "pending" | "confirmed" | "disputed";
   attestationResolutionSig: string;
   attestationOperatorReady: boolean;
+  attestationOperatorState: "missing" | "invalid" | "ready" | "stale";
+  attestationOperatorCheckedAt: string;
   attestationOperatorStatusNote: string;
   capabilityTaskTypes: string;
   capabilityInputModes: string;
@@ -138,6 +140,8 @@ const INITIAL_STATE: WizardState = {
   attestationResolution: "pending",
   attestationResolutionSig: "",
   attestationOperatorReady: false,
+  attestationOperatorState: "missing",
+  attestationOperatorCheckedAt: "",
   attestationOperatorStatusNote: "",
   capabilityTaskTypes: "summarize, classify",
   capabilityInputModes: "text",
@@ -173,6 +177,8 @@ const STEPS = [
   "Attestation",
   "Try Planner",
 ];
+
+const OPERATOR_STATUS_STALE_MS = 10 * 60 * 1000;
 
 function mockWalletAddress() {
   const alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
@@ -289,6 +295,18 @@ export default function OnboardingPage() {
     if (!state.ollamaPort || !state.consentExposeEndpoint) return "Not configured";
     return state.endpointUrl || `https://your-agent.localtunnel.me (maps to :${state.ollamaPort})`;
   }, [state.ollamaPort, state.consentExposeEndpoint, state.endpointUrl]);
+
+  const operatorStatusState = useMemo<"missing" | "invalid" | "ready" | "stale">(() => {
+    if (state.attestationOperatorState === "ready" && state.attestationOperatorCheckedAt) {
+      const checked = Date.parse(state.attestationOperatorCheckedAt);
+      if (Number.isFinite(checked) && Date.now() - checked > OPERATOR_STATUS_STALE_MS) {
+        return "stale";
+      }
+    }
+    return state.attestationOperatorState;
+  }, [state.attestationOperatorState, state.attestationOperatorCheckedAt]);
+
+  const operatorReadyForAttestation = operatorStatusState === "ready";
 
   const canContinue = useMemo(() => {
     if (step === 1) return state.consentExposeEndpoint && state.consentProtocolOps;
@@ -1513,6 +1531,8 @@ export default function OnboardingPage() {
                     setState((s) => ({
                       ...s,
                       attestationOperatorReady: false,
+                      attestationOperatorState: "invalid",
+                      attestationOperatorCheckedAt: new Date().toISOString(),
                       attestationOperatorStatusNote: data.error || "Operator status check failed",
                     }));
                     return;
@@ -1521,14 +1541,18 @@ export default function OnboardingPage() {
                   setState((s) => ({
                     ...s,
                     attestationOperatorReady: Boolean(data.result.ready),
+                    attestationOperatorState: data.result.state || (data.result.ready ? "ready" : "invalid"),
+                    attestationOperatorCheckedAt: data.result.checkedAt || new Date().toISOString(),
                     attestationOperatorStatusNote: data.result.operatorPubkey
                       ? `${data.result.note} (${data.result.operatorPubkey})`
-                      : data.result.note || "",
+                      : data.result.note || data.result.nextAction || "",
                   }));
                 } catch {
                   setState((s) => ({
                     ...s,
                     attestationOperatorReady: false,
+                    attestationOperatorState: "invalid",
+                    attestationOperatorCheckedAt: new Date().toISOString(),
                     attestationOperatorStatusNote: "Operator status check failed",
                   }));
                 } finally {
@@ -1538,13 +1562,57 @@ export default function OnboardingPage() {
             >
               {attestationOperatorCheckLoading ? "Checking operator key..." : "Check attestor key status"}
             </Button>
+
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <span className="text-muted-foreground">Operator key status:</span>
+              <span
+                className={`rounded-full border px-2 py-0.5 font-medium ${
+                  operatorStatusState === "ready"
+                    ? "border-[#14F195]/50 text-[#14F195]"
+                    : operatorStatusState === "stale"
+                    ? "border-yellow-500/50 text-yellow-300"
+                    : "border-red-500/40 text-red-300"
+                }`}
+              >
+                {operatorStatusState.toUpperCase()}
+              </span>
+              {state.attestationOperatorCheckedAt && (
+                <span className="text-muted-foreground">
+                  checked: {new Date(state.attestationOperatorCheckedAt).toLocaleTimeString()}
+                </span>
+              )}
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                onClick={async () => {
+                  const template = 'ONBOARDING_ATTEST_OPERATOR_SECRET_KEY="[12,34,...,64 bytes total]"';
+                  try {
+                    await navigator.clipboard.writeText(template);
+                    showToast("Copied operator key env template", "success");
+                  } catch {
+                    showToast("Could not copy template. Paste manually from the setup guide.", "error");
+                  }
+                }}
+              >
+                Copy env template
+              </Button>
+              <Link
+                href="https://github.com/nissan/reddi-agent-protocol/blob/main/docs/ONBOARDING-OPERATOR-KEY-ROTATION-RUNBOOK.md"
+                className="inline-flex items-center rounded-md border border-white/15 px-3 py-2 text-xs text-muted-foreground hover:text-white"
+              >
+                Open rotation runbook
+              </Link>
+            </div>
+
             <Button
               variant="outline"
               disabled={
                 attestationLoading ||
                 state.healthcheckStatus !== "pass" ||
                 !state.walletAddress ||
-                !state.attestationOperatorReady
+                !operatorReadyForAttestation
               }
               onClick={async () => {
                 setAttestationLoading(true);
@@ -1738,9 +1806,13 @@ export default function OnboardingPage() {
             {state.healthcheckStatus !== "pass" && (
               <p className="text-xs text-yellow-400">Healthcheck must pass before attestation can be recorded.</p>
             )}
-            {!state.attestationOperatorReady && (
+            {operatorStatusState !== "ready" && (
               <>
-                <p className="text-xs text-yellow-400">Operator signer key must be configured before recording attestation.</p>
+                <p className="text-xs text-yellow-400">
+                  {operatorStatusState === "stale"
+                    ? "Operator signer status is stale. Re-check before recording attestation."
+                    : "Operator signer key must be configured before recording attestation."}
+                </p>
                 <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-3 text-xs text-yellow-200">
                   <p className="mb-1">Quick fix: set <span className="font-mono">ONBOARDING_ATTEST_OPERATOR_SECRET_KEY</span> as a 64-byte JSON array, restart the app, then click &quot;Check attestor key status&quot; again.</p>
                   <p className="font-mono break-all">Example format: [12,34,56,...,64 bytes total]</p>

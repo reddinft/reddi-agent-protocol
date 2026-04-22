@@ -32,11 +32,20 @@ Expected success shape:
   "ok": true,
   "result": {
     "ready": true,
+    "state": "ready",
     "operatorPubkey": "...",
-    "note": "Operator signer is configured."
+    "checkedAt": "2026-04-23T...Z",
+    "note": "Operator signer is configured.",
+    "nextAction": "Rotation check optional..."
   }
 }
 ```
+
+Possible `state` values:
+- `missing`: key not configured
+- `invalid`: key present but malformed
+- `ready`: key configured and valid
+- `stale`: previous ready check is old, re-check before attestation
 
 ## Recovery checklist
 
