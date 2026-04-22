@@ -64,6 +64,7 @@ export type SpecialistListing = {
   /** Live health state */
   health: {
     status: "pass" | "fail" | "unknown";
+    freshnessState: "fresh" | "warm" | "stale" | "unknown";
     endpointUrl: string | null;
     lastCheckedAt: string | null;
   };
@@ -83,6 +84,11 @@ export type SpecialistListing = {
   };
   /** Composite ranking signal for route sorting */
   ranking_score: number;
+  /** Index semantics/version metadata */
+  indexSemantics: {
+    schemaVersion: number;
+    rankingFormulaVersion: number;
+  };
 };
 
 // ── Base58 encode (no dep) ────────────────────────────────────────────────────
@@ -256,6 +262,7 @@ export async function fetchSpecialistListings(): Promise<{
               : indexEntry?.healthcheckStatus === "pass" ? "pass"
               : indexEntry?.healthcheckStatus === "fail" ? "fail"
               : "unknown",
+        freshnessState: indexEntry?.freshness_state ?? "unknown",
         endpointUrl: profile?.endpointUrl ?? indexEntry?.endpointUrl ?? null,
         lastCheckedAt: profile?.lastHealthcheck ?? indexEntry?.last_seen_at ?? indexEntry?.updatedAt ?? null,
       },
@@ -265,6 +272,10 @@ export async function fetchSpecialistListings(): Promise<{
       },
       signals,
       ranking_score: rankingScore,
+      indexSemantics: {
+        schemaVersion: indexEntry?.schema_version ?? 1,
+        rankingFormulaVersion: indexEntry?.ranking_formula_version ?? 1,
+      },
     };
   });
 
@@ -362,6 +373,7 @@ function buildFromIndexOnly(entry: SpecialistIndexEntry): SpecialistListing {
       status: entry.healthcheckStatus === "pass" ? "pass"
             : entry.healthcheckStatus === "fail" ? "fail"
             : "unknown",
+      freshnessState: entry.freshness_state ?? "unknown",
       endpointUrl: entry.endpointUrl ?? null,
       lastCheckedAt: entry.last_seen_at ?? entry.updatedAt ?? null,
     },
@@ -376,5 +388,9 @@ function buildFromIndexOnly(entry: SpecialistIndexEntry): SpecialistListing {
       attestationDisagreements: 0,
     },
     ranking_score: rankingScore,
+    indexSemantics: {
+      schemaVersion: entry.schema_version ?? 1,
+      rankingFormulaVersion: entry.ranking_formula_version ?? 1,
+    },
   };
 }
