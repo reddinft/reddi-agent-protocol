@@ -52,6 +52,13 @@ export type ResolveOutput = {
     reputationScore: number;
     avgFeedbackScore: number;
     selectionReasons: string[];
+    sourceRouting?: {
+      requestedSource: "openclaw" | "hermes" | "pi" | null;
+      candidateSource: "openclaw" | "hermes" | "pi" | null;
+      strictSourceMatch: boolean;
+      scoreDelta: number;
+      decisionTrace: string[];
+    };
   } | null;
   alternativeCount: number;
   error?: string;

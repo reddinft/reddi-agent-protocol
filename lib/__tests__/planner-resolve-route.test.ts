@@ -101,6 +101,63 @@ describe("planner resolve route", () => {
     expect(body.ok).toBe(true);
     expect(body.candidate.walletAddress).toBe("wallet-openclaw");
     expect(body.candidate.selectionReasons).toContain("source:openclaw");
+    expect(body.candidate.sourceRouting).toMatchObject({
+      requestedSource: "openclaw",
+      candidateSource: "openclaw",
+      strictSourceMatch: false,
+      scoreDelta: 12,
+    });
+    expect(body.candidate.sourceRouting.decisionTrace).toEqual(
+      expect.arrayContaining([
+        "source:requested=openclaw",
+        "source:candidate=openclaw",
+        "source:strict=false",
+        "source:score_delta=12",
+        "source:openclaw",
+      ])
+    );
+  });
+
+  it("returns source policy trace when preferred source does not match under non-strict mode", async () => {
+    const { fetchSpecialistListings } = await import("@/lib/registry/bridge");
+    const { readPolicy } = await import("@/lib/orchestrator/policy");
+
+    (readPolicy as jest.Mock).mockReturnValue({
+      preferredPrivacyMode: "public",
+      requireAttestation: false,
+      maxPerTaskUsd: 0,
+      minReputation: 0,
+    });
+
+    (fetchSpecialistListings as jest.Mock).mockResolvedValue({
+      listings: [makeListing({ wallet: "wallet-hermes", tags: ["source:hermes"] })],
+    });
+
+    const { POST } = await import("@/app/api/planner/tools/resolve/route");
+    const req = new Request("http://localhost/api/planner/tools/resolve", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        task: "summarize",
+        policy: { preferredSource: "openclaw", strictSourceMatch: false },
+      }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+
+    const body = await res.json();
+    expect(body.ok).toBe(true);
+    expect(body.candidate.walletAddress).toBe("wallet-hermes");
+    expect(body.candidate.sourceRouting).toMatchObject({
+      requestedSource: "openclaw",
+      candidateSource: "hermes",
+      strictSourceMatch: false,
+      scoreDelta: -4,
+    });
+    expect(body.candidate.sourceRouting.decisionTrace).toEqual(
+      expect.arrayContaining(["source_penalty:hermes"])
+    );
   });
 
   it("enforces strictSourceMatch guardrail", async () => {
