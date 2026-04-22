@@ -62,3 +62,15 @@ Feature: Bucket S Source Adapter Onboarding
     When the matrix runner executes source conformance for all supported sources
     Then matrix summary includes rows for openclaw hermes and pi
     And each row contains pass fail and artifact summary path fields
+
+  @S2.2 @supervisor @routing-policy
+  Scenario: Source-aware routing applies preferred source defaults with strict guardrails
+    When resolve policy includes preferredSource and strictSourceMatch options
+    Then source-matching specialists receive deterministic routing preference
+    And strict mode rejects non-matching source candidates
+
+  @S5.4 @conformance @ci-gating
+  Scenario: CI matrix lane uploads source conformance artifacts for regressions
+    When source-conformance-matrix workflow runs on source adapter changes
+    Then matrix execution must pass before merge
+    And source and matrix artifact directories are uploaded for inspection

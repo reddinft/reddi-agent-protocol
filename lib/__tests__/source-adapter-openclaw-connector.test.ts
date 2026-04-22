@@ -34,6 +34,9 @@ describe("openclaw source connector", () => {
         headers: expect.objectContaining({ "x-reddi-agent-key": "secret" }),
       })
     );
+
+    const payload = JSON.parse(((global.fetch as jest.Mock).mock.calls[0]?.[1]?.body ?? "{}") as string);
+    expect(payload.policy?.preferredSource).toBe("openclaw");
   });
 
   it("runs supervisor resolve->invoke flow", async () => {

@@ -110,3 +110,41 @@ This log follows `playbooks/bdd-gap-closure-loop/PLAYBOOK.md` and is updated eve
   - All three sources now have baseline profile coverage with deterministic parity checks.
   - Next iteration should focus on promotion policy wiring for source-aware routing preferences and CI lane gating for matrix artifacts.
 
+## Iteration 6
+- Focus: P4 source-aware routing preference policy hooks + CI lane gating for matrix artifacts.
+- Delivered:
+  - Added source-routing policy evaluator:
+    - `lib/integrations/source-adapter/routing-policy.ts`
+    - supports `preferredSource` + `strictSourceMatch` guardrails with deterministic scoring/rejection reasons.
+  - Wired source-aware routing into resolve tool route:
+    - `app/api/planner/tools/resolve/route.ts`
+    - applies source policy in candidate filter + score phases.
+  - Added OpenClaw source default routing hook:
+    - `lib/integrations/source-adapter/openclaw/connector.ts`
+    - resolve calls now default `policy.preferredSource = "openclaw"` when not provided.
+  - Extended MCP resolve tool schema:
+    - `lib/mcp/tools.ts`
+    - adds `policy.preferredSource` and `policy.strictSourceMatch`.
+  - Added tests:
+    - `lib/__tests__/source-adapter-routing-policy.test.ts`
+    - `lib/__tests__/planner-resolve-route.test.ts`
+    - updated `lib/__tests__/source-adapter-openclaw-connector.test.ts` for default source-policy assertions.
+  - Added CI gating workflow:
+    - `.github/workflows/source-conformance-matrix.yml`
+    - runs `npm run test:source:matrix` and uploads source+matrix artifacts.
+  - Updated Bucket-S BDD docs:
+    - `docs/bdd/features/bucket-s-source-adapters.feature` (`@S2.2`, `@S5.4`)
+    - `docs/bdd/FEATURE-INDEX.md` with new routing policy verification lanes.
+- Verified:
+  - `npx jest lib/__tests__/source-adapter-routing-policy.test.ts lib/__tests__/planner-resolve-route.test.ts lib/__tests__/source-adapter-openclaw-connector.test.ts --runInBand` -> 3 suites, 7/7 tests passing.
+  - `npm run test:bdd:index` -> PASS.
+  - `npm run test:source:matrix` -> PASS.
+  - Artifact evidence:
+    - `artifacts/source-conformance/20260423-054949-openclaw-smoke/SUMMARY.md`
+    - `artifacts/source-conformance/20260423-054958-hermes-smoke/SUMMARY.md`
+    - `artifacts/source-conformance/20260423-055006-pi-smoke/SUMMARY.md`
+    - `artifacts/source-conformance-matrix/20260423-054949/SUMMARY.md`.
+- Retrospective:
+  - Source-aware routing defaults are now wired with strict guardrails and deterministic reasons.
+  - Matrix regressions are CI-gated with retained artifacts for fast diagnosis.
+  - Next iteration should add source-aware ranking explainability in API output metadata (per-candidate source match summary) for external supervisor debugging.

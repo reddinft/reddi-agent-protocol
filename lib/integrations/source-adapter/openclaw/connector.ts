@@ -1,4 +1,5 @@
 import type { InvokeInput, InvokeOutput, QualitySignalInput, QualitySignalOutput, ResolveInput, ResolveOutput } from "@/lib/mcp/tools";
+import { OPENCLAW_SOURCE_ID } from "@/lib/integrations/source-adapter/profiles/openclaw";
 
 export type OpenClawConnectorConfig = {
   baseUrl: string;
@@ -42,7 +43,13 @@ async function postJson<T>(cfg: OpenClawConnectorConfig, path: string, payload: 
 }
 
 export async function openClawResolveSpecialist(cfg: OpenClawConnectorConfig, input: ResolveInput) {
-  return postJson<ResolveOutput>(cfg, "/api/planner/tools/resolve", input);
+  return postJson<ResolveOutput>(cfg, "/api/planner/tools/resolve", {
+    ...input,
+    policy: {
+      ...input.policy,
+      preferredSource: input.policy?.preferredSource ?? OPENCLAW_SOURCE_ID,
+    },
+  });
 }
 
 export async function openClawInvokeSpecialist(cfg: OpenClawConnectorConfig, input: InvokeInput) {

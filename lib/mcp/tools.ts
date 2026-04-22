@@ -34,6 +34,8 @@ export type ResolveInput = {
     requireAttestation?: boolean;
     preferredPrivacyMode?: "public" | "per" | "vanish";
     minReputation?: number;
+    preferredSource?: "openclaw" | "hermes" | "pi";
+    strictSourceMatch?: boolean;
   };
 };
 
@@ -187,6 +189,15 @@ export const MCP_TOOL_SCHEMAS = [
             requireAttestation: { type: "boolean", description: "Only use attested specialists." },
             preferredPrivacyMode: { type: "string", enum: ["public","per","vanish"] },
             minReputation: { type: "number", description: "Minimum on-chain reputation score." },
+            preferredSource: {
+              type: "string",
+              enum: ["openclaw", "hermes", "pi"],
+              description: "Optional source-ecosystem preference for candidate routing.",
+            },
+            strictSourceMatch: {
+              type: "boolean",
+              description: "When true, only candidates tagged to preferredSource are eligible.",
+            },
           },
         },
       },

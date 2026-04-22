@@ -9,6 +9,7 @@ import { fetchSpecialistListings } from "@/lib/registry/bridge";
 import { readPolicy } from "@/lib/orchestrator/policy";
 import type { ResolveInput, ResolveOutput } from "@/lib/mcp/tools";
 import { isValidRuntimeCapability } from "@/lib/capabilities/taxonomy";
+import { evaluateSourceRoutingDecision } from "@/lib/integrations/source-adapter/routing-policy";
 
 export const runtime = "nodejs";
 
@@ -33,12 +34,20 @@ export async function POST(req: Request) {
       policyOverride.minReputation ?? savedPolicy.minReputation ?? 0;
     const preferredPrivacyMode =
       policyOverride.preferredPrivacyMode ?? savedPolicy.preferredPrivacyMode ?? "public";
+    const preferredSource = policyOverride.preferredSource;
+    const strictSourceMatch = policyOverride.strictSourceMatch ?? false;
 
     const { listings } = await fetchSpecialistListings();
 
     // Filter and score candidates
     const candidates = listings
       .filter((l) => {
+        const sourceDecision = evaluateSourceRoutingDecision(l, {
+          preferredSource,
+          strictSourceMatch,
+        });
+
+        if (sourceDecision.reject) return false;
         if (l.health.status === "fail") return false;
         if (requireAttestation && !l.attestation.attested) return false;
         if (minReputation > 0 && l.onchain.reputationScore < minReputation) return false;
@@ -51,6 +60,10 @@ export async function POST(req: Request) {
         return true;
       })
       .map((l) => {
+        const sourceDecision = evaluateSourceRoutingDecision(l, {
+          preferredSource,
+          strictSourceMatch,
+        });
         const reasons: string[] = [];
         if (l.attestation.attested) reasons.push("attested");
         if (l.health.status === "pass") reasons.push("online");
@@ -61,12 +74,14 @@ export async function POST(req: Request) {
         if (requiredCapabilities.length > 0) {
           reasons.push(`requires:${requiredCapabilities.join(",")}`);
         }
+        reasons.push(...sourceDecision.reasons);
         const score =
           (l.attestation.attested ? 30 : 0) +
           (l.health.status === "pass" ? 20 : 0) +
           Math.min(l.signals.avgFeedbackScore * 5, 25) +
           Math.min(l.onchain.reputationScore * 0.1, 15) +
-          (l.capabilities?.privacyModes.includes(preferredPrivacyMode as never) ? 10 : 0);
+          (l.capabilities?.privacyModes.includes(preferredPrivacyMode as never) ? 10 : 0) +
+          sourceDecision.scoreDelta;
 
         return { listing: l, score, reasons };
       })

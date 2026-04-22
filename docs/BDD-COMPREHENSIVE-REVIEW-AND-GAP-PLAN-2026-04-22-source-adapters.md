@@ -41,7 +41,7 @@ Implement source ecosystem onboarding (OpenClaw, Hermes, pi.dev) with infrastruc
 5. Commit scoped change.
 
 ## Active iteration target
-- Iteration 6: source-aware routing preference policy + CI gating for cross-source matrix artifacts.
+- Iteration 7: source-aware ranking explainability in resolve output + supervisor diagnostics.
 
 ## Re-ranking board
 
@@ -63,6 +63,6 @@ Implement source ecosystem onboarding (OpenClaw, Hermes, pi.dev) with infrastruc
 9. ✅ Add pi source profile + canonical extension-bundle compatibility checks.
 10. ✅ Add cross-source conformance matrix output across openclaw/hermes/pi smoke runs.
 
-### P4 (active)
-11. Add source-aware routing preference policy hooks (selection defaults + guardrails).
-12. Wire matrix verification into CI so artifact regressions fail fast.
+### P4 (complete)
+11. ✅ Add source-aware routing preference policy hooks (selection defaults + guardrails).
+12. ✅ Wire matrix verification into CI so artifact regressions fail fast.
