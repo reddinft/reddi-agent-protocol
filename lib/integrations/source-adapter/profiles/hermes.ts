@@ -1,6 +1,6 @@
 import { SOURCE_ADAPTER_VERSION, type SourceAdapterManifest, type SourceAdapterRole } from "@/lib/integrations/source-adapter/schema";
 
-export const HERMES_SOURCE_ID = "hermes";
+export const HERMES_SOURCE_ID = "hermes" as const;
 
 export const HERMES_SOURCE_PROFILE = {
   source: HERMES_SOURCE_ID,

@@ -1,6 +1,6 @@
 import { SOURCE_ADAPTER_VERSION, type SourceAdapterManifest, type SourceAdapterRole } from "@/lib/integrations/source-adapter/schema";
 
-export const OPENCLAW_SOURCE_ID = "openclaw";
+export const OPENCLAW_SOURCE_ID = "openclaw" as const;
 
 export const OPENCLAW_SOURCE_PROFILE = {
   source: OPENCLAW_SOURCE_ID,
