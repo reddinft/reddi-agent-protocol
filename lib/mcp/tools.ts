@@ -28,6 +28,10 @@ export type ResolveInput = {
   taskTypeHint?: string;
   /** Explicit runtime capabilities required to fulfill the request */
   required_capabilities?: string[];
+  /** Optional attestor-verifiable checkpoints required from specialist disclosure metadata */
+  required_attestor_checkpoints?: string[];
+  /** Optional quality-claim markers required from specialist disclosure metadata */
+  required_quality_claims?: string[];
   /** Policy overrides — merged with saved orchestrator policy */
   policy?: {
     maxPerCallUsd?: number;
@@ -85,6 +89,7 @@ export type ResolveOutput = {
       cost: number;
       capabilities: number;
       endpoint: number;
+      disclosure: number;
     };
     rejectedWalletSamples: {
       sourcePolicy: string[];
@@ -94,6 +99,7 @@ export type ResolveOutput = {
       cost: string[];
       capabilities: string[];
       endpoint: string[];
+      disclosure: string[];
     };
   };
   error?: string;
@@ -223,6 +229,16 @@ export const MCP_TOOL_SCHEMAS = [
           type: "array",
           items: { type: "string" },
           description: "Runtime capabilities required from the specialist.",
+        },
+        required_attestor_checkpoints: {
+          type: "array",
+          items: { type: "string" },
+          description: "Optional attestor-verifiable checkpoints that must be disclosed by the specialist.",
+        },
+        required_quality_claims: {
+          type: "array",
+          items: { type: "string" },
+          description: "Optional quality claim markers that must be present in specialist disclosure metadata.",
         },
         policy: {
           type: "object",

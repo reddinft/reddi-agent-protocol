@@ -12,6 +12,8 @@ function makeListing(input: {
   wallet: string;
   tags: string[];
   reputation?: number;
+  attestorCheckpoints?: string[];
+  qualityClaims?: string[];
 }): SpecialistListing {
   return {
     pda: `pda-${input.wallet}`,
@@ -39,6 +41,8 @@ function makeListing(input: {
       perCallUsd: 0.01,
       context_requirements: [],
       runtime_capabilities: [],
+      attestor_checkpoints: input.attestorCheckpoints ?? [],
+      quality_claims: input.qualityClaims ?? [],
     },
     health: {
       status: "pass",
@@ -262,5 +266,68 @@ describe("planner resolve route", () => {
     expect(body.alternatives[0].sourceRouting.decisionTrace).toEqual(
       expect.arrayContaining(["source_penalty:hermes"])
     );
+  });
+
+  it("filters by required attestor checkpoints and quality claims", async () => {
+    const { fetchSpecialistListings } = await import("@/lib/registry/bridge");
+    const { readPolicy } = await import("@/lib/orchestrator/policy");
+
+    (readPolicy as jest.Mock).mockReturnValue({
+      preferredPrivacyMode: "public",
+      requireAttestation: false,
+      maxPerTaskUsd: 0,
+      minReputation: 0,
+    });
+
+    (fetchSpecialistListings as jest.Mock).mockResolvedValue({
+      listings: [
+        makeListing({
+          wallet: "wallet-disclosure-pass",
+          tags: ["source:openclaw"],
+          attestorCheckpoints: ["schema_contract_pass", "policy_bounds_ok"],
+          qualityClaims: ["latency_p95_under_3s", "high_schema_compliance"],
+        }),
+        makeListing({
+          wallet: "wallet-disclosure-miss",
+          tags: ["source:openclaw"],
+          attestorCheckpoints: ["schema_contract_pass"],
+          qualityClaims: ["high_schema_compliance"],
+        }),
+      ],
+    });
+
+    const { POST } = await import("@/app/api/planner/tools/resolve/route");
+    const req = new Request("http://localhost/api/planner/tools/resolve", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        task: "summarize",
+        required_attestor_checkpoints: ["schema_contract_pass", "policy_bounds_ok"],
+        required_quality_claims: ["latency_p95_under_3s"],
+      }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+
+    const body = await res.json();
+    expect(body.ok).toBe(true);
+    expect(body.candidate.walletAddress).toBe("wallet-disclosure-pass");
+    expect(body.candidate.selectionReasons).toEqual(
+      expect.arrayContaining([
+        "requires:attestor_checkpoints=schema_contract_pass,policy_bounds_ok",
+        "requires:quality_claims=latency_p95_under_3s",
+      ])
+    );
+    expect(body.resolveDiagnostics).toMatchObject({
+      totalListings: 2,
+      acceptedCount: 1,
+      rejectedBy: {
+        disclosure: 1,
+      },
+      rejectedWalletSamples: {
+        disclosure: ["wallet-disclosure-miss"],
+      },
+    });
   });
 });
