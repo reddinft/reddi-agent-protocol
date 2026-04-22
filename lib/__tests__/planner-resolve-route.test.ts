@@ -187,4 +187,108 @@ describe("planner resolve route", () => {
       },
     });
   });
+
+  it("supports reputation sorting", async () => {
+    const { readPolicy } = await import("@/lib/orchestrator/policy");
+    const { fetchSpecialistListings } = await import("@/lib/registry/bridge");
+
+    (readPolicy as jest.Mock).mockReturnValue({
+      maxPerTaskUsd: 0,
+      requireAttestation: false,
+      minReputation: 0,
+      preferredPrivacyMode: "public",
+    });
+
+    (fetchSpecialistListings as jest.Mock).mockResolvedValue({
+      listings: [
+        {
+          walletAddress: "So11111111111111111111111111111111111111114",
+          health: { status: "pass", endpointUrl: "https://c.test" },
+          attestation: { attested: true },
+          onchain: { reputationScore: 80 },
+          capabilities: { perCallUsd: 0.7, taskTypes: ["summarize"], privacyModes: ["public"] },
+          signals: { feedbackCount: 1, avgFeedbackScore: 7.5 },
+        },
+        {
+          walletAddress: "So11111111111111111111111111111111111111115",
+          health: { status: "pass", endpointUrl: "https://d.test" },
+          attestation: { attested: true },
+          onchain: { reputationScore: 20 },
+          capabilities: { perCallUsd: 0.2, taskTypes: ["summarize"], privacyModes: ["public"] },
+          signals: { feedbackCount: 20, avgFeedbackScore: 9.8 },
+        },
+      ],
+    });
+
+    const { POST } = await import("@/app/api/planner/tools/resolve/route");
+    const req = new NextRequest("http://localhost/api/planner/tools/resolve", {
+      method: "POST",
+      body: JSON.stringify({ task: "summarize this", sortBy: "reputation" }),
+      headers: { "content-type": "application/json" },
+    });
+
+    const res = await POST(req as unknown as Request);
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toMatchObject({
+      ok: true,
+      candidate: {
+        walletAddress: "So11111111111111111111111111111111111111114",
+      },
+      appliedFilters: {
+        sortBy: "reputation",
+      },
+    });
+  });
+
+  it("supports feedback sorting", async () => {
+    const { readPolicy } = await import("@/lib/orchestrator/policy");
+    const { fetchSpecialistListings } = await import("@/lib/registry/bridge");
+
+    (readPolicy as jest.Mock).mockReturnValue({
+      maxPerTaskUsd: 0,
+      requireAttestation: false,
+      minReputation: 0,
+      preferredPrivacyMode: "public",
+    });
+
+    (fetchSpecialistListings as jest.Mock).mockResolvedValue({
+      listings: [
+        {
+          walletAddress: "So11111111111111111111111111111111111111116",
+          health: { status: "pass", endpointUrl: "https://e.test" },
+          attestation: { attested: true },
+          onchain: { reputationScore: 90 },
+          capabilities: { perCallUsd: 1, taskTypes: ["summarize"], privacyModes: ["public"] },
+          signals: { feedbackCount: 2, avgFeedbackScore: 7.1 },
+        },
+        {
+          walletAddress: "So11111111111111111111111111111111111111117",
+          health: { status: "pass", endpointUrl: "https://f.test" },
+          attestation: { attested: true },
+          onchain: { reputationScore: 10 },
+          capabilities: { perCallUsd: 1.2, taskTypes: ["summarize"], privacyModes: ["public"] },
+          signals: { feedbackCount: 35, avgFeedbackScore: 9.4 },
+        },
+      ],
+    });
+
+    const { POST } = await import("@/app/api/planner/tools/resolve/route");
+    const req = new NextRequest("http://localhost/api/planner/tools/resolve", {
+      method: "POST",
+      body: JSON.stringify({ task: "summarize this", sortBy: "feedback" }),
+      headers: { "content-type": "application/json" },
+    });
+
+    const res = await POST(req as unknown as Request);
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toMatchObject({
+      ok: true,
+      candidate: {
+        walletAddress: "So11111111111111111111111111111111111111117",
+      },
+      appliedFilters: {
+        sortBy: "feedback",
+      },
+    });
+  });
 });
