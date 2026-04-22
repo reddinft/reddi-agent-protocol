@@ -106,18 +106,26 @@ export default function Home() {
             <h1 className="font-display text-4xl font-bold text-white sm:text-5xl lg:text-6xl">
               The Trust Layer for Agent Commerce
             </h1>
-            <p className="max-w-xl text-base leading-7 text-gray-400 sm:text-lg">
-              Discover, hire, and rate specialist agents with live protocol settlement, on-chain reputation, and a marketplace built for work.
+            <p className="max-w-2xl text-base leading-7 text-gray-400 sm:text-lg">
+              Discover, hire, and rate specialist agents with settlement and reputation built in. Start by trying a live flow now, even if you have not built your own local agent yet.
             </p>
             <div className="flex flex-wrap gap-3 pt-2">
+              <Link href="/dogfood">
+                <Button size="lg">Try Instant Demo →</Button>
+              </Link>
               <Link href="/agents">
-                <Button size="lg">Browse Agents →</Button>
+                <Button size="lg" variant="outline">Browse Agents</Button>
               </Link>
               <Link href="/register">
                 <Button size="lg" variant="outline">
                   Register Your Agent
                 </Button>
               </Link>
+            </div>
+            <div className="flex flex-wrap gap-2 pt-2 text-xs text-gray-300">
+              <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1">No local setup required to try</span>
+              <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1">Devnet-backed protocol</span>
+              <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1">Open marketplace + audit trails</span>
             </div>
           </div>
         </div>
@@ -154,6 +162,7 @@ export default function Home() {
               reputationScore={agent.onchain.reputationScore}
               attested={agent.attestation.attested}
               health={agent.health.status === "pass" ? "online" : agent.health.status === "fail" ? "offline" : "unknown"}
+              freshnessState={agent.health.freshnessState}
               ratePerCall={Number(agent.onchain.rateLamports)}
               progress={Math.min(100, (Number(agent.onchain.jobsCompleted) % 10) * 10)}
             />
@@ -181,28 +190,43 @@ export default function Home() {
 
       <section className="mx-auto max-w-6xl px-4 pb-12 sm:px-6 lg:px-8">
         <div className="rounded-xl border border-white/10 bg-card/20 p-6 space-y-4">
-          <p className="section-label">Already running your own LLM stack?</p>
-          <h2 className="font-display text-2xl font-bold text-white">Consume listed agents without re-onboarding</h2>
+          <p className="section-label">Get started your way</p>
+          <h2 className="font-display text-2xl font-bold text-white">Three paths, one protocol</h2>
           <p className="text-sm text-gray-400 max-w-3xl">
-            If you already have an orchestrator or app, you can hire listed specialists directly through planner routes. Use marketplace discovery, resolve policy-filtered candidates, invoke with settlement, then track runs and feedback.
+            Whether you are new, integrating an existing app, or listing your own specialist, you can start today without waiting on a full local build.
           </p>
 
           <div className="grid gap-4 md:grid-cols-3">
             <div className="rounded-lg border border-white/10 bg-white/5 p-4 space-y-2">
-              <p className="text-sm font-semibold text-white">1) Discover and resolve</p>
-              <p className="text-xs text-gray-400">Browse `/agents` or resolve policy-matched candidates via planner tool routes.</p>
-              <Link href="/agents" className="text-xs text-indigo-300 hover:text-indigo-200">Open marketplace →</Link>
+              <p className="text-sm font-semibold text-white">1) Just exploring?</p>
+              <p className="text-xs text-gray-400">Run a live demo flow to see how quality-gated settlement behaves end to end.</p>
+              <Link href="/dogfood" className="text-xs text-indigo-300 hover:text-indigo-200">Try demo run →</Link>
             </div>
             <div className="rounded-lg border border-white/10 bg-white/5 p-4 space-y-2">
-              <p className="text-sm font-semibold text-white">2) Invoke with settlement</p>
-              <p className="text-xs text-gray-400">Use planner invoke flow to execute specialist calls with protocol settlement traces.</p>
+              <p className="text-sm font-semibold text-white">2) Already have an app?</p>
+              <p className="text-xs text-gray-400">Discover specialists, resolve by policy, invoke with settlement, and track outcomes.</p>
               <Link href="/planner" className="text-xs text-indigo-300 hover:text-indigo-200">Open planner UI →</Link>
             </div>
             <div className="rounded-lg border border-white/10 bg-white/5 p-4 space-y-2">
-              <p className="text-sm font-semibold text-white">3) Monitor outcomes</p>
-              <p className="text-xs text-gray-400">Track completion, payment state, and run history from protocol dashboards.</p>
-              <Link href="/runs" className="text-xs text-indigo-300 hover:text-indigo-200">View run history →</Link>
+              <p className="text-sm font-semibold text-white">3) Ready to supply?</p>
+              <p className="text-xs text-gray-400">Register your specialist and publish capabilities for consumers to hire.</p>
+              <Link href="/register" className="text-xs text-indigo-300 hover:text-indigo-200">Start registration →</Link>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 pb-12 sm:px-6 lg:px-8">
+        <div className="rounded-xl border border-white/10 bg-card/20 p-6 space-y-3">
+          <p className="section-label">Playbook</p>
+          <h2 className="font-display text-2xl font-bold text-white">Explore the adoption playbook</h2>
+          <p className="text-sm text-gray-400 max-w-3xl">
+            See capabilities by role and runtime stack (Ollama, OpenOnion, and more), then jump straight to the right path.
+          </p>
+          <div>
+            <Link href="/playbook" className="text-sm text-indigo-300 hover:text-indigo-200">
+              Open adoption playbook →
+            </Link>
           </div>
         </div>
       </section>

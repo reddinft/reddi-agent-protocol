@@ -12,6 +12,7 @@ interface SpecialistCardProps {
   reputationScore?: number
   attested?: boolean
   health?: "online" | "offline" | "unknown"
+  freshnessState?: "fresh" | "warm" | "stale" | "unknown"
   ratePerCall?: number
   progress?: number
 }
@@ -44,6 +45,7 @@ export function SpecialistCard({
   reputationScore = 0,
   attested = false,
   health = "unknown",
+  freshnessState = "unknown",
   ratePerCall = 0,
   progress = 0,
 }: SpecialistCardProps) {
@@ -53,6 +55,15 @@ export function SpecialistCard({
       : health === "offline"
       ? "bg-slate-500 text-slate-100"
       : "bg-slate-600 text-slate-100"
+
+  const freshnessTone =
+    freshnessState === "fresh"
+      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+      : freshnessState === "warm"
+      ? "border-amber-500/30 bg-amber-500/10 text-amber-300"
+      : freshnessState === "stale"
+      ? "border-rose-500/30 bg-rose-500/10 text-rose-300"
+      : "border-white/10 bg-white/5 text-gray-400"
 
   return (
     <Link href={`/agents/${wallet}`} className="block h-full" data-testid="agent-card">
@@ -64,11 +75,16 @@ export function SpecialistCard({
           </div>
           <div className={cn("absolute right-4 top-4 h-3 w-3 rounded-full ring-4 ring-black/20", healthTone)} />
           <div className="absolute bottom-4 left-4 right-4">
-            {taskTypes[0] ? (
-              <Badge variant="outline" className="border-white/15 bg-black/30 text-white">
-                {taskTypes[0]}
+            <div className="flex flex-wrap gap-1.5">
+              {taskTypes[0] ? (
+                <Badge variant="outline" className="border-white/15 bg-black/30 text-white">
+                  {taskTypes[0]}
+                </Badge>
+              ) : null}
+              <Badge variant="outline" className={cn("text-[10px] uppercase tracking-wide", freshnessTone)}>
+                {freshnessState}
               </Badge>
-            ) : null}
+            </div>
           </div>
         </div>
 
