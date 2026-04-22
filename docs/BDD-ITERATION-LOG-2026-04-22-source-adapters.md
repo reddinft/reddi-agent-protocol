@@ -17,3 +17,21 @@ This log follows `playbooks/bdd-gap-closure-loop/PLAYBOOK.md` and is updated eve
   - P0.1 schema + probe validation is now implemented and test-backed.
   - Next iteration should start P0.2 by wiring a first `run-source-conformance.sh` harness skeleton and artifact output conventions.
 
+## Iteration 2
+- Focus: P0.2 conformance harness skeleton + artifact conventions + first smoke invocation path.
+- Delivered:
+  - Added `scripts/run-source-conformance.sh` with:
+    - source selector (`openclaw|hermes|pi`)
+    - mode selector (`smoke|full`)
+    - artifact output at `artifacts/source-conformance/<timestamp>-<source>-<mode>/`
+    - step table + markdown summary generation
+  - Added npm script shortcut:
+    - `test:source:conformance` -> `./scripts/run-source-conformance.sh --source openclaw --mode smoke`
+- Verified:
+  - `npm run test:source:conformance` -> PASS
+  - Artifact evidence: `artifacts/source-conformance/20260422-212050-openclaw-smoke/SUMMARY.md`
+  - Includes BDD feature-index integrity + source adapter schema/probe tests + build gate.
+- Retrospective:
+  - P0.2 baseline is now implemented and executable.
+  - Next iteration should begin P1 by adding OpenClaw source profile + connector wrapper stubs and corresponding BDD scenario file for Bucket S (`S1-S5`).
+
