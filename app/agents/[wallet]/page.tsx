@@ -226,6 +226,7 @@ export default function SpecialistDetailPage() {
               <div className="space-y-2 text-sm text-gray-300">
                 <p>Endpoint: {listing.health.endpointUrl ?? "Not published"}</p>
                 <p>Health: {health}</p>
+                <p>Freshness: {listing.health.freshnessState}</p>
                 <p>Last checked: {listing.health.lastCheckedAt ? new Date(listing.health.lastCheckedAt).toLocaleString() : "Unknown"}</p>
               </div>
             </Card>
