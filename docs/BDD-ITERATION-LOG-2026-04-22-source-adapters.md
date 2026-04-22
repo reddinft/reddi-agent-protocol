@@ -82,3 +82,31 @@ This log follows `playbooks/bdd-gap-closure-loop/PLAYBOOK.md` and is updated eve
   - Hermes attestor strictness baseline is now implemented and tested.
   - Next iteration should start P3 pi source profile + extension-bundle compatibility checks and broaden cross-source conformance matrix output (openclaw + hermes + pi).
 
+## Iteration 5
+- Focus: P3 pi source profile + canonical extension-bundle compatibility checks + cross-source conformance matrix output.
+- Delivered:
+  - Added pi source profile + manifest builder:
+    - `lib/integrations/source-adapter/profiles/pi.ts`
+    - registered pi in `lib/integrations/source-adapter/profiles/index.ts`
+  - Added pi extension-bundle compatibility validator:
+    - `lib/integrations/source-adapter/pi/extension-bundle.ts`
+  - Added tests:
+    - `lib/__tests__/source-adapter-pi-profile.test.ts`
+    - `lib/__tests__/source-adapter-pi-extension-bundle.test.ts`
+  - Expanded Bucket-S feature scenarios with pi parity tags (`@S3.3`, `@S5.3`).
+  - Enhanced conformance harness with source-specific contract checks per source.
+  - Added cross-source matrix runner:
+    - `scripts/run-source-conformance-matrix.sh`
+    - `npm run test:source:matrix`
+- Verified:
+  - `npx jest lib/__tests__/source-adapter-schema.test.ts lib/__tests__/register-probe-route.test.ts lib/__tests__/source-adapter-openclaw-profile.test.ts lib/__tests__/source-adapter-openclaw-connector.test.ts lib/__tests__/source-adapter-hermes-profile.test.ts lib/__tests__/source-adapter-hermes-attestor.test.ts lib/__tests__/source-adapter-pi-profile.test.ts lib/__tests__/source-adapter-pi-extension-bundle.test.ts --runInBand` -> 8 suites, 19/19 tests passing.
+  - `npm run test:bdd:index` -> PASS.
+  - `./scripts/run-source-conformance.sh --source pi --mode smoke` -> PASS.
+  - `npm run test:source:matrix` -> PASS.
+  - Artifact evidence:
+    - `artifacts/source-conformance/20260422-230408-pi-smoke/SUMMARY.md`
+    - `artifacts/source-conformance-matrix/20260422-230418/SUMMARY.md`.
+- Retrospective:
+  - All three sources now have baseline profile coverage with deterministic parity checks.
+  - Next iteration should focus on promotion policy wiring for source-aware routing preferences and CI lane gating for matrix artifacts.
+
