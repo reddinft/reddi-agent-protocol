@@ -7,8 +7,11 @@ import type { CapabilityInput } from "@/lib/onboarding/capabilities";
 export type SpecialistIndexEntry = {
   walletAddress: string;
   updatedAt: string;
+  schema_version?: number;
+  ranking_formula_version?: number;
   endpointUrl?: string;
   healthcheckStatus?: "pending" | "pass" | "fail";
+  freshness_state?: "fresh" | "warm" | "stale" | "unknown";
   attested?: boolean;
   capabilityHash?: string;
   capabilities: CapabilityInput;
@@ -26,6 +29,10 @@ export type SpecialistIndexEntry = {
 };
 
 const INDEX_PATH = join(process.cwd(), "data", "onboarding", "specialist-index.json");
+const INDEX_SCHEMA_VERSION = 2;
+const RANKING_FORMULA_VERSION = 1;
+const FRESH_WINDOW_MS = 2 * 60 * 60 * 1000;
+const WARM_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 function emptyCapabilities(): CapabilityInput {
   return {
@@ -57,7 +64,13 @@ function normalizeRecords(raw: unknown): SpecialistIndexEntry[] {
 
 function readAll(): SpecialistIndexEntry[] {
   try {
-    return normalizeRecords(JSON.parse(readFileSync(INDEX_PATH, "utf8")));
+    const records = normalizeRecords(JSON.parse(readFileSync(INDEX_PATH, "utf8")));
+    const upgraded = records.map((entry) => ensureEntrySemantics(entry));
+    const changed = JSON.stringify(records) !== JSON.stringify(upgraded);
+    if (changed) {
+      writeAll(upgraded);
+    }
+    return upgraded;
   } catch {
     return [];
   }
@@ -119,6 +132,27 @@ function recomputeRankingScore(entry: SpecialistIndexEntry) {
   });
 }
 
+export function computeFreshnessState(lastSeenAt?: string): "fresh" | "warm" | "stale" | "unknown" {
+  if (!lastSeenAt) return "unknown";
+  const ts = Date.parse(lastSeenAt);
+  if (!Number.isFinite(ts)) return "unknown";
+  const age = Date.now() - ts;
+  if (age <= FRESH_WINDOW_MS) return "fresh";
+  if (age <= WARM_WINDOW_MS) return "warm";
+  return "stale";
+}
+
+function ensureEntrySemantics(entry: SpecialistIndexEntry): SpecialistIndexEntry {
+  const next: SpecialistIndexEntry = {
+    ...entry,
+    schema_version: INDEX_SCHEMA_VERSION,
+    ranking_formula_version: RANKING_FORMULA_VERSION,
+    freshness_state: computeFreshnessState(entry.last_seen_at ?? entry.updatedAt),
+  };
+  next.ranking_score = recomputeRankingScore(next);
+  return next;
+}
+
 function mergeEntry(
   existing: SpecialistIndexEntry | undefined,
   walletAddress: string,
@@ -136,6 +170,8 @@ function mergeEntry(
   const record: SpecialistIndexEntry = {
     walletAddress,
     updatedAt: now,
+    schema_version: INDEX_SCHEMA_VERSION,
+    ranking_formula_version: RANKING_FORMULA_VERSION,
     endpointUrl: meta?.endpointUrl ?? existing?.endpointUrl,
     healthcheckStatus: meta?.healthcheckStatus ?? existing?.healthcheckStatus,
     attested: meta?.attested ?? existing?.attested,
@@ -149,6 +185,7 @@ function mergeEntry(
       lastFeedbackAt: undefined,
     },
     last_seen_at: healthState.last_seen_at,
+    freshness_state: computeFreshnessState(healthState.last_seen_at ?? now),
     health_streak: healthState.health_streak,
     ranking_score: existing?.ranking_score ?? 0,
     reputation_score: meta?.reputationScore ?? existing?.reputation_score ?? 0,
@@ -269,6 +306,9 @@ export function applyPlannerFeedback(
   };
 
   record.updatedAt = new Date().toISOString();
+  record.freshness_state = computeFreshnessState(record.last_seen_at ?? record.updatedAt);
+  record.schema_version = INDEX_SCHEMA_VERSION;
+  record.ranking_formula_version = RANKING_FORMULA_VERSION;
   record.ranking_score = recomputeRankingScore(record);
   records[idx] = record;
   writeAll(records);
