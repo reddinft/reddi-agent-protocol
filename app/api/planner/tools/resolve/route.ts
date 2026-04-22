@@ -106,6 +106,19 @@ export async function POST(req: Request) {
     const best = candidates[0];
     const l = best.listing;
     const endpointUrl = l.health.endpointUrl ?? "";
+    const alternatives = candidates.slice(1, 4).map((candidate) => ({
+      walletAddress: candidate.listing.walletAddress,
+      endpointUrl: candidate.listing.health.endpointUrl ?? "",
+      score: candidate.score,
+      selectionReasons: candidate.reasons,
+      sourceRouting: {
+        requestedSource: candidate.sourceDecision.requestedSource,
+        candidateSource: candidate.sourceDecision.listingSource,
+        strictSourceMatch,
+        scoreDelta: candidate.sourceDecision.scoreDelta,
+        decisionTrace: candidate.sourceDecisionTrace,
+      },
+    }));
 
     const output: ResolveOutput = {
       ok: true,
@@ -129,6 +142,7 @@ export async function POST(req: Request) {
         },
       },
       alternativeCount: candidates.length - 1,
+      alternatives,
     };
 
     return Response.json(output);
@@ -146,7 +160,12 @@ export async function GET() {
     description: "Find the best specialist candidate for a task.",
     schema: {
       input: { task: "string", taskTypeHint: "string?", required_capabilities: "string[]?", policy: "PolicyOverride?" },
-      output: { ok: "boolean", candidate: "SpecialistCandidate | null", alternativeCount: "number" },
+      output: {
+        ok: "boolean",
+        candidate: "SpecialistCandidate | null",
+        alternativeCount: "number",
+        alternatives: "SpecialistAlternative[]",
+      },
     },
   });
 }

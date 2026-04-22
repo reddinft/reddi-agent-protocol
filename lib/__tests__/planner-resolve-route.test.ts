@@ -192,4 +192,55 @@ describe("planner resolve route", () => {
     expect(body.ok).toBe(false);
     expect(body.error).toContain("No eligible specialists");
   });
+
+  it("returns ranked alternative explainability metadata for supervisor diagnostics", async () => {
+    const { fetchSpecialistListings } = await import("@/lib/registry/bridge");
+    const { readPolicy } = await import("@/lib/orchestrator/policy");
+
+    (readPolicy as jest.Mock).mockReturnValue({
+      preferredPrivacyMode: "public",
+      requireAttestation: false,
+      maxPerTaskUsd: 0,
+      minReputation: 0,
+    });
+
+    (fetchSpecialistListings as jest.Mock).mockResolvedValue({
+      listings: [
+        makeListing({ wallet: "wallet-openclaw", tags: ["source:openclaw"], reputation: 110 }),
+        makeListing({ wallet: "wallet-hermes", tags: ["source:hermes"], reputation: 100 }),
+        makeListing({ wallet: "wallet-pi", tags: ["source:pi"], reputation: 90 }),
+      ],
+    });
+
+    const { POST } = await import("@/app/api/planner/tools/resolve/route");
+    const req = new Request("http://localhost/api/planner/tools/resolve", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        task: "summarize",
+        policy: { preferredSource: "openclaw", strictSourceMatch: false },
+      }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+
+    const body = await res.json();
+    expect(body.ok).toBe(true);
+    expect(body.candidate.walletAddress).toBe("wallet-openclaw");
+    expect(body.alternativeCount).toBe(2);
+    expect(body.alternatives).toHaveLength(2);
+    expect(body.alternatives[0]).toMatchObject({
+      walletAddress: "wallet-hermes",
+      sourceRouting: {
+        requestedSource: "openclaw",
+        candidateSource: "hermes",
+        strictSourceMatch: false,
+        scoreDelta: -4,
+      },
+    });
+    expect(body.alternatives[0].sourceRouting.decisionTrace).toEqual(
+      expect.arrayContaining(["source_penalty:hermes"])
+    );
+  });
 });

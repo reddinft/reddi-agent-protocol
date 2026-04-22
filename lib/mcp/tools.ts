@@ -61,6 +61,19 @@ export type ResolveOutput = {
     };
   } | null;
   alternativeCount: number;
+  alternatives?: Array<{
+    walletAddress: string;
+    endpointUrl: string;
+    score: number;
+    selectionReasons: string[];
+    sourceRouting?: {
+      requestedSource: "openclaw" | "hermes" | "pi" | null;
+      candidateSource: "openclaw" | "hermes" | "pi" | null;
+      strictSourceMatch: boolean;
+      scoreDelta: number;
+      decisionTrace: string[];
+    };
+  }>;
   error?: string;
 };
 
