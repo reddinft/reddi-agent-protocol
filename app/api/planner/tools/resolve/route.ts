@@ -38,9 +38,18 @@ export async function POST(req: Request) {
     const strictSourceMatch = policyOverride.strictSourceMatch === true;
 
     const { listings } = await fetchSpecialistListings();
+    const rejectionSummary = {
+      sourcePolicy: 0,
+      health: 0,
+      attestation: 0,
+      reputation: 0,
+      cost: 0,
+      capabilities: 0,
+      endpoint: 0,
+    };
 
     // Filter and score candidates
-    const candidates = listings
+    const eligibleListings = listings
       .map((l) => ({
         listing: l,
         sourceDecision: evaluateSourceRoutingDecision(l, {
@@ -50,18 +59,42 @@ export async function POST(req: Request) {
       }))
       .filter(({ listing: l, sourceDecision }) => {
 
-        if (sourceDecision.reject) return false;
-        if (l.health.status === "fail") return false;
-        if (requireAttestation && !l.attestation.attested) return false;
-        if (minReputation > 0 && l.onchain.reputationScore < minReputation) return false;
-        if (maxPerCallUsd > 0 && l.capabilities && l.capabilities.perCallUsd > maxPerCallUsd) return false;
+        if (sourceDecision.reject) {
+          rejectionSummary.sourcePolicy += 1;
+          return false;
+        }
+        if (l.health.status === "fail") {
+          rejectionSummary.health += 1;
+          return false;
+        }
+        if (requireAttestation && !l.attestation.attested) {
+          rejectionSummary.attestation += 1;
+          return false;
+        }
+        if (minReputation > 0 && l.onchain.reputationScore < minReputation) {
+          rejectionSummary.reputation += 1;
+          return false;
+        }
+        if (maxPerCallUsd > 0 && l.capabilities && l.capabilities.perCallUsd > maxPerCallUsd) {
+          rejectionSummary.cost += 1;
+          return false;
+        }
         if (requiredCapabilities.length > 0) {
           const specialistCapabilities = l.capabilities?.runtime_capabilities ?? [];
-          if (!requiredCapabilities.every((cap) => specialistCapabilities.includes(cap))) return false;
+          if (!requiredCapabilities.every((cap) => specialistCapabilities.includes(cap))) {
+            rejectionSummary.capabilities += 1;
+            return false;
+          }
         }
-        if (!l.health.endpointUrl) return false;
+        if (!l.health.endpointUrl) {
+          rejectionSummary.endpoint += 1;
+          return false;
+        }
         return true;
       })
+      ;
+
+    const candidates = eligibleListings
       .map(({ listing: l, sourceDecision }) => {
         const reasons: string[] = [];
         const sourceDecisionTrace = [
@@ -93,11 +126,18 @@ export async function POST(req: Request) {
       })
       .sort((a, b) => b.score - a.score);
 
+    const resolveDiagnostics = {
+      totalListings: listings.length,
+      acceptedCount: candidates.length,
+      rejectedBy: rejectionSummary,
+    };
+
     if (candidates.length === 0) {
       const output: ResolveOutput = {
         ok: false,
         candidate: null,
         alternativeCount: 0,
+        resolveDiagnostics,
         error: "No eligible specialists found matching your policy.",
       };
       return Response.json(output, { status: 400 });
@@ -143,6 +183,7 @@ export async function POST(req: Request) {
       },
       alternativeCount: candidates.length - 1,
       alternatives,
+      resolveDiagnostics,
     };
 
     return Response.json(output);
@@ -165,6 +206,7 @@ export async function GET() {
         candidate: "SpecialistCandidate | null",
         alternativeCount: "number",
         alternatives: "SpecialistAlternative[]",
+        resolveDiagnostics: "ResolveDiagnostics",
       },
     },
   });
