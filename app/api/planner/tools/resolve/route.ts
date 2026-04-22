@@ -43,6 +43,30 @@ export async function POST(req: Request) {
     const preferredSource = policyOverride.preferredSource;
     const strictSourceMatch = policyOverride.strictSourceMatch === true;
 
+    const sortBy = body.sortBy ?? "ranking";
+    const filterTaskType = body.taskType;
+    const filterInputMode = body.inputMode;
+    const filterPrivacyMode = body.privacyMode;
+    const filterRuntimeCap = body.runtimeCap;
+    const filterAttested = body.attested === true;
+    const filterHealth = body.health;
+    const filterTag = body.tag;
+    const filterTags = Array.isArray(body.tags)
+      ? body.tags.map((t) => t.trim()).filter(Boolean)
+      : [];
+
+    const appliedFilters = {
+      sortBy,
+      taskType: filterTaskType,
+      inputMode: filterInputMode,
+      privacyMode: filterPrivacyMode,
+      runtimeCap: filterRuntimeCap,
+      attested: filterAttested || requireAttestation ? true : undefined,
+      health: filterHealth,
+      tag: filterTag,
+      tags: filterTags.length > 0 ? filterTags : undefined,
+    };
+
     const { listings } = await fetchSpecialistListings();
     const rejectionSummary = {
       sourcePolicy: 0,
@@ -84,7 +108,6 @@ export async function POST(req: Request) {
         }),
       }))
       .filter(({ listing: l, sourceDecision }) => {
-
         if (sourceDecision.reject) {
           recordRejection("sourcePolicy", l.walletAddress);
           return false;
@@ -93,7 +116,37 @@ export async function POST(req: Request) {
           recordRejection("health", l.walletAddress);
           return false;
         }
-        if (requireAttestation && !l.attestation.attested) {
+        if (filterHealth && l.health.status !== filterHealth) {
+          recordRejection("health", l.walletAddress);
+          return false;
+        }
+
+        if (filterTaskType && !l.capabilities?.taskTypes.includes(filterTaskType as never)) {
+          recordRejection("capabilities", l.walletAddress);
+          return false;
+        }
+        if (filterInputMode && !l.capabilities?.inputModes.includes(filterInputMode as never)) {
+          recordRejection("capabilities", l.walletAddress);
+          return false;
+        }
+        if (filterPrivacyMode && !l.capabilities?.privacyModes.includes(filterPrivacyMode as never)) {
+          recordRejection("capabilities", l.walletAddress);
+          return false;
+        }
+        if (filterRuntimeCap && !l.capabilities?.runtime_capabilities?.includes(filterRuntimeCap as never)) {
+          recordRejection("capabilities", l.walletAddress);
+          return false;
+        }
+        if (filterTag && !l.capabilities?.tags?.includes(filterTag)) {
+          recordRejection("capabilities", l.walletAddress);
+          return false;
+        }
+        if (filterTags.length > 0 && !filterTags.some((tag) => l.capabilities?.tags?.includes(tag))) {
+          recordRejection("capabilities", l.walletAddress);
+          return false;
+        }
+
+        if ((filterAttested || requireAttestation) && !l.attestation.attested) {
           recordRejection("attestation", l.walletAddress);
           return false;
         }
@@ -131,8 +184,7 @@ export async function POST(req: Request) {
           }
         }
         return true;
-      })
-      ;
+      });
 
     const candidates = eligibleListings
       .map(({ listing: l, sourceDecision }) => {
@@ -170,7 +222,32 @@ export async function POST(req: Request) {
 
         return { listing: l, score, reasons, sourceDecision, sourceDecisionTrace };
       })
-      .sort((a, b) => b.score - a.score);
+      .sort((a, b) => {
+        if (sortBy === "reputation") {
+          return b.listing.onchain.reputationScore - a.listing.onchain.reputationScore;
+        }
+        if (sortBy === "cost") {
+          const aCost = a.listing.capabilities?.perCallUsd ?? Number.POSITIVE_INFINITY;
+          const bCost = b.listing.capabilities?.perCallUsd ?? Number.POSITIVE_INFINITY;
+          return aCost - bCost;
+        }
+        if (sortBy === "feedback") {
+          return b.listing.signals.avgFeedbackScore - a.listing.signals.avgFeedbackScore;
+        }
+
+        if (a.score !== b.score) return b.score - a.score;
+        if (a.listing.ranking_score !== b.listing.ranking_score) {
+          return b.listing.ranking_score - a.listing.ranking_score;
+        }
+        const aFreshness = Date.parse(a.listing.health.lastCheckedAt ?? "");
+        const bFreshness = Date.parse(b.listing.health.lastCheckedAt ?? "");
+        const safeA = Number.isFinite(aFreshness) ? aFreshness : -1;
+        const safeB = Number.isFinite(bFreshness) ? bFreshness : -1;
+        if (safeA !== safeB) return safeB - safeA;
+        const aCost = a.listing.capabilities?.perCallUsd ?? Number.POSITIVE_INFINITY;
+        const bCost = b.listing.capabilities?.perCallUsd ?? Number.POSITIVE_INFINITY;
+        return aCost - bCost;
+      });
 
     const resolveDiagnostics = {
       totalListings: listings.length,
@@ -184,6 +261,7 @@ export async function POST(req: Request) {
         ok: false,
         candidate: null,
         alternativeCount: 0,
+        appliedFilters,
         resolveDiagnostics,
         error: "No eligible specialists found matching your policy.",
       };
@@ -230,6 +308,7 @@ export async function POST(req: Request) {
       },
       alternativeCount: candidates.length - 1,
       alternatives,
+      appliedFilters,
       resolveDiagnostics,
     };
 
@@ -253,12 +332,22 @@ export async function GET() {
         required_capabilities: "string[]?",
         required_attestor_checkpoints: "string[]?",
         required_quality_claims: "string[]?",
+        sortBy: "ranking|reputation|cost|feedback?",
+        taskType: "string?",
+        inputMode: "string?",
+        privacyMode: "string?",
+        runtimeCap: "string?",
+        attested: "boolean?",
+        health: "pass|fail|pending?",
+        tag: "string?",
+        tags: "string[]?",
         policy: "PolicyOverride?",
       },
       output: {
         ok: "boolean",
         candidate: "SpecialistCandidate | null",
         alternativeCount: "number",
+        appliedFilters: "AppliedFilters?",
         alternatives: "SpecialistAlternative[]",
         resolveDiagnostics: "ResolveDiagnostics",
       },
