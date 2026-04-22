@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { isUnsafeHostedTarget } from "@/lib/integrations/openonion/network-policy";
 import { validateOpenOnionSpecialistProfile } from "@/lib/integrations/openonion/specialist/adapter";
+import { validateSourceAdapterManifest } from "@/lib/integrations/source-adapter/schema";
 
 export const runtime = "nodejs";
 
@@ -19,7 +20,8 @@ function normalizeEndpoint(endpoint: string) {
 export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
   const endpoint = body?.endpoint;
-  const integration = body?.integration;
+  const sourceAdapter = body?.sourceAdapter;
+  const integration = body?.integration ?? sourceAdapter?.source;
 
   if (!endpoint || typeof endpoint !== "string") {
     return NextResponse.json({ ok: false, status: "invalid_url" }, { status: 400 });
@@ -27,6 +29,20 @@ export async function POST(req: Request) {
 
   try {
     const url = normalizeEndpoint(endpoint);
+
+    if (sourceAdapter !== undefined) {
+      const sourceValidation = validateSourceAdapterManifest(sourceAdapter);
+      if (!sourceValidation.ok) {
+        return NextResponse.json(
+          {
+            ok: false,
+            status: "invalid_source_adapter",
+            error: `sourceAdapter manifest mismatch: ${sourceValidation.issues.join(" ")}`,
+          },
+          { status: 400 }
+        );
+      }
+    }
 
     if (isUnsafeHostedTarget(url.hostname)) {
       return NextResponse.json(
