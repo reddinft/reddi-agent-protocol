@@ -41,7 +41,7 @@ Implement source ecosystem onboarding (OpenClaw, Hermes, pi.dev) with infrastruc
 5. Commit scoped change.
 
 ## Active iteration target
-- Iteration 5: P3 pi source profile + extension-bundle compatibility checks + cross-source conformance matrix output.
+- Iteration 6: source-aware routing preference policy + CI gating for cross-source matrix artifacts.
 
 ## Re-ranking board
 
@@ -59,6 +59,10 @@ Implement source ecosystem onboarding (OpenClaw, Hermes, pi.dev) with infrastruc
 7. ✅ Add Hermes source profile + strict attestor formatter checks.
 8. ✅ Extend Bucket-S scenarios with Hermes parity checks + verification commands.
 
-### P3 (active)
-9. Add pi source profile + canonical extension-bundle compatibility checks.
-10. Add cross-source conformance matrix output across openclaw/hermes/pi smoke runs.
+### P3 (complete)
+9. ✅ Add pi source profile + canonical extension-bundle compatibility checks.
+10. ✅ Add cross-source conformance matrix output across openclaw/hermes/pi smoke runs.
+
+### P4 (active)
+11. Add source-aware routing preference policy hooks (selection defaults + guardrails).
+12. Wire matrix verification into CI so artifact regressions fail fast.

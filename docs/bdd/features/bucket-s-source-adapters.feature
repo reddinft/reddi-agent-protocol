@@ -51,3 +51,14 @@ Feature: Bucket S Source Adapter Onboarding
   Scenario: Hermes source profile resolves from registry
     When source profile lookup is called for `hermes`
     Then profile metadata is returned with supported roles and runtimes
+
+  @S3.3 @extension-bundle @pi @schema-integrity
+  Scenario: pi source extension bundle must include canonical required extensions
+    When a pi extension bundle omits a required extension
+    Then compatibility validation fails with deterministic missing-extension output
+
+  @S5.3 @conformance @cross-source-parity @pi
+  Scenario: Cross-source conformance matrix emits openclaw/hermes/pi smoke status in one report
+    When the matrix runner executes source conformance for all supported sources
+    Then matrix summary includes rows for openclaw hermes and pi
+    And each row contains pass fail and artifact summary path fields

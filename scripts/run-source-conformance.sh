@@ -80,6 +80,21 @@ run_step "BDD feature index integrity" \
 run_step "Source adapter schema + probe contracts" \
   npx jest lib/__tests__/source-adapter-schema.test.ts lib/__tests__/register-probe-route.test.ts --runInBand
 
+case "$SOURCE" in
+  openclaw)
+    run_step "OpenClaw profile + connector contracts" \
+      npx jest lib/__tests__/source-adapter-openclaw-profile.test.ts lib/__tests__/source-adapter-openclaw-connector.test.ts --runInBand
+    ;;
+  hermes)
+    run_step "Hermes profile + attestor contracts" \
+      npx jest lib/__tests__/source-adapter-hermes-profile.test.ts lib/__tests__/source-adapter-hermes-attestor.test.ts --runInBand
+    ;;
+  pi)
+    run_step "pi profile + extension-bundle compatibility" \
+      npx jest lib/__tests__/source-adapter-pi-profile.test.ts lib/__tests__/source-adapter-pi-extension-bundle.test.ts --runInBand
+    ;;
+esac
+
 if [ "$MODE" = "full" ]; then
   run_step "Representative BDD bucket sweep" \
     ./scripts/run-bdd-bucket-sweep.sh
