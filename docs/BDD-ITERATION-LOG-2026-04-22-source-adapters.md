@@ -60,3 +60,25 @@ This log follows `playbooks/bdd-gap-closure-loop/PLAYBOOK.md` and is updated eve
   - OpenClaw path now has profile + wrapper baseline with BDD scenario scaffold in place.
   - Next iteration should start Hermes profile + strict attestor formatter checks, then extend Bucket-S parity scenarios.
 
+## Iteration 4
+- Focus: P2 Hermes source profile + strict attestor formatter checks + Bucket-S parity expansion.
+- Delivered:
+  - Added Hermes source profile:
+    - `lib/integrations/source-adapter/profiles/hermes.ts`
+    - registered Hermes in `lib/integrations/source-adapter/profiles/index.ts`
+  - Added strict Hermes attestor formatter/validator:
+    - `lib/integrations/source-adapter/hermes/attestor.ts`
+  - Added tests:
+    - `lib/__tests__/source-adapter-hermes-profile.test.ts`
+    - `lib/__tests__/source-adapter-hermes-attestor.test.ts`
+  - Expanded Bucket-S feature scenarios with Hermes parity tags (`@S3.2`, `@S5.2`).
+  - Updated Bucket-S verification commands in `docs/bdd/FEATURE-INDEX.md`.
+- Verified:
+  - `npx jest lib/__tests__/source-adapter-schema.test.ts lib/__tests__/register-probe-route.test.ts lib/__tests__/source-adapter-openclaw-profile.test.ts lib/__tests__/source-adapter-openclaw-connector.test.ts lib/__tests__/source-adapter-hermes-profile.test.ts lib/__tests__/source-adapter-hermes-attestor.test.ts --runInBand` -> 6 suites, 15/15 tests passing.
+  - `npm run test:bdd:index` -> PASS.
+  - `./scripts/run-source-conformance.sh --source hermes --mode smoke` -> PASS.
+  - Artifact evidence: `artifacts/source-conformance/20260422-213909-hermes-smoke/SUMMARY.md`.
+- Retrospective:
+  - Hermes attestor strictness baseline is now implemented and tested.
+  - Next iteration should start P3 pi source profile + extension-bundle compatibility checks and broaden cross-source conformance matrix output (openclaw + hermes + pi).
+
