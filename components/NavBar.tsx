@@ -18,7 +18,7 @@ function abbrev(addr: string) {
 
 const navLinks: { href: string; label: string; badge?: string }[] = [
   { href: "/agents", label: "Marketplace" },
-  { href: "/features", label: "Features", badge: "New" },
+  { href: "/playbook", label: "Playbook", badge: "New" },
   { href: "/planner", label: "Planner" },
   { href: "/runs", label: "History" },
   { href: "/leaderboard", label: "Leaderboard" },
@@ -33,8 +33,8 @@ const navLinks: { href: string; label: string; badge?: string }[] = [
   { href: "/orchestrator", label: "Settings" },
 ];
 
-const primaryLinks = navLinks.filter((l) => ["/agents", "/features", "/planner", "/runs"].includes(l.href));
-const secondaryLinks = navLinks.filter((l) => !["/agents", "/features", "/planner", "/runs"].includes(l.href));
+const primaryLinks = navLinks.filter((l) => ["/agents", "/playbook", "/planner", "/runs"].includes(l.href));
+const secondaryLinks = navLinks.filter((l) => !["/agents", "/playbook", "/planner", "/runs"].includes(l.href));
 
 export default function NavBar() {
   const pathname = usePathname();
