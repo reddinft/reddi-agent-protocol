@@ -191,6 +191,13 @@ describe("planner resolve route", () => {
     const body = await res.json();
     expect(body.ok).toBe(false);
     expect(body.error).toContain("No eligible specialists");
+    expect(body.resolveDiagnostics).toMatchObject({
+      totalListings: 1,
+      acceptedCount: 0,
+      rejectedBy: {
+        sourcePolicy: 1,
+      },
+    });
   });
 
   it("returns ranked alternative explainability metadata for supervisor diagnostics", async () => {
@@ -230,6 +237,13 @@ describe("planner resolve route", () => {
     expect(body.candidate.walletAddress).toBe("wallet-openclaw");
     expect(body.alternativeCount).toBe(2);
     expect(body.alternatives).toHaveLength(2);
+    expect(body.resolveDiagnostics).toMatchObject({
+      totalListings: 3,
+      acceptedCount: 3,
+      rejectedBy: {
+        sourcePolicy: 0,
+      },
+    });
     expect(body.alternatives[0]).toMatchObject({
       walletAddress: "wallet-hermes",
       sourceRouting: {

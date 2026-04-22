@@ -74,6 +74,19 @@ export type ResolveOutput = {
       decisionTrace: string[];
     };
   }>;
+  resolveDiagnostics?: {
+    totalListings: number;
+    acceptedCount: number;
+    rejectedBy: {
+      sourcePolicy: number;
+      health: number;
+      attestation: number;
+      reputation: number;
+      cost: number;
+      capabilities: number;
+      endpoint: number;
+    };
+  };
   error?: string;
 };
 
