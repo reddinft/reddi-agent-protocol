@@ -162,6 +162,7 @@ export default function Home() {
               reputationScore={agent.onchain.reputationScore}
               attested={agent.attestation.attested}
               health={agent.health.status === "pass" ? "online" : agent.health.status === "fail" ? "offline" : "unknown"}
+              freshnessState={agent.health.freshnessState}
               ratePerCall={Number(agent.onchain.rateLamports)}
               progress={Math.min(100, (Number(agent.onchain.jobsCompleted) % 10) * 10)}
             />

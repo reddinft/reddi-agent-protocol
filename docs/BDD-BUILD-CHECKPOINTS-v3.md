@@ -49,7 +49,7 @@ Checkpoint status:
 
 Checkpoint status:
 - B1.1-B1.3: 🟡 capability schema + onboarding API/UI capture shipped; specialist identity index baseline linkage + listing endpoint shipped, deeper planner index semantics pending
-- B2: ⏳ not built (next major build)
+- B2: ✅ implemented (registry filters + ranking tie-breaks shipped, planner resolve parity filters/sort shipped)
 
 ---
 
@@ -113,7 +113,7 @@ Checkpoint status:
 Checkpoint status:
 - E1.1-E1.3: ✅ implemented baseline
 - E2.1: ✅ implemented
-- E2.2: 🔜 pending runbook hardening
+- E2.2: ✅ implemented (runbook + operator-state UX hardening + validation tests)
 - E3.1-E3.3: ✅ implemented (`lib/program.ts` uses `NEXT_PUBLIC_RPC_ENDPOINT ?? default`)
 
 ---
@@ -141,19 +141,17 @@ Checkpoint status:
 1. ✅ Phase A slice 1: registration preflight simulation + signing summary
 2. ✅ Phase A slice 2: on-chain attestation submission path
 3. ✅ Phase A slice 3: scoped token-gated endpoint hardening preserving x402
-4. 🟡 Phase A slice 4: confirm/dispute attestation follow-through shipped; operator key provisioning UX still pending
-5. 🔜 Phase B: capability schema + index + marketplace ranking filters
-6. 🔜 Phase C: planner-native specialist composition pipeline
+4. ✅ Phase A slice 4: confirm/dispute attestation follow-through + operator key provisioning/recovery UX hardening
+5. 🟡 Phase B: capability schema + index + marketplace ranking filters (B2 shipped; index semantics hardening in progress)
+6. ✅ Phase C: planner-native specialist composition pipeline
 
 ---
 
 ## Immediate Next 3 Execution Tasks
 
-1. Harden operator key provisioning/recovery UX for onboarding attestor.
-2. Harden specialist identity index semantics for planner use (ranking signals + freshness policy).
-3. ✅ C4: `reveal_rating` fully wired (`lib/onboarding/reputation-signal.ts`) — commit hash/salt persisted in `data/onboarding/rating-commits.json`; `POST /api/onboarding/planner/reveal` triggers reveal with correct Rust layout.
-4. ✅ C5: Consumer planner UI added as onboarding Step 8 — prompt entry, specialist call execution with x402 tx display, 1-10 feedback + on-chain reputation commit result shown inline.
-5. ✅ E2E: 18 Playwright tests covering all 8 onboarding steps (UI gates, nav, step 8 planner idle/disabled/enabled/feedback), all planner API routes (execute, feedback, reveal, capabilities), and correct error shapes.
+1. Finalize specialist index semantics hardening: freshness windows + schema/version metadata + deterministic recompute guards.
+2. Add/refresh route and semantics tests covering planner resolve parity (`appliedFilters`, sort/filter behavior) and freshness-state boundaries.
+3. Run PR-4 lock pass: sync BDD/checkpoint docs + targeted E2E/route validation before marking Phase A/B closed.
 
 ## Bucket G — Torque Protocol Retention Layer
 

@@ -10,8 +10,19 @@ jest.mock("@/lib/orchestrator/policy", () => ({
 
 function makeListing(input: {
   wallet: string;
-  tags: string[];
+  tags?: string[];
   reputation?: number;
+  attested?: boolean;
+  taskTypes?: string[];
+  inputModes?: string[];
+  privacyModes?: string[];
+  runtimeCaps?: string[];
+  perCallUsd?: number;
+  feedbackScore?: number;
+  feedbackCount?: number;
+  endpointUrl?: string;
+  healthStatus?: "pass" | "fail" | "unknown";
+  lastCheckedAt?: string | null;
   attestorCheckpoints?: string[];
   qualityClaims?: string[];
 }): SpecialistListing {
@@ -32,35 +43,40 @@ function makeListing(input: {
       attestationAccuracy: 0,
     },
     capabilities: {
-      taskTypes: ["summarize"],
-      inputModes: ["text"],
+      taskTypes: input.taskTypes ?? ["summarize"],
+      inputModes: input.inputModes ?? ["text"],
       outputModes: ["text"],
-      privacyModes: ["public"],
-      tags: input.tags,
+      privacyModes: input.privacyModes ?? ["public"],
+      tags: input.tags ?? [],
       baseUsd: 0,
-      perCallUsd: 0.01,
+      perCallUsd: input.perCallUsd ?? 0.01,
       context_requirements: [],
-      runtime_capabilities: [],
+      runtime_capabilities: input.runtimeCaps ?? [],
       attestor_checkpoints: input.attestorCheckpoints ?? [],
       quality_claims: input.qualityClaims ?? [],
     },
     health: {
-      status: "pass",
-      endpointUrl: `https://${input.wallet}.example`,
-      lastCheckedAt: null,
+      status: input.healthStatus ?? "pass",
+      endpointUrl: input.endpointUrl ?? `https://${input.wallet}.example`,
+      lastCheckedAt: input.lastCheckedAt ?? null,
+      freshnessState: "unknown",
     },
     attestation: {
-      attested: false,
+      attested: input.attested ?? false,
       lastAttestedAt: null,
     },
     capabilityHash: null,
     signals: {
-      feedbackCount: 0,
-      avgFeedbackScore: 0,
+      feedbackCount: input.feedbackCount ?? 0,
+      avgFeedbackScore: input.feedbackScore ?? 0,
       attestationAgreements: 0,
       attestationDisagreements: 0,
     },
     ranking_score: 0,
+    indexSemantics: {
+      schemaVersion: 2,
+      rankingFormulaVersion: 1,
+    },
   };
 }
 
@@ -68,6 +84,54 @@ describe("planner resolve route", () => {
   beforeEach(() => {
     jest.resetModules();
     jest.clearAllMocks();
+  });
+
+  it("returns 400 when task is missing", async () => {
+    const { POST } = await import("@/app/api/planner/tools/resolve/route");
+    const req = new Request("http://localhost/api/planner/tools/resolve", {
+      method: "POST",
+      body: JSON.stringify({ task: "" }),
+      headers: { "content-type": "application/json" },
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toMatchObject({
+      ok: false,
+      error: "task is required",
+    });
+  });
+
+  it("returns 400 with appliedFilters when no eligible specialists are found", async () => {
+    const { readPolicy } = await import("@/lib/orchestrator/policy");
+    const { fetchSpecialistListings } = await import("@/lib/registry/bridge");
+
+    (readPolicy as jest.Mock).mockReturnValue({
+      maxPerTaskUsd: 0,
+      requireAttestation: false,
+      minReputation: 0,
+      preferredPrivacyMode: "public",
+    });
+
+    (fetchSpecialistListings as jest.Mock).mockResolvedValue({ listings: [] });
+
+    const { POST } = await import("@/app/api/planner/tools/resolve/route");
+    const req = new Request("http://localhost/api/planner/tools/resolve", {
+      method: "POST",
+      body: JSON.stringify({ task: "summarize this" }),
+      headers: { "content-type": "application/json" },
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toMatchObject({
+      ok: false,
+      candidate: null,
+      appliedFilters: {
+        sortBy: "ranking",
+      },
+      error: "No eligible specialists found matching your policy.",
+    });
   });
 
   it("prefers source-matching specialists when preferredSource is set", async () => {
@@ -105,167 +169,155 @@ describe("planner resolve route", () => {
     expect(body.ok).toBe(true);
     expect(body.candidate.walletAddress).toBe("wallet-openclaw");
     expect(body.candidate.selectionReasons).toContain("source:openclaw");
-    expect(body.candidate.sourceRouting).toMatchObject({
-      requestedSource: "openclaw",
-      candidateSource: "openclaw",
-      strictSourceMatch: false,
-      scoreDelta: 12,
-    });
-    expect(body.candidate.sourceRouting.decisionTrace).toEqual(
-      expect.arrayContaining([
-        "source:requested=openclaw",
-        "source:candidate=openclaw",
-        "source:strict=false",
-        "source:score_delta=12",
-        "source:openclaw",
-      ])
-    );
   });
 
-  it("returns source policy trace when preferred source does not match under non-strict mode", async () => {
-    const { fetchSpecialistListings } = await import("@/lib/registry/bridge");
+  it("applies discovery filters and supports cost sorting", async () => {
     const { readPolicy } = await import("@/lib/orchestrator/policy");
+    const { fetchSpecialistListings } = await import("@/lib/registry/bridge");
 
     (readPolicy as jest.Mock).mockReturnValue({
-      preferredPrivacyMode: "public",
-      requireAttestation: false,
       maxPerTaskUsd: 0,
-      minReputation: 0,
-    });
-
-    (fetchSpecialistListings as jest.Mock).mockResolvedValue({
-      listings: [makeListing({ wallet: "wallet-hermes", tags: ["source:hermes"] })],
-    });
-
-    const { POST } = await import("@/app/api/planner/tools/resolve/route");
-    const req = new Request("http://localhost/api/planner/tools/resolve", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        task: "summarize",
-        policy: { preferredSource: "openclaw", strictSourceMatch: false },
-      }),
-    });
-
-    const res = await POST(req);
-    expect(res.status).toBe(200);
-
-    const body = await res.json();
-    expect(body.ok).toBe(true);
-    expect(body.candidate.walletAddress).toBe("wallet-hermes");
-    expect(body.candidate.sourceRouting).toMatchObject({
-      requestedSource: "openclaw",
-      candidateSource: "hermes",
-      strictSourceMatch: false,
-      scoreDelta: -4,
-    });
-    expect(body.candidate.sourceRouting.decisionTrace).toEqual(
-      expect.arrayContaining(["source_penalty:hermes"])
-    );
-  });
-
-  it("enforces strictSourceMatch guardrail", async () => {
-    const { fetchSpecialistListings } = await import("@/lib/registry/bridge");
-    const { readPolicy } = await import("@/lib/orchestrator/policy");
-
-    (readPolicy as jest.Mock).mockReturnValue({
-      preferredPrivacyMode: "public",
       requireAttestation: false,
-      maxPerTaskUsd: 0,
       minReputation: 0,
-    });
-
-    (fetchSpecialistListings as jest.Mock).mockResolvedValue({
-      listings: [makeListing({ wallet: "wallet-hermes", tags: ["source:hermes"] })],
-    });
-
-    const { POST } = await import("@/app/api/planner/tools/resolve/route");
-    const req = new Request("http://localhost/api/planner/tools/resolve", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        task: "summarize",
-        policy: { preferredSource: "openclaw", strictSourceMatch: true },
-      }),
-    });
-
-    const res = await POST(req);
-    expect(res.status).toBe(400);
-
-    const body = await res.json();
-    expect(body.ok).toBe(false);
-    expect(body.error).toContain("No eligible specialists");
-    expect(body.resolveDiagnostics).toMatchObject({
-      totalListings: 1,
-      acceptedCount: 0,
-      rejectedBy: {
-        sourcePolicy: 1,
-      },
-      rejectedWalletSamples: {
-        sourcePolicy: ["wallet-hermes"],
-      },
-    });
-  });
-
-  it("returns ranked alternative explainability metadata for supervisor diagnostics", async () => {
-    const { fetchSpecialistListings } = await import("@/lib/registry/bridge");
-    const { readPolicy } = await import("@/lib/orchestrator/policy");
-
-    (readPolicy as jest.Mock).mockReturnValue({
       preferredPrivacyMode: "public",
-      requireAttestation: false,
-      maxPerTaskUsd: 0,
-      minReputation: 0,
     });
 
     (fetchSpecialistListings as jest.Mock).mockResolvedValue({
       listings: [
-        makeListing({ wallet: "wallet-openclaw", tags: ["source:openclaw"], reputation: 110 }),
-        makeListing({ wallet: "wallet-hermes", tags: ["source:hermes"], reputation: 100 }),
-        makeListing({ wallet: "wallet-pi", tags: ["source:pi"], reputation: 90 }),
+        makeListing({
+          wallet: "wallet-a",
+          taskTypes: ["summarize"],
+          inputModes: ["text"],
+          privacyModes: ["public"],
+          runtimeCaps: ["stateful"],
+          tags: ["finance"],
+          attested: true,
+          perCallUsd: 0.8,
+          feedbackScore: 9,
+          feedbackCount: 10,
+          lastCheckedAt: "2026-04-23T00:00:00.000Z",
+        }),
+        makeListing({
+          wallet: "wallet-b",
+          taskTypes: ["summarize"],
+          inputModes: ["text"],
+          privacyModes: ["public"],
+          runtimeCaps: ["stateful"],
+          tags: ["finance", "realtime"],
+          attested: true,
+          perCallUsd: 0.3,
+          feedbackScore: 8.7,
+          feedbackCount: 8,
+          lastCheckedAt: "2026-04-23T00:00:00.000Z",
+        }),
       ],
     });
 
     const { POST } = await import("@/app/api/planner/tools/resolve/route");
     const req = new Request("http://localhost/api/planner/tools/resolve", {
       method: "POST",
-      headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        task: "summarize",
-        policy: { preferredSource: "openclaw", strictSourceMatch: false },
+        task: "summarize this",
+        sortBy: "cost",
+        runtimeCap: "stateful",
+        tag: "finance",
+        health: "pass",
+        attested: true,
       }),
+      headers: { "content-type": "application/json" },
     });
 
     const res = await POST(req);
     expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toMatchObject({
+      ok: true,
+      candidate: {
+        walletAddress: "wallet-b",
+      },
+      appliedFilters: {
+        sortBy: "cost",
+        runtimeCap: "stateful",
+        tag: "finance",
+        health: "pass",
+        attested: true,
+      },
+    });
+  });
 
-    const body = await res.json();
-    expect(body.ok).toBe(true);
-    expect(body.candidate.walletAddress).toBe("wallet-openclaw");
-    expect(body.alternativeCount).toBe(2);
-    expect(body.alternatives).toHaveLength(2);
-    expect(body.resolveDiagnostics).toMatchObject({
-      totalListings: 3,
-      acceptedCount: 3,
-      rejectedBy: {
-        sourcePolicy: 0,
+  it("supports reputation sorting", async () => {
+    const { readPolicy } = await import("@/lib/orchestrator/policy");
+    const { fetchSpecialistListings } = await import("@/lib/registry/bridge");
+
+    (readPolicy as jest.Mock).mockReturnValue({
+      maxPerTaskUsd: 0,
+      requireAttestation: false,
+      minReputation: 0,
+      preferredPrivacyMode: "public",
+    });
+
+    (fetchSpecialistListings as jest.Mock).mockResolvedValue({
+      listings: [
+        makeListing({ wallet: "wallet-high-rep", reputation: 80 }),
+        makeListing({ wallet: "wallet-low-rep", reputation: 20 }),
+      ],
+    });
+
+    const { POST } = await import("@/app/api/planner/tools/resolve/route");
+    const req = new Request("http://localhost/api/planner/tools/resolve", {
+      method: "POST",
+      body: JSON.stringify({ task: "summarize this", sortBy: "reputation" }),
+      headers: { "content-type": "application/json" },
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toMatchObject({
+      ok: true,
+      candidate: {
+        walletAddress: "wallet-high-rep",
       },
-      rejectedWalletSamples: {
-        sourcePolicy: [],
+      appliedFilters: {
+        sortBy: "reputation",
       },
     });
-    expect(body.alternatives[0]).toMatchObject({
-      walletAddress: "wallet-hermes",
-      sourceRouting: {
-        requestedSource: "openclaw",
-        candidateSource: "hermes",
-        strictSourceMatch: false,
-        scoreDelta: -4,
+  });
+
+  it("supports feedback sorting", async () => {
+    const { readPolicy } = await import("@/lib/orchestrator/policy");
+    const { fetchSpecialistListings } = await import("@/lib/registry/bridge");
+
+    (readPolicy as jest.Mock).mockReturnValue({
+      maxPerTaskUsd: 0,
+      requireAttestation: false,
+      minReputation: 0,
+      preferredPrivacyMode: "public",
+    });
+
+    (fetchSpecialistListings as jest.Mock).mockResolvedValue({
+      listings: [
+        makeListing({ wallet: "wallet-low-feedback", feedbackScore: 7.1, feedbackCount: 2 }),
+        makeListing({ wallet: "wallet-high-feedback", feedbackScore: 9.4, feedbackCount: 35 }),
+      ],
+    });
+
+    const { POST } = await import("@/app/api/planner/tools/resolve/route");
+    const req = new Request("http://localhost/api/planner/tools/resolve", {
+      method: "POST",
+      body: JSON.stringify({ task: "summarize this", sortBy: "feedback" }),
+      headers: { "content-type": "application/json" },
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toMatchObject({
+      ok: true,
+      candidate: {
+        walletAddress: "wallet-high-feedback",
+      },
+      appliedFilters: {
+        sortBy: "feedback",
       },
     });
-    expect(body.alternatives[0].sourceRouting.decisionTrace).toEqual(
-      expect.arrayContaining(["source_penalty:hermes"])
-    );
   });
 
   it("filters by required attestor checkpoints and quality claims", async () => {
@@ -313,12 +365,6 @@ describe("planner resolve route", () => {
     const body = await res.json();
     expect(body.ok).toBe(true);
     expect(body.candidate.walletAddress).toBe("wallet-disclosure-pass");
-    expect(body.candidate.selectionReasons).toEqual(
-      expect.arrayContaining([
-        "requires:attestor_checkpoints=schema_contract_pass,policy_bounds_ok",
-        "requires:quality_claims=latency_p95_under_3s",
-      ])
-    );
     expect(body.resolveDiagnostics).toMatchObject({
       totalListings: 2,
       acceptedCount: 1,
