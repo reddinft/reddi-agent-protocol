@@ -7,15 +7,15 @@
  */
 import { createHash } from "crypto";
 import { PublicKey } from "@solana/web3.js";
+import { getNetworkProfile } from "@/lib/config/network";
 
-/** Deployed program address on devnet (Quasar) */
-export const ESCROW_PROGRAM_ID = new PublicKey(
-  "VYCbMszux9seLK2aXFZMECMBFURvfuJLXsXPmJS5igW"
-);
+const network = getNetworkProfile();
 
-/** Solana devnet RPC */
-export const DEVNET_RPC =
-  process.env.NEXT_PUBLIC_RPC_ENDPOINT ?? "https://api.devnet.solana.com";
+/** Deployed program address (resolved from active network profile / env) */
+export const ESCROW_PROGRAM_ID = new PublicKey(network.programs.escrowProgramId);
+
+/** Solana RPC endpoint from active network profile */
+export const DEVNET_RPC = network.solana.rpcHttp;
 
 // ── PDA seeds (must match programs/escrow/src/constants.rs) ──────────────────
 
