@@ -13,14 +13,15 @@ import type { WalletAdapter } from "@solana/wallet-adapter-base";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { PlaywrightWalletAdapter } from "@/lib/wallet/playwright-wallet-adapter";
 import "@solana/wallet-adapter-react-ui/styles.css";
+import { getNetworkProfile } from "@/lib/config/network";
 
 interface Props {
   children: ReactNode;
 }
 
 const WalletProvider: FC<Props> = ({ children }) => {
-  const endpoint =
-    process.env.NEXT_PUBLIC_RPC_URL || "https://api.devnet.solana.com";
+  const network = getNetworkProfile();
+  const endpoint = network.solana.rpcHttp;
   const enablePlaywrightWallet = process.env.NEXT_PUBLIC_ENABLE_PLAYWRIGHT_WALLET === "true";
 
   const wallets = useMemo(() => {

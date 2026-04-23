@@ -1,4 +1,6 @@
+import { toExplorerAddressUrl } from "@/lib/config/explorer";
 import { getLeaderboard } from "@/lib/torque/client";
+import { ESCROW_PROGRAM_ID } from "@/lib/program";
 
 export default async function LeaderboardPage() {
   const entries = await getLeaderboard();
@@ -36,7 +38,7 @@ export default async function LeaderboardPage() {
                   <td className="py-3 px-4 font-mono text-sm">#{entry.rank}</td>
                   <td className="py-3 px-4 font-mono text-xs">
                     <a
-                      href={`https://explorer.solana.com/address/${entry.userPubkey}?cluster=devnet`}
+                      href={toExplorerAddressUrl(entry.userPubkey)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="underline"
@@ -55,7 +57,7 @@ export default async function LeaderboardPage() {
 
       <p className="text-xs text-muted-foreground mt-8">
         Rankings update each epoch. Powered by on-chain data from the Reddi Agent Protocol escrow program at{" "}
-        <span className="font-mono">VYCbMszux9seLK2aXFZMECMBFURvfuJLXsXPmJS5igW</span>.
+        <span className="font-mono">{ESCROW_PROGRAM_ID.toBase58()}</span>.
       </p>
     </main>
   );
