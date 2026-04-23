@@ -67,7 +67,7 @@ describe("endpoint manager reliability contracts (E1)", () => {
     const hb = await heartbeatEndpoint({});
     expect(hb.status).toBe("offline");
     expect(hb.heartbeatOk).toBe(false);
-    expect(hb.note).toMatch(/Re-open tunnel/i);
+    expect(hb.note).toMatch(/Restart ngrok|Re-open tunnel/i);
   });
 
   it("heartbeat reports proxy remediation when runtime is up but proxy/remote are down", async () => {

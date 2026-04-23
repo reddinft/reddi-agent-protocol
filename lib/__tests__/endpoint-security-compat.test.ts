@@ -28,10 +28,32 @@ describe("endpoint security compatibility (Bucket D)", () => {
     const result = await createOrRotateEndpoint({
       consentExposeEndpoint: true,
       port: 11434,
-      endpointUrl: "https://reddi-test.localtunnel.me",
+      endpointUrl: "https://reddi-test.ngrok-free.app",
     });
 
     expect(result.x402PublicPrefixes).toEqual(["/v1", "/x402", "/healthz"]);
+  });
+
+  it("defaults to ngrok provider + command when endpoint host is not localtunnel", async () => {
+    const result = await createOrRotateEndpoint({
+      consentExposeEndpoint: true,
+      port: 11434,
+      endpointUrl: "https://reddi-test.ngrok-free.app",
+    });
+
+    expect(result.provider).toBe("ngrok");
+    expect(result.tunnelCommand).toMatch(/^ngrok http /);
+  });
+
+  it("keeps localtunnel fallback support when localtunnel URL is used", async () => {
+    const result = await createOrRotateEndpoint({
+      consentExposeEndpoint: true,
+      port: 11434,
+      endpointUrl: "https://reddi-test.localtunnel.me",
+    });
+
+    expect(result.provider).toBe("localtunnel-compatible");
+    expect(result.tunnelCommand).toContain("localtunnel");
   });
 
   it("generated token-gated proxy script bypasses public x402 paths and gates non-public paths", async () => {

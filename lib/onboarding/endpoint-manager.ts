@@ -15,7 +15,7 @@ export type EndpointActionResult = {
   status: "online" | "offline";
   heartbeatOk: boolean;
   heartbeatCheckedAt: string;
-  provider: "localtunnel-compatible";
+  provider: "ngrok" | "localtunnel-compatible";
   tunnelCommand: string;
   proxyCommand: string;
   proxyPort: number;
@@ -32,7 +32,7 @@ type SpecialistProfile = {
   endpoint: {
     url: string;
     status: "online" | "offline";
-    provider: "localtunnel-compatible";
+    provider: "ngrok" | "localtunnel-compatible";
     localPort: number;
     proxyPort: number;
     heartbeatOk: boolean;
@@ -81,6 +81,16 @@ function inferSubdomain(endpointUrl: string) {
   } catch {
     return `reddi-${randomSuffix()}`;
   }
+}
+
+function inferTunnelProvider(endpointUrl: string): "ngrok" | "localtunnel-compatible" {
+  try {
+    const host = new URL(endpointUrl).hostname.toLowerCase();
+    if (host.includes("localtunnel.me")) return "localtunnel-compatible";
+  } catch {
+    // default below
+  }
+  return "ngrok";
 }
 
 function resolveProxyPort(localPort: number) {
@@ -221,8 +231,27 @@ function readProfile(): SpecialistProfile | null {
 }
 
 function buildTunnelCommand(proxyPort: number, endpointUrl: string) {
-  const subdomain = inferSubdomain(endpointUrl);
-  return `npx localtunnel --port ${proxyPort} --subdomain ${subdomain}`;
+  const provider = inferTunnelProvider(endpointUrl);
+  if (provider === "localtunnel-compatible") {
+    const subdomain = inferSubdomain(endpointUrl);
+    return `npx localtunnel --port ${proxyPort} --subdomain ${subdomain}`;
+  }
+
+  return `ngrok http ${proxyPort}`;
+}
+
+function buildTunnelRecoveryNote(provider: "ngrok" | "localtunnel-compatible", tunnelCommand: string) {
+  if (provider === "ngrok") {
+    return `Tunnel appears down. Restart ngrok: ${tunnelCommand}`;
+  }
+  return `Tunnel appears down. Re-open tunnel: ${tunnelCommand}`;
+}
+
+function buildHeartbeatRecoveryNote(provider: "ngrok" | "localtunnel-compatible", tunnelCommand: string) {
+  if (provider === "ngrok") {
+    return `Endpoint heartbeat failed. Restart ngrok with: ${tunnelCommand}`;
+  }
+  return `Endpoint heartbeat failed. Re-open tunnel with: ${tunnelCommand}`;
 }
 
 function buildProxyCommand(localPort: number, proxyPort: number, token: string) {
@@ -241,11 +270,12 @@ export async function createOrRotateEndpoint(input: EndpointActionInput): Promis
   ensureTokenProxyScript();
 
   const endpointUrl =
-    normalizeEndpointUrl(input.endpointUrl) || `https://reddi-${randomSuffix()}.localtunnel.me`;
+    normalizeEndpointUrl(input.endpointUrl) || `https://your-subdomain.ngrok-free.app`;
   const token = issueEndpointToken();
   const proxyPort = resolveProxyPort(input.port);
   const proxyCommand = buildProxyCommand(input.port, proxyPort, token);
   const tunnelCommand = buildTunnelCommand(proxyPort, endpointUrl);
+  const provider = inferTunnelProvider(endpointUrl);
 
   const localOk = await checkLocalRuntime(input.port);
   const localProxyOk = await checkLocalTokenProxy(proxyPort, token);
@@ -260,7 +290,7 @@ export async function createOrRotateEndpoint(input: EndpointActionInput): Promis
     : !localProxyOk && !remoteOk
     ? `Token-gated proxy is not running. Start it first: ${proxyCommand}`
     : !remoteOk
-    ? `Tunnel appears down. Re-open tunnel: ${tunnelCommand}`
+    ? buildTunnelRecoveryNote(provider, tunnelCommand)
     : `Endpoint check failed. Re-run endpoint onboarding.`;
 
   const profile: SpecialistProfile = {
@@ -268,7 +298,7 @@ export async function createOrRotateEndpoint(input: EndpointActionInput): Promis
     endpoint: {
       url: endpointUrl,
       status: heartbeatOk ? "online" : "offline",
-      provider: "localtunnel-compatible",
+      provider,
       localPort: input.port,
       proxyPort,
       heartbeatOk,
@@ -292,7 +322,7 @@ export async function createOrRotateEndpoint(input: EndpointActionInput): Promis
     status: profile.endpoint.status,
     heartbeatOk,
     heartbeatCheckedAt,
-    provider: "localtunnel-compatible",
+    provider,
     tunnelCommand,
     proxyCommand,
     proxyPort,
@@ -324,6 +354,7 @@ export async function heartbeatEndpoint(input: {
   }
 
   const tunnelCommand = buildTunnelCommand(proxyPort, endpointUrl);
+  const provider = inferTunnelProvider(endpointUrl);
   const proxyCommand = buildProxyCommand(port, proxyPort, token);
 
   const localOk = await checkLocalRuntime(port);
@@ -339,7 +370,7 @@ export async function heartbeatEndpoint(input: {
     : !localProxyOk && !remoteOk
     ? `Token-gated proxy is offline. Start it with: ${proxyCommand}`
     : !remoteOk
-    ? `Endpoint heartbeat failed. Re-open tunnel with: ${tunnelCommand}`
+    ? buildHeartbeatRecoveryNote(provider, tunnelCommand)
     : "Endpoint heartbeat failed. Re-run endpoint onboarding.";
 
   const profile: SpecialistProfile = {
@@ -347,7 +378,7 @@ export async function heartbeatEndpoint(input: {
     endpoint: {
       url: endpointUrl,
       status: heartbeatOk ? "online" : "offline",
-      provider: "localtunnel-compatible",
+      provider,
       localPort: port,
       proxyPort,
       heartbeatOk,
@@ -371,7 +402,7 @@ export async function heartbeatEndpoint(input: {
     status: profile.endpoint.status,
     heartbeatOk,
     heartbeatCheckedAt,
-    provider: "localtunnel-compatible",
+    provider,
     tunnelCommand,
     proxyCommand,
     proxyPort,
