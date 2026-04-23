@@ -174,4 +174,34 @@ describe("registry route", () => {
       "wallet-c",
     ]);
   });
+
+  it("serializes bigint onchain fields without failing", async () => {
+    const { fetchSpecialistListings } = await import("@/lib/registry/bridge");
+    (fetchSpecialistListings as jest.Mock).mockResolvedValue({
+      ok: true,
+      listings: [
+        {
+          ...mkListing({ walletAddress: "wallet-bigint", ranking_score: 1 }),
+          onchain: {
+            ...mkListing({ walletAddress: "wallet-bigint", ranking_score: 1 }).onchain,
+            rateLamports: 1000000n,
+            jobsCompleted: 3n,
+            jobsFailed: 1n,
+            createdAt: 1713868800n,
+          },
+        },
+      ],
+      onchainCount: 1,
+      indexedCount: 1,
+    });
+
+    const { GET } = await import("@/app/api/registry/route");
+    const res = await GET(new Request("http://localhost/api/registry"));
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(data.listings).toHaveLength(1);
+    expect(data.listings[0].onchain.rateLamports).toBe("1000000");
+    expect(data.listings[0].onchain.jobsCompleted).toBe("3");
+  });
 });
