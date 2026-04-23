@@ -293,7 +293,7 @@ export default function OnboardingPage() {
 
   const endpointPreview = useMemo(() => {
     if (!state.ollamaPort || !state.consentExposeEndpoint) return "Not configured";
-    return state.endpointUrl || `https://your-agent.localtunnel.me (maps to :${state.ollamaPort})`;
+    return state.endpointUrl || `https://your-subdomain.ngrok-free.app (maps to :${state.ollamaPort})`;
   }, [state.ollamaPort, state.consentExposeEndpoint, state.endpointUrl]);
 
   const operatorStatusState = useMemo<"missing" | "invalid" | "ready" | "stale">(() => {
@@ -653,7 +653,7 @@ export default function OnboardingPage() {
         {step === 3 && (
           <div className="space-y-4">
             <h2 className="text-lg font-semibold">3. Endpoint setup</h2>
-            <p className="text-sm text-muted-foreground">Configure token-gated proxy + tunnel endpoint mapped to your local runtime port.</p>
+            <p className="text-sm text-muted-foreground">Configure token-gated proxy + tunnel endpoint mapped to your local runtime port (ngrok-first, localtunnel fallback).</p>
             <div>
               <Label className="mb-1 block">Tunnel endpoint (optional override)</Label>
               <Input
@@ -671,7 +671,7 @@ export default function OnboardingPage() {
                     endpointAuthToken: "",
                   }))
                 }
-                placeholder="https://my-specialist.localtunnel.me"
+                placeholder="https://your-subdomain.ngrok-free.app"
               />
             </div>
             <div className="rounded-lg border border-white/10 bg-black/30 p-3 text-sm">
