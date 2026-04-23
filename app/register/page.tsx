@@ -186,14 +186,22 @@ function RegisterInner() {
       const res = await fetch("/api/register/probe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ endpoint }),
+        body: JSON.stringify({ endpoint, requireX402: true }),
       });
       const data = await res.json().catch(() => null);
       if (requestId !== endpointProbeRequestRef.current) return;
 
-      if (!res.ok || !data) {
+      if (!data) {
         setEndpointProbeStatus("unreachable");
         setEndpointProbeMessage("Could not reach endpoint. Use a public https URL from ngrok (recommended) or localtunnel.");
+        return;
+      }
+
+      if (!res.ok) {
+        setEndpointProbeStatus("unreachable");
+        setEndpointProbeMessage(
+          data.error || "Could not reach endpoint. Use a public https URL from ngrok (recommended) or localtunnel."
+        );
         return;
       }
 
