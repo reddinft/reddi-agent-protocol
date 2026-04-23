@@ -83,6 +83,14 @@ export default function NavBar() {
 
           {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-5">
+            <a
+              href="https://x.com/reddiagent"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-muted-foreground hover:text-white"
+            >
+              @reddiagent
+            </a>
             {primaryLinks.map(({ href, label, badge }) => (
               <Link
                 key={href}
@@ -147,6 +155,15 @@ export default function NavBar() {
           <div className="md:hidden pb-4">
             <div className="rounded-lg border border-white/10 bg-card/90 p-3 space-y-2">
               <div className="sm:hidden pb-1">{walletControl}</div>
+
+              <a
+                href="https://x.com/reddiagent"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-between rounded-md px-3 py-2 text-sm text-muted-foreground hover:text-white hover:bg-white/5"
+              >
+                <span>@reddiagent (X)</span>
+              </a>
 
               {[...primaryLinks, ...secondaryLinks].map(({ href, label, badge }) => (
                 <Link
