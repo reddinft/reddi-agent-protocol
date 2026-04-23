@@ -4,7 +4,8 @@
 Cloudflare Tunnel was intentionally deferred in specialist endpoint onboarding because endpoint reliability and x402-compatible behavior were inconsistent during fast setup flows.
 
 ## Current guardrail (live)
-- Onboarding endpoint manager now rejects Cloudflare tunnel hostnames (`*.trycloudflare.com`, `*.cfargotunnel.com`) with a clear error.
+- Onboarding endpoint manager rejects Cloudflare tunnel hostnames (`*.trycloudflare.com`, `*.cfargotunnel.com`) with a clear error.
+- Register probe route also rejects Cloudflare tunnel hostnames so unsupported endpoints fail before registration.
 - Operators are redirected to ngrok-first (or localtunnel fallback) until Cloudflare path is re-qualified.
 
 ## Hypotheses to validate

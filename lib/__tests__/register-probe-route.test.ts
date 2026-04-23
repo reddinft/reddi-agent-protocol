@@ -28,6 +28,22 @@ describe("register probe route", () => {
     });
   });
 
+  it("blocks Cloudflare tunnel endpoints while RCA hardening is active", async () => {
+    const { POST } = await import("@/app/api/register/probe/route");
+    const req = new NextRequest("http://localhost/api/register/probe", {
+      method: "POST",
+      body: JSON.stringify({ endpoint: "https://abc.trycloudflare.com" }),
+      headers: { "content-type": "application/json" },
+    });
+
+    const res = await POST(req as unknown as Request);
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toMatchObject({
+      ok: false,
+      status: "unsupported_tunnel_provider",
+    });
+  });
+
   it("rejects malformed sourceAdapter manifests with actionable errors", async () => {
     const { POST } = await import("@/app/api/register/probe/route");
     const req = new NextRequest("http://localhost/api/register/probe", {
