@@ -28,12 +28,21 @@ type ProbeResult = {
 
 const STEP_BADGE = "w-7 h-7 rounded-full bg-blue-600 text-white text-sm font-bold flex items-center justify-center";
 
-const CLOUDFLARED_INSTALL: Record<Platform, string> = {
-  macos: "brew install cloudflared",
-  linux:
-    "curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o cloudflared && chmod +x cloudflared && sudo mv cloudflared /usr/local/bin/",
-  windows: "winget install Cloudflare.cloudflared",
+const NGROK_INSTALL: Record<Platform, string> = {
+  macos: "brew install ngrok/ngrok/ngrok",
+  linux: "Download from https://ngrok.com/download and install ngrok binary",
+  windows: "winget install Ngrok.Ngrok",
 };
+
+function inferTunnelPort(baseUrl: string, fallback: number) {
+  try {
+    const parsed = new URL(normalizeBaseUrl(baseUrl));
+    if (parsed.port) return Number(parsed.port);
+    return parsed.protocol === "https:" ? 443 : 80;
+  } catch {
+    return fallback;
+  }
+}
 
 const RUNTIME_CONFIG: Record<
   RuntimeChoice,
@@ -221,11 +230,11 @@ export default function GuidedSetupModal({ open, onClose, onComplete }: GuidedSe
   const completedStep4 = tunnelStatus === "done";
 
   const selectedRuntimeInstall = useMemo(() => runtimeConfig.install[platform], [platform, runtimeConfig]);
-  const selectedCloudflaredInstall = useMemo(() => CLOUDFLARED_INSTALL[platform], [platform]);
-  const tunnelCommand = useMemo(
-    () => `cloudflared tunnel --url ${runtimeBaseUrl || runtimeConfig.defaultBaseUrl}`,
-    [runtimeBaseUrl, runtimeConfig]
-  );
+  const selectedNgrokInstall = useMemo(() => NGROK_INSTALL[platform], [platform]);
+  const tunnelCommand = useMemo(() => {
+    const port = inferTunnelPort(runtimeBaseUrl || runtimeConfig.defaultBaseUrl, runtimeChoice === "ollama" ? 11434 : 8080);
+    return `ngrok http ${port}`;
+  }, [runtimeBaseUrl, runtimeConfig, runtimeChoice]);
   const sshFallback = useMemo(() => {
     try {
       const url = new URL(normalizeBaseUrl(runtimeBaseUrl || runtimeConfig.defaultBaseUrl));
@@ -311,7 +320,7 @@ export default function GuidedSetupModal({ open, onClose, onComplete }: GuidedSe
     const candidate = endpointInput.trim();
     if (!candidate) {
       setTunnelStatus("error");
-      setDetailMessage("Paste your cloudflared URL first.");
+      setDetailMessage("Paste your tunnel URL first (ngrok recommended).");
       return;
     }
 
@@ -342,10 +351,10 @@ export default function GuidedSetupModal({ open, onClose, onComplete }: GuidedSe
         return;
       }
       setTunnelStatus("error");
-      setDetailMessage(data?.error || "Can't reach that URL. Is cloudflared still running?");
+      setDetailMessage(data?.error || "Can't reach that URL. Is ngrok or localtunnel still running?");
     } catch {
       setTunnelStatus("error");
-      setDetailMessage("Can't reach that URL. Is cloudflared still running?");
+      setDetailMessage("Can't reach that URL. Is ngrok or localtunnel still running?");
     }
   };
 
@@ -487,14 +496,14 @@ export default function GuidedSetupModal({ open, onClose, onComplete }: GuidedSe
           <StepCard
             index={3}
             title="Start the tunnel"
-            description="cloudflared gives you a public HTTPS URL, no account needed."
+            description="Use ngrok (recommended) for a stable public HTTPS URL."
             completed={completedStep3}
             locked={!completedStep2}
           >
             <div className="space-y-3">
               <div className="space-y-2">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Install cloudflared</p>
-                <CommandBlock command={selectedCloudflaredInstall} />
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Install ngrok</p>
+                <CommandBlock command={selectedNgrokInstall} />
               </div>
               <div className="space-y-2">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Start tunnel</p>
@@ -502,11 +511,11 @@ export default function GuidedSetupModal({ open, onClose, onComplete }: GuidedSe
               </div>
               <div className="flex items-end gap-2">
                 <div className="flex-1 space-y-2">
-                  <p className="text-sm text-muted-foreground">Paste the https:// URL from your terminal output.</p>
+                  <p className="text-sm text-muted-foreground">Paste the https:// URL from ngrok output (or localtunnel fallback).</p>
                   <Input
                     value={endpointInput}
                     onChange={(e) => setEndpointInput(e.target.value)}
-                    placeholder="https://random-words.trycloudflare.com"
+                    placeholder="https://your-subdomain.ngrok-free.app"
                   />
                 </div>
                 <Button type="button" variant="outline" onClick={checkTunnel} disabled={tunnelStatus === "checking" || modelStatus !== "done"}>
