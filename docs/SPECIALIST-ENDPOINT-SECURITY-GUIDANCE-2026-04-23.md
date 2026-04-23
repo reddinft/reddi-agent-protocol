@@ -6,6 +6,7 @@ Ollama has no built-in auth for public exposure. If a specialist exposes raw Oll
 ## Decision for next iteration
 - **Default tunnel guidance: ngrok-first**
 - **Cloudflare tunnel: deferred** until root-cause + reproducible tests are green
+- **Current guardrail:** onboarding rejects Cloudflare tunnel hostnames during RCA window
 - Goal: minimum secure setup steps so specialists can monetize quickly
 
 ## Recommended security patterns (practical options)
@@ -48,6 +49,7 @@ Pros: strongest posture; Cons: higher setup burden.
 
 ## References
 - ngrok Ollama example (traffic policy + optional basic auth): https://ngrok.com/docs/universal-gateway/examples/ollama
+- Cloudflare RCA tracker (active): `docs/CLOUDFLARE-TUNNEL-RCA-2026-04-24.md`
 - Cloudflare tunnel common error diagnostics (kept for deferred RCA): https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/troubleshoot-tunnels/common-errors/
 - Observed issue threads for tunnel instability/perf to track during RCA:
   - https://github.com/ollama/ollama/issues/3271

@@ -83,6 +83,15 @@ function inferSubdomain(endpointUrl: string) {
   }
 }
 
+function isCloudflareTunnelHost(endpointUrl: string) {
+  try {
+    const host = new URL(endpointUrl).hostname.toLowerCase();
+    return host.includes("trycloudflare.com") || host.includes("cfargotunnel.com");
+  } catch {
+    return false;
+  }
+}
+
 function inferTunnelProvider(endpointUrl: string): "ngrok" | "localtunnel-compatible" {
   try {
     const host = new URL(endpointUrl).hostname.toLowerCase();
@@ -271,6 +280,11 @@ export async function createOrRotateEndpoint(input: EndpointActionInput): Promis
 
   const endpointUrl =
     normalizeEndpointUrl(input.endpointUrl) || `https://your-subdomain.ngrok-free.app`;
+  if (isCloudflareTunnelHost(endpointUrl)) {
+    throw new Error(
+      "Cloudflare Tunnel onboarding is temporarily unsupported while RCA is in progress. Use an ngrok HTTPS endpoint (recommended) or localtunnel fallback."
+    );
+  }
   const token = issueEndpointToken();
   const proxyPort = resolveProxyPort(input.port);
   const proxyCommand = buildProxyCommand(input.port, proxyPort, token);
@@ -346,6 +360,11 @@ export async function heartbeatEndpoint(input: {
 
   const port = input.port ?? existing?.endpoint.localPort;
   const endpointUrl = normalizeEndpointUrl(input.endpointUrl || existing?.endpoint.url);
+  if (endpointUrl && isCloudflareTunnelHost(endpointUrl)) {
+    throw new Error(
+      "Cloudflare Tunnel endpoint detected. This path is temporarily disabled pending RCA, use ngrok endpoint and rerun endpoint setup."
+    );
+  }
   const token = existing?.endpoint.auth.token;
   const proxyPort = existing?.endpoint.proxyPort ?? (port ? resolveProxyPort(port) : undefined);
 
