@@ -7,6 +7,7 @@ Running a local Ollama instance to offer agent services is the same spirit as ru
 🌐 **Live:** https://agent-protocol.reddi.tech  
 📦 **Protocol repo:** https://github.com/nissan/reddi-agent-protocol  
 📘 **Whitepaper docs:** `docs/whitepaper/` + `/whitepaper` web route  
+🧠 **Design KB:** `docs/AGENT-MARKETPLACE-DISCLOSURE-GUIDELINES.md` (agent composition disclosure + zk-attestable checkpoint pattern)  
 🔗 **Solana program (devnet):** see below
 
 ---

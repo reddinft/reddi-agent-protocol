@@ -28,6 +28,10 @@ export type ResolveInput = {
   taskTypeHint?: string;
   /** Explicit runtime capabilities required to fulfill the request */
   required_capabilities?: string[];
+  /** Optional attestor-verifiable checkpoints required from specialist disclosure metadata */
+  required_attestor_checkpoints?: string[];
+  /** Optional quality-claim markers required from specialist disclosure metadata */
+  required_quality_claims?: string[];
   /** Optional sort preference for the final candidate ordering */
   sortBy?: "ranking" | "reputation" | "cost" | "feedback";
   /** Optional discovery filters (parity with /api/registry) */
@@ -45,6 +49,8 @@ export type ResolveInput = {
     requireAttestation?: boolean;
     preferredPrivacyMode?: "public" | "per" | "vanish";
     minReputation?: number;
+    preferredSource?: "openclaw" | "hermes" | "pi";
+    strictSourceMatch?: boolean;
   };
 };
 
@@ -61,8 +67,28 @@ export type ResolveOutput = {
     reputationScore: number;
     avgFeedbackScore: number;
     selectionReasons: string[];
+    sourceRouting?: {
+      requestedSource: "openclaw" | "hermes" | "pi" | null;
+      candidateSource: "openclaw" | "hermes" | "pi" | null;
+      strictSourceMatch: boolean;
+      scoreDelta: number;
+      decisionTrace: string[];
+    };
   } | null;
   alternativeCount: number;
+  alternatives?: Array<{
+    walletAddress: string;
+    endpointUrl: string;
+    score: number;
+    selectionReasons: string[];
+    sourceRouting?: {
+      requestedSource: "openclaw" | "hermes" | "pi" | null;
+      candidateSource: "openclaw" | "hermes" | "pi" | null;
+      strictSourceMatch: boolean;
+      scoreDelta: number;
+      decisionTrace: string[];
+    };
+  }>;
   appliedFilters?: {
     sortBy: "ranking" | "reputation" | "cost" | "feedback";
     taskType?: string;
@@ -73,6 +99,30 @@ export type ResolveOutput = {
     health?: "pass" | "fail" | "pending";
     tag?: string;
     tags?: string[];
+  };
+  resolveDiagnostics?: {
+    totalListings: number;
+    acceptedCount: number;
+    rejectedBy: {
+      sourcePolicy: number;
+      health: number;
+      attestation: number;
+      reputation: number;
+      cost: number;
+      capabilities: number;
+      endpoint: number;
+      disclosure: number;
+    };
+    rejectedWalletSamples: {
+      sourcePolicy: string[];
+      health: string[];
+      attestation: string[];
+      reputation: string[];
+      cost: string[];
+      capabilities: string[];
+      endpoint: string[];
+      disclosure: string[];
+    };
   };
   error?: string;
 };
@@ -202,6 +252,16 @@ export const MCP_TOOL_SCHEMAS = [
           items: { type: "string" },
           description: "Runtime capabilities required from the specialist.",
         },
+        required_attestor_checkpoints: {
+          type: "array",
+          items: { type: "string" },
+          description: "Optional attestor-verifiable checkpoints that must be disclosed by the specialist.",
+        },
+        required_quality_claims: {
+          type: "array",
+          items: { type: "string" },
+          description: "Optional quality claim markers that must be present in specialist disclosure metadata.",
+        },
         sortBy: {
           type: "string",
           enum: ["ranking", "reputation", "cost", "feedback"],
@@ -226,6 +286,15 @@ export const MCP_TOOL_SCHEMAS = [
             requireAttestation: { type: "boolean", description: "Only use attested specialists." },
             preferredPrivacyMode: { type: "string", enum: ["public","per","vanish"] },
             minReputation: { type: "number", description: "Minimum on-chain reputation score." },
+            preferredSource: {
+              type: "string",
+              enum: ["openclaw", "hermes", "pi"],
+              description: "Optional source-ecosystem preference for candidate routing.",
+            },
+            strictSourceMatch: {
+              type: "boolean",
+              description: "When true, only candidates tagged to preferredSource are eligible.",
+            },
           },
         },
       },

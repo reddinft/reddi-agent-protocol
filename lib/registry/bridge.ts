@@ -51,6 +51,15 @@ export type SpecialistListing = {
     perCallUsd: number;
     context_requirements: ContextRequirement[];
     runtime_capabilities: RuntimeCapability[];
+    agent_composition?: {
+      llm?: string;
+      control_loop?: string;
+      tools?: string[];
+      memory?: string[];
+      goals?: string[];
+    };
+    quality_claims?: string[];
+    attestor_checkpoints?: string[];
   } | null;
   /** Live health state */
   health: {
@@ -217,6 +226,20 @@ export async function fetchSpecialistListings(): Promise<{
           perCallUsd: typeof cap.pricing === "object" ? (cap.pricing?.perCallUsd ?? 0) : 0,
           context_requirements: Array.isArray(cap.context_requirements) ? cap.context_requirements : [],
           runtime_capabilities: Array.isArray(cap.runtime_capabilities) ? normalizeArray<RuntimeCapability>(cap.runtime_capabilities) : [],
+          agent_composition: cap.agent_composition
+            ? {
+                llm: typeof cap.agent_composition.llm === "string" ? cap.agent_composition.llm : undefined,
+                control_loop:
+                  typeof cap.agent_composition.control_loop === "string"
+                    ? cap.agent_composition.control_loop
+                    : undefined,
+                tools: normalizeArray<string>(cap.agent_composition.tools ?? []),
+                memory: normalizeArray<string>(cap.agent_composition.memory ?? []),
+                goals: normalizeArray<string>(cap.agent_composition.goals ?? []),
+              }
+            : undefined,
+          quality_claims: normalizeArray<string>(cap.quality_claims ?? []),
+          attestor_checkpoints: normalizeArray<string>(cap.attestor_checkpoints ?? []),
         }
       : null;
 
@@ -330,6 +353,20 @@ function buildFromIndexOnly(entry: SpecialistIndexEntry): SpecialistListing {
           perCallUsd: typeof cap.pricing === "object" ? (cap.pricing?.perCallUsd ?? 0) : 0,
           context_requirements: Array.isArray(cap.context_requirements) ? cap.context_requirements : [],
           runtime_capabilities: Array.isArray(cap.runtime_capabilities) ? normalizeArray<RuntimeCapability>(cap.runtime_capabilities) : [],
+          agent_composition: cap.agent_composition
+            ? {
+                llm: typeof cap.agent_composition.llm === "string" ? cap.agent_composition.llm : undefined,
+                control_loop:
+                  typeof cap.agent_composition.control_loop === "string"
+                    ? cap.agent_composition.control_loop
+                    : undefined,
+                tools: normalizeArray<string>(cap.agent_composition.tools ?? []),
+                memory: normalizeArray<string>(cap.agent_composition.memory ?? []),
+                goals: normalizeArray<string>(cap.agent_composition.goals ?? []),
+              }
+            : undefined,
+          quality_claims: normalizeArray<string>(cap.quality_claims ?? []),
+          attestor_checkpoints: normalizeArray<string>(cap.attestor_checkpoints ?? []),
         }
       : null,
     health: {
