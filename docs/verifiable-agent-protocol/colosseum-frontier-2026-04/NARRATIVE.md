@@ -4,6 +4,7 @@
 _Audience: Colosseum Frontier hackathon judges (primary), investors / technical evaluators (secondary)_  
 _Time limit: 180 seconds_  
 _Date: 2026-04-12_
+_Official X profile: [@reddiagent](https://x.com/reddiagent)_
 
 ---
 
