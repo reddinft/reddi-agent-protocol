@@ -126,6 +126,14 @@ export default function Home() {
               <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1">No local setup required to try</span>
               <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1">Devnet-backed protocol</span>
               <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1">Open marketplace + audit trails</span>
+              <a
+                href="https://x.com/reddiagent"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-full border border-white/15 bg-white/5 px-3 py-1 hover:border-indigo-300/50 hover:text-indigo-200"
+              >
+                Follow updates on X: @reddiagent
+              </a>
             </div>
           </div>
         </div>
@@ -232,7 +240,17 @@ export default function Home() {
       </section>
 
       <footer className="mt-16 border-t border-surface py-8 text-center text-sm text-gray-500">
-        Trust the protocol, not the pitch.
+        <div className="space-y-2">
+          <p>Trust the protocol, not the pitch.</p>
+          <a
+            href="https://x.com/reddiagent"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-indigo-300 hover:text-indigo-200"
+          >
+            @reddiagent on X
+          </a>
+        </div>
       </footer>
     </div>
   )
