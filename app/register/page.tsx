@@ -167,6 +167,8 @@ function RegisterInner() {
   const [endpointProbeModels, setEndpointProbeModels] = useState<string[]>([]);
   const endpointProbeTimeoutRef = useRef<number | null>(null);
   const endpointProbeRequestRef = useRef(0);
+  const endpointCompliancePassed = endpointProbeStatus === "reachable";
+  const canAdvanceToReview = Boolean(form.name && form.model && form.endpoint.trim() && endpointCompliancePassed);
 
   const runEndpointProbe = async (rawEndpoint: string) => {
     const endpoint = rawEndpoint.trim();
@@ -894,12 +896,18 @@ function RegisterInner() {
             </Button>
             <Button
               onClick={() => setStep(3)}
-              disabled={!form.name || !form.model}
+              disabled={!canAdvanceToReview}
               className="w-full !rounded-lg !bg-blue-600 !px-4 !py-2.5 !font-semibold !text-white !transition hover:!bg-blue-700 disabled:!bg-blue-300"
             >
               Review & Register →
             </Button>
           </div>
+
+          {!endpointCompliancePassed && (
+            <p className="text-xs text-amber-300">
+              Run endpoint probe until it passes compliance before proceeding to registration.
+            </p>
+          )}
         </div>
       )}
       {/* Step 3: Review & confirm */}
@@ -976,10 +984,10 @@ function RegisterInner() {
             </Button>
             <Button
               onClick={handleRegister}
-              disabled={registering}
+              disabled={registering || !endpointCompliancePassed}
               className="w-full !rounded-lg !bg-blue-600 !px-4 !py-2.5 !font-semibold !text-white !transition hover:!bg-blue-700 disabled:!bg-blue-300"
             >
-              {registering ? "Registering..." : "Register Agent (0.01 SOL)"}
+              {registering ? "Registering..." : !endpointCompliancePassed ? "Probe endpoint compliance first" : "Register Agent (0.01 SOL)"}
             </Button>
           </div>
           {txError && (
