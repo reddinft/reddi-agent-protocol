@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+import type { SpecialistListing } from "@/lib/registry/bridge";
 
 jest.mock("@/lib/registry/bridge", () => ({
   fetchSpecialistListings: jest.fn(),
@@ -8,6 +8,78 @@ jest.mock("@/lib/orchestrator/policy", () => ({
   readPolicy: jest.fn(),
 }));
 
+function makeListing(input: {
+  wallet: string;
+  tags?: string[];
+  reputation?: number;
+  attested?: boolean;
+  taskTypes?: string[];
+  inputModes?: string[];
+  privacyModes?: string[];
+  runtimeCaps?: string[];
+  perCallUsd?: number;
+  feedbackScore?: number;
+  feedbackCount?: number;
+  endpointUrl?: string;
+  healthStatus?: "pass" | "fail" | "unknown";
+  lastCheckedAt?: string | null;
+  attestorCheckpoints?: string[];
+  qualityClaims?: string[];
+}): SpecialistListing {
+  return {
+    pda: `pda-${input.wallet}`,
+    walletAddress: input.wallet,
+    onchain: {
+      owner: input.wallet,
+      agentType: "Primary",
+      model: "model",
+      rateLamports: 0n,
+      minReputation: 0,
+      reputationScore: input.reputation ?? 100,
+      jobsCompleted: 0n,
+      jobsFailed: 0n,
+      createdAt: 0n,
+      active: true,
+      attestationAccuracy: 0,
+    },
+    capabilities: {
+      taskTypes: input.taskTypes ?? ["summarize"],
+      inputModes: input.inputModes ?? ["text"],
+      outputModes: ["text"],
+      privacyModes: input.privacyModes ?? ["public"],
+      tags: input.tags ?? [],
+      baseUsd: 0,
+      perCallUsd: input.perCallUsd ?? 0.01,
+      context_requirements: [],
+      runtime_capabilities: input.runtimeCaps ?? [],
+      attestor_checkpoints: input.attestorCheckpoints ?? [],
+      quality_claims: input.qualityClaims ?? [],
+    },
+    health: {
+      status: input.healthStatus ?? "pass",
+      endpointUrl: input.endpointUrl ?? `https://${input.wallet}.example`,
+      lastCheckedAt: input.lastCheckedAt ?? null,
+      freshnessState: "unknown",
+    },
+    attestation: {
+      attested: input.attested ?? false,
+      lastAttestedAt: null,
+    },
+    capabilityHash: null,
+    signals: {
+      feedbackCount: input.feedbackCount ?? 0,
+      avgFeedbackScore: input.feedbackScore ?? 0,
+      attestationAgreements: 0,
+      attestationDisagreements: 0,
+    },
+    ranking_score: 0,
+    indexSemantics: {
+      schemaVersion: 2,
+      rankingFormulaVersion: 1,
+    },
+  };
+}
+
 describe("planner resolve route", () => {
   beforeEach(() => {
     jest.resetModules();
@@ -16,13 +88,13 @@ describe("planner resolve route", () => {
 
   it("returns 400 when task is missing", async () => {
     const { POST } = await import("@/app/api/planner/tools/resolve/route");
-    const req = new NextRequest("http://localhost/api/planner/tools/resolve", {
+    const req = new Request("http://localhost/api/planner/tools/resolve", {
       method: "POST",
       body: JSON.stringify({ task: "" }),
       headers: { "content-type": "application/json" },
     });
 
-    const res = await POST(req as unknown as Request);
+    const res = await POST(req);
     expect(res.status).toBe(400);
     await expect(res.json()).resolves.toMatchObject({
       ok: false,
@@ -30,7 +102,7 @@ describe("planner resolve route", () => {
     });
   });
 
-  it("returns 400 when no eligible specialists are found", async () => {
+  it("returns 400 with appliedFilters when no eligible specialists are found", async () => {
     const { readPolicy } = await import("@/lib/orchestrator/policy");
     const { fetchSpecialistListings } = await import("@/lib/registry/bridge");
 
@@ -44,13 +116,13 @@ describe("planner resolve route", () => {
     (fetchSpecialistListings as jest.Mock).mockResolvedValue({ listings: [] });
 
     const { POST } = await import("@/app/api/planner/tools/resolve/route");
-    const req = new NextRequest("http://localhost/api/planner/tools/resolve", {
+    const req = new Request("http://localhost/api/planner/tools/resolve", {
       method: "POST",
       body: JSON.stringify({ task: "summarize this" }),
       headers: { "content-type": "application/json" },
     });
 
-    const res = await POST(req as unknown as Request);
+    const res = await POST(req);
     expect(res.status).toBe(400);
     await expect(res.json()).resolves.toMatchObject({
       ok: false,
@@ -62,53 +134,41 @@ describe("planner resolve route", () => {
     });
   });
 
-  it("returns top candidate with expected shape on success", async () => {
-    const { readPolicy } = await import("@/lib/orchestrator/policy");
+  it("prefers source-matching specialists when preferredSource is set", async () => {
     const { fetchSpecialistListings } = await import("@/lib/registry/bridge");
+    const { readPolicy } = await import("@/lib/orchestrator/policy");
 
     (readPolicy as jest.Mock).mockReturnValue({
-      maxPerTaskUsd: 0,
-      requireAttestation: false,
-      minReputation: 0,
       preferredPrivacyMode: "public",
+      requireAttestation: false,
+      maxPerTaskUsd: 0,
+      minReputation: 0,
     });
 
     (fetchSpecialistListings as jest.Mock).mockResolvedValue({
       listings: [
-        {
-          walletAddress: "So11111111111111111111111111111111111111112",
-          health: { status: "pass", endpointUrl: "https://specialist.test" },
-          attestation: { attested: true },
-          onchain: { reputationScore: 42 },
-          capabilities: {
-            perCallUsd: 0.5,
-            taskTypes: ["summarize"],
-            privacyModes: ["public"],
-            runtime_capabilities: ["summarization"],
-          },
-          signals: { feedbackCount: 4, avgFeedbackScore: 8.5 },
-        },
+        makeListing({ wallet: "wallet-hermes", tags: ["source:hermes"] }),
+        makeListing({ wallet: "wallet-openclaw", tags: ["source:openclaw"] }),
       ],
     });
 
     const { POST } = await import("@/app/api/planner/tools/resolve/route");
-    const req = new NextRequest("http://localhost/api/planner/tools/resolve", {
+    const req = new Request("http://localhost/api/planner/tools/resolve", {
       method: "POST",
-      body: JSON.stringify({ task: "summarize this" }),
       headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        task: "summarize",
+        policy: { preferredSource: "openclaw" },
+      }),
     });
 
-    const res = await POST(req as unknown as Request);
+    const res = await POST(req);
     expect(res.status).toBe(200);
-    await expect(res.json()).resolves.toMatchObject({
-      ok: true,
-      candidate: {
-        walletAddress: "So11111111111111111111111111111111111111112",
-        endpointUrl: "https://specialist.test",
-        healthStatus: "pass",
-      },
-      alternativeCount: 0,
-    });
+
+    const body = await res.json();
+    expect(body.ok).toBe(true);
+    expect(body.candidate.walletAddress).toBe("wallet-openclaw");
+    expect(body.candidate.selectionReasons).toContain("source:openclaw");
   });
 
   it("applies discovery filters and supports cost sorting", async () => {
@@ -124,41 +184,37 @@ describe("planner resolve route", () => {
 
     (fetchSpecialistListings as jest.Mock).mockResolvedValue({
       listings: [
-        {
-          walletAddress: "So11111111111111111111111111111111111111112",
-          health: { status: "pass", endpointUrl: "https://a.test", lastCheckedAt: "2026-04-23T00:00:00.000Z" },
-          attestation: { attested: true },
-          onchain: { reputationScore: 50 },
-          capabilities: {
-            perCallUsd: 0.8,
-            taskTypes: ["summarize"],
-            inputModes: ["text"],
-            privacyModes: ["public"],
-            runtime_capabilities: ["stateful"],
-            tags: ["finance"],
-          },
-          signals: { feedbackCount: 10, avgFeedbackScore: 9 },
-        },
-        {
-          walletAddress: "So11111111111111111111111111111111111111113",
-          health: { status: "pass", endpointUrl: "https://b.test", lastCheckedAt: "2026-04-23T00:00:00.000Z" },
-          attestation: { attested: true },
-          onchain: { reputationScore: 45 },
-          capabilities: {
-            perCallUsd: 0.3,
-            taskTypes: ["summarize"],
-            inputModes: ["text"],
-            privacyModes: ["public"],
-            runtime_capabilities: ["stateful"],
-            tags: ["finance", "realtime"],
-          },
-          signals: { feedbackCount: 8, avgFeedbackScore: 8.7 },
-        },
+        makeListing({
+          wallet: "wallet-a",
+          taskTypes: ["summarize"],
+          inputModes: ["text"],
+          privacyModes: ["public"],
+          runtimeCaps: ["stateful"],
+          tags: ["finance"],
+          attested: true,
+          perCallUsd: 0.8,
+          feedbackScore: 9,
+          feedbackCount: 10,
+          lastCheckedAt: "2026-04-23T00:00:00.000Z",
+        }),
+        makeListing({
+          wallet: "wallet-b",
+          taskTypes: ["summarize"],
+          inputModes: ["text"],
+          privacyModes: ["public"],
+          runtimeCaps: ["stateful"],
+          tags: ["finance", "realtime"],
+          attested: true,
+          perCallUsd: 0.3,
+          feedbackScore: 8.7,
+          feedbackCount: 8,
+          lastCheckedAt: "2026-04-23T00:00:00.000Z",
+        }),
       ],
     });
 
     const { POST } = await import("@/app/api/planner/tools/resolve/route");
-    const req = new NextRequest("http://localhost/api/planner/tools/resolve", {
+    const req = new Request("http://localhost/api/planner/tools/resolve", {
       method: "POST",
       body: JSON.stringify({
         task: "summarize this",
@@ -171,12 +227,12 @@ describe("planner resolve route", () => {
       headers: { "content-type": "application/json" },
     });
 
-    const res = await POST(req as unknown as Request);
+    const res = await POST(req);
     expect(res.status).toBe(200);
     await expect(res.json()).resolves.toMatchObject({
       ok: true,
       candidate: {
-        walletAddress: "So11111111111111111111111111111111111111113",
+        walletAddress: "wallet-b",
       },
       appliedFilters: {
         sortBy: "cost",
@@ -201,38 +257,24 @@ describe("planner resolve route", () => {
 
     (fetchSpecialistListings as jest.Mock).mockResolvedValue({
       listings: [
-        {
-          walletAddress: "So11111111111111111111111111111111111111114",
-          health: { status: "pass", endpointUrl: "https://c.test" },
-          attestation: { attested: true },
-          onchain: { reputationScore: 80 },
-          capabilities: { perCallUsd: 0.7, taskTypes: ["summarize"], privacyModes: ["public"] },
-          signals: { feedbackCount: 1, avgFeedbackScore: 7.5 },
-        },
-        {
-          walletAddress: "So11111111111111111111111111111111111111115",
-          health: { status: "pass", endpointUrl: "https://d.test" },
-          attestation: { attested: true },
-          onchain: { reputationScore: 20 },
-          capabilities: { perCallUsd: 0.2, taskTypes: ["summarize"], privacyModes: ["public"] },
-          signals: { feedbackCount: 20, avgFeedbackScore: 9.8 },
-        },
+        makeListing({ wallet: "wallet-high-rep", reputation: 80 }),
+        makeListing({ wallet: "wallet-low-rep", reputation: 20 }),
       ],
     });
 
     const { POST } = await import("@/app/api/planner/tools/resolve/route");
-    const req = new NextRequest("http://localhost/api/planner/tools/resolve", {
+    const req = new Request("http://localhost/api/planner/tools/resolve", {
       method: "POST",
       body: JSON.stringify({ task: "summarize this", sortBy: "reputation" }),
       headers: { "content-type": "application/json" },
     });
 
-    const res = await POST(req as unknown as Request);
+    const res = await POST(req);
     expect(res.status).toBe(200);
     await expect(res.json()).resolves.toMatchObject({
       ok: true,
       candidate: {
-        walletAddress: "So11111111111111111111111111111111111111114",
+        walletAddress: "wallet-high-rep",
       },
       appliedFilters: {
         sortBy: "reputation",
@@ -253,41 +295,84 @@ describe("planner resolve route", () => {
 
     (fetchSpecialistListings as jest.Mock).mockResolvedValue({
       listings: [
-        {
-          walletAddress: "So11111111111111111111111111111111111111116",
-          health: { status: "pass", endpointUrl: "https://e.test" },
-          attestation: { attested: true },
-          onchain: { reputationScore: 90 },
-          capabilities: { perCallUsd: 1, taskTypes: ["summarize"], privacyModes: ["public"] },
-          signals: { feedbackCount: 2, avgFeedbackScore: 7.1 },
-        },
-        {
-          walletAddress: "So11111111111111111111111111111111111111117",
-          health: { status: "pass", endpointUrl: "https://f.test" },
-          attestation: { attested: true },
-          onchain: { reputationScore: 10 },
-          capabilities: { perCallUsd: 1.2, taskTypes: ["summarize"], privacyModes: ["public"] },
-          signals: { feedbackCount: 35, avgFeedbackScore: 9.4 },
-        },
+        makeListing({ wallet: "wallet-low-feedback", feedbackScore: 7.1, feedbackCount: 2 }),
+        makeListing({ wallet: "wallet-high-feedback", feedbackScore: 9.4, feedbackCount: 35 }),
       ],
     });
 
     const { POST } = await import("@/app/api/planner/tools/resolve/route");
-    const req = new NextRequest("http://localhost/api/planner/tools/resolve", {
+    const req = new Request("http://localhost/api/planner/tools/resolve", {
       method: "POST",
       body: JSON.stringify({ task: "summarize this", sortBy: "feedback" }),
       headers: { "content-type": "application/json" },
     });
 
-    const res = await POST(req as unknown as Request);
+    const res = await POST(req);
     expect(res.status).toBe(200);
     await expect(res.json()).resolves.toMatchObject({
       ok: true,
       candidate: {
-        walletAddress: "So11111111111111111111111111111111111111117",
+        walletAddress: "wallet-high-feedback",
       },
       appliedFilters: {
         sortBy: "feedback",
+      },
+    });
+  });
+
+  it("filters by required attestor checkpoints and quality claims", async () => {
+    const { fetchSpecialistListings } = await import("@/lib/registry/bridge");
+    const { readPolicy } = await import("@/lib/orchestrator/policy");
+
+    (readPolicy as jest.Mock).mockReturnValue({
+      preferredPrivacyMode: "public",
+      requireAttestation: false,
+      maxPerTaskUsd: 0,
+      minReputation: 0,
+    });
+
+    (fetchSpecialistListings as jest.Mock).mockResolvedValue({
+      listings: [
+        makeListing({
+          wallet: "wallet-disclosure-pass",
+          tags: ["source:openclaw"],
+          attestorCheckpoints: ["schema_contract_pass", "policy_bounds_ok"],
+          qualityClaims: ["latency_p95_under_3s", "high_schema_compliance"],
+        }),
+        makeListing({
+          wallet: "wallet-disclosure-miss",
+          tags: ["source:openclaw"],
+          attestorCheckpoints: ["schema_contract_pass"],
+          qualityClaims: ["high_schema_compliance"],
+        }),
+      ],
+    });
+
+    const { POST } = await import("@/app/api/planner/tools/resolve/route");
+    const req = new Request("http://localhost/api/planner/tools/resolve", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        task: "summarize",
+        required_attestor_checkpoints: ["schema_contract_pass", "policy_bounds_ok"],
+        required_quality_claims: ["latency_p95_under_3s"],
+      }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+
+    const body = await res.json();
+    expect(body.ok).toBe(true);
+    expect(body.candidate.walletAddress).toBe("wallet-disclosure-pass");
+    expect(body.resolveDiagnostics).toMatchObject({
+      totalListings: 2,
+      acceptedCount: 1,
+      rejectedBy: {
+        disclosure: 1,
+      },
+      rejectedWalletSamples: {
+        disclosure: ["wallet-disclosure-miss"],
       },
     });
   });

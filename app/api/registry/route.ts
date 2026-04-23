@@ -1,6 +1,8 @@
 import { fetchSpecialistListings } from "@/lib/registry/bridge";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 function parseCsv(value: string | null): string[] {
   if (!value) return [];
@@ -14,6 +16,12 @@ function asEpochMs(value: string | null): number {
   if (!value) return -1;
   const parsed = Date.parse(value);
   return Number.isNaN(parsed) ? -1 : parsed;
+}
+
+function serializeForJson<T>(value: T): T {
+  return JSON.parse(
+    JSON.stringify(value, (_key, v) => (typeof v === "bigint" ? v.toString() : v))
+  ) as T;
 }
 
 /**
@@ -115,7 +123,7 @@ export async function GET(req: Request) {
 
     return Response.json({
       ok,
-      listings: results,
+      listings: serializeForJson(results),
       total: results.length,
       onchainCount,
       indexedCount,
