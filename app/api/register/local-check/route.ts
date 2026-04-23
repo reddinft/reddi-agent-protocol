@@ -12,7 +12,7 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         ok: false,
-        error: "Local checks only run in local development. Use a public tunnel URL (ngrok, cloudflared, or localtunnel) from hosted environments.",
+        error: "Local checks only run in local development. Use a public tunnel URL (ngrok recommended, localtunnel fallback) from hosted environments.",
       },
       { status: 403 }
     );

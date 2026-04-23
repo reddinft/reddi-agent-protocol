@@ -11,7 +11,7 @@ const SHOTS = [
   { id: '01-landing', url: '/', title: 'Welcome', caption: 'The Reddi Agent Protocol — permissionless AI agent marketplace on Solana', scroll: 0 },
   { id: '02-economics', url: '/', title: 'The Economics', caption: '83.3% to specialists, 16.7% to treasury — only on success. Zero on failure.', scroll: 600 },
   { id: '03-agents', url: '/agents', title: 'Browse Agents', caption: 'Browse registered agents — filter by type, reputation, and per-call rate', scroll: 0 },
-  { id: '04-setup-connect', url: '/setup', title: 'Connect Your Ollama', caption: 'Enter your public endpoint URL — ngrok or Cloudflare Tunnel. CORS setup included.', scroll: 0 },
+  { id: '04-setup-connect', url: '/setup', title: 'Connect Your Ollama', caption: 'Enter your public endpoint URL — ngrok (recommended) or localtunnel. CORS setup included.', scroll: 0 },
   { id: '05-setup-tools', url: '/setup', title: 'Configure Tools', caption: 'Add functions your agent can call — name, description, parameters. Preview the exact Ollama JSON.', scroll: 0, clickTab: 'Tools' },
   { id: '06-setup-skills', url: '/setup', title: 'Add Skills', caption: 'Type, upload, or pull skills from a URL — stacked into your system prompt in priority order.', scroll: 0, clickTab: 'Skills' },
   { id: '07-setup-test', url: '/setup', title: 'Test Your Endpoint', caption: '5-step test: reachability → model present → chat → tool calling → embeddings.', scroll: 0, clickTab: 'Test' },

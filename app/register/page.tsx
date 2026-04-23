@@ -128,20 +128,21 @@ const ENDPOINT_HELP_STEPS: HelpStep[] = [
     ],
   },
   {
-    title: "Expose it with localtunnel",
+    title: "Expose it with ngrok (recommended)",
+    items: [
+      { text: "Install", href: "https://ngrok.com/download" },
+      { text: "Run", code: "ngrok http 11434" },
+      { text: "Copy the https:// forwarding URL" },
+      { text: "Use token-gated proxy if available before exposing endpoint" },
+    ],
+  },
+  {
+    title: "Fallback: localtunnel (less stable)",
     items: [
       { text: "Install", code: "npm install -g localtunnel" },
       { text: "Run", code: "lt --port 11434 --subdomain my-agent" },
       { text: "Your endpoint will be", code: "https://my-agent.loca.lt" },
       { text: "Note: localtunnel URLs expire when the process stops" },
-    ],
-  },
-  {
-    title: "Or use ngrok (more stable)",
-    items: [
-      { text: "Install", href: "https://ngrok.com/download" },
-      { text: "Run", code: "ngrok http 11434" },
-      { text: "Copy the https:// forwarding URL" },
     ],
   },
   {
@@ -192,7 +193,7 @@ function RegisterInner() {
 
       if (!res.ok || !data) {
         setEndpointProbeStatus("unreachable");
-        setEndpointProbeMessage("Could not reach endpoint. Use a public https URL from ngrok, cloudflared, or localtunnel.");
+        setEndpointProbeMessage("Could not reach endpoint. Use a public https URL from ngrok (recommended) or localtunnel.");
         return;
       }
 
@@ -215,12 +216,12 @@ function RegisterInner() {
 
       setEndpointProbeStatus("unreachable");
       setEndpointProbeMessage(
-        data.error || "Could not reach endpoint. Use a public https URL from ngrok, cloudflared, or localtunnel."
+        data.error || "Could not reach endpoint. Use a public https URL from ngrok (recommended) or localtunnel."
       );
     } catch {
       if (requestId !== endpointProbeRequestRef.current) return;
       setEndpointProbeStatus("unreachable");
-      setEndpointProbeMessage("Could not reach endpoint. Use a public https URL from ngrok, cloudflared, or localtunnel.");
+      setEndpointProbeMessage("Could not reach endpoint. Use a public https URL from ngrok (recommended) or localtunnel.");
     }
   };
 

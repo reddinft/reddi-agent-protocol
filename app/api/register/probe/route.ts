@@ -33,7 +33,7 @@ export async function POST(req: Request) {
         {
           ok: false,
           status: "invalid_url",
-          error: "Localhost/private-network targets are blocked in hosted context. Use a public tunnel URL (ngrok, cloudflared, or localtunnel).",
+          error: "Localhost/private-network targets are blocked in hosted context. Use a public tunnel URL (ngrok recommended, localtunnel fallback)."
         },
         { status: 400 }
       );
