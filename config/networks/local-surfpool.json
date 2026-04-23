@@ -1,0 +1,21 @@
+{
+  "name": "local-surfpool",
+  "solana": {
+    "cluster": "localnet",
+    "rpcHttp": "http://127.0.0.1:18999",
+    "rpcWs": "ws://127.0.0.1:19000",
+    "explorerClusterParam": "custom"
+  },
+  "programs": {
+    "escrowProgramId": "EscrowXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+  },
+  "payments": {
+    "jupiterApiBase": "https://api.jup.ag/swap/v2",
+    "perRpc": "http://127.0.0.1:18999",
+    "paymentsApiBase": "https://payments.magicblock.app"
+  },
+  "features": {
+    "allowPerFallback": true,
+    "requireMintReadiness": false
+  }
+}

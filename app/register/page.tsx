@@ -17,6 +17,7 @@ import {
   agentPda,
   INCINERATOR,
 } from "@/lib/program";
+import { toExplorerTxUrl } from "@/lib/config/explorer";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import LinkButton from "@/components/LinkButton";
@@ -100,8 +101,16 @@ function truncateMiddle(value: string, max = 240) {
 function formatSimulationError(err: unknown, logs?: string[] | null) {
   const base = typeof err === "string" ? err : JSON.stringify(err);
   const logTail = (logs ?? []).slice(-8);
-  if (logTail.length === 0) return truncateMiddle(`Simulation failed: ${base}`);
-  return truncateMiddle(`Simulation failed: ${base}\nLogs:\n${logTail.join("\n")}`, 1200);
+
+  let hint = "";
+  if (/InvalidInstructionData/i.test(base)) {
+    hint = "\nHint: Program/instruction layout mismatch. Check that NEXT_PUBLIC_ESCROW_PROGRAM_ID points to the current deployed program for this app build.";
+  } else if (/AccountNotFound/i.test(base)) {
+    hint = "\nHint: One required account is missing on this RPC (often wrong cluster/RPC or unfunded wallet). Verify RPC endpoint + wallet balance on the same network.";
+  }
+
+  if (logTail.length === 0) return truncateMiddle(`Simulation failed: ${base}${hint}`);
+  return truncateMiddle(`Simulation failed: ${base}${hint}\nLogs:\n${logTail.join("\n")}`, 1200);
 }
 
 function formatRegisterError(err: unknown) {
@@ -270,6 +279,8 @@ function RegisterInner() {
   }, [form.endpoint]);
 
   const isJudge = form.agentType === "attestation" || form.agentType === "both";
+  const activeRpc = DEVNET_RPC;
+  const activeProgramId = ESCROW_PROGRAM_ID.toBase58();
 
   const handleRegister = async () => {
     if (!publicKey || !sendTransaction) return;
@@ -403,7 +414,7 @@ function RegisterInner() {
             </p>
             {!txError ? (
               <a
-                href={`https://explorer.solana.com/tx/${txSig}?cluster=devnet`}
+                href={toExplorerTxUrl(txSig)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-mono text-xs break-all text-[#14F195] hover:underline"
@@ -928,18 +939,22 @@ function RegisterInner() {
             </div>
           </div>
 
-          {/* Instruction preview */}
-          <div className="space-y-1 rounded-xl border border-gray-200 bg-gray-50 p-4 text-xs font-mono dark:border-gray-700 dark:bg-gray-950/50">
-            <p className="mb-2 text-xs text-muted-foreground">Instruction being built:</p>
+          {/* Instruction preview + network diagnostics */}
+          <div className="space-y-2 rounded-xl border border-gray-200 bg-gray-50 p-4 text-xs font-mono dark:border-gray-700 dark:bg-gray-950/50">
+            <p className="text-xs text-muted-foreground">Instruction being built:</p>
             <p className="text-green-400">register_agent(</p>
             <p className="pl-4 text-foreground/80">agent_type: {form.agentType === "primary" ? 0 : form.agentType === "attestation" ? 1 : 2},</p>
-            <p className="pl-4 text-foreground/80">privacy_tier: {form.privacyTier === "local" ? 0 : form.privacyTier === "tee" ? 1 : 2},</p>
-            <p className="pl-4 text-foreground/80">rate_lamports: {Math.round(parseFloat(form.primaryRate || "0") * 1e9)},</p>
-            {isJudge && <p className="pl-4 text-foreground/80">attestation_rate_lamports: {Math.round(parseFloat(form.attestationRate || "0") * 1e9)},</p>}
-            <p className="pl-4 text-foreground/80">min_consumer_rep: {Math.round(form.minConsumerRep * 10)},</p>
-            <p className="pl-4 text-foreground/80">accept_unrated: {form.acceptUnrated.toString()},</p>
+            <p className="pl-4 text-foreground/80">model: "{form.model || "unknown"}",</p>
+            <p className="pl-4 text-foreground/80">rate_lamports: {Math.round(parseFloat((form.agentType === "attestation" ? form.attestationRate : form.primaryRate) || "0") * 1e9)},</p>
+            <p className="pl-4 text-foreground/80">min_reputation: {form.minConsumerRep},</p>
             <p className="text-green-400">)</p>
-            <p className="mt-2 text-yellow-400/60">Simulation mode, program not yet deployed to this network</p>
+
+            <div className="mt-2 rounded border border-amber-500/30 bg-amber-500/10 p-2 text-[11px] text-amber-200">
+              <p className="font-semibold">Active network diagnostics</p>
+              <p>RPC: {activeRpc}</p>
+              <p>Program: {activeProgramId}</p>
+              <p className="mt-1 opacity-90">If registration returns InvalidInstructionData, verify this program ID matches the currently deployed protocol program for this app build.</p>
+            </div>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">

@@ -1,0 +1,21 @@
+{
+  "name": "devnet",
+  "solana": {
+    "cluster": "devnet",
+    "rpcHttp": "https://api.devnet.solana.com",
+    "rpcWs": "wss://api.devnet.solana.com",
+    "explorerClusterParam": "devnet"
+  },
+  "programs": {
+    "escrowProgramId": "794nTFNyJknzDrR13ApSfVyNCRvcvnCN3BVDfic8dcZD"
+  },
+  "payments": {
+    "jupiterApiBase": "https://api.jup.ag/swap/v2",
+    "perRpc": "https://devnet-tee.magicblock.app",
+    "paymentsApiBase": "https://payments.magicblock.app"
+  },
+  "features": {
+    "allowPerFallback": true,
+    "requireMintReadiness": false
+  }
+}

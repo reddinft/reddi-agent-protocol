@@ -1,0 +1,21 @@
+{
+  "name": "mainnet",
+  "solana": {
+    "cluster": "mainnet-beta",
+    "rpcHttp": "https://api.mainnet-beta.solana.com",
+    "rpcWs": "wss://api.mainnet-beta.solana.com",
+    "explorerClusterParam": "mainnet"
+  },
+  "programs": {
+    "escrowProgramId": "794nTFNyJknzDrR13ApSfVyNCRvcvnCN3BVDfic8dcZD"
+  },
+  "payments": {
+    "jupiterApiBase": "https://api.jup.ag/swap/v2",
+    "perRpc": "https://mainnet-tee.magicblock.app",
+    "paymentsApiBase": "https://payments.magicblock.app"
+  },
+  "features": {
+    "allowPerFallback": true,
+    "requireMintReadiness": false
+  }
+}
