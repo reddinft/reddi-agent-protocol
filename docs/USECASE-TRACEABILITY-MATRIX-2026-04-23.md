@@ -10,7 +10,7 @@ This matrix maps product use-cases to executable coverage lanes so regressions a
 | A | Onboarding/operator gates | `operator-key-rotation.test.ts`, `onboarding-operator-status-routes.test.ts` | ✅ |
 | B | Discovery/ranking | `registry-route.test.ts`, `registry-bridge-sort.test.ts` | ✅ |
 | C | Planner resolve/invoke/signal | `planner-resolve-route.test.ts`, `planner-invoke-route.test.ts`, `planner-signal-route.test.ts` | ✅ |
-| D/E | Endpoint security + reliability | `endpoint-security-compat.test.ts`, `program-rpc-config.test.ts`, `register-probe-route.test.ts` | ✅ |
+| D/E | Endpoint security + reliability | `endpoint-security-compat.test.ts`, `program-rpc-config.test.ts`, `register-probe-route.test.ts`, `onboarding-healthcheck-security.test.ts` | ✅ |
 | F | Jupiter/x402 settlement | `jupiter-client.test.ts`, `packages/x402-solana/tests/payment.test.ts` | ✅ |
 | G | Torque retention layer | `torque-client.test.ts`, `torque-event-route.test.ts`, `torque-leaderboard-route.test.ts`, `torque-onboarding-event.test.ts` | ✅ |
 | H | Consumer lifecycle | `planner-register-consumer-route.test.ts`, `planner-tools-manifest-route.test.ts`, `planner-resolve-attestor-route.test.ts`, `planner-release-route.test.ts`, `planner-auditability.test.ts` | ✅ |
@@ -32,3 +32,4 @@ This matrix maps product use-cases to executable coverage lanes so regressions a
 ## Next follow-up
 - Keep this matrix synced with `scripts/run-bdd-bucket-sweep.sh` so each bucket has at least one representative executable gate.
 - Maintain strict registration probe behavior (`requireX402`) so insecure open-completion endpoints fail compliance checks by default.
+- Keep onboarding healthcheck x402 compliance checks aligned with register probe enforcement to prevent bypass via wizard path.
