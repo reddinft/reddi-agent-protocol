@@ -169,4 +169,33 @@ describe("register probe route", () => {
       securityStatus: "x402_challenge_detected",
     });
   });
+
+  it("blocks insecure endpoint when requireX402 is enabled", async () => {
+    global.fetch = jest
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ models: [{ name: "qwen3:8b" }] }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: { get: () => null },
+      }) as unknown as typeof fetch;
+
+    const { POST } = await import("@/app/api/register/probe/route");
+    const req = new NextRequest("http://localhost/api/register/probe", {
+      method: "POST",
+      body: JSON.stringify({ endpoint: "https://specialist.example", requireX402: true }),
+      headers: { "content-type": "application/json" },
+    });
+
+    const res = await POST(req as unknown as Request);
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toMatchObject({
+      ok: false,
+      status: "insecure_endpoint",
+      securityStatus: "insecure_open_completion",
+    });
+  });
 });
