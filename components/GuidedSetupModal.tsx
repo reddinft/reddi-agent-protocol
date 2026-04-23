@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import { isUnsafeHostedTarget } from "@/lib/integrations/openonion/network-policy";
 
 interface GuidedSetupModalProps {
   open: boolean;
@@ -124,6 +125,17 @@ function normalizeBaseUrl(raw: string) {
   const value = raw.trim();
   if (!value) throw new Error("Base URL is required");
   return value.startsWith("http://") || value.startsWith("https://") ? value : `http://${value}`;
+}
+
+function normalizePublicEndpoint(raw: string) {
+  const value = raw.trim();
+  if (!value) throw new Error("Endpoint URL is required");
+  return value.startsWith("http://") || value.startsWith("https://") ? new URL(value) : new URL(`https://${value}`);
+}
+
+function isUnsupportedCloudflareTunnelHost(hostname: string) {
+  const host = hostname.toLowerCase();
+  return host.includes("trycloudflare.com") || host.includes("cfargotunnel.com");
 }
 
 async function probeLocalRuntime(baseUrl: string, runtime: RuntimeChoice) {
@@ -324,6 +336,24 @@ export default function GuidedSetupModal({ open, onClose, onComplete }: GuidedSe
       return;
     }
 
+    try {
+      const parsed = normalizePublicEndpoint(candidate);
+      if (isUnsafeHostedTarget(parsed.hostname)) {
+        setTunnelStatus("error");
+        setDetailMessage("Private or localhost endpoints are not allowed. Use a public HTTPS URL from ngrok (recommended) or localtunnel fallback.");
+        return;
+      }
+      if (isUnsupportedCloudflareTunnelHost(parsed.hostname)) {
+        setTunnelStatus("error");
+        setDetailMessage("Cloudflare Tunnel is temporarily unsupported during RCA hardening. Use an ngrok HTTPS endpoint (recommended) or localtunnel fallback.");
+        return;
+      }
+    } catch {
+      setTunnelStatus("error");
+      setDetailMessage("Invalid endpoint URL. Paste a public HTTPS URL from ngrok (recommended) or localtunnel fallback.");
+      return;
+    }
+
     setTunnelStatus("checking");
     setDetailMessage("");
     try {
@@ -496,7 +526,7 @@ export default function GuidedSetupModal({ open, onClose, onComplete }: GuidedSe
           <StepCard
             index={3}
             title="Start the tunnel"
-            description="Use ngrok (recommended) for a stable public HTTPS URL."
+            description="Use ngrok (recommended) for a stable public HTTPS URL. Cloudflare Tunnel is temporarily unsupported during RCA hardening."
             completed={completedStep3}
             locked={!completedStep2}
           >
