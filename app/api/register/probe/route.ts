@@ -73,6 +73,35 @@ export async function POST(req: Request) {
       signal: AbortSignal.timeout(5000),
     });
 
+    let securityStatus: "unknown" | "x402_challenge_detected" | "insecure_open_completion" = "unknown";
+    let warning: string | undefined;
+
+    try {
+      const challengeProbe = await fetch(`${url.origin}/v1/chat/completions`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          model: "probe",
+          messages: [{ role: "user", content: "ping" }],
+          max_tokens: 1,
+        }),
+        signal: AbortSignal.timeout(5000),
+      });
+
+      const x402Header =
+        challengeProbe.headers?.get("x402-request") || challengeProbe.headers?.get("X-402-Request");
+
+      if (challengeProbe.status === 402 && x402Header) {
+        securityStatus = "x402_challenge_detected";
+      } else if (challengeProbe.ok) {
+        securityStatus = "insecure_open_completion";
+        warning =
+          "Endpoint served completion without x402 challenge. Put a payment-enforcing gateway/proxy in front before registration.";
+      }
+    } catch {
+      securityStatus = "unknown";
+    }
+
     if (tagsRes.ok) {
       const body = await tagsRes.json().catch(() => null);
       const hasModels = body?.models && Array.isArray(body.models);
@@ -81,6 +110,8 @@ export async function POST(req: Request) {
         status: hasModels ? "ollama_detected" : "reachable",
         models: hasModels ? body.models.map((m: { name?: string }) => m.name).filter(Boolean) : [],
         integration,
+        securityStatus,
+        warning,
       });
     }
 
@@ -92,6 +123,8 @@ export async function POST(req: Request) {
       ok: healthRes.ok,
       status: healthRes.ok ? "reachable" : "unhealthy",
       models: [],
+      securityStatus,
+      warning,
     });
   } catch (error: unknown) {
     return NextResponse.json(

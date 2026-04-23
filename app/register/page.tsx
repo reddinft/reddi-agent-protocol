@@ -200,11 +200,11 @@ function RegisterInner() {
       if (data.status === "ollama_detected") {
         setEndpointProbeStatus("reachable");
         setEndpointProbeModels(Array.isArray(data.models) ? data.models : []);
-        setEndpointProbeMessage(
+        const base =
           Array.isArray(data.models) && data.models.length > 0
             ? `Ollama detected, models: ${data.models.slice(0, 3).join(", ")}`
-            : "Endpoint reachable."
-        );
+            : "Endpoint reachable.";
+        setEndpointProbeMessage(data.warning ? `${base} ${data.warning}` : base);
         return;
       }
 
