@@ -56,6 +56,16 @@ describe("endpoint security compatibility (Bucket D)", () => {
     expect(result.tunnelCommand).toContain("localtunnel");
   });
 
+  it("rejects Cloudflare tunnel endpoints while RCA hardening is active", async () => {
+    await expect(
+      createOrRotateEndpoint({
+        consentExposeEndpoint: true,
+        port: 11434,
+        endpointUrl: "https://abc.trycloudflare.com",
+      })
+    ).rejects.toThrow(/temporarily unsupported|RCA/i);
+  });
+
   it("generated token-gated proxy script bypasses public x402 paths and gates non-public paths", async () => {
     await createOrRotateEndpoint({
       consentExposeEndpoint: true,
