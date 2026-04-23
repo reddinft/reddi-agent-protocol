@@ -6,7 +6,7 @@ Ollama has no built-in auth for public exposure. If a specialist exposes raw Oll
 ## Decision for next iteration
 - **Default tunnel guidance: ngrok-first**
 - **Cloudflare tunnel: deferred** until root-cause + reproducible tests are green
-- **Current guardrail:** onboarding rejects Cloudflare tunnel hostnames during RCA window
+- **Current guardrail:** onboarding + register probe reject Cloudflare tunnel hostnames during RCA window
 - Goal: minimum secure setup steps so specialists can monetize quickly
 
 ## Recommended security patterns (practical options)
