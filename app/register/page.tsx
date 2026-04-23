@@ -58,7 +58,13 @@ const WalletMultiButton = dynamic(
 type Step = 1 | 2 | 3;
 type AgentType = "primary" | "attestation" | "both";
 type PrivacyTier = "local" | "tee" | "cloud";
-type EndpointProbeStatus = "idle" | "checking" | "reachable" | "no_ollama" | "unreachable";
+type EndpointProbeStatus =
+  | "idle"
+  | "checking"
+  | "reachable"
+  | "no_ollama"
+  | "unreachable"
+  | "unsupported_provider";
 type HelpItem = { text: string; href?: string; code?: string };
 type HelpStep = { title: string; items: HelpItem[] };
 
@@ -200,6 +206,15 @@ function RegisterInner() {
       }
 
       if (!res.ok) {
+        if (data?.status === "unsupported_tunnel_provider") {
+          setEndpointProbeStatus("unsupported_provider");
+          setEndpointProbeMessage(
+            data.error ||
+              "Cloudflare tunnel is temporarily unsupported in onboarding. Use an ngrok HTTPS endpoint (recommended) or localtunnel fallback."
+          );
+          return;
+        }
+
         setEndpointProbeStatus("unreachable");
         setEndpointProbeMessage(
           data.error || "Could not reach endpoint. Use a public https URL from ngrok (recommended) or localtunnel."
@@ -690,7 +705,7 @@ function RegisterInner() {
                     ? "!border-blue-400"
                     : endpointProbeStatus === "reachable"
                       ? "!border-green-400"
-                      : endpointProbeStatus === "no_ollama"
+                      : endpointProbeStatus === "no_ollama" || endpointProbeStatus === "unsupported_provider"
                         ? "!border-yellow-400"
                         : endpointProbeStatus === "unreachable"
                           ? "!border-red-400"
@@ -707,7 +722,7 @@ function RegisterInner() {
                       ? "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900/40 dark:bg-blue-950/20 dark:text-blue-200"
                       : endpointProbeStatus === "reachable"
                         ? "border-green-200 bg-green-50 text-green-700 dark:border-green-900/40 dark:bg-green-950/20 dark:text-green-200"
-                        : endpointProbeStatus === "no_ollama"
+                        : endpointProbeStatus === "no_ollama" || endpointProbeStatus === "unsupported_provider"
                           ? "border-yellow-200 bg-yellow-50 text-yellow-700 dark:border-yellow-900/40 dark:bg-yellow-950/20 dark:text-yellow-200"
                           : "border-red-200 bg-red-50 text-red-700 dark:border-red-900/40 dark:bg-red-950/20 dark:text-red-200"
                   }`}
@@ -716,7 +731,7 @@ function RegisterInner() {
                     <Loader2 className="mt-0.5 h-4 w-4 animate-spin" />
                   ) : endpointProbeStatus === "reachable" ? (
                     <CheckCircle2 className="mt-0.5 h-4 w-4" />
-                  ) : endpointProbeStatus === "no_ollama" ? (
+                  ) : endpointProbeStatus === "no_ollama" || endpointProbeStatus === "unsupported_provider" ? (
                     <AlertTriangle className="mt-0.5 h-4 w-4" />
                   ) : (
                     <XCircle className="mt-0.5 h-4 w-4" />
@@ -728,7 +743,9 @@ function RegisterInner() {
                         : endpointProbeStatus === "reachable"
                           ? "Endpoint reachable"
                           : endpointProbeStatus === "no_ollama"
-                            ? "Reachable, but no Ollama detected"
+                          ? "Reachable, but no Ollama detected"
+                          : endpointProbeStatus === "unsupported_provider"
+                            ? "Unsupported tunnel provider"
                             : "Unreachable"}
                     </p>
                     {endpointProbeMessage && <p className="mt-0.5 text-[11px] font-normal">{endpointProbeMessage}</p>}
@@ -961,7 +978,7 @@ function RegisterInner() {
             <p className="text-xs text-muted-foreground">Instruction being built:</p>
             <p className="text-green-400">register_agent(</p>
             <p className="pl-4 text-foreground/80">agent_type: {form.agentType === "primary" ? 0 : form.agentType === "attestation" ? 1 : 2},</p>
-            <p className="pl-4 text-foreground/80">model: "{form.model || "unknown"}",</p>
+            <p className="pl-4 text-foreground/80">model: &quot;{form.model || "unknown"}&quot;,</p>
             <p className="pl-4 text-foreground/80">rate_lamports: {Math.round(parseFloat((form.agentType === "attestation" ? form.attestationRate : form.primaryRate) || "0") * 1e9)},</p>
             <p className="pl-4 text-foreground/80">min_reputation: {form.minConsumerRep},</p>
             <p className="text-green-400">)</p>
