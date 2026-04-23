@@ -111,4 +111,91 @@ describe("register probe route", () => {
       status: "invalid_contract",
     });
   });
+
+  it("flags insecure endpoints that return completions without x402 challenge", async () => {
+    global.fetch = jest
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ models: [{ name: "qwen3:8b" }] }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: { get: () => null },
+      }) as unknown as typeof fetch;
+
+    const { POST } = await import("@/app/api/register/probe/route");
+    const req = new NextRequest("http://localhost/api/register/probe", {
+      method: "POST",
+      body: JSON.stringify({ endpoint: "https://specialist.example" }),
+      headers: { "content-type": "application/json" },
+    });
+
+    const res = await POST(req as unknown as Request);
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toMatchObject({
+      ok: true,
+      status: "ollama_detected",
+      securityStatus: "insecure_open_completion",
+    });
+  });
+
+  it("recognizes x402 challenge behavior when 402 + header are returned", async () => {
+    global.fetch = jest
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ models: [{ name: "qwen3:8b" }] }),
+      })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 402,
+        headers: { get: (name: string) => (name.toLowerCase() === "x402-request" ? "{}" : null) },
+      }) as unknown as typeof fetch;
+
+    const { POST } = await import("@/app/api/register/probe/route");
+    const req = new NextRequest("http://localhost/api/register/probe", {
+      method: "POST",
+      body: JSON.stringify({ endpoint: "https://specialist.example" }),
+      headers: { "content-type": "application/json" },
+    });
+
+    const res = await POST(req as unknown as Request);
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toMatchObject({
+      ok: true,
+      status: "ollama_detected",
+      securityStatus: "x402_challenge_detected",
+    });
+  });
+
+  it("blocks insecure endpoint when requireX402 is enabled", async () => {
+    global.fetch = jest
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ models: [{ name: "qwen3:8b" }] }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: { get: () => null },
+      }) as unknown as typeof fetch;
+
+    const { POST } = await import("@/app/api/register/probe/route");
+    const req = new NextRequest("http://localhost/api/register/probe", {
+      method: "POST",
+      body: JSON.stringify({ endpoint: "https://specialist.example", requireX402: true }),
+      headers: { "content-type": "application/json" },
+    });
+
+    const res = await POST(req as unknown as Request);
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toMatchObject({
+      ok: false,
+      status: "insecure_endpoint",
+      securityStatus: "insecure_open_completion",
+    });
+  });
 });

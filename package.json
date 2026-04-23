@@ -17,6 +17,13 @@
     "test:bdd:index": "./scripts/check-bdd-feature-index.sh",
     "test:bdd:sweep": "./scripts/run-bdd-bucket-sweep.sh",
     "test:bdd:status": "./scripts/bdd-sweep-latest-status.sh",
+    "test:jupiter:live": "./scripts/run-jupiter-live-smoke.sh",
+    "test:per:happy": "./scripts/run-per-happy-smoke.sh",
+    "test:mainnet:readiness": "./scripts/run-mainnet-readiness-check.sh",
+    "test:surfpool:critical": "./scripts/run-surfpool-critical-smoke.sh",
+    "test:surfpool:onboarding": "./scripts/run-surfpool-onboarding-attestation-smoke.sh",
+    "test:surfpool:onboarding-wrapper": "./scripts/run-surfpool-onboarding-wrapper-smoke.sh",
+    "test:surfpool:jupiter-invoke": "./scripts/run-surfpool-jupiter-invoke-smoke.sh",
     "test:source:conformance": "./scripts/run-source-conformance.sh --source openclaw --mode smoke",
     "test:source:matrix": "./scripts/run-source-conformance-matrix.sh"
   },

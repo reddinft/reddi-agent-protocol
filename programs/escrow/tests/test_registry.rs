@@ -292,3 +292,41 @@ fn deregister_closes_pda() {
         "registration fee should not be returned on deregister"
     );
 }
+
+#[test]
+fn deregister_non_owner_rejected() {
+    let mut svm = make_svm();
+    let owner = Keypair::new();
+    let attacker = Keypair::new();
+    svm.airdrop(&owner.pubkey(), 1_000_000_000).unwrap();
+    svm.airdrop(&attacker.pubkey(), 1_000_000_000).unwrap();
+
+    let (agent, _) = agent_pda(&owner.pubkey());
+    send_tx(
+        &mut svm,
+        register_ix(&owner, agent, AgentType::Primary, "qwen3:8b"),
+        &[&owner],
+    )
+    .expect("register should succeed");
+
+    let attacker_deregister_ix = Instruction::new_with_bytes(
+        escrow::id(),
+        &instruction::DeregisterAgent {}.data(),
+        DeregisterAgent {
+            agent,
+            owner: attacker.pubkey(),
+        }
+        .to_account_metas(None),
+    );
+
+    let err = send_tx(&mut svm, attacker_deregister_ix, &[&attacker])
+        .expect_err("non-owner deregister should fail");
+    let err_str = format!("{:?}", err);
+    assert!(
+        err_str.contains("ConstraintHasOne")
+            || err_str.contains("ConstraintSeeds")
+            || err_str.contains("2001")
+            || err_str.contains("2006"),
+        "expected owner constraint failure, got: {err_str}"
+    );
+}
