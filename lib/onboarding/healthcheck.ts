@@ -15,6 +15,7 @@ export type SpecialistHealthcheckResult = {
   status: "pass" | "degraded" | "fail";
   reachable: boolean;
   x402Probe: "ok" | "degraded" | "fail";
+  securityStatus: "unknown" | "x402_challenge_detected" | "insecure_open_completion";
   endpoint: string;
   checkedAt: string;
   note: string;
@@ -87,9 +88,36 @@ export async function runSpecialistHealthcheck(
     redirect: "follow",
   });
 
+  let securityStatus: SpecialistHealthcheckResult["securityStatus"] = "unknown";
+  try {
+    const challengeProbe = await fetch(`${endpoint.replace(/\/$/, "")}/v1/chat/completions`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        model: "probe",
+        messages: [{ role: "user", content: "ping" }],
+        max_tokens: 1,
+      }),
+      signal: AbortSignal.timeout(3000),
+    });
+
+    const x402Header =
+      challengeProbe.headers?.get("x402-request") || challengeProbe.headers?.get("X-402-Request");
+
+    if (challengeProbe.status === 402 && x402Header) {
+      securityStatus = "x402_challenge_detected";
+    } else if (challengeProbe.ok) {
+      securityStatus = "insecure_open_completion";
+    }
+  } catch {
+    securityStatus = "unknown";
+  }
+
   const reachable = rootProbe.ok || healthProbe.ok || tagsProbe.ok;
   const x402Probe: SpecialistHealthcheckResult["x402Probe"] =
-    x402ModelsProbe.status === 402 || x402ModelsProbe.ok
+    securityStatus === "insecure_open_completion"
+      ? "fail"
+    : x402ModelsProbe.status === 402 || x402ModelsProbe.ok
       ? "ok"
       : x402ModelsProbe.status === 404 || x402ModelsProbe.status === 405
       ? "degraded"
@@ -104,6 +132,8 @@ export async function runSpecialistHealthcheck(
   const status: SpecialistHealthcheckResult["status"] =
     reachable && runtimeOk && x402Probe === "ok"
       ? "pass"
+    : x402Probe === "fail"
+      ? "fail"
     : reachable
       ? "degraded"
       : "fail";
@@ -111,6 +141,8 @@ export async function runSpecialistHealthcheck(
   const note =
     status === "pass"
       ? "Endpoint reachable, runtime probe succeeded (`/api/tags`), and x402 public path probe succeeded (`/v1/models`)."
+    : securityStatus === "insecure_open_completion"
+      ? "Endpoint served completion without x402 challenge. Put a payment-enforcing gateway/proxy in front before onboarding attestation."
     : status === "degraded"
       ? "Endpoint reachable but runtime or x402 probe is degraded. Confirm token-gated proxy is running and x402 public path (`/v1/*`) is exposed without token."
       : "Endpoint unreachable. Re-open tunnel and verify local runtime is listening.";
@@ -119,6 +151,7 @@ export async function runSpecialistHealthcheck(
     status,
     reachable,
     x402Probe,
+    securityStatus,
     endpoint,
     checkedAt,
     note,

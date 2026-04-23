@@ -46,7 +46,7 @@ run_step "Bucket C (planner consumption contracts)" \
   npx jest lib/__tests__/planner-resolve-route.test.ts lib/__tests__/planner-invoke-route.test.ts lib/__tests__/planner-signal-route.test.ts --runInBand
 
 run_step "Bucket D/E (security + reliability contracts)" \
-  npx jest lib/__tests__/endpoint-security-compat.test.ts lib/__tests__/program-rpc-config.test.ts lib/__tests__/register-probe-route.test.ts --runInBand
+  npx jest lib/__tests__/endpoint-security-compat.test.ts lib/__tests__/program-rpc-config.test.ts lib/__tests__/register-probe-route.test.ts lib/__tests__/onboarding-healthcheck-security.test.ts --runInBand
 
 run_step "Bucket F (jupiter + payment contracts)" \
   npx jest lib/__tests__/jupiter-client.test.ts lib/__tests__/planner-invoke-route.test.ts --runInBand
