@@ -6,6 +6,7 @@
   "scripts": {
     "fund": "ts-node src/fund-agents.ts",
     "register": "ts-node src/register-agents.ts",
+    "deregister": "ts-node src/deregister-agents.ts",
     "demo": "ts-node src/demo.ts",
     "mint:init-helper": "ts-node src/mint-init-helper.ts"
   },
