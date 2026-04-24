@@ -50,6 +50,7 @@ Evaluation PASS criteria:
 - no `classification=error` samples on either provider
 - probe mode-class parity between ngrok and Cloudflare for all 4 probes
 - x402 challenge preservation (Cloudflare keeps the same 402 count as ngrok baseline)
+- ngrok baseline must itself show at least one 402 on `x402_probe` (otherwise verdict is fail/inconclusive and fixture must be corrected)
 
 ## Exit criteria to re-enable Cloudflare
 - 30/30 stable onboarding heartbeat checks
