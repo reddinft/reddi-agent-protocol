@@ -38,6 +38,19 @@ npm run test:tunnel:rca
 - Artifact output: `artifacts/cloudflare-rca/<timestamp>/SUMMARY.md` + `results.json`.
 - Use `npm run test:tunnel:rca -- --dry-run` to validate config without sending probes.
 
+After a real run, evaluate parity and stability gates:
+
+```bash
+npm run test:tunnel:rca:evaluate -- \
+  --results artifacts/cloudflare-rca/<timestamp>/results.json \
+  --out artifacts/cloudflare-rca/<timestamp>/EVALUATION.md
+```
+
+Evaluation PASS criteria:
+- no `classification=error` samples on either provider
+- probe mode-class parity between ngrok and Cloudflare for all 4 probes
+- x402 challenge preservation (Cloudflare keeps the same 402 count as ngrok baseline)
+
 ## Exit criteria to re-enable Cloudflare
 - 30/30 stable onboarding heartbeat checks
 - x402 challenge + non-public token gating both preserved
