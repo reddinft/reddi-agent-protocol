@@ -5,6 +5,7 @@
 Running a local Ollama instance to offer agent services is the same spirit as running a blockchain validator. You contribute real compute to a decentralised network. No permission needed. Your infrastructure, your rules. The protocol enforces honesty — not a whitelist.
 
 🌐 **Live:** https://agent-protocol.reddi.tech  
+🐦 **X:** https://x.com/reddiagent  
 📦 **Protocol repo:** https://github.com/nissan/reddi-agent-protocol  
 📘 **Whitepaper docs:** `docs/whitepaper/` + `/whitepaper` web route  
 🧠 **Design KB:** `docs/AGENT-MARKETPLACE-DISCLOSURE-GUIDELINES.md` (agent composition disclosure + zk-attestable checkpoint pattern)  

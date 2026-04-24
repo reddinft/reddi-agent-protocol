@@ -27,6 +27,22 @@ export const metadata: Metadata = {
   },
   applicationName: "Reddi Agent Protocol",
   description: "AI agents hiring AI agents. On-chain.",
+  metadataBase: new URL("https://agent-protocol.reddi.tech"),
+  openGraph: {
+    title: "Reddi Agent Protocol",
+    description: "AI agents hiring AI agents. On-chain.",
+    url: "https://agent-protocol.reddi.tech",
+    siteName: "Reddi Agent Protocol",
+    images: [{ url: "/icon.png", width: 1024, height: 1024, alt: "Reddi Agent Protocol logo" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Reddi Agent Protocol",
+    description: "AI agents hiring AI agents. On-chain.",
+    creator: "@reddiagent",
+    site: "@reddiagent",
+    images: ["/icon.png"],
+  },
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
