@@ -35,11 +35,25 @@ function stable(samples = []) {
   return samples.every((s) => s.classification !== "error");
 }
 
-function x402Preserved(ngrokSamples = [], cloudflareSamples = []) {
+function x402Signal(ngrokSamples = [], cloudflareSamples = []) {
   const ngrok402 = ngrokSamples.filter((s) => s.status === 402).length;
   const cloudflare402 = cloudflareSamples.filter((s) => s.status === 402).length;
-  if (ngrok402 === 0) return true;
-  return cloudflare402 === ngrok402;
+  const ngrokRuns = ngrokSamples.length || 0;
+
+  if (ngrokRuns === 0) {
+    return { ok: false, ngrok402, cloudflare402, reason: "no_ngrok_samples" };
+  }
+
+  if (ngrok402 === 0) {
+    return { ok: false, ngrok402, cloudflare402, reason: "no_x402_baseline" };
+  }
+
+  return {
+    ok: cloudflare402 === ngrok402,
+    ngrok402,
+    cloudflare402,
+    reason: cloudflare402 === ngrok402 ? "matched" : "count_mismatch",
+  };
 }
 
 async function main() {
@@ -81,11 +95,20 @@ async function main() {
     });
   }
 
-  const x402Ok = x402Preserved(
+  const x402 = x402Signal(
     data.providers?.ngrok?.probes?.x402_probe?.samples || [],
     data.providers?.cloudflare?.probes?.x402_probe?.samples || []
   );
-  if (!x402Ok) failures.push("x402 probe: cloudflare did not preserve 402-challenge count relative to ngrok baseline");
+
+  if (!x402.ok) {
+    if (x402.reason === "no_x402_baseline") {
+      failures.push("x402 probe: ngrok baseline produced zero 402 challenges (fixture is not x402-assertive, rerun against token-gated x402 fixture)");
+    } else if (x402.reason === "no_ngrok_samples") {
+      failures.push("x402 probe: ngrok sample set is empty");
+    } else {
+      failures.push("x402 probe: cloudflare did not preserve 402-challenge count relative to ngrok baseline");
+    }
+  }
 
   const pass = failures.length === 0;
 
@@ -103,7 +126,9 @@ async function main() {
     lines.push(`| ${row.probe} | ${row.ngrokMode} | ${row.cloudflareMode} | ${row.ngrokStable ? "yes" : "no"} | ${row.cloudflareStable ? "yes" : "no"} | ${row.parityOk ? "yes" : "no"} |`);
   }
   lines.push("");
-  lines.push(`- x402 challenge preservation: ${x402Ok ? "yes" : "no"}`);
+  lines.push(`- x402 challenge preservation: ${x402.ok ? "yes" : "no"}`);
+  lines.push(`- x402 counts (ngrok/cloudflare): ${x402.ngrok402}/${x402.cloudflare402}`);
+  lines.push(`- x402 signal reason: ${x402.reason}`);
   lines.push("");
 
   if (!pass) {
