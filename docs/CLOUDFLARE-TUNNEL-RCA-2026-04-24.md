@@ -34,6 +34,23 @@ RCA_SAMPLE_SIZE=30 \
 npm run test:tunnel:rca
 ```
 
+### Quick local x402 fixture (recommended for decision-grade runs)
+Start a deterministic fixture locally (Terminal 1):
+
+```bash
+cd /Users/loki/.openclaw/workspace/projects/reddi-agent-protocol-code-pr97
+npm run dev:rca:x402-fixture
+```
+
+Start tunnels to the same local port (Terminal 2 + 3):
+
+```bash
+ngrok http 19090
+cloudflared tunnel --url http://127.0.0.1:19090
+```
+
+Use the printed HTTPS URLs as `NGROK_BASE_URL` and `CLOUDFLARE_BASE_URL`, then run matrix + evaluator.
+
 - Optional: set `X402_PROBE_PATH` (default `/x402/health`).
 - Artifact output: `artifacts/cloudflare-rca/<timestamp>/SUMMARY.md` + `results.json`.
 - Built-in x402 preflight now runs first (3x `GET <X402_PROBE_PATH>` against ngrok baseline); run aborts early if baseline has zero 402 responses.

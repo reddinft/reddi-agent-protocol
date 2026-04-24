@@ -27,7 +27,8 @@
     "test:source:conformance": "./scripts/run-source-conformance.sh --source openclaw --mode smoke",
     "test:source:matrix": "./scripts/run-source-conformance-matrix.sh",
     "test:tunnel:rca": "node ./scripts/run-cloudflare-rca-matrix.mjs",
-    "test:tunnel:rca:evaluate": "node ./scripts/evaluate-cloudflare-rca.mjs"
+    "test:tunnel:rca:evaluate": "node ./scripts/evaluate-cloudflare-rca.mjs",
+    "dev:rca:x402-fixture": "node ./scripts/run-rca-x402-fixture.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",
