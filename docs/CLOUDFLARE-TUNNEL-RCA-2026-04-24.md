@@ -36,7 +36,9 @@ npm run test:tunnel:rca
 
 - Optional: set `X402_PROBE_PATH` (default `/x402/health`).
 - Artifact output: `artifacts/cloudflare-rca/<timestamp>/SUMMARY.md` + `results.json`.
+- Built-in x402 preflight now runs first (3x `GET <X402_PROBE_PATH>` against ngrok baseline); run aborts early if baseline has zero 402 responses.
 - Use `npm run test:tunnel:rca -- --dry-run` to validate config without sending probes.
+- Use `npm run test:tunnel:rca -- --skip-x402-preflight` only for debugging (not for decision-grade runs).
 
 After a real run, evaluate parity and stability gates:
 

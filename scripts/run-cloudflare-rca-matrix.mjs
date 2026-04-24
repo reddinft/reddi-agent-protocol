@@ -13,6 +13,7 @@ function parseArgs() {
   const args = new Set(process.argv.slice(2));
   return {
     dryRun: args.has("--dry-run"),
+    skipX402Preflight: args.has("--skip-x402-preflight"),
   };
 }
 
@@ -79,7 +80,7 @@ function summarizeSamples(samples) {
 }
 
 async function main() {
-  const { dryRun } = parseArgs();
+  const { dryRun, skipX402Preflight } = parseArgs();
 
   const sampleSize = Math.max(1, Number(process.env.RCA_SAMPLE_SIZE || 30));
   const ngrokBase = normalizeBaseUrl(process.env.NGROK_BASE_URL);
@@ -112,11 +113,71 @@ async function main() {
   const artifactDir = path.join(process.cwd(), "artifacts", "cloudflare-rca", nowStamp());
 
   if (dryRun) {
-    console.log(JSON.stringify({ sampleSize, ngrokBase, cloudflareBase, probes, artifactDir }, null, 2));
+    console.log(JSON.stringify({ sampleSize, ngrokBase, cloudflareBase, probes, artifactDir, skipX402Preflight }, null, 2));
     return;
   }
 
   await fs.mkdir(artifactDir, { recursive: true });
+
+  const preflightSamples = [];
+  const preflightRuns = 3;
+  const x402PreflightProbe = { id: "x402_probe", method: "GET", path: x402ProbePath, captureBody: true };
+  let x402Preflight = {
+    enabled: !skipX402Preflight,
+    probe: `${x402PreflightProbe.method} ${x402PreflightProbe.path}`,
+    runs: preflightRuns,
+    ngrok402Count: 0,
+    passed: true,
+  };
+
+  if (!skipX402Preflight) {
+    for (let i = 0; i < preflightRuns; i += 1) {
+      const sample = await runProbe(ngrokBase, x402PreflightProbe);
+      sample.run = i + 1;
+      preflightSamples.push(sample);
+    }
+
+    const ngrok402Count = preflightSamples.filter((s) => s.status === 402).length;
+    x402Preflight = {
+      ...x402Preflight,
+      ngrok402Count,
+      passed: ngrok402Count > 0,
+      samples: preflightSamples,
+    };
+
+    if (!x402Preflight.passed) {
+      const preflightOut = {
+        generatedAt: new Date().toISOString(),
+        status: "failed_preflight",
+        reason: "no_x402_baseline",
+        ngrokBase,
+        cloudflareBase,
+        x402Preflight,
+      };
+      const jsonPath = path.join(artifactDir, "results.json");
+      await fs.writeFile(jsonPath, JSON.stringify(preflightOut, null, 2));
+
+      const summaryPath = path.join(artifactDir, "SUMMARY.md");
+      const lines = [
+        "# Cloudflare Tunnel RCA Matrix Summary",
+        "",
+        "- Status: FAILED_PRECHECK",
+        "- Reason: ngrok baseline produced zero 402 responses on x402 preflight.",
+        `- Probe: ${x402Preflight.probe}`,
+        `- Runs: ${x402Preflight.runs}`,
+        `- ngrok 402 count: ${x402Preflight.ngrok402Count}`,
+        "",
+        "Fix: point both tunnels at an x402-assertive fixture, then rerun.",
+        `Results JSON: ${jsonPath}`,
+      ];
+      await fs.writeFile(summaryPath, `${lines.join("\n")}\n`);
+
+      console.error("[cloudflare-rca] preflight failed: ngrok baseline produced zero 402 responses");
+      console.error(`[cloudflare-rca] artifact: ${artifactDir}`);
+      console.error(`[cloudflare-rca] summary: ${summaryPath}`);
+      process.exit(2);
+    }
+  }
 
   const providers = [
     { id: "ngrok", baseUrl: ngrokBase },
@@ -126,6 +187,7 @@ async function main() {
   const results = {
     generatedAt: new Date().toISOString(),
     sampleSize,
+    x402Preflight,
     providers: {},
   };
 
