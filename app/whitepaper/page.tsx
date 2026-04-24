@@ -32,6 +32,9 @@ export default function WhitepaperPage() {
             <Link href="https://github.com/nissan/reddi-agent-protocol/blob/main/docs/whitepaper/WHITEPAPER-v1.md" className="rounded-lg bg-white text-black px-4 py-2 text-sm font-medium">
               Read whitepaper v1.0 candidate
             </Link>
+            <Link href="https://x.com/reddiagent" className="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium text-white/90">
+              Follow @reddiagent on X
+            </Link>
             <Link href="https://github.com/nissan/reddi-agent-protocol/blob/main/docs/whitepaper/APPENDIX-THREAT-MODEL.md" className="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium text-white/90">
               Threat model appendix
             </Link>

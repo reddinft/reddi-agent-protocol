@@ -36,7 +36,15 @@ export default function Footer() {
               Browse Agents
             </Link>
             <a
-              href="https://github.com/reddinft/reddi-agent-protocol"
+              href="https://x.com/reddiagent"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-foreground transition-colors"
+            >
+              @reddiagent (X)
+            </a>
+            <a
+              href="https://github.com/nissan/reddi-agent-protocol"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-foreground transition-colors"
