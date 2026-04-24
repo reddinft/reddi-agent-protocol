@@ -23,6 +23,21 @@ Cloudflare Tunnel was intentionally deferred in specialist endpoint onboarding b
 3. Record pass/fail + latency + error class for 30-run sample.
 4. Document required Cloudflare config to make checks deterministic.
 
+### Repro runner (new)
+Use the matrix runner to produce artifacted side-by-side results:
+
+```bash
+cd /Users/loki/.openclaw/workspace/projects/reddi-agent-protocol-code-pr97
+NGROK_BASE_URL="https://<ngrok-subdomain>.ngrok-free.app" \
+CLOUDFLARE_BASE_URL="https://<tunnel>.trycloudflare.com" \
+RCA_SAMPLE_SIZE=30 \
+npm run test:tunnel:rca
+```
+
+- Optional: set `X402_PROBE_PATH` (default `/x402/health`).
+- Artifact output: `artifacts/cloudflare-rca/<timestamp>/SUMMARY.md` + `results.json`.
+- Use `npm run test:tunnel:rca -- --dry-run` to validate config without sending probes.
+
 ## Exit criteria to re-enable Cloudflare
 - 30/30 stable onboarding heartbeat checks
 - x402 challenge + non-public token gating both preserved
