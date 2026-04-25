@@ -15,7 +15,7 @@ export type EndpointActionResult = {
   status: "online" | "offline";
   heartbeatOk: boolean;
   heartbeatCheckedAt: string;
-  provider: "ngrok" | "localtunnel-compatible";
+  provider: "ngrok" | "cloudflare-tunnel" | "localtunnel-compatible";
   tunnelCommand: string;
   proxyCommand: string;
   proxyPort: number;
@@ -32,7 +32,7 @@ type SpecialistProfile = {
   endpoint: {
     url: string;
     status: "online" | "offline";
-    provider: "ngrok" | "localtunnel-compatible";
+    provider: "ngrok" | "cloudflare-tunnel" | "localtunnel-compatible";
     localPort: number;
     proxyPort: number;
     heartbeatOk: boolean;
@@ -92,9 +92,10 @@ function isCloudflareTunnelHost(endpointUrl: string) {
   }
 }
 
-function inferTunnelProvider(endpointUrl: string): "ngrok" | "localtunnel-compatible" {
+function inferTunnelProvider(endpointUrl: string): "ngrok" | "cloudflare-tunnel" | "localtunnel-compatible" {
   try {
     const host = new URL(endpointUrl).hostname.toLowerCase();
+    if (isCloudflareTunnelHost(endpointUrl)) return "cloudflare-tunnel";
     if (host.includes("localtunnel.me")) return "localtunnel-compatible";
   } catch {
     // default below
@@ -241,6 +242,9 @@ function readProfile(): SpecialistProfile | null {
 
 function buildTunnelCommand(proxyPort: number, endpointUrl: string) {
   const provider = inferTunnelProvider(endpointUrl);
+  if (provider === "cloudflare-tunnel") {
+    return `cloudflared tunnel --url http://127.0.0.1:${proxyPort}`;
+  }
   if (provider === "localtunnel-compatible") {
     const subdomain = inferSubdomain(endpointUrl);
     return `npx localtunnel --port ${proxyPort} --subdomain ${subdomain}`;
@@ -249,14 +253,26 @@ function buildTunnelCommand(proxyPort: number, endpointUrl: string) {
   return `ngrok http ${proxyPort}`;
 }
 
-function buildTunnelRecoveryNote(provider: "ngrok" | "localtunnel-compatible", tunnelCommand: string) {
+function buildTunnelRecoveryNote(
+  provider: "ngrok" | "cloudflare-tunnel" | "localtunnel-compatible",
+  tunnelCommand: string
+) {
+  if (provider === "cloudflare-tunnel") {
+    return `Tunnel appears down. Restart cloudflared against IPv4 localhost: ${tunnelCommand}`;
+  }
   if (provider === "ngrok") {
     return `Tunnel appears down. Restart ngrok: ${tunnelCommand}`;
   }
   return `Tunnel appears down. Re-open tunnel: ${tunnelCommand}`;
 }
 
-function buildHeartbeatRecoveryNote(provider: "ngrok" | "localtunnel-compatible", tunnelCommand: string) {
+function buildHeartbeatRecoveryNote(
+  provider: "ngrok" | "cloudflare-tunnel" | "localtunnel-compatible",
+  tunnelCommand: string
+) {
+  if (provider === "cloudflare-tunnel") {
+    return `Endpoint heartbeat failed. Restart cloudflared with IPv4 localhost origin: ${tunnelCommand}`;
+  }
   if (provider === "ngrok") {
     return `Endpoint heartbeat failed. Restart ngrok with: ${tunnelCommand}`;
   }
@@ -280,11 +296,6 @@ export async function createOrRotateEndpoint(input: EndpointActionInput): Promis
 
   const endpointUrl =
     normalizeEndpointUrl(input.endpointUrl) || `https://your-subdomain.ngrok-free.app`;
-  if (isCloudflareTunnelHost(endpointUrl)) {
-    throw new Error(
-      "Cloudflare Tunnel onboarding is temporarily unsupported while RCA is in progress. Use an ngrok HTTPS endpoint (recommended) or localtunnel fallback."
-    );
-  }
   const token = issueEndpointToken();
   const proxyPort = resolveProxyPort(input.port);
   const proxyCommand = buildProxyCommand(input.port, proxyPort, token);
@@ -360,11 +371,6 @@ export async function heartbeatEndpoint(input: {
 
   const port = input.port ?? existing?.endpoint.localPort;
   const endpointUrl = normalizeEndpointUrl(input.endpointUrl || existing?.endpoint.url);
-  if (endpointUrl && isCloudflareTunnelHost(endpointUrl)) {
-    throw new Error(
-      "Cloudflare Tunnel endpoint detected. This path is temporarily disabled pending RCA, use ngrok endpoint and rerun endpoint setup."
-    );
-  }
   const token = existing?.endpoint.auth.token;
   const proxyPort = existing?.endpoint.proxyPort ?? (port ? resolveProxyPort(port) : undefined);
 

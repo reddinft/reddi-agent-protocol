@@ -28,7 +28,19 @@ describe("register probe route", () => {
     });
   });
 
-  it("blocks Cloudflare tunnel endpoints while RCA hardening is active", async () => {
+  it("allows Cloudflare tunnel endpoints when endpoint checks pass", async () => {
+    global.fetch = jest
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ models: [{ name: "qwen3:8b" }] }),
+      })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 402,
+        headers: { get: (name: string) => (name.toLowerCase() === "x402-request" ? "{}" : null) },
+      }) as unknown as typeof fetch;
+
     const { POST } = await import("@/app/api/register/probe/route");
     const req = new NextRequest("http://localhost/api/register/probe", {
       method: "POST",
@@ -37,10 +49,11 @@ describe("register probe route", () => {
     });
 
     const res = await POST(req as unknown as Request);
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(200);
     await expect(res.json()).resolves.toMatchObject({
-      ok: false,
-      status: "unsupported_tunnel_provider",
+      ok: true,
+      status: "ollama_detected",
+      securityStatus: "x402_challenge_detected",
     });
   });
 

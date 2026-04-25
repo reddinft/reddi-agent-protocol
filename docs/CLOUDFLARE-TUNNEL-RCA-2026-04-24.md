@@ -4,9 +4,9 @@
 Cloudflare Tunnel was intentionally deferred in specialist endpoint onboarding because endpoint reliability and x402-compatible behavior were inconsistent during fast setup flows.
 
 ## Current guardrail (live)
-- Onboarding endpoint manager rejects Cloudflare tunnel hostnames (`*.trycloudflare.com`, `*.cfargotunnel.com`) with a clear error.
-- Register probe route also rejects Cloudflare tunnel hostnames so unsupported endpoints fail before registration.
-- Operators are redirected to ngrok-first (or localtunnel fallback) until Cloudflare path is re-qualified.
+- Cloudflare tunnel path is re-enabled in controlled mode.
+- ngrok remains the default recommendation (localtunnel fallback supported).
+- Endpoint compliance is fail-closed: registration/onboarding checks require valid x402 challenge behavior (`/v1/chat/completions` and probe paths) before progression.
 
 ## Hypotheses to validate
 1. Cloudflare edge/proxy behavior around streaming and HEAD/health probes causes false negatives in onboarding heartbeat.
@@ -77,5 +77,5 @@ Evaluation PASS criteria:
 - No regression in registration probe security classification
 - Clear, minimal operator runbook with reproducible commands
 
-## Temporary operator policy
-Use ngrok HTTPS endpoint for onboarding and registration. Treat Cloudflare tunnel as unsupported until this RCA is closed.
+## Operator policy (post-RCA)
+Use ngrok HTTPS endpoint by default. Cloudflare tunnel is allowed when compliance checks pass; otherwise fail closed and fix endpoint policy/tunnel origin.

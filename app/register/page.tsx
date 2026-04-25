@@ -63,8 +63,7 @@ type EndpointProbeStatus =
   | "checking"
   | "reachable"
   | "no_ollama"
-  | "unreachable"
-  | "unsupported_provider";
+  | "unreachable";
 type HelpItem = { text: string; href?: string; code?: string };
 type HelpStep = { title: string; items: HelpItem[] };
 
@@ -206,15 +205,6 @@ function RegisterInner() {
       }
 
       if (!res.ok) {
-        if (data?.status === "unsupported_tunnel_provider") {
-          setEndpointProbeStatus("unsupported_provider");
-          setEndpointProbeMessage(
-            data.error ||
-              "Cloudflare tunnel is temporarily unsupported in onboarding. Use an ngrok HTTPS endpoint (recommended) or localtunnel fallback."
-          );
-          return;
-        }
-
         setEndpointProbeStatus("unreachable");
         setEndpointProbeMessage(
           data.error || "Could not reach endpoint. Use a public https URL from ngrok (recommended) or localtunnel."
@@ -705,7 +695,7 @@ function RegisterInner() {
                     ? "!border-blue-400"
                     : endpointProbeStatus === "reachable"
                       ? "!border-green-400"
-                      : endpointProbeStatus === "no_ollama" || endpointProbeStatus === "unsupported_provider"
+                    : endpointProbeStatus === "no_ollama"
                         ? "!border-yellow-400"
                         : endpointProbeStatus === "unreachable"
                           ? "!border-red-400"
@@ -722,7 +712,7 @@ function RegisterInner() {
                       ? "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900/40 dark:bg-blue-950/20 dark:text-blue-200"
                       : endpointProbeStatus === "reachable"
                         ? "border-green-200 bg-green-50 text-green-700 dark:border-green-900/40 dark:bg-green-950/20 dark:text-green-200"
-                        : endpointProbeStatus === "no_ollama" || endpointProbeStatus === "unsupported_provider"
+                        : endpointProbeStatus === "no_ollama"
                           ? "border-yellow-200 bg-yellow-50 text-yellow-700 dark:border-yellow-900/40 dark:bg-yellow-950/20 dark:text-yellow-200"
                           : "border-red-200 bg-red-50 text-red-700 dark:border-red-900/40 dark:bg-red-950/20 dark:text-red-200"
                   }`}
@@ -731,7 +721,7 @@ function RegisterInner() {
                     <Loader2 className="mt-0.5 h-4 w-4 animate-spin" />
                   ) : endpointProbeStatus === "reachable" ? (
                     <CheckCircle2 className="mt-0.5 h-4 w-4" />
-                  ) : endpointProbeStatus === "no_ollama" || endpointProbeStatus === "unsupported_provider" ? (
+                  ) : endpointProbeStatus === "no_ollama" ? (
                     <AlertTriangle className="mt-0.5 h-4 w-4" />
                   ) : (
                     <XCircle className="mt-0.5 h-4 w-4" />
@@ -744,9 +734,7 @@ function RegisterInner() {
                           ? "Endpoint reachable"
                           : endpointProbeStatus === "no_ollama"
                           ? "Reachable, but no Ollama detected"
-                          : endpointProbeStatus === "unsupported_provider"
-                            ? "Unsupported tunnel provider"
-                            : "Unreachable"}
+                          : "Unreachable"}
                     </p>
                     {endpointProbeMessage && <p className="mt-0.5 text-[11px] font-normal">{endpointProbeMessage}</p>}
                     {endpointProbeModels.length > 0 && endpointProbeStatus === "reachable" && (

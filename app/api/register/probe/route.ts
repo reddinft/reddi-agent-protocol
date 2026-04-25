@@ -17,11 +17,6 @@ function normalizeEndpoint(endpoint: string) {
   }
 }
 
-function isCloudflareTunnelHost(hostname: string) {
-  const host = hostname.toLowerCase();
-  return host.includes("trycloudflare.com") || host.includes("cfargotunnel.com");
-}
-
 export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
   const endpoint = body?.endpoint;
@@ -56,18 +51,6 @@ export async function POST(req: Request) {
           ok: false,
           status: "invalid_url",
           error: "Localhost/private-network targets are blocked in hosted context. Use a public tunnel URL (ngrok recommended, localtunnel fallback)."
-        },
-        { status: 400 }
-      );
-    }
-
-    if (isCloudflareTunnelHost(url.hostname)) {
-      return NextResponse.json(
-        {
-          ok: false,
-          status: "unsupported_tunnel_provider",
-          error:
-            "Cloudflare Tunnel is temporarily unsupported while RCA hardening is active. Use an ngrok HTTPS endpoint (recommended) or localtunnel fallback.",
         },
         { status: 400 }
       );

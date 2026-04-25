@@ -133,11 +133,6 @@ function normalizePublicEndpoint(raw: string) {
   return value.startsWith("http://") || value.startsWith("https://") ? new URL(value) : new URL(`https://${value}`);
 }
 
-function isUnsupportedCloudflareTunnelHost(hostname: string) {
-  const host = hostname.toLowerCase();
-  return host.includes("trycloudflare.com") || host.includes("cfargotunnel.com");
-}
-
 async function probeLocalRuntime(baseUrl: string, runtime: RuntimeChoice) {
   const base = normalizeBaseUrl(baseUrl).replace(/\/$/, "");
   const path = runtime === "ollama" ? "/api/tags" : "/v1/models";
@@ -343,11 +338,6 @@ export default function GuidedSetupModal({ open, onClose, onComplete }: GuidedSe
         setDetailMessage("Private or localhost endpoints are not allowed. Use a public HTTPS URL from ngrok (recommended) or localtunnel fallback.");
         return;
       }
-      if (isUnsupportedCloudflareTunnelHost(parsed.hostname)) {
-        setTunnelStatus("error");
-        setDetailMessage("Cloudflare Tunnel is temporarily unsupported during RCA hardening. Use an ngrok HTTPS endpoint (recommended) or localtunnel fallback.");
-        return;
-      }
     } catch {
       setTunnelStatus("error");
       setDetailMessage("Invalid endpoint URL. Paste a public HTTPS URL from ngrok (recommended) or localtunnel fallback.");
@@ -360,7 +350,7 @@ export default function GuidedSetupModal({ open, onClose, onComplete }: GuidedSe
       const res = await fetch("/api/register/probe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ endpoint: candidate, runtimeTarget: runtimeConfig.runtimeTarget }),
+        body: JSON.stringify({ endpoint: candidate, runtimeTarget: runtimeConfig.runtimeTarget, requireX402: true }),
       });
       const data = (await res.json().catch(() => null)) as ProbeResult | null;
       if (data?.runtimeStatus === "runtime_detected" || data?.status === "ollama_detected") {
@@ -526,7 +516,7 @@ export default function GuidedSetupModal({ open, onClose, onComplete }: GuidedSe
           <StepCard
             index={3}
             title="Start the tunnel"
-            description="Use ngrok (recommended) for a stable public HTTPS URL. Cloudflare Tunnel is temporarily unsupported during RCA hardening."
+            description="Use ngrok (recommended) for a stable public HTTPS URL. Cloudflare tunnel is supported in controlled mode when endpoint compliance checks pass."
             completed={completedStep3}
             locked={!completedStep2}
           >
