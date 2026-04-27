@@ -23,7 +23,6 @@ describe("onboarding healthcheck security enforcement", () => {
       .mockResolvedValueOnce(mockResponse(200, true))
       .mockResolvedValueOnce(mockResponse(200, true))
       .mockResolvedValueOnce(mockResponse(200, true))
-      .mockResolvedValueOnce(mockResponse(402, false))
       .mockResolvedValueOnce(mockResponse(402, false, { "x402-request": "{}" }));
 
     global.fetch = fetchMock as unknown as typeof fetch;
@@ -43,7 +42,6 @@ describe("onboarding healthcheck security enforcement", () => {
       .mockResolvedValueOnce(mockResponse(200, true))
       .mockResolvedValueOnce(mockResponse(200, true))
       .mockResolvedValueOnce(mockResponse(200, true))
-      .mockResolvedValueOnce(mockResponse(200, true))
       .mockResolvedValueOnce(mockResponse(200, true));
 
     global.fetch = fetchMock as unknown as typeof fetch;
@@ -56,6 +54,6 @@ describe("onboarding healthcheck security enforcement", () => {
     expect(result.securityStatus).toBe("insecure_open_completion");
     expect(result.x402Probe).toBe("fail");
     expect(result.status).toBe("fail");
-    expect(result.note).toMatch(/without x402 challenge/i);
+    expect(result.note).toMatch(/without an x402 challenge/i);
   });
 });
