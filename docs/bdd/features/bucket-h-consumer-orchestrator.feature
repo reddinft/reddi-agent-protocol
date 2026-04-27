@@ -73,3 +73,12 @@ Feature: Bucket H Consumer Orchestrator Lifecycle
     When an operator runs forced pass and forced fail from /dogfood
     Then released and refunded outcomes are both visible in UI output
     And the behavior is covered by "e2e/dogfood.spec.ts"
+
+  @H6.1 @H6.2 @H6.3 @role-attestor @route-unit
+  Scenario: Attestor role path exposes verifier readiness and audit proof
+    When an attestor opens the attestation dashboard
+    Then the role path summarizes profile resolution, work queue, audit proof, and release/refund gate readiness
+    And no-candidate, no-activity, and ready states have explicit next actions
+    And the behavior is covered by:
+      | lib/__tests__/attestor-role-readiness.test.ts |
+      | lib/__tests__/planner-resolve-attestor-route.test.ts |

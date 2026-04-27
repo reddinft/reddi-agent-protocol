@@ -43,7 +43,7 @@ Purpose: single lookup from BDD feature file -> bucket -> executable verificatio
 ### Bucket H — Consumer Orchestrator Lifecycle
 - Feature: `docs/bdd/features/bucket-h-consumer-orchestrator.feature`
 - Verify:
-  - `npx jest lib/__tests__/planner-register-consumer-route.test.ts lib/__tests__/planner-tools-manifest-route.test.ts lib/__tests__/planner-resolve-route.test.ts lib/__tests__/planner-resolve-attestor-route.test.ts lib/__tests__/planner-invoke-route.test.ts lib/__tests__/planner-release-route.test.ts lib/__tests__/planner-signal-route.test.ts lib/__tests__/planner-auditability.test.ts lib/__tests__/dogfood-testing-specialist-route.test.ts lib/__tests__/dogfood-testing-attestor-route.test.ts lib/__tests__/dogfood-consumer-run-route.test.ts --runInBand`
+  - `npx jest lib/__tests__/planner-register-consumer-route.test.ts lib/__tests__/planner-tools-manifest-route.test.ts lib/__tests__/planner-resolve-route.test.ts lib/__tests__/planner-resolve-attestor-route.test.ts lib/__tests__/attestor-role-readiness.test.ts lib/__tests__/planner-invoke-route.test.ts lib/__tests__/planner-release-route.test.ts lib/__tests__/planner-signal-route.test.ts lib/__tests__/planner-auditability.test.ts lib/__tests__/dogfood-testing-specialist-route.test.ts lib/__tests__/dogfood-testing-attestor-route.test.ts lib/__tests__/dogfood-consumer-run-route.test.ts --runInBand`
   - `npx playwright test e2e/dogfood.spec.ts`
 
 ### Bucket S — Source Adapter Onboarding

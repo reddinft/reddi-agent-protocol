@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { summarizeAttestorRole, type AttestorCandidate } from "@/lib/attestor/role-readiness";
 
 type AuditAttestation = {
   timestamp: string;
@@ -23,6 +24,10 @@ export default function AttestationDashboardPage() {
   const { connected } = useWallet();
   const [attestations, setAttestations] = useState<AuditAttestation[]>([]);
   const [commits, setCommits] = useState<RevealCommit[]>([]);
+  const [candidate, setCandidate] = useState<AttestorCandidate | null>(null);
+  const [candidateCount, setCandidateCount] = useState(0);
+  const [resolving, setResolving] = useState(false);
+  const [resolveError, setResolveError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!connected) return;
@@ -43,6 +48,34 @@ export default function AttestationDashboardPage() {
   }, [connected]);
 
   const onchainCount = useMemo(() => attestations.filter((a) => Boolean(a.tx_signature)).length, [attestations]);
+  const roleSummary = useMemo(() => summarizeAttestorRole({
+    attestationRecords: attestations.length,
+    onchainAttestations: onchainCount,
+    revealCommits: commits.length,
+    availableAttestors: candidateCount,
+  }, candidate), [attestations.length, onchainCount, commits.length, candidateCount, candidate]);
+
+  async function resolveAttestor() {
+    setResolving(true);
+    setResolveError(null);
+    try {
+      const res = await fetch("/api/planner/tools/resolve-attestor", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ minAttestationAccuracy: 0, maxPerCallUsd: 1 }),
+      });
+      const data = await res.json();
+      setCandidate(data.candidate ?? null);
+      setCandidateCount(typeof data.count === "number" ? data.count : 0);
+      if (!res.ok || !data.ok) setResolveError(data.error ?? "No eligible attestor found.");
+    } catch (error) {
+      setCandidate(null);
+      setCandidateCount(0);
+      setResolveError(error instanceof Error ? error.message : "No eligible attestor found.");
+    } finally {
+      setResolving(false);
+    }
+  }
 
   if (!connected) {
     return <PageNotice title="Attestation Dashboard" text="Connect wallet to review attestation-owner protocol statistics." />;
@@ -60,6 +93,47 @@ export default function AttestationDashboardPage() {
         <Stat label="On-chain attestations" value={onchainCount} />
         <Stat label="Reveal commits" value={commits.length} />
       </div>
+
+      <section className={`rounded-xl border p-5 space-y-4 ${
+        roleSummary.status === "ready"
+          ? "border-[#14F195]/30 bg-[#14F195]/5"
+          : roleSummary.status === "needs_attestor"
+            ? "border-red-500/30 bg-red-950/20"
+            : "border-yellow-500/30 bg-yellow-950/20"
+      }`}>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-1">
+            <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Attestor role path</p>
+            <h2 className="text-lg font-semibold">{roleSummary.headline}</h2>
+            <p className="text-sm text-muted-foreground">Next: {roleSummary.nextAction}</p>
+            {candidate && (
+              <p className="text-xs text-muted-foreground/70 font-mono">
+                Resolved attestor: {short(candidate.walletAddress)} · accuracy {candidate.attestationAccuracy ?? "—"} · {candidate.reasons?.join(" · ") ?? "attested"}
+              </p>
+            )}
+            {resolveError && <p className="text-xs text-red-300">{resolveError}</p>}
+          </div>
+          <button
+            onClick={resolveAttestor}
+            disabled={resolving}
+            className="rounded-lg border border-white/15 px-3 py-2 text-sm text-white hover:bg-white/10 disabled:opacity-60"
+          >
+            {resolving ? "Resolving…" : "Resolve attestor"}
+          </button>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          {roleSummary.checks.map((check) => (
+            <div key={check.id} className="rounded-lg border border-white/10 bg-black/20 p-3 text-sm space-y-1">
+              <div className="flex items-center justify-between gap-3">
+                <p className="font-medium">{check.label}</p>
+                <span className={check.status === "pass" ? "text-[#14F195]" : check.status === "warn" ? "text-yellow-300" : "text-red-300"}>{check.status}</span>
+              </div>
+              <p className="text-xs text-muted-foreground">{check.detail}</p>
+            </div>
+          ))}
+        </div>
+      </section>
 
       <section className="rounded-xl border border-white/10 bg-card/20 p-5 space-y-3">
         <h2 className="text-lg font-semibold">Recent attestation records</h2>
