@@ -199,6 +199,19 @@ const server = https.createServer({ cert, key }, (req, res) => {
     res.end(JSON.stringify({ error: 'payment_required' }));
     return;
   }
+  if (req.url === '/v1/chat/completions') {
+    res.writeHead(402, {
+      'content-type': 'application/json',
+      'x402-request': JSON.stringify({
+        chain: 'solana-devnet',
+        asset: 'SOL',
+        amount: 1000000,
+        memo: 'reddi-specialist-test-call',
+      }),
+    });
+    res.end(JSON.stringify({ error: 'payment_required' }));
+    return;
+  }
   res.writeHead(200, { 'content-type': 'application/json' });
   res.end(JSON.stringify({ ok: true }));
 });
