@@ -5,46 +5,17 @@ import { Button } from "@/components/ui/button";
 const PROGRAM_ID = "794nTFNyJknzDrR13ApSfVyNCRvcvnCN3BVDfic8dcZD";
 const EXPLORER_URL = `https://explorer.solana.com/address/${PROGRAM_ID}?cluster=devnet`;
 
-const handbackItems = [
-  "wallet public key",
-  "specialist endpoint URL",
-  "registration transaction signature",
-  "model name",
-  "registered role: Primary, Attestation, or Both",
-  "any error screenshot/log if registration failed",
-];
-
-const troubleshooting = [
-  {
-    title: "Wallet says wrong network",
-    body: "Switch Phantom/Backpack to Solana devnet, refresh the app, and reconnect.",
-  },
-  {
-    title: "Endpoint probe says insecure open completion",
-    body: "Your /v1/chat/completions endpoint returned 200 before payment. Fix the gateway so unpaid calls return 402 + x402-request.",
-  },
-  {
-    title: "Endpoint probe says x402 challenge missing",
-    body: "Your endpoint returned 402 but did not include the x402-request response header. Add it to every unpaid protected completion response.",
-  },
-  {
-    title: "Transaction simulation fails with program mismatch",
-    body: `Confirm the app is on devnet and using program ${PROGRAM_ID}. Do not use old local, Surfpool, or Quasar IDs for devnet registration.`,
-  },
-];
-
-const mockServer = `import http from "node:http";
+const ollamaMockServer = `import http from "node:http";
 import crypto from "node:crypto";
 
 const port = Number(process.env.PORT || 12434);
 const specialistWallet = process.env.SPECIALIST_WALLET || "11111111111111111111111111111111";
-const priceLamports = Number(process.env.PRICE_LAMPORTS || 1_000_000);
 
 function x402Challenge() {
   return JSON.stringify({
     chain: "solana-devnet",
     asset: "SOL",
-    amount: priceLamports,
+    amount: 1_000_000,
     paymentAddress: specialistWallet,
     nonce: crypto.randomBytes(16).toString("hex"),
     memo: "reddi-specialist-test-call",
@@ -56,7 +27,7 @@ const server = http.createServer(async (req, res) => {
 
   if (req.method === "GET" && url.pathname === "/healthz") {
     res.writeHead(200, { "content-type": "application/json" });
-    res.end(JSON.stringify({ ok: true, role: "reddi-test-specialist" }));
+    res.end(JSON.stringify({ ok: true, role: "ollama-test-specialist" }));
     return;
   }
 
@@ -67,8 +38,7 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (req.method === "POST" && url.pathname === "/v1/chat/completions") {
-    const payment = req.headers["x402-payment"];
-    if (!payment) {
+    if (!req.headers["x402-payment"]) {
       res.writeHead(402, {
         "content-type": "application/json",
         "x402-request": x402Challenge(),
@@ -94,8 +64,37 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(port, "127.0.0.1", () => {
-  console.log(\`Reddi tester specialist listening on http://127.0.0.1:\${port}\`);
+  console.log(\`Reddi Ollama tester specialist listening on http://127.0.0.1:\${port}\`);
 });`;
+
+const openOnionContract = `{
+  "adapter": "openonion",
+  "adapterVersion": "openonion.reddi.v1",
+  "role": "specialist",
+  "payment": {
+    "chain": "solana-devnet",
+    "asset": "SOL",
+    "requiresX402": true
+  },
+  "routes": {
+    "health": "/healthz",
+    "models": "/api/tags",
+    "chatCompletions": "/v1/chat/completions"
+  },
+  "capabilities": {
+    "taskTypes": ["summarize", "classify", "analyze"],
+    "privacyModes": ["local"]
+  }
+}`;
+
+const handbackItems = [
+  "wallet public key",
+  "specialist endpoint URL",
+  "registration transaction signature",
+  "runtime type: Ollama or OpenOnion",
+  "model name and registered role",
+  "any error screenshot/log if registration failed",
+];
 
 export default function TestersPage() {
   return (
@@ -109,32 +108,21 @@ export default function TestersPage() {
               Help us test specialist onboarding on Solana devnet
             </h1>
             <p className="text-base leading-7 text-gray-300 sm:text-lg">
-              We are looking for volunteer testers to run a specialist endpoint,
-              expose it safely, and register it against the deployed Reddi Agent
-              Protocol contracts on devnet. You do not need real funds — only a
-              devnet wallet and a temporary HTTPS endpoint.
+              We need two kinds of volunteer testers: people running a simple
+              Ollama-style local model, and people who already have OpenOnion or
+              ConnectOnion set up. Both paths register against the same deployed
+              devnet contracts and use devnet SOL only.
             </p>
             <div className="flex flex-wrap gap-3">
-              <Link href="/onboarding">
-                <Button size="lg">Start guided onboarding →</Button>
+              <Link href="#ollama-guide">
+                <Button size="lg">I run Ollama</Button>
               </Link>
-              <Link href="/register">
-                <Button size="lg" variant="outline">Register directly</Button>
+              <Link href="#openonion-guide">
+                <Button size="lg" variant="outline">I run OpenOnion</Button>
               </Link>
               <a href={EXPLORER_URL} target="_blank" rel="noopener noreferrer">
                 <Button size="lg" variant="outline">View devnet contract</Button>
               </a>
-            </div>
-            <div className="grid gap-3 text-xs text-gray-300 sm:grid-cols-3">
-              <div className="rounded-lg border border-white/10 bg-white/5 p-3">
-                Network: <span className="text-white">Solana devnet</span>
-              </div>
-              <div className="rounded-lg border border-white/10 bg-white/5 p-3">
-                Funds: <span className="text-white">devnet SOL only</span>
-              </div>
-              <div className="rounded-lg border border-white/10 bg-white/5 p-3">
-                Status: <span className="text-emerald-300">volunteers wanted</span>
-              </div>
             </div>
           </div>
         </div>
@@ -145,8 +133,8 @@ export default function TestersPage() {
           <p className="section-label mb-3">Current devnet deployment</p>
           <div className="space-y-3 text-sm text-gray-300">
             <p>
-              Register against the current devnet program. Do not override this
-              program ID unless the Reddi team gives you a replacement.
+              Both tester paths register against the same Solana devnet program.
+              Do not override this ID unless the Reddi team gives you a new one.
             </p>
             <div className="overflow-x-auto rounded-lg border border-white/10 bg-black/30 p-4 font-mono text-xs text-emerald-200">
               {PROGRAM_ID}
@@ -157,42 +145,51 @@ export default function TestersPage() {
           </div>
         </section>
 
-        <section className="grid gap-5 md:grid-cols-3">
-          <div className="rounded-xl border border-white/10 bg-card/30 p-5">
-            <p className="text-sm font-semibold text-white">1. Prepare wallet</p>
-            <p className="mt-2 text-sm leading-6 text-gray-400">
-              Switch Phantom or Backpack to Solana devnet and fund it from a
-              faucet. Keep about 0.2 devnet SOL available for smooth testing.
+        <section className="grid gap-5 md:grid-cols-2">
+          <div className="rounded-xl border border-white/10 bg-card/30 p-6">
+            <p className="section-label mb-3">Path 1</p>
+            <h2 className="font-display text-2xl font-bold text-white">
+              Ollama/local model testers
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-gray-400">
+              Best if you have a local model or just want the fastest endpoint
+              shape. You can run the mock paid specialist below, or place an
+              x402 gateway in front of real Ollama.
             </p>
+            <Link href="#ollama-guide" className="mt-4 inline-block text-sm text-indigo-300 hover:text-indigo-200">
+              Open Ollama guide →
+            </Link>
           </div>
-          <div className="rounded-xl border border-white/10 bg-card/30 p-5">
-            <p className="text-sm font-semibold text-white">2. Run specialist</p>
-            <p className="mt-2 text-sm leading-6 text-gray-400">
-              Use the mock paid specialist below or your own local model behind
-              an x402-enforcing gateway. Never expose raw Ollama directly.
+          <div className="rounded-xl border border-white/10 bg-card/30 p-6">
+            <p className="section-label mb-3">Path 2</p>
+            <h2 className="font-display text-2xl font-bold text-white">
+              OpenOnion/ConnectOnion testers
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-gray-400">
+              Best if you already have OpenOnion installed. You expose the same
+              paid completion route plus a Reddi adapter contract at
+              <code className="mx-1 text-gray-100">/.well-known/reddi-adapter.json</code>.
             </p>
-          </div>
-          <div className="rounded-xl border border-white/10 bg-card/30 p-5">
-            <p className="text-sm font-semibold text-white">3. Register on-chain</p>
-            <p className="mt-2 text-sm leading-6 text-gray-400">
-              Open guided onboarding or direct registration, pass endpoint
-              checks, approve the devnet transaction, and send us the signature.
-            </p>
+            <Link href="#openonion-guide" className="mt-4 inline-block text-sm text-indigo-300 hover:text-indigo-200">
+              Open OpenOnion guide →
+            </Link>
           </div>
         </section>
 
-        <section className="rounded-xl border border-white/10 bg-card/20 p-6 space-y-4">
-          <p className="section-label">Fastest path</p>
+        <section id="ollama-guide" className="scroll-mt-24 rounded-xl border border-white/10 bg-card/20 p-6 space-y-5">
+          <p className="section-label">Guide 1 — Ollama/local model</p>
           <h2 className="font-display text-2xl font-bold text-white">
-            Run a mock paid specialist
+            Run a paid specialist endpoint for registration testing
           </h2>
-          <p className="text-sm leading-6 text-gray-400">
-            This is the easiest way to test marketplace onboarding. Save this as
-            <code className="mx-1 text-gray-100">tester-specialist-devnet.mjs</code>,
-            run it locally, then expose port 12434 through ngrok.
-          </p>
+          <ol className="list-decimal space-y-3 pl-5 text-sm leading-6 text-gray-400">
+            <li>Switch your wallet to Solana devnet and fund it with devnet SOL.</li>
+            <li>Run the mock server below, or run real Ollama behind an x402 gateway.</li>
+            <li>Expose the gateway with HTTPS, preferably <code className="text-gray-100">ngrok http 12434</code>.</li>
+            <li>Preflight <code className="text-gray-100">/healthz</code>, <code className="text-gray-100">/api/tags</code>, and unpaid <code className="text-gray-100">/v1/chat/completions</code>.</li>
+            <li>Register through <Link href="/onboarding" className="text-indigo-300 hover:text-indigo-200">guided onboarding</Link> or <Link href="/register" className="text-indigo-300 hover:text-indigo-200">direct registration</Link>.</li>
+          </ol>
           <pre className="max-h-[28rem] overflow-auto rounded-xl border border-white/10 bg-black/50 p-4 text-xs leading-5 text-gray-200">
-            <code>{mockServer}</code>
+            <code>{ollamaMockServer}</code>
           </pre>
           <div className="grid gap-3 md:grid-cols-2">
             <div className="rounded-lg border border-white/10 bg-white/5 p-4">
@@ -206,17 +203,37 @@ export default function TestersPage() {
           </div>
         </section>
 
+        <section id="openonion-guide" className="scroll-mt-24 rounded-xl border border-white/10 bg-card/20 p-6 space-y-5">
+          <p className="section-label">Guide 2 — OpenOnion/ConnectOnion</p>
+          <h2 className="font-display text-2xl font-bold text-white">
+            Register an OpenOnion specialist adapter
+          </h2>
+          <p className="text-sm leading-6 text-gray-400">
+            OpenOnion testers should keep their existing runtime, then add the
+            Reddi adapter contract and payment-required completion behavior.
+            The register probe validates the adapter before accepting the endpoint.
+          </p>
+          <ol className="list-decimal space-y-3 pl-5 text-sm leading-6 text-gray-400">
+            <li>Start your OpenOnion/ConnectOnion specialist locally.</li>
+            <li>Expose <code className="text-gray-100">/.well-known/reddi-adapter.json</code> with the contract shape below.</li>
+            <li>Ensure unpaid <code className="text-gray-100">POST /v1/chat/completions</code> returns <code className="text-gray-100">402</code> and an <code className="text-gray-100">x402-request</code> header.</li>
+            <li>Expose the OpenOnion adapter over HTTPS via ngrok or your existing tunnel.</li>
+            <li>Register the endpoint and choose OpenOnion as the integration mode when available.</li>
+          </ol>
+          <pre className="overflow-auto rounded-xl border border-white/10 bg-black/50 p-4 text-xs leading-5 text-gray-200">
+            <code>{openOnionContract}</code>
+          </pre>
+          <p className="text-sm leading-6 text-gray-400">
+            Full adapter details live in
+            <code className="mx-1 text-gray-100">docs/integrations/openonion/OPENONION-ADAPTER-CONTRACT.md</code>.
+          </p>
+        </section>
+
         <section className="rounded-xl border border-white/10 bg-card/20 p-6 space-y-4">
-          <p className="section-label">Preflight</p>
+          <p className="section-label">Shared preflight</p>
           <h2 className="font-display text-2xl font-bold text-white">
             Confirm fail-closed x402 behavior
           </h2>
-          <p className="text-sm leading-6 text-gray-400">
-            Before registration, unpaid completion calls must return
-            <code className="mx-1 text-gray-100">402</code> with an
-            <code className="mx-1 text-gray-100">x402-request</code> header.
-            If your endpoint returns 200 before payment, registration is blocked.
-          </p>
           <pre className="overflow-x-auto rounded-xl border border-white/10 bg-black/50 p-4 text-xs leading-5 text-gray-200"><code>{`ENDPOINT="https://your-subdomain.ngrok-free.app"
 
 curl -i "$ENDPOINT/healthz"
@@ -224,21 +241,12 @@ curl -i "$ENDPOINT/api/tags"
 curl -i -X POST "$ENDPOINT/v1/chat/completions" \
   -H 'content-type: application/json' \
   -d '{"model":"tester-specialist","messages":[{"role":"user","content":"ping"}],"max_tokens":16}'`}</code></pre>
-        </section>
-
-        <section className="rounded-xl border border-white/10 bg-card/20 p-6 space-y-5">
-          <p className="section-label">Registration flow</p>
-          <h2 className="font-display text-2xl font-bold text-white">
-            Register your specialist on devnet
-          </h2>
-          <ol className="list-decimal space-y-3 pl-5 text-sm leading-6 text-gray-400">
-            <li>Open the Reddi app and connect your devnet wallet.</li>
-            <li>Use guided onboarding at <Link href="/onboarding" className="text-indigo-300 hover:text-indigo-200">/onboarding</Link> or direct registration at <Link href="/register" className="text-indigo-300 hover:text-indigo-200">/register</Link>.</li>
-            <li>Enter your HTTPS endpoint URL, model name, role, rate, and local/privacy metadata.</li>
-            <li>Wait for endpoint probe and healthcheck to pass.</li>
-            <li>Approve the devnet registration transaction in your wallet.</li>
-            <li>Verify your specialist in <Link href="/agents" className="text-indigo-300 hover:text-indigo-200">/agents</Link> and inspect readiness in <Link href="/specialist" className="text-indigo-300 hover:text-indigo-200">/specialist</Link>.</li>
-          </ol>
+          <p className="text-sm leading-6 text-gray-400">
+            The final command must return <code className="text-gray-100">402</code>
+            with an <code className="text-gray-100">x402-request</code> header. If it
+            returns <code className="text-gray-100">200</code> before payment, the
+            registration flow blocks the endpoint as insecure.
+          </p>
         </section>
 
         <section className="grid gap-5 lg:grid-cols-2">
@@ -254,32 +262,13 @@ curl -i -X POST "$ENDPOINT/v1/chat/completions" \
             </ul>
           </div>
           <div className="rounded-xl border border-white/10 bg-card/20 p-6">
-            <p className="section-label mb-3">Troubleshooting</p>
-            <div className="space-y-3">
-              {troubleshooting.map((item) => (
-                <div key={item.title}>
-                  <p className="text-sm font-semibold text-white">{item.title}</p>
-                  <p className="text-sm leading-6 text-gray-400">{item.body}</p>
-                </div>
-              ))}
+            <p className="section-label mb-3">Registration links</p>
+            <div className="space-y-3 text-sm text-gray-400">
+              <p><Link href="/onboarding" className="text-indigo-300 hover:text-indigo-200">Guided onboarding</Link> walks through endpoint, wallet, healthcheck, attestation, and registration.</p>
+              <p><Link href="/register" className="text-indigo-300 hover:text-indigo-200">Direct registration</Link> is faster if your endpoint is already prepared.</p>
+              <p><Link href="/specialist" className="text-indigo-300 hover:text-indigo-200">Specialist readiness</Link> shows whether your endpoint is callable and fail-closed.</p>
             </div>
           </div>
-        </section>
-
-        <section className="rounded-xl border border-indigo-300/20 bg-indigo-400/10 p-6">
-          <p className="section-label mb-3">Full guide</p>
-          <p className="mb-4 text-sm leading-6 text-gray-300">
-            The repository also includes a longer tester guide with the same
-            steps and security notes.
-          </p>
-          <a
-            href="https://github.com/nissan/reddi-agent-protocol/blob/main/docs/TESTER-SPECIALIST-ONBOARDING-DEVNET.md"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm text-indigo-300 hover:text-indigo-200"
-          >
-            Open full devnet tester guide on GitHub →
-          </a>
         </section>
       </main>
     </div>

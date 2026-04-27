@@ -158,17 +158,17 @@ export default function Home() {
             <div className="max-w-3xl space-y-2">
               <p className="section-label">Volunteer testers wanted</p>
               <h2 className="font-display text-2xl font-bold text-white">
-                Help us test specialist onboarding while we are on devnet
+                Help us test Ollama and OpenOnion specialists on devnet
               </h2>
               <p className="text-sm leading-6 text-gray-300">
-                Run a temporary specialist endpoint, expose it safely with HTTPS,
-                and register against the deployed Solana devnet contracts. No
-                real funds required — just a devnet wallet and 20 minutes.
+                Run an Ollama-style local specialist or an OpenOnion adapter,
+                expose it safely with HTTPS, and register against the deployed
+                Solana devnet contracts. No real funds required.
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
               <Link href="/testers">
-                <Button>Open tester guide →</Button>
+                <Button>Open tester guides →</Button>
               </Link>
               <Link href="/onboarding">
                 <Button variant="outline">Start onboarding</Button>
