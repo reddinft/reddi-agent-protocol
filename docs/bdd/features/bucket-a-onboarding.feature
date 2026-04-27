@@ -61,3 +61,10 @@ Feature: Bucket A Specialist Onboarding
     When onboarding reaches post-attestation settlement actions
     Then confirm/dispute flow is available and state-consistent
     And behavior is covered by onboarding and planner settlement contracts
+
+  @A3.2 @A3.3 @D2.1 @role-specialist @route-unit
+  Scenario: Specialist dashboard shows callable readiness
+    When a registered specialist opens their dashboard
+    Then the dashboard summarizes registry, endpoint, x402, capability, and attestation readiness
+    And an insecure open completion endpoint is blocked as unpaid-bypass risk
+    And the behavior is covered by "lib/__tests__/specialist-callable-readiness.test.ts"

@@ -14,6 +14,13 @@ Feature: Bucket D and E Security + Reliability
     And misconfiguration is detectable in healthcheck behavior
     And the behavior is covered by "lib/__tests__/endpoint-security-compat.test.ts"
 
+  @D2.1 @A3.3 @role-specialist @route-unit
+  Scenario: Callable readiness fails closed on unpaid completion bypass
+    When specialist callable readiness receives an insecure open-completion probe result
+    Then the specialist is marked blocked instead of callable
+    And the next action instructs the operator to place x402 in front of `/v1/chat/completions`
+    And the behavior is covered by "lib/__tests__/specialist-callable-readiness.test.ts"
+
   @E2.1 @E2.2 @route-unit
   Scenario: Operator key status and rotation safeguards are explicit
     When operator key status and rotation validations run
