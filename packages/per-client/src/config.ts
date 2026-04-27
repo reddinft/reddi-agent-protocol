@@ -6,8 +6,25 @@
  * The TEE then undelegates accounts and finalises on Solana mainnet.
  */
 
-/** Devnet TEE validator RPC endpoint */
-export const PER_DEVNET_RPC = "https://devnet-tee.magicblock.app";
+function pickEnv(...keys: string[]): string | undefined {
+  for (const key of keys) {
+    const value = process.env[key]?.trim();
+    if (value) return value;
+  }
+  return undefined;
+}
+
+function defaultPerRpcByProfile(): string {
+  const profile = (pickEnv("NETWORK_PROFILE", "NEXT_PUBLIC_NETWORK_PROFILE") ?? "devnet").toLowerCase();
+  if (profile === "mainnet" || profile === "mainnet-beta") return "https://mainnet-tee.magicblock.app";
+  if (profile === "local" || profile === "localnet" || profile === "surfpool" || profile === "local-surfpool") {
+    return "http://127.0.0.1:18999";
+  }
+  return "https://devnet-tee.magicblock.app";
+}
+
+/** Active TEE validator RPC endpoint */
+export const PER_DEVNET_RPC = pickEnv("NEXT_PUBLIC_PER_RPC", "DEMO_PER_RPC") ?? defaultPerRpcByProfile();
 
 /** Devnet TEE validator pubkey (for identity verification) */
 export const PER_DEVNET_VALIDATOR_PUBKEY =

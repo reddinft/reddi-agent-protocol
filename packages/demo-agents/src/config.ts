@@ -5,14 +5,72 @@ import dotenv from "dotenv";
 const envPath = path.resolve(__dirname, "../.env.devnet");
 dotenv.config({ path: envPath });
 
-/** Deployed program ID on devnet */
-export const ESCROW_PROGRAM_ID = "77rkRQxe4GRzHU56H6JuWPFe27g4NoRBz4GGftuUZXmX";
+function pickEnv(...keys: string[]): string | undefined {
+  for (const key of keys) {
+    const value = process.env[key]?.trim();
+    if (value) return value;
+  }
+  return undefined;
+}
 
-/** Solana devnet RPC */
-export const DEVNET_RPC = "https://api.devnet.solana.com";
+type DemoNetworkProfileName = "local-surfpool" | "devnet" | "mainnet";
 
-/** MagicBlock PER devnet TEE endpoint */
-export const PER_DEVNET_RPC = "https://devnet-tee.magicblock.app";
+type DemoNetworkProfile = {
+  rpcHttp: string;
+  explorerClusterParam: "custom" | "devnet" | "mainnet";
+  defaultEscrowProgramId: string;
+  defaultPerRpc: string;
+};
+
+const DEMO_NETWORK_PROFILES: Record<DemoNetworkProfileName, DemoNetworkProfile> = {
+  "local-surfpool": {
+    rpcHttp: "http://127.0.0.1:18999",
+    explorerClusterParam: "custom",
+    defaultEscrowProgramId: "794nTFNyJknzDrR13ApSfVyNCRvcvnCN3BVDfic8dcZD",
+    defaultPerRpc: "http://127.0.0.1:18999",
+  },
+  devnet: {
+    rpcHttp: "https://api.devnet.solana.com",
+    explorerClusterParam: "devnet",
+    defaultEscrowProgramId: "794nTFNyJknzDrR13ApSfVyNCRvcvnCN3BVDfic8dcZD",
+    defaultPerRpc: "https://devnet-tee.magicblock.app",
+  },
+  mainnet: {
+    rpcHttp: "https://api.mainnet-beta.solana.com",
+    explorerClusterParam: "mainnet",
+    defaultEscrowProgramId: "794nTFNyJknzDrR13ApSfVyNCRvcvnCN3BVDfic8dcZD",
+    defaultPerRpc: "https://mainnet-tee.magicblock.app",
+  },
+};
+
+function resolveNetworkProfileName(): DemoNetworkProfileName {
+  const raw = (pickEnv("NETWORK_PROFILE", "NEXT_PUBLIC_NETWORK_PROFILE") ?? "devnet").toLowerCase();
+  if (raw === "local" || raw === "localnet" || raw === "surfpool") return "local-surfpool";
+  if (raw === "mainnet" || raw === "mainnet-beta") return "mainnet";
+  return "devnet";
+}
+
+const activeProfile = DEMO_NETWORK_PROFILES[resolveNetworkProfileName()];
+
+/** Deployed program ID (overrideable for local Surfpool/test lanes) */
+export const ESCROW_PROGRAM_ID =
+  pickEnv("DEMO_ESCROW_PROGRAM_ID", "NEXT_PUBLIC_ESCROW_PROGRAM_ID") ?? activeProfile.defaultEscrowProgramId;
+
+/** Solana RPC (overrideable for local Surfpool/test lanes) */
+export const DEVNET_RPC = pickEnv("DEMO_DEVNET_RPC", "NEXT_PUBLIC_RPC_ENDPOINT") ?? activeProfile.rpcHttp;
+
+/** MagicBlock PER endpoint (overrideable for local Surfpool/test lanes) */
+export const PER_DEVNET_RPC = pickEnv("DEMO_PER_RPC", "NEXT_PUBLIC_PER_RPC") ?? activeProfile.defaultPerRpc;
+
+export function explorerTxUrl(signature: string): string {
+  if (activeProfile.explorerClusterParam === "mainnet") {
+    return `https://explorer.solana.com/tx/${signature}`;
+  }
+  if (activeProfile.explorerClusterParam === "devnet") {
+    return `https://explorer.solana.com/tx/${signature}?cluster=devnet`;
+  }
+  return `https://explorer.solana.com/tx/${signature}?cluster=custom&customUrl=${encodeURIComponent(DEVNET_RPC)}`;
+}
 
 /** MagicBlock critical addresses */
 export const PERMISSION_PROGRAM_ID = "ACLseoPoyC3cBqoUtkbjZ4aDrkurZW86v19pXz2XQnp1";
