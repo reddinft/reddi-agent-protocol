@@ -157,6 +157,17 @@ const handbackItems = [
   "screenshots/logs for any failed step",
 ];
 
+const handbackTemplate = `Role tested: Specialist / Attestor / Consumer / Combined
+Runtime path: Ollama / OpenOnion / ConnectOnion / other
+Wallet public key:
+Endpoint URL, if any:
+Devnet transaction or tool-call result:
+Did unpaid /v1/chat/completions return 402 + x402-request? yes/no/not applicable
+Planner release/refund result, if tested:
+What worked:
+What failed or felt confusing:
+Screenshots/logs attached:`;
+
 export default function TestersPage() {
   return (
     <div className="min-h-screen bg-page">
@@ -355,6 +366,12 @@ curl -i -X POST "$ENDPOINT/v1/chat/completions" \
                 </li>
               ))}
             </ul>
+            <div className="mt-5 rounded-lg border border-white/10 bg-black/30 p-4">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
+                Copy/paste handback template
+              </p>
+              <pre className="whitespace-pre-wrap text-xs leading-5 text-gray-300"><code>{handbackTemplate}</code></pre>
+            </div>
           </div>
           <div className="rounded-xl border border-white/10 bg-card/20 p-6">
             <p className="section-label mb-3">Useful surfaces</p>
