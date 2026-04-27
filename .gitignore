@@ -51,3 +51,18 @@ test-ledger/
 *-keypair.json
 !.config/solana/
 .config/solana/id.json
+
+# Local protocol runtime state and generated artifacts
+.surfpool/
+artifacts/
+test-results/
+
+# Onboarding/demo runtime data (generated locally; may contain endpoint tokens, wallets, prompts, receipts)
+data/onboarding/attestations.json
+data/onboarding/dogfood-escrows.json
+data/onboarding/local-wallet.json
+data/onboarding/planner-feedback.json
+data/onboarding/planner-runs.json
+data/onboarding/runtime-config.json
+data/onboarding/specialist-profile.json
+data/onboarding/token-gated-proxy.mjs
