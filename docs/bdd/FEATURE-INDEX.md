@@ -55,6 +55,13 @@ Purpose: single lookup from BDD feature file -> bucket -> executable verificatio
   - `./scripts/run-source-conformance.sh --source pi --mode smoke`
   - `npm run test:source:matrix`
 
+### Bucket I — Agent Manager Operations
+- Feature: `docs/bdd/features/bucket-i-agent-manager-operations.feature`
+- Verify:
+  - `npx jest lib/__tests__/manager-readiness-route.test.ts --runInBand`
+  - `npm run test:bdd:index`
+  - E2E target: manager launchpad Playwright smoke once added to representative sweep
+
 ## Drift guard
 - Validate index coverage against feature files:
   - `npm run test:bdd:index`

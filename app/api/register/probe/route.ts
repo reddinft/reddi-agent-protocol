@@ -22,7 +22,7 @@ export async function POST(req: Request) {
   const endpoint = body?.endpoint;
   const sourceAdapter = body?.sourceAdapter;
   const integration = body?.integration ?? sourceAdapter?.source;
-  const requireX402 = body?.requireX402 === true;
+  // Strict x402 enforcement is always required for registration probes.
 
   if (!endpoint || typeof endpoint !== "string") {
     return NextResponse.json({ ok: false, status: "invalid_url" }, { status: 400 });
@@ -119,22 +119,27 @@ export async function POST(req: Request) {
       securityStatus = "unknown";
     }
 
+    if (securityStatus !== "x402_challenge_detected") {
+      return NextResponse.json(
+        {
+          ok: false,
+          status: "insecure_endpoint",
+          models: [],
+          integration,
+          securityStatus,
+          error:
+            securityStatus === "insecure_open_completion"
+              ? "Endpoint served a completion without an x402 challenge. Put a payment-enforcing gateway/proxy in front before registration."
+              : "Endpoint did not return the required 402 + x402-request challenge on /v1/chat/completions. Registration is blocked until x402 enforcement is visible.",
+          warning,
+        },
+        { status: 400 }
+      );
+    }
+
     if (tagsRes.ok) {
       const body = await tagsRes.json().catch(() => null);
       const hasModels = body?.models && Array.isArray(body.models);
-
-      if (requireX402 && securityStatus === "insecure_open_completion") {
-        return NextResponse.json(
-          {
-            ok: false,
-            status: "insecure_endpoint",
-            error:
-              "Endpoint returned completion without x402 challenge. Put a payment-enforcing gateway/proxy in front before registration.",
-            securityStatus,
-          },
-          { status: 400 }
-        );
-      }
 
       return NextResponse.json({
         ok: true,
@@ -149,19 +154,6 @@ export async function POST(req: Request) {
     const healthRes = await fetch(`${url.origin}/healthz`, {
       signal: AbortSignal.timeout(5000),
     });
-
-    if (requireX402 && securityStatus === "insecure_open_completion") {
-      return NextResponse.json(
-        {
-          ok: false,
-          status: "insecure_endpoint",
-          error:
-            "Endpoint returned completion without x402 challenge. Put a payment-enforcing gateway/proxy in front before registration.",
-          securityStatus,
-        },
-        { status: 400 }
-      );
-    }
 
     return NextResponse.json({
       ok: healthRes.ok,

@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import StepIndicator from "@/components/StepIndicator";
 import { showToast } from "@/components/ui/toast";
 import { RUNTIME_CAPABILITIES } from "@/lib/capabilities/taxonomy";
+import { toExplorerTxUrl } from "@/lib/config/explorer";
 import { emitOnboardingCompletedEvent } from "@/lib/onboarding/torque-onboarding";
 import {
   AGENT_TYPE_ENUM,
@@ -87,6 +88,8 @@ type WizardState = {
   capabilityPerCallUsd: string;
   capabilitySaved: boolean;
   capabilityNote: string;
+  registrationCompleted: boolean;
+  registrationTxSig: string;
   plannerPrompt: string;
   plannerRunId: string;
   plannerStatus: "idle" | "running" | "completed" | "failed";
@@ -154,6 +157,8 @@ const INITIAL_STATE: WizardState = {
   capabilityPerCallUsd: "0",
   capabilitySaved: false,
   capabilityNote: "",
+  registrationCompleted: false,
+  registrationTxSig: "",
   plannerPrompt: "Summarise the key risks in deploying an AI agent with on-chain payment capabilities.",
   plannerRunId: "",
   plannerStatus: "idle",
@@ -230,8 +235,6 @@ export default function OnboardingPage() {
   const [walletLoading, setWalletLoading] = useState(false);
   const [sponsorshipLoading, setSponsorshipLoading] = useState(false);
   const [registering, setRegistering] = useState(false);
-  const [registered, setRegistered] = useState(false);
-  const [registerTxSig, setRegisterTxSig] = useState<string | null>(null);
   const [registerError, setRegisterError] = useState<string | null>(null);
   const [registerPreflightLoading, setRegisterPreflightLoading] = useState(false);
   const [registerPreflight, setRegisterPreflight] = useState<{
@@ -242,6 +245,21 @@ export default function OnboardingPage() {
     rateLamports: bigint;
     agentPda: string;
     estimatedCostSol: number;
+  } | null>(null);
+  const [operatorPreflightLoading, setOperatorPreflightLoading] = useState(false);
+  const [operatorPreflight, setOperatorPreflight] = useState<{
+    ok: boolean;
+    checkedAt: string;
+    blockingFailures: number;
+    checks: {
+      id: string;
+      label: string;
+      status: "pass" | "fail";
+      blocking: boolean;
+      detail: string;
+      fix?: string;
+    }[];
+    error?: string;
   } | null>(null);
   const [healthcheckLoading, setHealthcheckLoading] = useState(false);
   const [attestationLoading, setAttestationLoading] = useState(false);
@@ -256,25 +274,31 @@ export default function OnboardingPage() {
     }
   }, [step]);
 
-  const [state, setState] = useState<WizardState>(() => {
-    if (typeof window === "undefined") return INITIAL_STATE;
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (!raw) return INITIAL_STATE;
-      const parsed = JSON.parse(raw) as Partial<WizardState>;
-      return { ...INITIAL_STATE, ...parsed };
-    } catch {
-      return INITIAL_STATE;
-    }
-  });
+  const [state, setState] = useState<WizardState>(INITIAL_STATE);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as Partial<WizardState>;
+        setState((prev) => ({ ...prev, ...parsed }));
+      }
+    } catch {
+      // ignore storage errors
+    } finally {
+      setHydrated(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch {
       // ignore storage errors
     }
-  }, [state]);
+  }, [hydrated, state]);
 
   useEffect(() => {
     if (!publicKey) return;
@@ -287,6 +311,8 @@ export default function OnboardingPage() {
             walletAddress: walletBase58,
             capabilitySaved: false,
             capabilityNote: "",
+            registrationCompleted: false,
+            registrationTxSig: "",
           }
     );
   }, [publicKey]);
@@ -320,12 +346,12 @@ export default function OnboardingPage() {
       const backupOk = state.hasWallet === "yes" ? true : state.walletBackupConfirmed;
       return walletOk && backupOk && state.sponsorshipReady;
     }
-    if (step === 5) return registered && state.capabilitySaved;
+    if (step === 5) return state.registrationCompleted && state.capabilitySaved;
     if (step === 6) return state.healthcheckStatus === "pass";
     if (step === 7) return state.attested;
     if (step === 8) return state.plannerStatus === "completed" || state.plannerFeedbackSent;
     return false;
-  }, [step, state, registered]);
+  }, [step, state]);
 
   const buildRegisterDraft = () => {
     if (!publicKey) {
@@ -420,7 +446,11 @@ export default function OnboardingPage() {
 
     setRegistering(true);
     setRegisterError(null);
-    setRegistered(false);
+    setState((s) => ({
+      ...s,
+      registrationCompleted: false,
+      registrationTxSig: "",
+    }));
 
     try {
       const conn = walletConnection ?? new Connection(DEVNET_RPC, "confirmed");
@@ -435,13 +465,19 @@ export default function OnboardingPage() {
       const sig = await sendTransaction(tx, conn);
       await conn.confirmTransaction(sig, "confirmed");
 
-      setRegisterTxSig(sig);
-      setRegistered(true);
+      setState((s) => ({
+        ...s,
+        registrationCompleted: true,
+        registrationTxSig: sig,
+      }));
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : "Registration failed";
       setRegisterError(msg);
-      setRegisterTxSig(null);
-      setRegistered(false);
+      setState((s) => ({
+        ...s,
+        registrationCompleted: false,
+        registrationTxSig: "",
+      }));
     } finally {
       setRegistering(false);
     }
@@ -1098,16 +1134,16 @@ export default function OnboardingPage() {
               </div>
             )}
 
-            {registerTxSig && (
+            {state.registrationTxSig && (
               <div className="rounded-lg border border-[#14F195]/30 bg-[#14F195]/10 p-3 text-xs">
                 <p className="text-[#14F195]">Registration submitted</p>
                 <a
-                  href={`https://explorer.solana.com/tx/${registerTxSig}?cluster=devnet`}
+                  href={toExplorerTxUrl(state.registrationTxSig)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-mono break-all hover:underline"
                 >
-                  {registerTxSig}
+                  {state.registrationTxSig}
                 </a>
               </div>
             )}
@@ -1340,7 +1376,7 @@ export default function OnboardingPage() {
 
               <Button
                 variant="outline"
-                disabled={capabilityLoading || !state.walletAddress || !registered}
+                disabled={capabilityLoading || !state.walletAddress || !state.registrationCompleted}
                 onClick={async () => {
                   setCapabilityLoading(true);
                   try {
@@ -1795,7 +1831,7 @@ export default function OnboardingPage() {
             )}
             {state.attestationResolution !== "pending" && state.attestationResolutionSig && (
               <a
-                href={`https://explorer.solana.com/tx/${state.attestationResolutionSig}?cluster=devnet`}
+                href={toExplorerTxUrl(state.attestationResolutionSig)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block text-xs font-mono break-all text-[#14F195] hover:underline"
@@ -1859,10 +1895,94 @@ export default function OnboardingPage() {
               <span className="rounded-full border border-white/10 px-2 py-0.5 bg-black/30">auto-selects best available candidate</span>
             </div>
 
+            {/* Operator preflight gate */}
+            <div className="space-y-2 rounded-lg border border-white/10 bg-black/20 p-3">
+              <div className="text-xs text-muted-foreground">
+                Required before execution. Run preflight first, fix any blocking failures, then run the specialist call.
+              </div>
+              <div className="text-[11px] text-muted-foreground/80">
+                Checks: operator key, endpoint/runtime health, RPC+program consistency, wallet balance floor.
+              </div>
+              <Button
+                variant="outline"
+                className="w-full"
+                disabled={operatorPreflightLoading || state.plannerStatus === "running"}
+                onClick={async () => {
+                  setOperatorPreflightLoading(true);
+                  setOperatorPreflight(null);
+                  try {
+                    const res = await fetch("/api/onboarding/preflight", {
+                      method: "POST",
+                      headers: { "content-type": "application/json" },
+                      body: JSON.stringify({
+                        endpointUrl: state.endpointUrl,
+                        walletAddress: state.walletAddress,
+                      }),
+                    });
+                    const data = await res.json();
+                    if (!res.ok) {
+                      setOperatorPreflight({
+                        ok: false,
+                        checkedAt: new Date().toISOString(),
+                        blockingFailures: 1,
+                        checks: [],
+                        error: data?.error || "Preflight failed",
+                      });
+                      return;
+                    }
+
+                    setOperatorPreflight({
+                      ok: Boolean(data?.ok),
+                      checkedAt: data?.result?.checkedAt || new Date().toISOString(),
+                      blockingFailures: Number(data?.result?.blockingFailures || 0),
+                      checks: Array.isArray(data?.result?.checks) ? data.result.checks : [],
+                    });
+                  } catch (error) {
+                    setOperatorPreflight({
+                      ok: false,
+                      checkedAt: new Date().toISOString(),
+                      blockingFailures: 1,
+                      checks: [],
+                      error: error instanceof Error ? error.message : "Preflight failed",
+                    });
+                  } finally {
+                    setOperatorPreflightLoading(false);
+                  }
+                }}
+              >
+                {operatorPreflightLoading ? "Running preflight..." : "Run operator preflight (required)"}
+              </Button>
+
+              {operatorPreflight && (
+                <div className={`rounded-md border p-3 text-xs ${operatorPreflight.ok ? "border-green-500/30 bg-green-950/20 text-green-300" : "border-red-500/30 bg-red-950/20 text-red-300"}`}>
+                  <div className="font-medium">{operatorPreflight.ok ? "Preflight PASS" : "Preflight FAIL"}</div>
+                  <div className="opacity-80">blocking failures: {operatorPreflight.blockingFailures}</div>
+                  <div className="opacity-70">checked: {new Date(operatorPreflight.checkedAt).toLocaleString()}</div>
+                  {operatorPreflight.error && <div className="mt-1">{operatorPreflight.error}</div>}
+                  {operatorPreflight.checks.length > 0 && (
+                    <div className="mt-2 space-y-2">
+                      {operatorPreflight.checks.map((check) => (
+                        <div key={check.id} className="rounded border border-white/10 bg-black/30 p-2">
+                          <div className="font-medium">{check.status === "pass" ? "✓" : "✗"} {check.label}</div>
+                          <div className="opacity-90">{check.detail}</div>
+                          {check.fix && check.status === "fail" && <div className="mt-1 opacity-80">fix: {check.fix}</div>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
             {/* Execute button */}
             <Button
               className="w-full"
-              disabled={state.plannerStatus === "running" || !state.plannerPrompt.trim()}
+              disabled={
+                state.plannerStatus === "running" ||
+                !state.plannerPrompt.trim() ||
+                !operatorPreflight ||
+                !operatorPreflight.ok
+              }
               onClick={async () => {
                 setState((s) => ({ ...s, plannerStatus: "running", plannerNote: "Routing to specialist...", plannerRunId: "", plannerResponsePreview: "", plannerX402Tx: "" }));
                 try {
@@ -1895,6 +2015,9 @@ export default function OnboardingPage() {
             >
               {state.plannerStatus === "running" ? "Running..." : "Run specialist call"}
             </Button>
+            {(!operatorPreflight || !operatorPreflight.ok) && (
+              <p className="text-xs text-yellow-400">Specialist execution is locked until preflight passes.</p>
+            )}
 
             {/* Result */}
             {state.plannerNote && (

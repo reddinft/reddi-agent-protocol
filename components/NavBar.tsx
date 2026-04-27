@@ -24,6 +24,7 @@ const navLinks: { href: string; label: string; badge?: string }[] = [
   { href: "/leaderboard", label: "Leaderboard" },
   { href: "/onboarding", label: "Register" },
   { href: "/dashboard", label: "Dashboards" },
+  { href: "/manager", label: "Manager", badge: "New" },
   { href: "/specialist", label: "Specialist" },
   { href: "/attestation", label: "Attestation" },
   { href: "/consumer", label: "Consumer" },

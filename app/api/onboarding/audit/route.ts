@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { readFileSync } from "fs";
 import { join } from "path";
+import { toExplorerTxUrl } from "@/lib/config/explorer";
 
 export const runtime = "nodejs";
 
@@ -54,7 +55,7 @@ export async function GET() {
       job_id: att.jobIdHex ?? att.id ?? "",
       operator_pubkey_suffix: att.operatorPubkeySuffix ?? att.operator?.slice(-8) ?? "",
       tx_signature: txSignature,
-      explorer_url: txSignature ? `https://explorer.solana.com/tx/${txSignature}?cluster=devnet` : null,
+      explorer_url: txSignature ? toExplorerTxUrl(txSignature) : null,
       local_only: att.localOnly ?? !txSignature,
       wallet_address: att.walletAddress ?? "",
       endpoint_url: att.endpointUrl ?? "",

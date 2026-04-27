@@ -21,6 +21,8 @@ export interface SwapClient {
 
 export interface JupiterSwapClientOptions {
   apiBaseUrl?: string;
+  quoteApiBaseUrl?: string;
+  apiKey?: string;
   fetchImpl?: typeof fetch;
 }
 
@@ -38,40 +40,79 @@ export function resolveMint(symbolOrMint: string): string {
 export class JupiterSwapV2Client implements SwapClient {
   private apiBaseUrl: string;
 
+  private quoteApiBaseUrl: string;
+
+  private apiKey?: string;
+
   private fetchImpl: typeof fetch;
 
   constructor(options: JupiterSwapClientOptions = {}) {
-    this.apiBaseUrl = options.apiBaseUrl || 'https://quote-api.jup.ag/v2';
+    this.apiBaseUrl = options.apiBaseUrl || 'https://api.jup.ag/swap/v2';
+    this.quoteApiBaseUrl = options.quoteApiBaseUrl || 'https://lite-api.jup.ag/swap/v1';
+    this.apiKey = options.apiKey || process.env.JUPITER_API_KEY?.trim();
     this.fetchImpl = options.fetchImpl || fetch;
   }
 
-  async swap(request: JupiterSwapRequest): Promise<JupiterSwapResult> {
+  private buildHeaders() {
+    const headers: Record<string, string> = { 'content-type': 'application/json' };
+    if (this.apiKey) {
+      headers['x-api-key'] = this.apiKey;
+    }
+    return headers;
+  }
+
+  private async swapViaOrderExecute(request: JupiterSwapRequest): Promise<JupiterSwapResult> {
     const orderRes = await this.fetchImpl(`${this.apiBaseUrl}/order`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(request),
+      headers: this.buildHeaders(),
+      body: JSON.stringify({
+        inputMint: request.inputMint,
+        outputMint: request.outputMint,
+        amount: request.amount,
+        taker: request.userPublicKey,
+        slippageBps: request.slippageBps ?? 50,
+      }),
     });
 
+    if (orderRes.status === 404) {
+      throw new Error('Jupiter order failed (404)');
+    }
     if (!orderRes.ok) {
       throw new Error(`Jupiter order failed (${orderRes.status})`);
     }
 
     const orderJson = (await orderRes.json()) as {
+      requestId?: string;
       orderId?: string;
       id?: string;
       inAmount?: string;
       outAmount?: string;
+      transaction?: string;
+      tx?: string;
     };
 
-    const orderId = orderJson.orderId || orderJson.id;
+    const orderId = orderJson.requestId || orderJson.orderId || orderJson.id;
     if (!orderId) {
-      throw new Error('Jupiter order response missing order id');
+      throw new Error('Jupiter order response missing request id');
+    }
+
+    const executeTx = orderJson.transaction || orderJson.tx;
+    if (!executeTx) {
+      return {
+        orderId,
+        executeId: `exec_pending_${Date.now().toString(36)}`,
+        inAmount: orderJson.inAmount || request.amount,
+        outAmount: orderJson.outAmount || '0',
+      };
     }
 
     const executeRes = await this.fetchImpl(`${this.apiBaseUrl}/execute`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ orderId }),
+      headers: this.buildHeaders(),
+      body: JSON.stringify({
+        requestId: orderId,
+        signedTransaction: executeTx,
+      }),
     });
 
     if (!executeRes.ok) {
@@ -79,17 +120,65 @@ export class JupiterSwapV2Client implements SwapClient {
     }
 
     const executeJson = (await executeRes.json()) as {
+      requestId?: string;
       executeId?: string;
       id?: string;
+      outputAmountResult?: string;
       outAmount?: string;
     };
 
     return {
       orderId,
-      executeId: executeJson.executeId || executeJson.id || `exec_${Date.now().toString(36)}`,
+      executeId:
+        executeJson.executeId || executeJson.requestId || executeJson.id || `exec_${Date.now().toString(36)}`,
       inAmount: orderJson.inAmount || request.amount,
-      outAmount: executeJson.outAmount || orderJson.outAmount || '0',
+      outAmount: executeJson.outputAmountResult || executeJson.outAmount || orderJson.outAmount || '0',
     };
+  }
+
+  private async swapViaQuote(request: JupiterSwapRequest): Promise<JupiterSwapResult> {
+    const query = new URLSearchParams({
+      inputMint: request.inputMint,
+      outputMint: request.outputMint,
+      amount: request.amount,
+      slippageBps: String(request.slippageBps ?? 50),
+    });
+
+    const quoteRes = await this.fetchImpl(`${this.quoteApiBaseUrl}/quote?${query.toString()}`, {
+      method: 'GET',
+      headers: this.apiKey ? { 'x-api-key': this.apiKey } : undefined,
+    });
+
+    if (!quoteRes.ok) {
+      throw new Error(`Jupiter quote failed (${quoteRes.status})`);
+    }
+
+    const quoteJson = (await quoteRes.json()) as {
+      inAmount?: string;
+      outAmount?: string;
+      contextSlot?: number;
+      routePlan?: unknown[];
+      priceImpactPct?: string;
+    };
+
+    return {
+      orderId: `quote_${Date.now().toString(36)}_${quoteJson.contextSlot ?? 'na'}`,
+      executeId: `quote_only_${Array.isArray(quoteJson.routePlan) ? quoteJson.routePlan.length : 0}`,
+      inAmount: quoteJson.inAmount || request.amount,
+      outAmount: quoteJson.outAmount || '0',
+    };
+  }
+
+  async swap(request: JupiterSwapRequest): Promise<JupiterSwapResult> {
+    try {
+      return await this.swapViaOrderExecute(request);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (!message.includes('404') && !message.includes('fetch failed')) {
+        throw error;
+      }
+      return this.swapViaQuote(request);
+    }
   }
 }
 

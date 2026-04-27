@@ -16,8 +16,8 @@ import {
   TransactionInstruction,
 } from "@solana/web3.js";
 import crypto from "crypto";
-import { AGENT_B_KEYPAIR, AGENT_C_KEYPAIR } from "./wallets";
-import { AGENT_SEED, DEVNET_RPC, ESCROW_PROGRAM_ID } from "./config";
+import { AGENT_A_KEYPAIR, AGENT_B_KEYPAIR, AGENT_C_KEYPAIR } from "./wallets";
+import { AGENT_SEED, DEVNET_RPC, ESCROW_PROGRAM_ID, explorerTxUrl } from "./config";
 
 const PROGRAM_ID = new PublicKey(ESCROW_PROGRAM_ID);
 const connection = new Connection(DEVNET_RPC, "confirmed");
@@ -89,7 +89,7 @@ async function registerAgent(
     const sig = await connection.sendRawTransaction(tx.serialize(), { skipPreflight: false });
     await connection.confirmTransaction(sig, "confirmed");
     console.log(`   ✅ Registered! sig: ${sig}`);
-    console.log(`   🔍 Explorer: https://explorer.solana.com/tx/${sig}?cluster=devnet`);
+    console.log(`   🔍 Explorer: ${explorerTxUrl(sig)}`);
   } catch (e: any) {
     if (e.message?.includes("already in use") || e.message?.includes("AlreadyInUse") || e.message?.includes("0x0")) {
       console.log(`   ℹ️  Already registered — skipping`);
@@ -102,6 +102,16 @@ async function registerAgent(
 async function main() {
   console.log("🚀 Registering agents on devnet...\n");
   console.log(`Program: ${ESCROW_PROGRAM_ID}`);
+
+  // Agent A — Orchestrator (Primary)
+  await registerAgent(
+    AGENT_A_KEYPAIR,
+    AgentType.Primary,
+    "reddi-orchestrator",
+    0n,
+    0,
+    "Agent A (Orchestrator)",
+  );
 
   // Agent B — Specialist (Primary)
   await registerAgent(

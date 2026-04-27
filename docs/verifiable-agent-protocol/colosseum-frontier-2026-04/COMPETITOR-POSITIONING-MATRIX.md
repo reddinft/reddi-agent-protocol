@@ -54,3 +54,12 @@ _Last updated: 2026-04-11 AEST_
 - Side-by-side demo: centralized facilitator assumption vs trustless escrow flow.
 - 3+ prospective integrator/user quotes.
 - Transaction evidence + dispute/timeout handling examples.
+
+## Collaborator alignment map (for deck partner lane)
+| Collaborator / ecosystem | Why they matter | Pitch framing |
+|---|---|---|
+| MagicBlock | Privacy-aware settlement path (PER) | We ship private-settlement-compatible trust rails, not just public transfer UX |
+| Jupiter | Cross-asset payment conversion support | Consumer intent and specialist settlement currency can diverge without manual ops |
+| Superteam / Colosseum | Distribution + validation channel | Product is tested where high-signal builders and judges already are |
+| RPC Fast | Reliability/performance infrastructure | Operational reliability is part of protocol trust, not a separate ops concern |
+| Adevar / AImpact / Torque ecosystem tracks | Security + trust + retention narrative anchors | We align technical roadmap with real ecosystem incentive lanes |

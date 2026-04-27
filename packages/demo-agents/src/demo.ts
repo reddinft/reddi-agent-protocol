@@ -27,6 +27,7 @@ import {
   PER_DEVNET_RPC,
   RATING_SEED,
   ESCROW_SEED,
+  explorerTxUrl,
 } from "./config";
 import {
   formatTransferContract,
@@ -215,7 +216,7 @@ async function runDemo() {
   });
   const lockSig = await sendTx(lockIx, [AGENT_A_KEYPAIR]);
   console.log(`   ✅ Escrow locked: ${ePda.toBase58()}`);
-  console.log(`   📎 Sig: https://explorer.solana.com/tx/${lockSig}?cluster=devnet\n`);
+  console.log(`   📎 Sig: ${explorerTxUrl(lockSig)}\n`);
   console.log("\n💳 x402 PAYMENT CYCLE");
   console.log("   Challenge:    HTTP 402 received from specialist endpoint");
   console.log("   Settlement:   USDC via SPL token transfer to escrow PDA");
@@ -281,21 +282,22 @@ async function runDemo() {
       data: encodeReleaseEscrowPer(sessionKeypair.publicKey),
     });
 
-    const { blockhash } = await connection.getLatestBlockhash();
+    const perConn = new Connection(PER_DEVNET_RPC, "confirmed");
+    const { blockhash } = await perConn.getLatestBlockhash();
+
     const perTx = new Transaction();
     perTx.recentBlockhash = blockhash;
     perTx.feePayer = AGENT_A_KEYPAIR.publicKey;
     perTx.add(releasePerIx);
     perTx.sign(AGENT_A_KEYPAIR);
 
-    const perConn = new Connection(PER_DEVNET_RPC, "confirmed");
     return perConn.sendRawTransaction(perTx.serialize(), { skipPreflight: true });
   };
 
   if (requestedSettlementMode === "public") {
     settlementSig = await releaseViaL1();
     settlementRouteUsed = "public";
-    console.log(`   🌐 Public L1 settlement used — sig: https://explorer.solana.com/tx/${settlementSig}?cluster=devnet\n`);
+    console.log(`   🌐 Public L1 settlement used — sig: ${explorerTxUrl(settlementSig)}\n`);
   } else {
     if (requestedSettlementMode === "vanish_core") {
       console.log("   ℹ️  Vanish Core is swap-privacy routing (x402_private_swap). This escrow release demo uses PER/public rails.");
@@ -313,7 +315,7 @@ async function runDemo() {
       console.log(`   ⚠️  PER unavailable (${e.message?.slice(0, 60)}...) — using L1 fallback`);
       settlementSig = await releaseViaL1();
       settlementRouteUsed = "public";
-      console.log(`   ✅ L1 fallback used — sig: https://explorer.solana.com/tx/${settlementSig}?cluster=devnet\n`);
+      console.log(`   ✅ L1 fallback used — sig: ${explorerTxUrl(settlementSig)}\n`);
     }
   }
 
@@ -322,7 +324,7 @@ async function runDemo() {
   console.log("\n✅ PAYMENT CONFIRMED");
   console.log(`   Released to:  ${payeeWallet ?? "specialist wallet"}`);
   console.log(`   On-chain tx:  ${txSignature ?? "[tx signature]"}`);
-  console.log(`   Explorer:     https://explorer.solana.com/tx/${txSignature ?? ""}?cluster=devnet\n`);
+  console.log(`   Explorer:     ${txSignature ? explorerTxUrl(txSignature) : ""}\n`);
 
   // ── Step 5: Cross-token payment demo (Jupiter auto-swap) ─────────────────
   console.log("\n🔄 JUPITER AUTO-SWAP DEMO");
