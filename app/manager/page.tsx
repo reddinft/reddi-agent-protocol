@@ -32,8 +32,24 @@ type Readiness = {
   roles: ManagerRole[];
 };
 
+type EvidencePack = {
+  generatedAt: string;
+  status: "ready" | "incomplete";
+  command: string;
+  artifacts: Array<{
+    id: string;
+    label: string;
+    path: string | null;
+    status: "present" | "missing";
+    summary: string;
+  }>;
+  privacy: { note: string; rawPromptsIncluded: false; secretsIncluded: false };
+  nextAction: string;
+};
+
 export default function ManagerPage() {
   const [readiness, setReadiness] = useState<Readiness | null>(null);
+  const [evidence, setEvidence] = useState<EvidencePack | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function load() {
@@ -43,6 +59,9 @@ export default function ManagerPage() {
       const data = await res.json();
       if (!data.ok) throw new Error(data.error ?? "Readiness failed");
       setReadiness(data.result);
+      const evidenceRes = await fetch("/api/manager/evidence", { cache: "no-store" });
+      const evidenceData = await evidenceRes.json();
+      if (evidenceData.ok) setEvidence(evidenceData.result);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to load manager readiness");
     }
@@ -119,8 +138,30 @@ export default function ManagerPage() {
       <section className="rounded-2xl border border-white/10 bg-card/20 p-5 space-y-3">
         <h2 className="text-lg font-semibold">BDD confidence</h2>
         <p className="text-sm text-muted-foreground">
-          Current docs-only gate for Bucket I: <code className="rounded bg-black/30 px-1.5 py-0.5">npm run test:bdd:index</code>. Full manager evidence pack will add latest sweep status and artifact links in a later iteration.
+          Manager confidence command: <code className="rounded bg-black/30 px-1.5 py-0.5">{evidence?.command ?? "npm run test:bdd:status && npm run test:bdd:sweep"}</code>.
         </p>
+        {evidence && (
+          <div className="space-y-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm text-muted-foreground">Evidence status: <span className={evidence.status === "ready" ? "text-green-300" : "text-amber-200"}>{evidence.status}</span></p>
+              <p className="text-xs text-muted-foreground">Generated {new Date(evidence.generatedAt).toLocaleString()}</p>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              {evidence.artifacts.map((artifact) => (
+                <div key={artifact.id} className="rounded-xl border border-white/10 bg-black/20 p-3 text-sm">
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="font-medium">{artifact.label}</p>
+                    <span className={artifact.status === "present" ? "text-green-300" : "text-red-300"}>{artifact.status}</span>
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">{artifact.summary}</p>
+                  {artifact.path && <p className="mt-2 font-mono text-xs text-[#14F195]">{artifact.path}</p>}
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">{evidence.privacy.note}</p>
+            <p className="text-sm text-white">Next: {evidence.nextAction}</p>
+          </div>
+        )}
       </section>
     </div>
   );
