@@ -172,18 +172,19 @@ npm run build
 
 Status after scoped review/verification/commits:
 
-- Started from **78** dirty/untracked paths after `bdb43b6d`.
-- Committed **9 scoped audit commits**:
-  - `16046b0c` `chore: ignore local protocol runtime artifacts`
-  - `4e7bc403` `feat: add network profile readiness controls`
-  - `0795d823` `feat(bdd): add consumer attestor settlement tools`
-  - `f22de586` `docs(bdd): restore bucket coverage audit trail`
-  - `2f44f7e0` `feat(onboarding): add operator preflight and registry guards`
-  - `7bef63aa` `fix(x402): harden jupiter swap fallback`
-  - `554c8fdc` `feat: add adoption playbook catalog`
-  - `ba5facc6` `chore: add demo and integration evidence tooling`
-  - `fc6f4c64` `docs: add collaborator positioning map`
-- Remaining dirty path: **1 tracked runtime data mutation** — `data/onboarding/specialist-index.json`.
+- Started from **78** dirty/untracked paths after original local commit `bdb43b6d`.
+- Rebasing onto current `origin/main` dropped already-upstream slices (`consumer attestor settlement tools`, `adoption playbook catalog`) and rewrote local hashes.
+- Current scoped audit commits after rebase:
+  - `30fb4931` `feat(bdd): add manager readiness role slice`
+  - `a47e7b2a` `chore: ignore local protocol runtime artifacts`
+  - `d841e56a` `feat: add network profile readiness controls`
+  - `b7c5544a` `docs(bdd): restore bucket coverage audit trail`
+  - `c25ce6f2` `feat(onboarding): add operator preflight and registry guards`
+  - `83713040` `fix(x402): harden jupiter swap fallback`
+  - `2ad3876a` `chore: add demo and integration evidence tooling`
+  - `1ae620a2` `docs: add collaborator positioning map`
+  - `bb96e6cb` `docs: record dirty worktree audit progress`
+- Final dirty path `data/onboarding/specialist-index.json` was discarded after Nissan approval; worktree returned clean.
 
 Verification completed during audit:
 
@@ -200,16 +201,16 @@ node --check scripts/capture-tx-proof.mjs scripts/capture-tx-proof-v2.mjs script
 npm run build
 ```
 
-### Remaining decision
+### Final local runtime-data decision
 
-`data/onboarding/specialist-index.json` appears to be local/demo runtime mutation rather than curated seed data:
+`data/onboarding/specialist-index.json` appeared to be local/demo runtime mutation rather than curated seed data:
 
-- adds multiple `https://127.0.0.1:3899` endpoint entries,
+- added multiple `https://127.0.0.1:3899` endpoint entries,
 - empty capability arrays,
 - timestamped local registration artifacts,
-- reformats the existing seed records.
+- reformatted the existing seed records.
 
-Recommendation: **discard/revert this file only after explicit Nissan approval**, or manually extract any intentional seed-schema fields into a sanitized fixture/change.
+Nissan approved discarding this final mutation on 2026-04-27; the file was restored to HEAD.
 
 ## Decision rules
 

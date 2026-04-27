@@ -89,6 +89,11 @@ describe("register probe route", () => {
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({ models: [{ name: "qwen3:8b" }] }),
+      })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 402,
+        headers: { get: (name: string) => (name.toLowerCase() === "x402-request" ? "{}" : null) },
       }) as unknown as typeof fetch;
 
     const { POST } = await import("@/app/api/register/probe/route");
