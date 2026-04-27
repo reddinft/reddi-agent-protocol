@@ -1,0 +1,37 @@
+name: Integration Lane (Nightly Artifacts)
+
+on:
+  schedule:
+    - cron: "0 20 * * *" # 06:00 AEST (approx, UTC-based)
+  workflow_dispatch:
+
+jobs:
+  integration-lane:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run integration lane (best effort)
+        run: npm run test:e2e:integration-lane
+        continue-on-error: true
+
+      - name: Upload integration artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-lane-artifacts-${{ github.run_id }}
+          path: artifacts/integration-lane/
+          if-no-files-found: warn
+          retention-days: 14
