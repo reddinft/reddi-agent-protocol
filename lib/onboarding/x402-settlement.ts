@@ -48,8 +48,12 @@ export type ProcessX402ChallengeOptions = {
 
 export function getJupiterSwapClient() {
   const apiBase = process.env.JUPITER_API_BASE?.trim() || "https://api.jup.ag/swap/v2";
-  if (!apiBase) return undefined;
-  return new JupiterSwapV2Client({ apiBaseUrl: apiBase });
+  const quoteApiBase = process.env.JUPITER_QUOTE_API_BASE?.trim() || "https://lite-api.jup.ag/swap/v1";
+  return new JupiterSwapV2Client({
+    apiBaseUrl: apiBase,
+    quoteApiBaseUrl: quoteApiBase,
+    apiKey: process.env.JUPITER_API_KEY?.trim(),
+  });
 }
 
 /**
@@ -95,6 +99,7 @@ export async function processX402Challenge(
   const swapClient = options.swapClient ?? getJupiterSwapClient();
   if (swapClient) {
     trace.push(`x402:jupiter_enabled:${process.env.JUPITER_API_BASE?.trim() || "https://api.jup.ag/swap/v2"}`);
+    trace.push(`x402:jupiter_quote_fallback:${process.env.JUPITER_QUOTE_API_BASE?.trim() || "https://lite-api.jup.ag/swap/v1"}`);
   }
 
   // Inject payer hint if not already present

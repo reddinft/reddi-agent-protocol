@@ -2,17 +2,18 @@ import { JupiterSwapV2Client } from "@reddi/x402-solana";
 
 let client: JupiterSwapV2Client | null = null;
 
-export function getJupiterClient(): JupiterSwapV2Client | null {
-  if (!process.env.JUPITER_API_KEY?.trim()) {
-    return null;
-  }
-
+export function getJupiterClient(): JupiterSwapV2Client {
   if (client) {
     return client;
   }
 
   const apiBaseUrl = process.env.JUPITER_API_BASE?.trim() || "https://api.jup.ag/swap/v2";
-  client = new JupiterSwapV2Client({ apiBaseUrl });
+  const quoteApiBaseUrl = process.env.JUPITER_QUOTE_API_BASE?.trim() || "https://lite-api.jup.ag/swap/v1";
+  client = new JupiterSwapV2Client({
+    apiBaseUrl,
+    quoteApiBaseUrl,
+    apiKey: process.env.JUPITER_API_KEY?.trim(),
+  });
   return client;
 }
 

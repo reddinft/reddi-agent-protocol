@@ -2,8 +2,8 @@
  * Unit tests for lib/jupiter-client.ts
  *
  * BDD: Bucket F — Cross-Token Settlement
- * F1.5: getJupiterClient() returns null when JUPITER_API_KEY not set
- * F1.6: getJupiterClient() returns singleton when JUPITER_API_KEY set
+ * F1.5: getJupiterClient() returns a usable client even without API key
+ * F1.6: getJupiterClient() returns singleton and honors env configuration
  */
 
 describe('getJupiterClient', () => {
@@ -18,10 +18,12 @@ describe('getJupiterClient', () => {
     process.env = originalEnv;
   });
 
-  it('returns null when JUPITER_API_KEY is not set', async () => {
+  it('returns a client instance when JUPITER_API_KEY is not set', async () => {
     delete process.env.JUPITER_API_KEY;
     const { getJupiterClient } = await import('../jupiter-client');
-    expect(getJupiterClient()).toBeNull();
+    const client = getJupiterClient();
+    expect(client).not.toBeNull();
+    expect(typeof client).toBe('object');
   });
 
   it('returns a client instance when JUPITER_API_KEY is set', async () => {
@@ -40,12 +42,14 @@ describe('getJupiterClient', () => {
     expect(c1).toBe(c2);
   });
 
-  it('uses custom API base from JUPITER_API_BASE env var', async () => {
+  it('uses custom API and quote bases from env vars', async () => {
     process.env.JUPITER_API_KEY = 'test-key-123';
     process.env.JUPITER_API_BASE = 'https://custom.jup.ag/swap/v2';
+    process.env.JUPITER_QUOTE_API_BASE = 'https://custom.jup.ag/swap/v1';
     const { getJupiterClient } = await import('../jupiter-client');
-    const client = getJupiterClient();
-    expect(client).not.toBeNull();
+    const client = getJupiterClient() as any;
+    expect(client.apiBaseUrl).toBe('https://custom.jup.ag/swap/v2');
+    expect(client.quoteApiBaseUrl).toBe('https://custom.jup.ag/swap/v1');
   });
 
   it('getJupiterSlippageBps returns 50 by default', async () => {
