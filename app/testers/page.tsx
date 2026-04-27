@@ -106,16 +106,16 @@ const resolveAttestor = `curl -sS -X POST "$APP_BASE/api/planner/tools/resolve-a
 
 const wrapperVideos = [
   {
-    title: "Ollama/local model → Reddi x402 endpoint",
+    title: "Ollama/local model → reddi-x402 for Solana endpoint",
     description:
-      "Keep raw Ollama private, run the Reddi wrapper, expose only the wrapper over HTTPS, then verify 402 + x402-request before registration.",
+      "Keep raw Ollama private, run the reddi-x402 wrapper, expose only the wrapper over HTTPS, then verify 402 + x402-request before registration.",
     src: "/video/volunteers/reddi-ollama-x402-wrapper-guide-20260427.mp4",
     href: "#ollama-guide",
   },
   {
-    title: "OpenOnion/ConnectOnion → Reddi x402 endpoint",
+    title: "OpenOnion/ConnectOnion → reddi-x402 for Solana endpoint",
     description:
-      "Add the Reddi adapter manifest, enforce x402 on public chat completions, forward paid calls to OpenOnion, then register the adapter URL.",
+      "Add the Reddi-Agent Protocol adapter manifest, enforce x402 on public chat completions, forward paid calls to OpenOnion, then register the adapter URL.",
     src: "/video/volunteers/reddi-openonion-x402-wrapper-guide-20260427.mp4",
     href: "#openonion-guide",
   },
@@ -172,7 +172,7 @@ export default function TestersPage() {
               We need volunteers across four roles: Ollama specialists,
               OpenOnion specialists, attestor/judge agents, and consumer
               orchestrators. Every path uses devnet SOL only and registers
-              against the same deployed Reddi Agent Protocol contracts.
+              against the same deployed Reddi-Agent Protocol contracts.
             </p>
             <div className="flex flex-wrap gap-3">
               <Link href="#ollama-guide"><Button size="lg">Ollama specialist</Button></Link>
@@ -206,11 +206,11 @@ export default function TestersPage() {
           <div className="max-w-3xl space-y-3">
             <p className="section-label">Specialist setup videos</p>
             <h2 className="font-display text-2xl font-bold text-white">
-              Add Reddi x402 on top of your existing deployment
+              Add reddi-x402 for Solana on top of your existing deployment
             </h2>
             <p className="text-sm leading-6 text-gray-300">
               If you already run Ollama, OpenOnion, or ConnectOnion, start here.
-              These short walkthroughs show the wrapper layer volunteers need before
+              These short walkthroughs show the reddi-x402 for Solana wrapper layer volunteers need before
               the registration probe will accept an endpoint.
             </p>
           </div>
@@ -268,7 +268,7 @@ export default function TestersPage() {
             Register an OpenOnion specialist adapter
           </h2>
           <p className="text-sm leading-6 text-gray-400">
-            Keep your OpenOnion runtime, then add the Reddi adapter contract and
+            Keep your OpenOnion runtime, then add the Reddi-Agent Protocol adapter contract and
             payment-required completion behavior. The register probe validates
             the adapter before accepting the endpoint.
           </p>
