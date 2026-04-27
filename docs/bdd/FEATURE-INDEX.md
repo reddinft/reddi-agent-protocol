@@ -9,7 +9,7 @@ Purpose: single lookup from BDD feature file -> bucket -> executable verificatio
 ### Bucket A — Onboarding
 - Feature: `docs/bdd/features/bucket-a-onboarding.feature`
 - Verify:
-  - `npx jest lib/__tests__/onboarding-routes-core.test.ts lib/__tests__/onboarding-routes-support.test.ts lib/__tests__/onboarding-routes-wrappers.test.ts lib/__tests__/operator-key-rotation.test.ts lib/__tests__/onboarding-operator-status-routes.test.ts --runInBand`
+  - `npx jest lib/__tests__/onboarding-routes-core.test.ts lib/__tests__/onboarding-routes-support.test.ts lib/__tests__/onboarding-routes-wrappers.test.ts lib/__tests__/operator-key-rotation.test.ts lib/__tests__/onboarding-operator-status-routes.test.ts lib/__tests__/specialist-callable-readiness.test.ts --runInBand`
   - `npx playwright test e2e/onboarding.spec.ts --grep "consent gates|next button advances|back button returns|step 2 runtime — next is disabled|run button disabled when prompt is empty"`
 
 ### Bucket B — Discovery + Capability Index
@@ -25,7 +25,7 @@ Purpose: single lookup from BDD feature file -> bucket -> executable verificatio
 ### Bucket D/E — Security + Reliability
 - Feature: `docs/bdd/features/bucket-d-e-reliability.feature`
 - Verify:
-  - `npx jest lib/__tests__/endpoint-security-compat.test.ts lib/__tests__/endpoint-manager-reliability.test.ts lib/__tests__/operator-key-rotation.test.ts lib/__tests__/onboarding-operator-status-routes.test.ts lib/__tests__/program-rpc-config.test.ts --runInBand`
+  - `npx jest lib/__tests__/endpoint-security-compat.test.ts lib/__tests__/endpoint-manager-reliability.test.ts lib/__tests__/operator-key-rotation.test.ts lib/__tests__/onboarding-operator-status-routes.test.ts lib/__tests__/program-rpc-config.test.ts lib/__tests__/specialist-callable-readiness.test.ts --runInBand`
   - `npm run test:e2e:integration-lane`
 
 ### Bucket F — Jupiter Cross-Token Settlement

@@ -8,6 +8,10 @@ import { Input } from "@/components/ui/input";
 import { TASK_TYPES } from "@/lib/capabilities/taxonomy";
 import { toExplorerAddressUrl } from "@/lib/config/explorer";
 import type { SpecialistListing } from "@/lib/registry/bridge";
+import {
+  summarizeSpecialistCallableReadiness,
+  type SpecialistX402ProbeSummary,
+} from "@/lib/specialist/callable-readiness";
 
 function shortWallet(w: string) {
   return !w || w.length < 12 ? w : `${w.slice(0, 8)}…${w.slice(-6)}`;
@@ -25,11 +29,19 @@ function HealthBadge({ status }: { status: string }) {
   );
 }
 
+function ReadinessPill({ status }: { status: "pass" | "warn" | "fail" }) {
+  if (status === "pass") return <span className="text-[#14F195]">Pass</span>;
+  if (status === "warn") return <span className="text-yellow-300">Check</span>;
+  return <span className="text-red-300">Blocked</span>;
+}
+
 export default function SpecialistDashboard() {
   const [wallet, setWallet] = useState("");
   const [listing, setListing] = useState<SpecialistListing | null>(null);
   const [walletInput, setWalletInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [checkingX402, setCheckingX402] = useState(false);
+  const [latestProbe, setLatestProbe] = useState<SpecialistX402ProbeSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Auto-load from localStorage if wizard stored wallet
@@ -57,6 +69,7 @@ export default function SpecialistDashboard() {
       if (found) {
         setListing(found);
         setWallet(w.trim());
+        setLatestProbe(null);
       } else {
         setError("Wallet not found in registry. Complete onboarding first.");
         setListing(null);
@@ -68,6 +81,30 @@ export default function SpecialistDashboard() {
     }
   }, []);
 
+  const runCallableCheck = useCallback(async () => {
+    if (!listing?.health.endpointUrl) return;
+    setCheckingX402(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/onboarding/healthcheck", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          walletAddress: listing.walletAddress,
+          endpointUrl: listing.health.endpointUrl,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error ?? "Callable readiness check failed");
+      await loadListing(listing.walletAddress);
+      setLatestProbe(data.result as SpecialistX402ProbeSummary);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Callable readiness check failed");
+    } finally {
+      setCheckingX402(false);
+    }
+  }, [listing, loadListing]);
+
   useEffect(() => {
     if (wallet) loadListing(wallet);
   }, [wallet, loadListing]);
@@ -75,6 +112,7 @@ export default function SpecialistDashboard() {
   const cap = listing?.capabilities;
   const onchain = listing?.onchain;
   const signals = listing?.signals;
+  const callableReadiness = listing ? summarizeSpecialistCallableReadiness(listing, latestProbe) : null;
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-12 space-y-8">
@@ -152,6 +190,49 @@ export default function SpecialistDashboard() {
               </Link>
             </div>
           </div>
+
+          {/* Callable readiness */}
+          {callableReadiness && (
+            <div className={`rounded-xl border p-5 space-y-4 ${
+              callableReadiness.status === "callable"
+                ? "border-[#14F195]/30 bg-[#14F195]/5"
+                : callableReadiness.status === "blocked"
+                  ? "border-red-500/30 bg-red-950/20"
+                  : "border-yellow-500/30 bg-yellow-950/20"
+            }`}>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="space-y-1">
+                  <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Callable readiness</p>
+                  <h2 className="text-lg font-semibold">{callableReadiness.headline}</h2>
+                  <p className="text-sm text-muted-foreground">Next: {callableReadiness.nextAction}</p>
+                  {latestProbe && (
+                    <p className="text-xs text-muted-foreground/70">Last x402 check: {new Date(latestProbe.checkedAt).toLocaleString()} · {latestProbe.note}</p>
+                  )}
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={runCallableCheck}
+                  disabled={checkingX402 || !listing.health.endpointUrl}
+                >
+                  {checkingX402 ? "Checking…" : "Run x402 compliance check"}
+                </Button>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                {callableReadiness.items.map((item) => (
+                  <div key={item.id} className="rounded-lg border border-white/10 bg-black/20 p-3 text-sm space-y-1">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="font-medium">{item.label}</p>
+                      <span className="text-xs font-semibold"><ReadinessPill status={item.status} /></span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{item.detail}</p>
+                    {item.status !== "pass" && <p className="text-xs text-muted-foreground/70">Fix: {item.action}</p>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Metrics */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
