@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { TASK_TYPES } from "@/lib/capabilities/taxonomy";
+import { toExplorerAddressUrl } from "@/lib/config/explorer";
 import type { SpecialistListing } from "@/lib/registry/bridge";
 
 function shortWallet(w: string) {
@@ -119,7 +120,7 @@ export default function SpecialistDashboard() {
               )}
               {listing.pda && (
                 <a
-                  href={`https://explorer.solana.com/address/${listing.pda}?cluster=devnet`}
+                  href={toExplorerAddressUrl(listing.pda)}
                   target="_blank" rel="noopener noreferrer"
                   className="text-xs text-[#9945FF] hover:underline"
                 >

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { toExplorerTxUrl } from "@/lib/config/explorer";
 
 interface TraceStep {
   delay: number;
@@ -35,7 +36,6 @@ interface RenderedSection {
   lines: string[];
 }
 
-const EXPLORER_BASE = "https://explorer.solana.com/tx";
 
 function renderLine(line: string) {
   // Replace [EXPLORER:txhash] with a real link
@@ -48,7 +48,7 @@ function renderLine(line: string) {
       <span>
         {before}
         <a
-          href={`${EXPLORER_BASE}/${txHash}?cluster=devnet`}
+          href={toExplorerTxUrl(txHash)}
           target="_blank"
           rel="noopener noreferrer"
           className="text-[#14F195] hover:underline ml-1"
