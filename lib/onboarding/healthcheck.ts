@@ -35,10 +35,14 @@ async function probe(url: string, init?: RequestInit) {
       ...init,
       signal: AbortSignal.timeout(3000),
     });
-    return { ok: res.ok, status: res.status };
+    return { ok: res.ok, status: res.status, headers: res.headers };
   } catch {
-    return { ok: false, status: 0 };
+    return { ok: false, status: 0, headers: undefined };
   }
+}
+
+function hasX402ChallengeHeader(headers?: Headers) {
+  return Boolean(headers?.get("x402-request") || headers?.get("X-402-Request"));
 }
 
 function resolveTokenForEndpoint(endpoint: string): string | undefined {
@@ -83,69 +87,46 @@ export async function runSpecialistHealthcheck(
     method: "GET",
     headers: tokenHeaders,
   });
-  const x402ModelsProbe = await probe(`${endpoint.replace(/\/$/, "")}/v1/models`, {
-    method: "GET",
+  const x402CompletionProbe = await probe(`${endpoint.replace(/\/$/, "")}/v1/chat/completions`, {
+    method: "POST",
     redirect: "follow",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      model: "probe",
+      messages: [{ role: "user", content: "ping" }],
+      max_tokens: 1,
+    }),
   });
 
-  let securityStatus: SpecialistHealthcheckResult["securityStatus"] = "unknown";
-  try {
-    const challengeProbe = await fetch(`${endpoint.replace(/\/$/, "")}/v1/chat/completions`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        model: "probe",
-        messages: [{ role: "user", content: "ping" }],
-        max_tokens: 1,
-      }),
-      signal: AbortSignal.timeout(3000),
-    });
-
-    const x402Header =
-      challengeProbe.headers?.get("x402-request") || challengeProbe.headers?.get("X-402-Request");
-
-    if (challengeProbe.status === 402 && x402Header) {
-      securityStatus = "x402_challenge_detected";
-    } else if (challengeProbe.ok) {
-      securityStatus = "insecure_open_completion";
-    }
-  } catch {
-    securityStatus = "unknown";
-  }
+  const x402ChallengeOk =
+    x402CompletionProbe.status === 402 && hasX402ChallengeHeader(x402CompletionProbe.headers);
+  const insecureOpenCompletion = x402CompletionProbe.ok;
+  const securityStatus: SpecialistHealthcheckResult["securityStatus"] = x402ChallengeOk
+    ? "x402_challenge_detected"
+    : insecureOpenCompletion
+    ? "insecure_open_completion"
+    : "unknown";
 
   const reachable = rootProbe.ok || healthProbe.ok || tagsProbe.ok;
-  const x402Probe: SpecialistHealthcheckResult["x402Probe"] =
-    securityStatus === "insecure_open_completion"
-      ? "fail"
-    : x402ModelsProbe.status === 402 || x402ModelsProbe.ok
-      ? "ok"
-      : x402ModelsProbe.status === 404 || x402ModelsProbe.status === 405
-      ? "degraded"
-      : x402ModelsProbe.status === 401 || x402ModelsProbe.status === 403
-      ? "fail"
-      : reachable
-      ? "degraded"
-      : "fail";
+  const x402Probe: SpecialistHealthcheckResult["x402Probe"] = x402ChallengeOk ? "ok" : "fail";
 
   const runtimeOk = tagsProbe.ok;
 
   const status: SpecialistHealthcheckResult["status"] =
     reachable && runtimeOk && x402Probe === "ok"
       ? "pass"
-    : x402Probe === "fail"
-      ? "fail"
-    : reachable
+      : reachable && !insecureOpenCompletion
       ? "degraded"
       : "fail";
 
   const note =
     status === "pass"
-      ? "Endpoint reachable, runtime probe succeeded (`/api/tags`), and x402 public path probe succeeded (`/v1/models`)."
-    : securityStatus === "insecure_open_completion"
-      ? "Endpoint served completion without x402 challenge. Put a payment-enforcing gateway/proxy in front before onboarding attestation."
+      ? "Endpoint reachable, runtime probe succeeded (`/api/tags`), and `/v1/chat/completions` returned the required 402 + x402-request challenge."
+    : insecureOpenCompletion
+      ? "Endpoint served a completion without an x402 challenge. Healthcheck is fail-closed until `/v1/chat/completions` requires x402 payment."
     : status === "degraded"
-      ? "Endpoint reachable but runtime or x402 probe is degraded. Confirm token-gated proxy is running and x402 public path (`/v1/*`) is exposed without token."
-      : "Endpoint unreachable. Re-open tunnel and verify local runtime is listening.";
+      ? "Endpoint reachable but x402 challenge probing failed. Confirm `/v1/chat/completions` returns HTTP 402 with an x402-request header before registration."
+      : "Endpoint unreachable or x402 challenge missing. Re-open tunnel and verify local runtime plus payment-enforcing gateway are listening.";
 
   return {
     status,

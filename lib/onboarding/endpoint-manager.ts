@@ -135,11 +135,22 @@ if (!token) {
 const server = http.createServer((req, res) => {
   const path = String(req.url || "/");
   const isPublicPath = publicPrefixes.some((prefix) => path.startsWith(prefix));
+  const isCompletionPath = path.startsWith("/v1/chat/completions");
   const provided = String(req.headers[headerName] || "").trim();
   if (!isPublicPath && provided !== token) {
     res.statusCode = 401;
     res.setHeader("content-type", "application/json");
     res.end(JSON.stringify({ error: "unauthorized" }));
+    return;
+  }
+
+  if (isCompletionPath && !req.headers["x402-payment"]) {
+    res.statusCode = 402;
+    res.setHeader("content-type", "application/json");
+    res.end(JSON.stringify({
+      error: "payment_required",
+      detail: "Refusing to proxy /v1/chat/completions without x402-payment. Put a payment-enforcing x402 gateway in front of the runtime before registration."
+    }));
     return;
   }
 

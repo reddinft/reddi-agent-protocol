@@ -228,34 +228,28 @@ export async function executePlannerSpecialistCall(input: PlannerExecuteInput) {
       endpointUrl,
       policy,
       promptSha256,
-      status: first.ok ? "completed" : "failed",
+      status: "failed",
       challengeSeen: false,
       paymentAttempted: false,
       paymentSatisfied: false,
       responseStatus: first.status,
       responsePreview: previewText(firstBody),
-      error: first.ok ? undefined : `Specialist call failed (${first.status}).`,
-      trace: [...trace, `response:status:${first.status}`, first.ok ? "planner:completed" : "planner:failed"],
+      error: first.ok
+        ? "Specialist endpoint returned a completion without an x402 challenge. Refusing unpaid response."
+        : `Specialist call failed before x402 challenge (${first.status}).`,
+      trace: [
+        ...trace,
+        `response:status:${first.status}`,
+        first.ok ? "x402:missing_challenge_unpaid_response_blocked" : "x402:missing_challenge",
+        "planner:failed",
+      ],
     };
 
     appendRun(run);
 
-    if (first.ok) {
-      void emitTorqueEvent({
-        userPubkey: input.consumerWallet ?? "unknown",
-        eventName: TORQUE_EVENTS.CONSUMER_QUERY_RUN,
-        fields: {
-          taskType: "planner_query",
-          specialistWallet: routed.selected.walletAddress,
-          success: true,
-        },
-      });
-    }
-
     return {
-      ok: first.ok,
+      ok: false,
       result: run,
-      response: firstBody,
       candidates: routed.candidates,
     };
   } catch (error) {

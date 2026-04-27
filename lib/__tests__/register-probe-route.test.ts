@@ -141,7 +141,7 @@ describe("register probe route", () => {
     });
   });
 
-  it("flags insecure endpoints that return completions without x402 challenge", async () => {
+  it("hard-fails insecure endpoints that return completions without x402 challenge", async () => {
     global.fetch = jest
       .fn()
       .mockResolvedValueOnce({
@@ -162,11 +162,12 @@ describe("register probe route", () => {
     });
 
     const res = await POST(req as unknown as Request);
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(400);
     await expect(res.json()).resolves.toMatchObject({
-      ok: true,
-      status: "ollama_detected",
+      ok: false,
+      status: "insecure_endpoint",
       securityStatus: "insecure_open_completion",
+      error: expect.stringContaining("without an x402 challenge"),
     });
   });
 
