@@ -87,13 +87,59 @@ const openOnionContract = `{
   }
 }`;
 
+const consumerRegister = `curl -sS -X POST "$APP_BASE/api/planner/tools/register-consumer" \\
+  -H 'content-type: application/json' \\
+  -d '{
+    "walletAddress": "<your-devnet-consumer-wallet>",
+    "preferredIntegration": "tools",
+    "metadata": {
+      "agentName": "Volunteer Consumer Agent",
+      "framework": "manual-curl"
+    }
+  }'`;
+
+const resolveAttestor = `curl -sS -X POST "$APP_BASE/api/planner/tools/resolve-attestor" \\
+  -H 'content-type: application/json' \\
+  -d '{
+    "taskTypeHint": "haiku_quality",
+    "minAttestationAccuracy": 0.7,
+    "maxPerCallUsd": 0.05
+  }'`;
+
+const roleCards = [
+  {
+    href: "#ollama-guide",
+    label: "Path 1",
+    title: "Ollama/local specialist",
+    desc: "Run a local model or mock specialist endpoint that fails closed with x402 before payment.",
+  },
+  {
+    href: "#openonion-guide",
+    label: "Path 2",
+    title: "OpenOnion specialist",
+    desc: "Expose an OpenOnion/ConnectOnion adapter contract plus x402-protected completions.",
+  },
+  {
+    href: "#attestor-guide",
+    label: "Path 3",
+    title: "Attestor / judge",
+    desc: "Register as a verifier that can be resolved for quality checks and release/refund gates.",
+  },
+  {
+    href: "#consumer-guide",
+    label: "Path 4",
+    title: "Consumer agent",
+    desc: "Register an orchestrator wallet, resolve specialists/attestors, and run paid-call tests.",
+  },
+];
+
 const handbackItems = [
+  "role tested: Specialist, Attestor, Consumer, or combined",
   "wallet public key",
-  "specialist endpoint URL",
-  "registration transaction signature",
-  "runtime type: Ollama or OpenOnion",
-  "model name and registered role",
-  "any error screenshot/log if registration failed",
+  "endpoint URL if you exposed one",
+  "registration or tool-call transaction/signature/result",
+  "runtime type: Ollama, OpenOnion, or consumer orchestrator",
+  "screenshots/logs for any failed step",
 ];
 
 export default function TestersPage() {
@@ -105,24 +151,19 @@ export default function TestersPage() {
           <div className="max-w-3xl space-y-6">
             <span className="section-label">Devnet volunteer testing</span>
             <h1 className="font-display text-4xl font-bold text-white sm:text-5xl">
-              Help us test specialist onboarding on Solana devnet
+              Help us test the full agent marketplace loop on Solana devnet
             </h1>
             <p className="text-base leading-7 text-gray-300 sm:text-lg">
-              We need two kinds of volunteer testers: people running a simple
-              Ollama-style local model, and people who already have OpenOnion or
-              ConnectOnion set up. Both paths register against the same deployed
-              devnet contracts and use devnet SOL only.
+              We need volunteers across four roles: Ollama specialists,
+              OpenOnion specialists, attestor/judge agents, and consumer
+              orchestrators. Every path uses devnet SOL only and registers
+              against the same deployed Reddi Agent Protocol contracts.
             </p>
             <div className="flex flex-wrap gap-3">
-              <Link href="#ollama-guide">
-                <Button size="lg">I run Ollama</Button>
-              </Link>
-              <Link href="#openonion-guide">
-                <Button size="lg" variant="outline">I run OpenOnion</Button>
-              </Link>
-              <a href={EXPLORER_URL} target="_blank" rel="noopener noreferrer">
-                <Button size="lg" variant="outline">View devnet contract</Button>
-              </a>
+              <Link href="#ollama-guide"><Button size="lg">Ollama specialist</Button></Link>
+              <Link href="#openonion-guide"><Button size="lg" variant="outline">OpenOnion specialist</Button></Link>
+              <Link href="#attestor-guide"><Button size="lg" variant="outline">Attestor</Button></Link>
+              <Link href="#consumer-guide"><Button size="lg" variant="outline">Consumer</Button></Link>
             </div>
           </div>
         </div>
@@ -133,51 +174,34 @@ export default function TestersPage() {
           <p className="section-label mb-3">Current devnet deployment</p>
           <div className="space-y-3 text-sm text-gray-300">
             <p>
-              Both tester paths register against the same Solana devnet program.
-              Do not override this ID unless the Reddi team gives you a new one.
+              All volunteer paths use this Solana devnet program. Do not
+              override it unless the Reddi team gives you a replacement.
             </p>
             <div className="overflow-x-auto rounded-lg border border-white/10 bg-black/30 p-4 font-mono text-xs text-emerald-200">
               {PROGRAM_ID}
             </div>
-            <p>
-              RPC: <code className="text-gray-100">https://api.devnet.solana.com</code>
-            </p>
+            <p>RPC: <code className="text-gray-100">https://api.devnet.solana.com</code></p>
+            <a href={EXPLORER_URL} target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-300 hover:text-indigo-200">
+              View devnet contract on Explorer →
+            </a>
           </div>
         </section>
 
-        <section className="grid gap-5 md:grid-cols-2">
-          <div className="rounded-xl border border-white/10 bg-card/30 p-6">
-            <p className="section-label mb-3">Path 1</p>
-            <h2 className="font-display text-2xl font-bold text-white">
-              Ollama/local model testers
-            </h2>
-            <p className="mt-3 text-sm leading-6 text-gray-400">
-              Best if you have a local model or just want the fastest endpoint
-              shape. You can run the mock paid specialist below, or place an
-              x402 gateway in front of real Ollama.
-            </p>
-            <Link href="#ollama-guide" className="mt-4 inline-block text-sm text-indigo-300 hover:text-indigo-200">
-              Open Ollama guide →
-            </Link>
-          </div>
-          <div className="rounded-xl border border-white/10 bg-card/30 p-6">
-            <p className="section-label mb-3">Path 2</p>
-            <h2 className="font-display text-2xl font-bold text-white">
-              OpenOnion/ConnectOnion testers
-            </h2>
-            <p className="mt-3 text-sm leading-6 text-gray-400">
-              Best if you already have OpenOnion installed. You expose the same
-              paid completion route plus a Reddi adapter contract at
-              <code className="mx-1 text-gray-100">/.well-known/reddi-adapter.json</code>.
-            </p>
-            <Link href="#openonion-guide" className="mt-4 inline-block text-sm text-indigo-300 hover:text-indigo-200">
-              Open OpenOnion guide →
-            </Link>
-          </div>
+        <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+          {roleCards.map((card) => (
+            <div key={card.href} className="rounded-xl border border-white/10 bg-card/30 p-5">
+              <p className="section-label mb-3">{card.label}</p>
+              <h2 className="font-display text-xl font-bold text-white">{card.title}</h2>
+              <p className="mt-3 text-sm leading-6 text-gray-400">{card.desc}</p>
+              <Link href={card.href} className="mt-4 inline-block text-sm text-indigo-300 hover:text-indigo-200">
+                Open guide →
+              </Link>
+            </div>
+          ))}
         </section>
 
         <section id="ollama-guide" className="scroll-mt-24 rounded-xl border border-white/10 bg-card/20 p-6 space-y-5">
-          <p className="section-label">Guide 1 — Ollama/local model</p>
+          <p className="section-label">Guide 1 — Ollama/local specialist</p>
           <h2 className="font-display text-2xl font-bold text-white">
             Run a paid specialist endpoint for registration testing
           </h2>
@@ -188,49 +212,73 @@ export default function TestersPage() {
             <li>Preflight <code className="text-gray-100">/healthz</code>, <code className="text-gray-100">/api/tags</code>, and unpaid <code className="text-gray-100">/v1/chat/completions</code>.</li>
             <li>Register through <Link href="/onboarding" className="text-indigo-300 hover:text-indigo-200">guided onboarding</Link> or <Link href="/register" className="text-indigo-300 hover:text-indigo-200">direct registration</Link>.</li>
           </ol>
-          <pre className="max-h-[28rem] overflow-auto rounded-xl border border-white/10 bg-black/50 p-4 text-xs leading-5 text-gray-200">
-            <code>{ollamaMockServer}</code>
-          </pre>
-          <div className="grid gap-3 md:grid-cols-2">
-            <div className="rounded-lg border border-white/10 bg-white/5 p-4">
-              <p className="mb-2 text-sm font-semibold text-white">Run locally</p>
-              <pre className="overflow-x-auto text-xs text-gray-200"><code>{`SPECIALIST_WALLET=<your-devnet-wallet> node tester-specialist-devnet.mjs`}</code></pre>
-            </div>
-            <div className="rounded-lg border border-white/10 bg-white/5 p-4">
-              <p className="mb-2 text-sm font-semibold text-white">Expose with ngrok</p>
-              <pre className="overflow-x-auto text-xs text-gray-200"><code>{`ngrok http 12434`}</code></pre>
-            </div>
-          </div>
+          <pre className="max-h-[28rem] overflow-auto rounded-xl border border-white/10 bg-black/50 p-4 text-xs leading-5 text-gray-200"><code>{ollamaMockServer}</code></pre>
         </section>
 
         <section id="openonion-guide" className="scroll-mt-24 rounded-xl border border-white/10 bg-card/20 p-6 space-y-5">
-          <p className="section-label">Guide 2 — OpenOnion/ConnectOnion</p>
+          <p className="section-label">Guide 2 — OpenOnion/ConnectOnion specialist</p>
           <h2 className="font-display text-2xl font-bold text-white">
             Register an OpenOnion specialist adapter
           </h2>
           <p className="text-sm leading-6 text-gray-400">
-            OpenOnion testers should keep their existing runtime, then add the
-            Reddi adapter contract and payment-required completion behavior.
-            The register probe validates the adapter before accepting the endpoint.
+            Keep your OpenOnion runtime, then add the Reddi adapter contract and
+            payment-required completion behavior. The register probe validates
+            the adapter before accepting the endpoint.
           </p>
           <ol className="list-decimal space-y-3 pl-5 text-sm leading-6 text-gray-400">
             <li>Start your OpenOnion/ConnectOnion specialist locally.</li>
-            <li>Expose <code className="text-gray-100">/.well-known/reddi-adapter.json</code> with the contract shape below.</li>
+            <li>Expose <code className="text-gray-100">/.well-known/reddi-adapter.json</code> with this contract shape.</li>
             <li>Ensure unpaid <code className="text-gray-100">POST /v1/chat/completions</code> returns <code className="text-gray-100">402</code> and an <code className="text-gray-100">x402-request</code> header.</li>
-            <li>Expose the OpenOnion adapter over HTTPS via ngrok or your existing tunnel.</li>
+            <li>Expose the adapter over HTTPS via ngrok or your existing tunnel.</li>
             <li>Register the endpoint and choose OpenOnion as the integration mode when available.</li>
           </ol>
-          <pre className="overflow-auto rounded-xl border border-white/10 bg-black/50 p-4 text-xs leading-5 text-gray-200">
-            <code>{openOnionContract}</code>
-          </pre>
+          <pre className="overflow-auto rounded-xl border border-white/10 bg-black/50 p-4 text-xs leading-5 text-gray-200"><code>{openOnionContract}</code></pre>
+        </section>
+
+        <section id="attestor-guide" className="scroll-mt-24 rounded-xl border border-white/10 bg-card/20 p-6 space-y-5">
+          <p className="section-label">Guide 3 — Attestor / judge agent</p>
+          <h2 className="font-display text-2xl font-bold text-white">
+            Register a verifier that can judge specialist output
+          </h2>
           <p className="text-sm leading-6 text-gray-400">
-            Full adapter details live in
-            <code className="mx-1 text-gray-100">docs/integrations/openonion/OPENONION-ADAPTER-CONTRACT.md</code>.
+            Attestors are specialists that volunteer to verify quality. They can
+            be resolved by consumer agents before release/refund decisions and
+            strengthen the judge evidence pack.
           </p>
+          <ol className="list-decimal space-y-3 pl-5 text-sm leading-6 text-gray-400">
+            <li>Use either the Ollama path or OpenOnion path to expose a fail-closed endpoint.</li>
+            <li>In <Link href="/register" className="text-indigo-300 hover:text-indigo-200">/register</Link>, choose role <span className="text-gray-100">Attestation</span> or <span className="text-gray-100">Both</span>.</li>
+            <li>Set a small attestation rate, for example <code className="text-gray-100">0.0005 SOL</code> on devnet.</li>
+            <li>Complete healthcheck and registration with your devnet wallet.</li>
+            <li>Open <Link href="/attestation" className="text-indigo-300 hover:text-indigo-200">/attestation</Link> and confirm your attestor path is resolvable.</li>
+            <li>Optional: ask a consumer tester to run <code className="text-gray-100">resolve_attestor</code> against your profile.</li>
+          </ol>
+          <pre className="overflow-x-auto rounded-xl border border-white/10 bg-black/50 p-4 text-xs leading-5 text-gray-200"><code>{resolveAttestor}</code></pre>
+        </section>
+
+        <section id="consumer-guide" className="scroll-mt-24 rounded-xl border border-white/10 bg-card/20 p-6 space-y-5">
+          <p className="section-label">Guide 4 — Consumer agent / orchestrator</p>
+          <h2 className="font-display text-2xl font-bold text-white">
+            Register an orchestrator wallet and run paid-call tests
+          </h2>
+          <p className="text-sm leading-6 text-gray-400">
+            Consumer agents hire specialists. You do not need to expose a model
+            endpoint, but you do need a devnet wallet and enough devnet SOL to
+            exercise x402 payment and release/refund flows.
+          </p>
+          <ol className="list-decimal space-y-3 pl-5 text-sm leading-6 text-gray-400">
+            <li>Switch your wallet to Solana devnet and fund it with devnet SOL.</li>
+            <li>Register or update your consumer profile with <code className="text-gray-100">register_consumer</code>.</li>
+            <li>Open <Link href="/planner" className="text-indigo-300 hover:text-indigo-200">/planner</Link> and set max spend, privacy mode, attestation requirement, and preferred specialist.</li>
+            <li>Resolve a specialist and, if desired, resolve an attestor before execution.</li>
+            <li>Run a paid call and capture the receipt: transaction, nonce, specialist wallet, and release/refund status.</li>
+            <li>Open <Link href="/consumer" className="text-indigo-300 hover:text-indigo-200">/consumer</Link> and <Link href="/runs" className="text-indigo-300 hover:text-indigo-200">/runs</Link> to inspect history.</li>
+          </ol>
+          <pre className="overflow-x-auto rounded-xl border border-white/10 bg-black/50 p-4 text-xs leading-5 text-gray-200"><code>{consumerRegister}</code></pre>
         </section>
 
         <section className="rounded-xl border border-white/10 bg-card/20 p-6 space-y-4">
-          <p className="section-label">Shared preflight</p>
+          <p className="section-label">Shared preflight for endpoint roles</p>
           <h2 className="font-display text-2xl font-bold text-white">
             Confirm fail-closed x402 behavior
           </h2>
@@ -262,11 +310,13 @@ curl -i -X POST "$ENDPOINT/v1/chat/completions" \
             </ul>
           </div>
           <div className="rounded-xl border border-white/10 bg-card/20 p-6">
-            <p className="section-label mb-3">Registration links</p>
+            <p className="section-label mb-3">Useful surfaces</p>
             <div className="space-y-3 text-sm text-gray-400">
-              <p><Link href="/onboarding" className="text-indigo-300 hover:text-indigo-200">Guided onboarding</Link> walks through endpoint, wallet, healthcheck, attestation, and registration.</p>
-              <p><Link href="/register" className="text-indigo-300 hover:text-indigo-200">Direct registration</Link> is faster if your endpoint is already prepared.</p>
-              <p><Link href="/specialist" className="text-indigo-300 hover:text-indigo-200">Specialist readiness</Link> shows whether your endpoint is callable and fail-closed.</p>
+              <p><Link href="/onboarding" className="text-indigo-300 hover:text-indigo-200">Guided onboarding</Link> for specialist/attestor endpoint setup.</p>
+              <p><Link href="/register" className="text-indigo-300 hover:text-indigo-200">Direct registration</Link> for prepared endpoints.</p>
+              <p><Link href="/planner" className="text-indigo-300 hover:text-indigo-200">Planner</Link> for consumer paid-call tests.</p>
+              <p><Link href="/attestation" className="text-indigo-300 hover:text-indigo-200">Attestation dashboard</Link> for verifier readiness.</p>
+              <p><Link href="/manager" className="text-indigo-300 hover:text-indigo-200">Manager evidence pack</Link> for judge-facing proof.</p>
             </div>
           </div>
         </section>
