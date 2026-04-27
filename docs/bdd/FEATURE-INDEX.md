@@ -58,7 +58,7 @@ Purpose: single lookup from BDD feature file -> bucket -> executable verificatio
 ### Bucket I — Agent Manager Operations
 - Feature: `docs/bdd/features/bucket-i-agent-manager-operations.feature`
 - Verify:
-  - `npx jest lib/__tests__/manager-readiness-route.test.ts --runInBand`
+  - `npx jest lib/__tests__/manager-readiness-route.test.ts lib/__tests__/manager-evidence-pack.test.ts lib/__tests__/manager-evidence-route.test.ts --runInBand`
   - `npm run test:bdd:index`
   - E2E target: manager launchpad Playwright smoke once added to representative sweep
 

@@ -18,17 +18,21 @@ Feature: Bucket I Agent Manager Operations
     Then it includes live specialists, available attestors, registered consumers, insecure endpoints, pending attestations, and failed healthchecks
     And any unusable role has a concrete next action
 
-  @I1.3 @manager @manual
+  @I1.3 @manager @route-unit
   Scenario: Manager can inspect the latest BDD confidence status
     When the manager asks for protocol confidence
     Then the latest BDD sweep/status command and artifact path are visible
     And missing or stale evidence is called out explicitly
+    And the behavior is covered by "lib/__tests__/manager-evidence-pack.test.ts"
 
-  @I1.4 @manager @manual
+  @I1.4 @manager @route-unit
   Scenario: Manager can produce a judge-safe evidence pack
     When the manager generates an evidence summary
     Then role-critical artifacts are listed without raw prompts, secrets, or private runtime logs
     And the evidence links cover specialist onboarding, attestor-gated settlement, consumer paid invocation, and Solana settlement
+    And the behavior is covered by:
+      | lib/__tests__/manager-evidence-pack.test.ts |
+      | lib/__tests__/manager-evidence-route.test.ts |
 
   @I1.5 @manager @e2e-ui
   Scenario: Manager sees the next concrete fix before demo
