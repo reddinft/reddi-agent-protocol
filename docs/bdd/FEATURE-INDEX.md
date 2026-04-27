@@ -20,7 +20,7 @@ Purpose: single lookup from BDD feature file -> bucket -> executable verificatio
 ### Bucket C — Planner-Native Consumption
 - Feature: `docs/bdd/features/bucket-c-planner-consumption.feature`
 - Verify:
-  - `npx jest lib/__tests__/planner-resolve-route.test.ts lib/__tests__/planner-invoke-route.test.ts lib/__tests__/planner-signal-route.test.ts lib/__tests__/torque-event-route.test.ts lib/__tests__/torque-client.test.ts --runInBand`
+  - `npx jest lib/__tests__/planner-resolve-route.test.ts lib/__tests__/planner-invoke-route.test.ts lib/__tests__/planner-execute-route-preferred-wallet.test.ts lib/__tests__/consumer-guided-paid-call.test.ts lib/__tests__/planner-signal-route.test.ts lib/__tests__/torque-event-route.test.ts lib/__tests__/torque-client.test.ts --runInBand`
 
 ### Bucket D/E — Security + Reliability
 - Feature: `docs/bdd/features/bucket-d-e-reliability.feature`
