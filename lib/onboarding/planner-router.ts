@@ -7,6 +7,7 @@ export type PlannerPolicyInput = {
   requiresAttested?: boolean;
   requiresHealthPass?: boolean;
   maxPerCallUsd?: number;
+  preferredWallet?: string;
 };
 
 export type PlannerCandidate = {
@@ -102,7 +103,13 @@ export function routePlannerPolicy(policy: PlannerPolicyInput) {
     });
   }
 
-  accepted.sort((a, b) => b.score - a.score);
+  accepted.sort((a, b) => {
+    if (policy.preferredWallet) {
+      if (a.walletAddress === policy.preferredWallet && b.walletAddress !== policy.preferredWallet) return -1;
+      if (b.walletAddress === policy.preferredWallet && a.walletAddress !== policy.preferredWallet) return 1;
+    }
+    return b.score - a.score;
+  });
 
   return {
     ok: true,

@@ -22,6 +22,8 @@ export async function POST(req: Request) {
     const body = await req.json();
     const result = await executePlannerSpecialistCall({
       prompt: String(body.prompt || ""),
+      consumerWallet: typeof body.consumerWallet === "string" ? body.consumerWallet : undefined,
+      preferredWallet: typeof body.preferredWallet === "string" ? body.preferredWallet : undefined,
       policy: {
         requiredPrivacyMode:
           body.policy?.requiredPrivacyMode === "public" ||
@@ -41,6 +43,7 @@ export async function POST(req: Request) {
           body.policy?.maxPerCallUsd === undefined
             ? undefined
             : Number(body.policy.maxPerCallUsd),
+        preferredWallet: typeof body.policy?.preferredWallet === "string" ? body.policy.preferredWallet : undefined,
       },
     });
 

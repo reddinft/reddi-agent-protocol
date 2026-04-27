@@ -15,6 +15,7 @@ import { PageHeader } from "@/components/ui/page-header"
 import { Textarea } from "@/components/ui/textarea"
 import { showToast } from "@/components/ui/toast"
 import { TASK_TYPES, PRIVACY_MODES } from "@/lib/capabilities/taxonomy"
+import { summarizeConsumerPolicy, summarizeConsumerReceipt } from "@/lib/consumer/guided-paid-call"
 import type { SpecialistListing } from "@/lib/registry/bridge"
 
 const WalletMultiButton = dynamic(async () => (await import("@solana/wallet-adapter-react-ui")).WalletMultiButton, { ssr: false })
@@ -86,6 +87,8 @@ function PlannerInner() {
   const [prompt, setPrompt] = useState("")
   const [taskType, setTaskType] = useState<string>(TASK_TYPES[0].id)
   const [privacyMode, setPrivacyMode] = useState<"public" | "per" | "vanish">("public")
+  const [maxPerCallUsd, setMaxPerCallUsd] = useState("0.01")
+  const [requiresAttested, setRequiresAttested] = useState(false)
   const [loadingCandidates, setLoadingCandidates] = useState(false)
   const [candidates, setCandidates] = useState<SpecialistListing[]>([])
   const [selectedWallet, setSelectedWallet] = useState<string>(preferredWallet)
@@ -134,6 +137,21 @@ function PlannerInner() {
     return scored.slice(0, 3)
   }, [allAgents])
 
+  const maxSpend = useMemo(() => {
+    const parsed = Number(maxPerCallUsd)
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined
+  }, [maxPerCallUsd])
+
+  const consumerPolicy = useMemo(() => summarizeConsumerPolicy({
+    requiredPrivacyMode: privacyMode,
+    requiresHealthPass: true,
+    requiresAttested,
+    maxPerCallUsd: maxSpend,
+    preferredWallet: selectedWallet || undefined,
+  }), [privacyMode, requiresAttested, maxSpend, selectedWallet])
+
+  const receiptSummary = useMemo(() => run ? summarizeConsumerReceipt(run, maxSpend) : null, [run, maxSpend])
+
   useEffect(() => {
     if (!preferredWallet) return
     setSelectedWallet(preferredWallet)
@@ -149,7 +167,11 @@ function PlannerInner() {
         body: JSON.stringify({
           task: prompt,
           taskTypeHint: taskType,
-          policy: { preferredPrivacyMode: privacyMode },
+          policy: {
+            preferredPrivacyMode: privacyMode,
+            maxPerCallUsd: maxSpend,
+            requireAttestation: requiresAttested,
+          },
         }),
       })
       const data: ResolveResult = await res.json()
@@ -172,9 +194,13 @@ function PlannerInner() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           prompt,
+          preferredWallet: selectedWallet,
           policy: {
             requiredPrivacyMode: privacyMode,
             requiresHealthPass: true,
+            requiresAttested,
+            maxPerCallUsd: maxSpend,
+            preferredWallet: selectedWallet,
           },
         }),
       })
@@ -275,6 +301,28 @@ function PlannerInner() {
                         {PRIVACY_MODES.map((mode) => <option key={mode.id} value={mode.id}>{mode.label}</option>)}
                       </select>
                     </label>
+                    <label className="space-y-2 text-sm text-gray-400">
+                      <span>Max spend / call (USD)</span>
+                      <input
+                        className="w-full rounded-lg border border-border bg-page px-3 py-2 text-white"
+                        inputMode="decimal"
+                        value={maxPerCallUsd}
+                        onChange={(e) => setMaxPerCallUsd(e.target.value)}
+                      />
+                    </label>
+                    <label className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-gray-300">
+                      <input type="checkbox" checked={requiresAttested} onChange={(e) => setRequiresAttested(e.target.checked)} />
+                      Require attested specialist
+                    </label>
+                  </div>
+                  <div className="rounded-xl border border-indigo-500/20 bg-indigo-500/10 p-4 text-sm text-gray-300">
+                    <p className="font-medium text-white">Policy before payment</p>
+                    <div className="mt-2 grid gap-2 text-xs sm:grid-cols-3">
+                      <span>Budget: {consumerPolicy.maxSpendLabel}</span>
+                      <span>Privacy: {consumerPolicy.privacyLabel}</span>
+                      <span>Trust: {consumerPolicy.attestationLabel}</span>
+                    </div>
+                    <p className="mt-2 text-xs text-gray-400">{consumerPolicy.safeguards[1]}</p>
                   </div>
                   <Button className="w-full" disabled={!prompt.trim() || loadingCandidates} onClick={findSpecialists}>
                     {loadingCandidates ? "Finding specialists…" : "Find Specialists →"}
@@ -342,9 +390,18 @@ function PlannerInner() {
                     <div className="mt-3 space-y-1 font-mono text-xs text-gray-400">
                       <p>tx: {run.x402TxSignature ?? "n/a"}</p>
                       <p>nonce: {run.x402ReceiptNonce ?? "n/a"}</p>
+                      <p>specialist: {run.selectedWallet ?? "n/a"}</p>
+                      <p>amount: {receiptSummary?.amountLabel ?? "n/a"}</p>
+                      <p>prompt: {receiptSummary?.promptStorage === "sha256_only" ? "sha256 only (raw prompt not required)" : "n/a"}</p>
                       <p>status: {run.status}</p>
                     </div>
                   </details>
+                  {receiptSummary ? (
+                    <div className={`rounded-xl border p-4 text-sm ${receiptSummary.status === "paid" ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-200" : receiptSummary.status === "blocked" ? "border-red-500/30 bg-red-500/10 text-red-200" : "border-yellow-500/30 bg-yellow-500/10 text-yellow-100"}`}>
+                      <p className="font-medium">{receiptSummary.status === "paid" ? "Paid receipt captured" : receiptSummary.status === "blocked" ? "Unpaid completion blocked" : "Run did not complete"}</p>
+                      <p className="mt-1 text-xs opacity-80">{receiptSummary.message}</p>
+                    </div>
+                  ) : null}
                   <Button className="w-full" onClick={() => setStep(3)}>
                     Continue to feedback →
                   </Button>

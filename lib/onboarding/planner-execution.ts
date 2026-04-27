@@ -16,6 +16,8 @@ export type PlannerExecuteInput = {
   slippageBps?: number;
   /** Consumer wallet address — used for Torque event attribution */
   consumerWallet?: string;
+  /** Preferred specialist wallet selected by the consumer UI or MCP caller. */
+  preferredWallet?: string;
 };
 
 export type PlannerRunRecord = {
@@ -80,6 +82,7 @@ export async function executePlannerSpecialistCall(input: PlannerExecuteInput) {
   const policy: PlannerPolicyInput = {
     requiresHealthPass: true,
     ...input.policy,
+    preferredWallet: input.preferredWallet ?? input.policy?.preferredWallet,
   };
 
   const runId = `run_${randomUUID()}`;

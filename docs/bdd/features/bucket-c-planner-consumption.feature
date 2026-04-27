@@ -35,3 +35,13 @@ Feature: Bucket C Planner-Native Specialist Consumption
       | lib/__tests__/planner-signal-route.test.ts |
       | lib/__tests__/torque-event-route.test.ts |
       | lib/__tests__/torque-client.test.ts |
+
+  @C5.1 @C5.2 @C5.3 @role-consumer @route-unit
+  Scenario: Consumer guided paid call exposes policy and receipt safeguards
+    When a consumer prepares and executes a specialist call
+    Then max spend, privacy mode, attestation requirement, and selected specialist are visible before payment
+    And unpaid open-completion responses are marked blocked rather than successful
+    And the receipt shows tx, nonce, specialist wallet, amount bound, and prompt-hash-only storage
+    And the behavior is covered by:
+      | lib/__tests__/consumer-guided-paid-call.test.ts |
+      | lib/__tests__/planner-execute-route-preferred-wallet.test.ts |
