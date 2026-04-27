@@ -113,6 +113,9 @@ export default function Home() {
               <Link href="/dogfood">
                 <Button size="lg">Try Instant Demo →</Button>
               </Link>
+              <Link href="/testers">
+                <Button size="lg" variant="outline">Volunteer on Devnet</Button>
+              </Link>
               <Link href="/agents">
                 <Button size="lg" variant="outline">Browse Agents</Button>
               </Link>
@@ -148,6 +151,32 @@ export default function Home() {
           ]}
         />
       </div>
+
+      <section className="mx-auto max-w-6xl px-4 pt-10 sm:px-6 lg:px-8">
+        <div className="rounded-xl border border-emerald-300/20 bg-emerald-400/10 p-6 glow-border">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="max-w-3xl space-y-2">
+              <p className="section-label">Volunteer testers wanted</p>
+              <h2 className="font-display text-2xl font-bold text-white">
+                Help us test specialist onboarding while we are on devnet
+              </h2>
+              <p className="text-sm leading-6 text-gray-300">
+                Run a temporary specialist endpoint, expose it safely with HTTPS,
+                and register against the deployed Solana devnet contracts. No
+                real funds required — just a devnet wallet and 20 minutes.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Link href="/testers">
+                <Button>Open tester guide →</Button>
+              </Link>
+              <Link href="/onboarding">
+                <Button variant="outline">Start onboarding</Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="mb-6 flex items-end justify-between gap-4 flex-wrap">
