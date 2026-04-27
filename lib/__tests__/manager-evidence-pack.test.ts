@@ -24,7 +24,7 @@ describe("manager evidence pack", () => {
     const pack = buildManagerEvidencePack();
 
     expect(pack.status).toBe("ready");
-    expect(pack.artifacts.map((item) => item.id)).toEqual(["bdd", "onboarding", "attestor", "consumer", "settlement"]);
+    expect(pack.artifacts.map((item) => item.id)).toEqual(["bdd", "onboarding", "attestor", "consumer", "settlement", "volunteer"]);
     expect(pack.privacy).toMatchObject({ rawPromptsIncluded: false, secretsIncluded: false });
     expect(pack.artifacts[0]).toMatchObject({ status: "present", summary: "PASS evidence line" });
   });
@@ -37,7 +37,8 @@ describe("manager evidence pack", () => {
     const pack = buildManagerEvidencePack();
 
     expect(pack.status).toBe("incomplete");
-    expect(pack.artifacts.every((item) => item.status === "missing")).toBe(true);
+    expect(pack.artifacts.filter((item) => item.id !== "volunteer").every((item) => item.status === "missing")).toBe(true);
+    expect(pack.artifacts.find((item) => item.id === "volunteer")).toMatchObject({ status: "present", path: "/testers" });
     expect(pack.nextAction).toMatch(/Generate missing evidence/i);
   });
 });
