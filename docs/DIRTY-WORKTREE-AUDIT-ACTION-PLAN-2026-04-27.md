@@ -168,6 +168,49 @@ Verification:
 npm run build
 ```
 
+## Audit progress — 2026-04-27 11:05 AEST
+
+Status after scoped review/verification/commits:
+
+- Started from **78** dirty/untracked paths after `bdb43b6d`.
+- Committed **9 scoped audit commits**:
+  - `16046b0c` `chore: ignore local protocol runtime artifacts`
+  - `4e7bc403` `feat: add network profile readiness controls`
+  - `0795d823` `feat(bdd): add consumer attestor settlement tools`
+  - `f22de586` `docs(bdd): restore bucket coverage audit trail`
+  - `2f44f7e0` `feat(onboarding): add operator preflight and registry guards`
+  - `7bef63aa` `fix(x402): harden jupiter swap fallback`
+  - `554c8fdc` `feat: add adoption playbook catalog`
+  - `ba5facc6` `chore: add demo and integration evidence tooling`
+  - `fc6f4c64` `docs: add collaborator positioning map`
+- Remaining dirty path: **1 tracked runtime data mutation** — `data/onboarding/specialist-index.json`.
+
+Verification completed during audit:
+
+```bash
+npx jest lib/__tests__/program-rpc-config.test.ts --runInBand
+npx jest lib/__tests__/planner-register-consumer-route.test.ts lib/__tests__/planner-tools-manifest-route.test.ts lib/__tests__/planner-resolve-attestor-route.test.ts lib/__tests__/planner-release-route.test.ts lib/__tests__/planner-auditability.test.ts --runInBand
+npm run test:bdd:index
+npx jest lib/__tests__/registry-route.test.ts lib/__tests__/endpoint-security-compat.test.ts lib/__tests__/registry-bridge-sort.test.ts --runInBand
+npx playwright test e2e/onboarding.spec.ts --reporter=line
+npx jest lib/__tests__/jupiter-client.test.ts --runInBand
+(cd packages/x402-solana && npm test -- --runInBand)
+bash -n scripts/run-integration-lane.sh scripts/run-jupiter-live-smoke.sh scripts/run-per-happy-smoke.sh scripts/run-surfpool-critical-smoke.sh scripts/run-surfpool-jupiter-invoke-smoke.sh scripts/run-surfpool-onboarding-attestation-smoke.sh scripts/run-surfpool-onboarding-wrapper-smoke.sh
+node --check scripts/capture-tx-proof.mjs scripts/capture-tx-proof-v2.mjs scripts/surfpool-jupiter-invoke-runner.mjs scripts/surfpool-onboarding-wrapper-runner.mjs
+npm run build
+```
+
+### Remaining decision
+
+`data/onboarding/specialist-index.json` appears to be local/demo runtime mutation rather than curated seed data:
+
+- adds multiple `https://127.0.0.1:3899` endpoint entries,
+- empty capability arrays,
+- timestamped local registration artifacts,
+- reformats the existing seed records.
+
+Recommendation: **discard/revert this file only after explicit Nissan approval**, or manually extract any intentional seed-schema fields into a sanitized fixture/change.
+
 ## Decision rules
 
 - **Never commit:** local wallet/key material, endpoint tokens, generated runtime JSON, raw logs with prompts, bulk test outputs.
