@@ -154,7 +154,15 @@ export default function ManagerPage() {
                     <span className={artifact.status === "present" ? "text-green-300" : "text-red-300"}>{artifact.status}</span>
                   </div>
                   <p className="mt-1 text-xs text-muted-foreground">{artifact.summary}</p>
-                  {artifact.path && <p className="mt-2 font-mono text-xs text-[#14F195]">{artifact.path}</p>}
+                  {artifact.path && (
+                    artifact.path.startsWith("/") ? (
+                      <Link href={artifact.path} className="mt-2 block font-mono text-xs text-[#14F195] hover:text-emerald-200">
+                        {artifact.path} →
+                      </Link>
+                    ) : (
+                      <p className="mt-2 font-mono text-xs text-[#14F195]">{artifact.path}</p>
+                    )
+                  )}
                 </div>
               ))}
             </div>
