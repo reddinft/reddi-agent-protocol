@@ -4,7 +4,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from "fs";
 import { join } from "path";
 
 export type EvidenceArtifact = {
-  id: "bdd" | "onboarding" | "attestor" | "consumer" | "settlement";
+  id: "bdd" | "onboarding" | "attestor" | "consumer" | "settlement" | "volunteer";
   label: string;
   path: string | null;
   status: "present" | "missing";
@@ -64,6 +64,16 @@ function artifact(id: EvidenceArtifact["id"], label: string, dir: string): Evide
   };
 }
 
+function routeArtifact(id: EvidenceArtifact["id"], label: string, route: string, summary: string): EvidenceArtifact {
+  return {
+    id,
+    label,
+    path: route,
+    status: "present",
+    summary,
+  };
+}
+
 export function buildManagerEvidencePack(): ManagerEvidencePack {
   const artifacts: EvidenceArtifact[] = [
     artifact("bdd", "Latest BDD confidence sweep", "bdd-sweep"),
@@ -71,6 +81,12 @@ export function buildManagerEvidencePack(): ManagerEvidencePack {
     artifact("attestor", "Attestor-gated specialist onboarding", "surfpool-onboarding"),
     artifact("consumer", "Consumer paid x402 invocation", "surfpool-jupiter-invoke"),
     artifact("settlement", "Solana escrow settlement smoke", "surfpool-smoke"),
+    routeArtifact(
+      "volunteer",
+      "Volunteer tester handback loop",
+      "/testers",
+      "Four-role devnet volunteer guide with reddi-x402 wrapper videos and copy/paste handback template.",
+    ),
   ];
   const missing = artifacts.filter((item) => item.status === "missing");
 
