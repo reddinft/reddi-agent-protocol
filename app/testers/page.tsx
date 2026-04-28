@@ -190,6 +190,7 @@ export default function TestersPage() {
               <Link href="#openonion-guide"><Button size="lg" variant="outline">OpenOnion specialist</Button></Link>
               <Link href="#attestor-guide"><Button size="lg" variant="outline">Attestor</Button></Link>
               <Link href="#consumer-guide"><Button size="lg" variant="outline">Consumer</Button></Link>
+              <Link href="/docs/team-usability-testing-scripts-devnet.md"><Button size="lg" variant="outline">Team test scripts</Button></Link>
             </div>
           </div>
         </div>
@@ -381,6 +382,7 @@ curl -i -X POST "$ENDPOINT/v1/chat/completions" \
               <p><Link href="/planner" className="text-indigo-300 hover:text-indigo-200">Planner</Link> for consumer paid-call tests.</p>
               <p><Link href="/attestation" className="text-indigo-300 hover:text-indigo-200">Attestation dashboard</Link> for verifier readiness.</p>
               <p><Link href="/manager" className="text-indigo-300 hover:text-indigo-200">Manager evidence pack</Link> for judge-facing proof.</p>
+              <p><a href="/docs/team-usability-testing-scripts-devnet.md" className="text-indigo-300 hover:text-indigo-200">Team usability testing scripts</a> for moderated Specialist, Attestor, Consumer, and end-to-end scenario runs.</p>
             </div>
           </div>
         </section>
