@@ -16,6 +16,7 @@ RUN cd packages/testing-specialists && npm run build
 
 FROM node:24-alpine
 WORKDIR /app/packages/testing-specialists
+RUN apk add --no-cache curl
 ENV NODE_ENV=production PORT=8080 HOST=0.0.0.0
 COPY --from=build /app/packages/x402-solana /app/packages/x402-solana
 COPY --from=build /app/packages/testing-specialists /app/packages/testing-specialists

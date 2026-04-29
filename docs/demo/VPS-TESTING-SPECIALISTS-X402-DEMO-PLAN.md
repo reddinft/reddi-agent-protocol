@@ -11,7 +11,7 @@ Run demo-only testing specialist agents on the VPS via Coolify. They are intenti
 3. accepts a demo-shaped `x402-payment` retry with a non-empty `txSignature`;
 4. clearly marks that the mock service validates demo payment header shape only, not production payment settlement;
 5. returns a predefined high-confidence testing response when the prompt matches a known case;
-5. returns the nearest best-effort response with lower `matchConfidence` and `reputationScore` when the prompt is uncertain.
+6. returns the nearest best-effort response with lower `matchConfidence` and `reputationScore` when the prompt is uncertain.
 
 This shows the value of Reddi Agent Protocol versus a normal public endpoint: endpoint protection, Solana x402 payment flow, registry/reputation metadata, and replayable evidence.
 
