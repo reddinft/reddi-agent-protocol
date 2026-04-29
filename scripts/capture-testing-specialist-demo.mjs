@@ -30,7 +30,18 @@ async function main() {
     return { models, unpaid: { status: unpaid.status, x402Request: x402Request ? JSON.parse(x402Request) : null, body: unpaidBody }, paid: { status: paid.status, body: paidBody } };
   }, endpoint);
 
-  fs.writeFileSync(path.join(outRoot, "capture-flow.json"), JSON.stringify(result, null, 2));
+  const checks = [
+    { name: "unpaid call returns 402", ok: result.unpaid.status === 402 },
+    { name: "unpaid call includes x402-request", ok: Boolean(result.unpaid.x402Request) },
+    { name: "paid retry returns 200", ok: result.paid.status === 200 },
+    { name: "paid retry has high confidence", ok: (result.paid.body?.reddi_demo?.matchConfidence || 0) >= 0.9 },
+  ];
+  const failed = checks.filter((check) => !check.ok);
+  fs.writeFileSync(path.join(outRoot, "capture-flow.json"), JSON.stringify({ ...result, checks }, null, 2));
+  if (failed.length > 0) {
+    fs.writeFileSync(path.join(outRoot, "CAPTURE-FAILED.md"), failed.map((check) => `- ${check.name}`).join("\n"));
+    throw new Error(`capture assertions failed: ${failed.map((check) => check.name).join(", ")}`);
+  }
 
   await page.setContent(`<!doctype html>
 <html><head><meta charset="utf-8"><title>Reddi x402 testing specialist capture</title>

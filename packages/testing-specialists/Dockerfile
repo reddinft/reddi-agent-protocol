@@ -6,7 +6,7 @@ COPY packages/x402-solana/src ./packages/x402-solana/src
 COPY packages/testing-specialists/package*.json ./packages/testing-specialists/
 COPY packages/testing-specialists/tsconfig.json ./packages/testing-specialists/
 RUN cd packages/x402-solana && npm ci && npm run build
-RUN cd packages/testing-specialists && npm install
+RUN cd packages/testing-specialists && npm ci
 
 FROM node:24-alpine AS build
 WORKDIR /app

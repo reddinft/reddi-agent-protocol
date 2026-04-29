@@ -8,8 +8,9 @@ Run demo-only testing specialist agents on the VPS via Coolify. They are intenti
 
 1. exposes OpenAI-compatible discovery and completion routes;
 2. fails closed with `402 + x402-request` before any completion;
-3. accepts a demo `x402-payment` retry;
-4. returns a predefined high-confidence testing response when the prompt matches a known case;
+3. accepts a demo-shaped `x402-payment` retry with a non-empty `txSignature`;
+4. clearly marks that the mock service validates demo payment header shape only, not production payment settlement;
+5. returns a predefined high-confidence testing response when the prompt matches a known case;
 5. returns the nearest best-effort response with lower `matchConfidence` and `reputationScore` when the prompt is uncertain.
 
 This shows the value of Reddi Agent Protocol versus a normal public endpoint: endpoint protection, Solana x402 payment flow, registry/reputation metadata, and replayable evidence.
@@ -31,7 +32,7 @@ All profiles expose the same routes:
 - `GET /api/tags`
 - `POST /v1/chat/completions`
 
-Unpaid completion calls return `402` and an `x402-request` challenge. Paid retry returns an OpenAI-style chat completion plus:
+Unpaid completion calls return `402` and an `x402-request` challenge. Paid retry requires JSON such as `{ "txSignature": "demo-smoke", "network": "solana-devnet" }` and returns an OpenAI-style chat completion plus:
 
 ```json
 {
@@ -40,7 +41,7 @@ Unpaid completion calls return `402` and an `x402-request` challenge. Paid retry
     "matchedCaseId": "insecure-open-completion",
     "matchConfidence": 0.97,
     "reputationScore": 96,
-    "paymentStatus": "demo_x402_payment_header_accepted"
+    "paymentStatus": "demo_x402_payment_header_shape_accepted_not_production_verified"
   }
 }
 ```
@@ -109,11 +110,12 @@ Guardrails:
 
 - Use Solana devnet only for this demo.
 - Do not expose a completion route that returns 200 without x402.
+- Treat this package as a deterministic demo specialist only: it checks demo `x402-payment` header shape but does not verify production Solana settlement.
 - Do not store raw prompts in public artifacts unless deliberately demo-safe.
 
 ## Screen capture plan
 
-Use Playwright when possible because it gives reproducible screenshots and trace artifacts. Use Chrome DevTools or Peekaboo only for manual wallet popups or Coolify dashboard moments that Playwright cannot drive cleanly.
+Use Playwright when possible because it gives reproducible screenshots and trace artifacts. The provided capture script asserts the endpoint x402 flow before writing success artifacts, but it only captures endpoint-level evidence. Use Chrome DevTools or Peekaboo for manual wallet popups, Coolify dashboard moments, and full app registration/planner/evidence walkthroughs that Playwright cannot drive cleanly.
 
 Capture sequence:
 

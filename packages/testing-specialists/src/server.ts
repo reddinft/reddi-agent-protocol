@@ -205,6 +205,21 @@ function x402Challenge() {
   });
 }
 
+function parseDemoPaymentHeader(payment: string) {
+  try {
+    const parsed = JSON.parse(payment);
+    const txSignature = typeof parsed.txSignature === "string" ? parsed.txSignature.trim() : "";
+    if (!txSignature) return undefined;
+    return {
+      txSignature,
+      network: typeof parsed.network === "string" ? parsed.network : network,
+      demoOnly: parsed.demoOnly !== false,
+    };
+  } catch {
+    return undefined;
+  }
+}
+
 function modelPayload() {
   return {
     object: "list",
@@ -266,6 +281,14 @@ const server = http.createServer(async (req, res) => {
       );
     }
 
+    const demoPayment = parseDemoPaymentHeader(payment);
+    if (!demoPayment) {
+      return sendJson(res, 400, {
+        error: "invalid_demo_x402_payment",
+        detail: "demo mock requires JSON x402-payment with a non-empty txSignature; this service does not perform production payment verification",
+      });
+    }
+
     let parsed: CompletionBody = {};
     try {
       const raw = await readBody(req);
@@ -299,7 +322,8 @@ const server = http.createServer(async (req, res) => {
         matchedCaseTitle: response.selected?.title || null,
         matchConfidence: response.confidence,
         reputationScore: response.reputationScore,
-        paymentStatus: "demo_x402_payment_header_accepted",
+        paymentStatus: "demo_x402_payment_header_shape_accepted_not_production_verified",
+        paymentReceipt: demoPayment,
         evidence: response.selected?.evidence || [],
         requestId,
       },

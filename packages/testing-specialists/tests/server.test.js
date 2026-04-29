@@ -40,9 +40,16 @@ test("completion route fails closed with x402 challenge, then accepts paid retry
     assert.equal(challenge.route, "/v1/chat/completions");
     assert.equal(challenge.specialistProfile, "qa-security");
 
+    const invalidPayment = await fetch(`${baseUrl}/v1/chat/completions`, {
+      method: "POST",
+      headers: { "content-type": "application/json", "x402-payment": "junk" },
+      body: JSON.stringify({ messages: [{ role: "user", content: "audit unpaid completion bypass" }] }),
+    });
+    assert.equal(invalidPayment.status, 400);
+
     const paid = await fetch(`${baseUrl}/v1/chat/completions`, {
       method: "POST",
-      headers: { "content-type": "application/json", "x402-payment": JSON.stringify({ txSignature: "demo" }) },
+      headers: { "content-type": "application/json", "x402-payment": JSON.stringify({ txSignature: "demo", network: "solana-devnet" }) },
       body: JSON.stringify({ messages: [{ role: "user", content: "audit unpaid completion bypass" }] }),
     });
     assert.equal(paid.status, 200);
@@ -50,6 +57,7 @@ test("completion route fails closed with x402 challenge, then accepts paid retry
     assert.equal(payload.reddi_demo.predefinedMatch, true);
     assert.equal(payload.reddi_demo.matchConfidence, 0.97);
     assert.equal(payload.reddi_demo.reputationScore, 96);
+    assert.equal(payload.reddi_demo.paymentStatus, "demo_x402_payment_header_shape_accepted_not_production_verified");
   } finally {
     await new Promise((resolve) => instance.close(resolve));
   }
