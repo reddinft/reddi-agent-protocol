@@ -1,0 +1,22 @@
+{
+  "name": "@reddi/testing-specialists",
+  "version": "0.1.0",
+  "description": "Deterministic x402-protected mock testing specialists for Reddi Agent Protocol demos",
+  "private": true,
+  "main": "dist/server.js",
+  "types": "dist/server.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "ts-node src/server.ts",
+    "test": "npm run build && node --test tests/*.test.js"
+  },
+  "dependencies": {
+    "@reddi/x402-solana": "file:../x402-solana"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "ts-node": "^10",
+    "typescript": "^5"
+  }
+}
