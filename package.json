@@ -30,7 +30,8 @@
     "test:tunnel:rca:evaluate": "node ./scripts/evaluate-cloudflare-rca.mjs",
     "dev:rca:x402-fixture": "node ./scripts/run-rca-x402-fixture.mjs",
     "demo:testing-specialist:smoke": "node ./scripts/run-testing-specialist-smoke.mjs",
-    "demo:testing-specialist:capture": "node ./scripts/capture-testing-specialist-demo.mjs"
+    "demo:testing-specialist:capture": "node ./scripts/capture-testing-specialist-demo.mjs",
+    "smoke:app-adapter": "node ./scripts/run-app-adapter-smoke.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",
