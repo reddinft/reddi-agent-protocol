@@ -1,11 +1,12 @@
-import { createHash } from "crypto";
 import { specialistProfiles } from "../../packages/openrouter-specialists/src/profiles/index";
 import type { SpecialistProfile } from "../../packages/openrouter-specialists/src/types";
-import type { CapabilityInput } from "@/lib/onboarding/capabilities";
+import { computeCapabilityHash, validateCapabilities, type CapabilityInput } from "@/lib/onboarding/capabilities";
 import type { SpecialistIndexEntry } from "@/lib/onboarding/specialist-index";
-import { computeSpecialistRankingScore } from "@/lib/onboarding/specialist-index";
+import { computeFreshnessState, computeSpecialistRankingScore } from "@/lib/onboarding/specialist-index";
 
 const DEFAULT_HEALTH_STREAK = 1;
+const SMOKE_EVIDENCE_TIMESTAMP = "2026-05-04T08:05:44.000+10:00";
+const SMOKE_EVIDENCE_HEALTHCHECK_STATUS = "pass";
 
 const OPENROUTER_PROFILE_ENDPOINTS: Record<string, string> = {
   "planning-agent": "https://reddi-planning-agent.preview.reddi.tech/v1/chat/completions",
@@ -14,6 +15,8 @@ const OPENROUTER_PROFILE_ENDPOINTS: Record<string, string> = {
   "code-generation-agent": "https://reddi-code-generation.preview.reddi.tech/v1/chat/completions",
   "conversational-agent": "https://reddi-conversational.preview.reddi.tech/v1/chat/completions",
 };
+
+const hostedOpenRouterProfiles = specialistProfiles.filter((profile) => profile.id in OPENROUTER_PROFILE_ENDPOINTS);
 
 const profileByWallet = new Map(specialistProfiles.map((profile) => [profile.walletAddress, profile]));
 
@@ -24,10 +27,12 @@ export function findOpenRouterProfile(walletAddress: string): SpecialistProfile 
 export function buildOpenRouterSpecialistIndexEntry(walletAddress: string): SpecialistIndexEntry | null {
   const profile = findOpenRouterProfile(walletAddress);
   if (!profile) return null;
+  const endpointUrl = OPENROUTER_PROFILE_ENDPOINTS[profile.id];
+  if (!endpointUrl) return null;
 
-  const capabilities = toCapabilityInput(profile);
-  const endpointUrl = OPENROUTER_PROFILE_ENDPOINTS[profile.id] ?? joinEndpoint(process.env.OPENROUTER_SPECIALISTS_PUBLIC_BASE_URL ?? "https://preview.reddi.tech", profile.endpointPath);
-  const updatedAt = "2026-05-04T08:05:44.000+10:00";
+  const capabilities = validateCapabilities(toCapabilityInput(profile));
+  const lastSeenAt = SMOKE_EVIDENCE_TIMESTAMP;
+  const updatedAt = lastSeenAt;
   const attested = false;
   const routingSignals = {
     feedbackCount: 0,
@@ -48,13 +53,13 @@ export function buildOpenRouterSpecialistIndexEntry(walletAddress: string): Spec
     schema_version: 2,
     ranking_formula_version: 1,
     endpointUrl,
-    healthcheckStatus: "pass",
-    freshness_state: "fresh",
+    healthcheckStatus: SMOKE_EVIDENCE_HEALTHCHECK_STATUS,
+    freshness_state: computeFreshnessState(lastSeenAt),
     attested,
-    capabilityHash: capabilityHash(capabilities),
+    capabilityHash: computeCapabilityHash(walletAddress, capabilities),
     capabilities,
     routingSignals,
-    last_seen_at: updatedAt,
+    last_seen_at: lastSeenAt,
     health_streak: DEFAULT_HEALTH_STREAK,
     ranking_score,
     reputation_score: 0,
@@ -84,7 +89,7 @@ export function enrichIndexEntryWithOpenRouterProfile(entry: SpecialistIndexEntr
 
 export function enrichCapabilityIndexWithOpenRouterProfiles(entries: SpecialistIndexEntry[]): SpecialistIndexEntry[] {
   const byWallet = new Map(entries.map((entry) => [entry.walletAddress, enrichIndexEntryWithOpenRouterProfile(entry)]));
-  for (const profile of specialistProfiles) {
+  for (const profile of hostedOpenRouterProfiles) {
     if (!byWallet.has(profile.walletAddress)) {
       const entry = buildOpenRouterSpecialistIndexEntry(profile.walletAddress);
       if (entry) byWallet.set(profile.walletAddress, entry);
@@ -161,12 +166,4 @@ function hasMeaningfulCapabilities(capabilities: CapabilityInput | undefined): b
 
 function hasMeaningfulRoutingSignals(signals: SpecialistIndexEntry["routingSignals"]): boolean {
   return Boolean(signals && (signals.feedbackCount > 0 || signals.avgFeedbackScore > 0 || signals.attestationAgreements > 0));
-}
-
-function joinEndpoint(baseUrl: string, endpointPath: string): string {
-  return `${baseUrl.replace(/\/$/, "")}/${endpointPath.replace(/^\//, "")}`;
-}
-
-function capabilityHash(capabilities: CapabilityInput): string {
-  return createHash("sha256").update(JSON.stringify(capabilities)).digest("hex");
 }
