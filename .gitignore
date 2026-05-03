@@ -66,3 +66,7 @@ data/onboarding/planner-runs.json
 data/onboarding/runtime-config.json
 data/onboarding/specialist-profile.json
 data/onboarding/token-gated-proxy.mjs
+
+# Package-local dependency/build outputs
+**/node_modules/
+packages/openrouter-specialists/dist/
