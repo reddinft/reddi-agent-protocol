@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "1.0.0",
+  "network": "solana-devnet",
+  "minimumBalanceLamports": 1000000,
+  "generatedAt": "2026-05-03T00:00:00.000Z",
+  "profiles": [
+    {
+      "profileId": "planning-agent",
+      "displayName": "Planning Agent",
+      "publicKey": "3mL7kbtz3eK24vJ6wftjnLvhZrf93B71UEjB2DBDAddr"
+    },
+    {
+      "profileId": "document-intelligence-agent",
+      "displayName": "Document Intelligence Agent",
+      "publicKey": "6uiQbwMor4UrWYiDtAJcgHKYW4vUaM3BUVChPgzdALse"
+    },
+    {
+      "profileId": "verification-validation-agent",
+      "displayName": "Verification & Validation Agent",
+      "publicKey": "EqQoUabvYzHwedphRYmXhNtT1hVX7ReTTJG4NmpgXAsr"
+    },
+    {
+      "profileId": "code-generation-agent",
+      "displayName": "Code Generation Agent",
+      "publicKey": "2e39zZNWB7J6k29trdBppbPJ8pUzsELrgPtAREvUNYE7"
+    },
+    {
+      "profileId": "conversational-agent",
+      "displayName": "Conversational Agent",
+      "publicKey": "FZM9LeQnYQwSdQfZLUdm9VitPnKH41CaDCuaSc4EDEqM"
+    }
+  ]
+}
