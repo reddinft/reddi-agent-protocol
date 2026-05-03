@@ -6,6 +6,8 @@ Iteration 3 includes the default attestor path: `verification-validation-agent` 
 
 Iteration 4 starts agent-to-agent composability in dry-run mode: consumer-capable specialists can return a deterministic marketplace delegation plan without performing downstream x402 negotiation or spending devnet SOL.
 
+Iteration 4.5 hardens dry-run discovery with a manifest-backed discovery adapter and a no-spend deployment readiness report. It still does not deploy, fund wallets, inspect secrets, sign transactions, or execute live downstream x402 calls.
+
 ## Safety defaults
 
 - No private keys are stored here.
@@ -63,6 +65,25 @@ Minimal request body:
 ```
 
 Response body includes `object="reddi.delegation.plan"`, deterministic candidate ranking by capability match, price, reputation, and freshness, estimated cost, required attestor, and guardrails. `downstreamCallsExecuted` is always `0` in this iteration. No signer/private-key material is used and no downstream paid call is attempted.
+
+The dry-run planner can use the public wallet manifest as a discovery source. Malformed manifest candidates are excluded with explicit reasons in `discoveryDiagnostics`; they are not silently ranked.
+
+## Deployment readiness preflight
+
+Generate a public-data-only readiness report:
+
+```bash
+npm run deployment:readiness
+```
+
+Optional environment inputs:
+
+- `PUBLIC_BASE_URL` — planned specialist endpoint base URL.
+- `FUNDED_PROFILE_IDS` — comma-separated profile IDs already funded/approved.
+- `DEPLOYED_PROFILE_IDS` — comma-separated profile IDs already deployed/approved.
+- `READINESS_OUT` — output path, default `artifacts/deployment-readiness.json`.
+
+The report is expected to be `blocked` before approval/funding/deployment. It reports missing endpoints, funding, and Coolify deployment as blockers while preserving guardrails: public metadata only, no private keys/signers, no devnet SOL spend, no deployment, and no live downstream x402 calls.
 
 ## Validation
 

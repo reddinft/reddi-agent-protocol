@@ -1,10 +1,12 @@
+import { isValidSolanaPublicKey } from "@reddi/x402-solana";
 import type { SpecialistPrice, SpecialistProfile } from "./types.js";
-import { specialistProfiles } from "./profiles/index.js";
+import { getProfile, specialistProfiles } from "./profiles/index.js";
 
 export interface MarketplaceCandidate {
   profileId: string;
   displayName: string;
   endpointPath: string;
+  walletAddress?: string;
   capabilities: string[];
   roles: string[];
   price: SpecialistPrice;
@@ -12,6 +14,16 @@ export interface MarketplaceCandidate {
   freshnessScore: number;
   preferredAttestors: string[];
   safetyMode: string;
+}
+
+export interface CandidateValidationResult {
+  ok: boolean;
+  reasons: string[];
+}
+
+export interface DiscoveryDiagnostics {
+  includedProfileIds: string[];
+  excluded: Array<{ profileId: string; reasons: string[] }>;
 }
 
 export interface MarketplaceDiscoveryQuery {
@@ -47,10 +59,26 @@ export interface DelegationPlan {
   estimatedCost?: SpecialistPrice;
   requiredAttestor?: string;
   guardrails: string[];
+  discoveryDiagnostics?: DiscoveryDiagnostics;
 }
 
 export interface MarketplaceDiscoveryClient {
   discover(query: MarketplaceDiscoveryQuery): Promise<MarketplaceCandidate[]>;
+  diagnostics?(): DiscoveryDiagnostics;
+}
+
+export interface WalletManifestProfile {
+  profileId: string;
+  displayName: string;
+  publicKey: string;
+}
+
+export interface WalletManifest {
+  schemaVersion: string;
+  network: "solana-devnet";
+  minimumBalanceLamports: number;
+  generatedAt?: string;
+  profiles: WalletManifestProfile[];
 }
 
 const STATIC_REPUTATION: Record<string, { reputationScore: number; freshnessScore: number }> = {
@@ -72,6 +100,98 @@ export class StaticMarketplaceDiscoveryClient implements MarketplaceDiscoveryCli
       .filter((profile) => required.length === 0 || normalizeCapabilities(profile.capabilities).some((capability) => required.includes(capability)))
       .map(toCandidate);
   }
+
+  diagnostics(): DiscoveryDiagnostics {
+    return {
+      includedProfileIds: this.profiles.map((profile) => profile.id).sort(),
+      excluded: [],
+    };
+  }
+}
+
+export class ManifestMarketplaceDiscoveryClient implements MarketplaceDiscoveryClient {
+  private readonly candidates: MarketplaceCandidate[];
+  private readonly excluded: Array<{ profileId: string; reasons: string[] }>;
+
+  constructor(manifest: WalletManifest, private readonly profiles: SpecialistProfile[] = specialistProfiles) {
+    const built = candidatesFromWalletManifest(manifest, profiles);
+    this.candidates = built.candidates;
+    this.excluded = built.excluded;
+  }
+
+  async discover(query: MarketplaceDiscoveryQuery): Promise<MarketplaceCandidate[]> {
+    const required = normalizeCapabilities(query.requiredCapabilities);
+    return this.candidates
+      .filter((candidate) => candidate.profileId !== query.requesterProfileId)
+      .filter((candidate) => candidate.roles.includes("specialist"))
+      .filter((candidate) => required.length === 0 || normalizeCapabilities(candidate.capabilities).some((capability) => required.includes(capability)));
+  }
+
+  diagnostics(): DiscoveryDiagnostics {
+    return {
+      includedProfileIds: this.candidates.map((candidate) => candidate.profileId).sort(),
+      excluded: [...this.excluded],
+    };
+  }
+}
+
+export function candidatesFromWalletManifest(
+  manifest: WalletManifest,
+  profiles: SpecialistProfile[] = specialistProfiles,
+): { candidates: MarketplaceCandidate[]; excluded: Array<{ profileId: string; reasons: string[] }> } {
+  const candidates: MarketplaceCandidate[] = [];
+  const excluded: Array<{ profileId: string; reasons: string[] }> = [];
+  const seenProfileIds = new Set<string>();
+  const seenWallets = new Set<string>();
+
+  if (manifest.network !== "solana-devnet") {
+    return {
+      candidates,
+      excluded: manifest.profiles.map((entry) => ({ profileId: entry.profileId ?? "unknown", reasons: [`unsupported network ${manifest.network}`] })),
+    };
+  }
+
+  for (const entry of manifest.profiles) {
+    const reasons: string[] = [];
+    const profile = getProfileFrom(entry.profileId, profiles);
+    if (!profile) reasons.push("profile not found in specialist registry");
+    if (seenProfileIds.has(entry.profileId)) reasons.push("duplicate profileId in wallet manifest");
+    seenProfileIds.add(entry.profileId);
+    if (!entry.publicKey || !isValidSolanaPublicKey(entry.publicKey)) reasons.push("invalid Solana public key");
+    if (seenWallets.has(entry.publicKey)) reasons.push("duplicate public key in wallet manifest");
+    seenWallets.add(entry.publicKey);
+    if (profile && profile.walletAddress !== entry.publicKey) reasons.push("manifest public key does not match specialist profile wallet");
+
+    if (!profile || reasons.length > 0) {
+      excluded.push({ profileId: entry.profileId ?? "unknown", reasons });
+      continue;
+    }
+
+    const candidate = toCandidate(profile);
+    candidate.walletAddress = entry.publicKey;
+    const validation = validateMarketplaceCandidate(candidate);
+    if (!validation.ok) {
+      excluded.push({ profileId: entry.profileId, reasons: validation.reasons });
+      continue;
+    }
+    candidates.push(candidate);
+  }
+
+  return { candidates, excluded };
+}
+
+export function validateMarketplaceCandidate(candidate: MarketplaceCandidate): CandidateValidationResult {
+  const reasons: string[] = [];
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(candidate.profileId)) reasons.push("invalid profileId");
+  if (!candidate.displayName.trim()) reasons.push("missing displayName");
+  if (!candidate.endpointPath.startsWith("/")) reasons.push("endpointPath must be relative path");
+  if (!candidate.walletAddress || !isValidSolanaPublicKey(candidate.walletAddress)) reasons.push("missing or invalid walletAddress");
+  if (!candidate.roles.includes("specialist")) reasons.push("candidate must include specialist role");
+  if (candidate.capabilities.length === 0) reasons.push("missing capabilities");
+  if (!candidate.price.amount || !candidate.price.currency || !candidate.price.unit) reasons.push("invalid price");
+  if (!Number.isFinite(candidate.reputationScore) || candidate.reputationScore < 0 || candidate.reputationScore > 1) reasons.push("reputationScore must be 0..1");
+  if (!Number.isFinite(candidate.freshnessScore) || candidate.freshnessScore < 0 || candidate.freshnessScore > 1) reasons.push("freshnessScore must be 0..1");
+  return { ok: reasons.length === 0, reasons };
 }
 
 export function normalizeCapabilities(capabilities: string[]): string[] {
@@ -135,6 +255,7 @@ export async function buildDryRunDelegationPlan(input: {
       "no signer or private-key material used",
       "set ENABLE_AGENT_TO_AGENT_CALLS=true only in a later live-call iteration",
     ],
+    discoveryDiagnostics: discoveryClient.diagnostics?.(),
   };
 }
 
@@ -144,6 +265,7 @@ function toCandidate(profile: SpecialistProfile): MarketplaceCandidate {
     profileId: profile.id,
     displayName: profile.displayName,
     endpointPath: profile.endpointPath,
+    walletAddress: profile.walletAddress,
     capabilities: profile.capabilities,
     roles: profile.roles,
     price: profile.price,
@@ -152,6 +274,10 @@ function toCandidate(profile: SpecialistProfile): MarketplaceCandidate {
     preferredAttestors: profile.preferredAttestors,
     safetyMode: profile.safetyMode,
   };
+}
+
+function getProfileFrom(id: string, profiles: SpecialistProfile[]): SpecialistProfile | undefined {
+  return profiles.find((profile) => profile.id === id) ?? getProfile(id);
 }
 
 function rankCandidate(candidate: MarketplaceCandidate, requiredCapabilities: string[]): RankedMarketplaceCandidate {
