@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import {
   Connection,
@@ -20,20 +20,23 @@ const AgentType = { Primary: 0, Attestation: 1, Both: 2 };
 const endpoint = process.env.SOLANA_DEVNET_RPC_URL ?? clusterApiUrl('devnet');
 const programId = new PublicKey(process.env.OPENROUTER_SPECIALIST_ESCROW_PROGRAM_ID ?? process.env.DEMO_ESCROW_PROGRAM_ID ?? DEFAULT_PROGRAM_ID);
 const outPath = process.env.REGISTRATION_ARTIFACT_OUT ?? join(process.cwd(), 'artifacts/devnet-registration-report.json');
+const manifestPath = process.argv[2] ?? process.env.WALLET_MANIFEST_PATH ?? join(process.cwd(), 'public/wallet-manifest.json');
 const minBalanceLamports = Number(process.env.MIN_DEVNET_BALANCE_LAMPORTS ?? 500_000);
 
-if (!endpoint.includes('devnet')) throw new Error('registration script is devnet-only; SOLANA_DEVNET_RPC_URL must point at devnet');
+assertDevnetRpcEndpoint(endpoint, 'registration');
 if (!Number.isFinite(minBalanceLamports) || minBalanceLamports < 0) throw new Error('MIN_DEVNET_BALANCE_LAMPORTS must be non-negative');
 
 const signerLoad = loadSignerKeypairsFromEnv({ profiles: specialistProfiles.slice(0, 5), requireAll: true });
+const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+if (manifest.network !== 'solana-devnet') throw new Error('registration script is devnet-only; wallet manifest must be solana-devnet');
+const expectedWalletsByProfile = new Map(manifest.profiles.map((profile) => [profile.profileId, profile.publicKey]));
 const connection = new Connection(endpoint, 'confirmed');
 const report = [];
 
 for (const { profile, keypair, sourceEnv } of signerLoad.loaded) {
   const owner = keypair.publicKey;
+  const expectedWallet = expectedWalletsByProfile.get(profile.id);
   const agentPda = PublicKey.findProgramAddressSync([AGENT_SEED, owner.toBytes()], programId)[0];
-  const existing = await connection.getAccountInfo(agentPda, 'confirmed');
-  const balanceLamports = await connection.getBalance(owner, 'confirmed');
   const entry = {
     profileId: profile.id,
     displayName: profile.displayName,
@@ -42,11 +45,28 @@ for (const { profile, keypair, sourceEnv } of signerLoad.loaded) {
     signerSourceEnv: sourceEnv,
     agentPda: agentPda.toBase58(),
     programId: programId.toBase58(),
-    balanceLamports,
+    balanceLamports: null,
     status: 'pending',
     txSignature: null,
     errors: [],
   };
+
+  if (!expectedWallet) {
+    entry.status = 'wallet_mismatch';
+    entry.errors.push(`manifest missing expected public key for ${profile.id}`);
+    report.push(entry);
+    continue;
+  }
+  if (owner.toBase58() !== expectedWallet || owner.toBase58() !== profile.walletAddress) {
+    entry.status = 'wallet_mismatch';
+    entry.errors.push(`signer public key ${owner.toBase58()} does not match manifest/profile wallet for ${profile.id}`);
+    report.push(entry);
+    continue;
+  }
+
+  const existing = await connection.getAccountInfo(agentPda, 'confirmed');
+  const balanceLamports = await connection.getBalance(owner, 'confirmed');
+  entry.balanceLamports = balanceLamports;
 
   if (existing) {
     entry.status = 'already_registered';
@@ -102,7 +122,7 @@ const artifact = {
 mkdirSync(dirname(outPath), { recursive: true });
 writeFileSync(outPath, `${JSON.stringify(artifact, null, 2)}\n`, { mode: 0o644 });
 console.log(JSON.stringify(artifact, null, 2));
-if (report.some((entry) => entry.status === 'registration_failed' || entry.status === 'insufficient_balance')) process.exitCode = 1;
+if (report.some((entry) => entry.status === 'registration_failed' || entry.status === 'insufficient_balance' || entry.status === 'wallet_mismatch')) process.exitCode = 1;
 
 function disc(ixName) {
   return crypto.createHash('sha256').update(`global:${ixName}`).digest().subarray(0, 8);
@@ -138,4 +158,19 @@ function rateLamportsFor(profile) {
     return parsed;
   }
   return profile.roles.includes('attestor') ? 500_000n : 1_000_000n;
+}
+
+function assertDevnetRpcEndpoint(value, label) {
+  let url;
+  try {
+    url = new URL(value);
+  } catch {
+    throw new Error(`${label} script is devnet-only; SOLANA_DEVNET_RPC_URL must be a valid devnet HTTPS URL`);
+  }
+  const hostname = url.hostname.toLowerCase();
+  const isDevnetHost = hostname === 'api.devnet.solana.com' || hostname.includes('devnet');
+  const unsafeClusterHost = hostname.includes('mainnet') || hostname.includes('testnet');
+  if (url.protocol !== 'https:' || !isDevnetHost || unsafeClusterHost) {
+    throw new Error(`${label} script is devnet-only; SOLANA_DEVNET_RPC_URL hostname must identify a devnet RPC endpoint`);
+  }
 }
