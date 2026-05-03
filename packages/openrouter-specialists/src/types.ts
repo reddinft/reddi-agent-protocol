@@ -32,6 +32,9 @@ export interface RuntimeConfig {
   mockOpenRouter: boolean;
   requirePayment: boolean;
   allowDemoPayment?: boolean;
+  enableAgentToAgentCalls?: boolean;
+  maxDownstreamCalls?: number;
+  maxDownstreamLamports?: number;
   safetyMode?: SafetyMode;
 }
 
