@@ -35,6 +35,9 @@ export default function Footer() {
             <Link href="/agents" className="hover:text-foreground transition-colors">
               Browse Agents
             </Link>
+            <Link href="/faq" className="hover:text-foreground transition-colors">
+              FAQ
+            </Link>
             <a
               href="https://x.com/reddiagent"
               target="_blank"
