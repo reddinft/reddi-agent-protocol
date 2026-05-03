@@ -49,6 +49,56 @@ export interface ChatCompletionRequest {
   metadata?: Record<string, unknown>;
 }
 
+export type AttestationMode = "attestation";
+export type AttestationCheckStatus = "pass" | "warn" | "fail";
+export type AttestationRecommendedAction = "release" | "refund" | "dispute";
+
+export interface AttestationReceiptLink {
+  id: string;
+  type: string;
+  status?: string;
+  amount?: string;
+  currency?: string;
+  txSignature?: string;
+  evidenceHash?: string;
+}
+
+export interface AttestationRequest {
+  mode: AttestationMode;
+  subjectProfileId?: string;
+  specialistOutput: string;
+  receiptChain: AttestationReceiptLink[];
+  domain?: string;
+  constraints?: string[];
+}
+
+export interface AttestationCheck {
+  id: string;
+  label: string;
+  status: AttestationCheckStatus;
+  score: number;
+  summary: string;
+}
+
+export interface AttestationVerdict {
+  schemaVersion: "reddi.attestation.v1";
+  attestorProfileId: string;
+  subjectProfileId?: string;
+  score: number;
+  recommendedAction: AttestationRecommendedAction;
+  checks: AttestationCheck[];
+  summary: string;
+  caveats: string[];
+  receiptChain: AttestationReceiptLink[];
+  semantics: Record<AttestationRecommendedAction, string>;
+}
+
+export interface AttestationPromptEnvelope {
+  mode: AttestationMode;
+  schemaVersion: "reddi.attestation.v1";
+  messages: ChatMessage[];
+}
+
 export interface OpenRouterClient {
   readonly callCount: number;
   createChatCompletion(input: {

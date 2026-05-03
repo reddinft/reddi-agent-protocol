@@ -8,9 +8,10 @@ import {
   type ReceiptVerificationResult,
   type X402Challenge,
 } from "@reddi/x402-solana";
+import { buildAttestationPromptEnvelope, evaluateAttestation, normalizeAttestationRequest } from "./attestation.js";
 import { getProfile, specialistProfiles, validateProfileRegistry } from "./profiles/index.js";
 import { FetchOpenRouterClient, MockOpenRouterClient } from "./openrouter.js";
-import type { ChatCompletionRequest, OpenRouterClient, RuntimeConfig, RuntimeResponse, SpecialistProfile } from "./types.js";
+import type { AttestationRequest, ChatCompletionRequest, OpenRouterClient, RuntimeConfig, RuntimeResponse, SpecialistProfile } from "./types.js";
 
 const JSON_HEADERS = { "content-type": "application/json; charset=utf-8" };
 const PAYMENT_NETWORK = "solana-devnet" as const;
@@ -130,6 +131,76 @@ export function tagsResponse(): RuntimeResponse {
   return { status: 200, headers: JSON_HEADERS, body: { tags } };
 }
 
+export async function ensurePaid(input: {
+  headers: Headers;
+  profile: SpecialistProfile;
+  config: RuntimeConfig;
+  replayStore?: NonceReplayStore;
+}): Promise<RuntimeResponse | undefined> {
+  if (!input.config.requirePayment) return undefined;
+  const payment = await verifyPayment({ headers: input.headers, profile: input.profile, config: input.config, replayStore: input.replayStore });
+  if (payment.ok) return undefined;
+  const response = paymentRequired(buildProfileChallenge(input.profile, input.config));
+  response.body.error = {
+    code: payment.reason === "invalid_receipt" ? "payment_required" : payment.reason,
+    message: payment.message,
+  };
+  return response;
+}
+
+export function isAttestationMode(body: ChatCompletionRequest): boolean {
+  return body.metadata?.mode === "attestation" || body.metadata?.attestation !== undefined;
+}
+
+export async function handleAttestationEvaluation(input: {
+  headers: Headers;
+  body: AttestationRequest | ChatCompletionRequest | Record<string, unknown>;
+  config: RuntimeConfig;
+  client: OpenRouterClient;
+  replayStore?: NonceReplayStore;
+}): Promise<RuntimeResponse> {
+  const profile = getProfile(input.config.profileId);
+  if (!profile) return { status: 500, headers: JSON_HEADERS, body: { error: { code: "unknown_profile" } } };
+  if (!profile.roles.includes("attestor")) {
+    return { status: 403, headers: JSON_HEADERS, body: { error: { code: "profile_not_attestor", message: `${profile.id} is not configured for attestation.` } } };
+  }
+
+  const unpaid = await ensurePaid({ headers: input.headers, profile, config: input.config, replayStore: input.replayStore });
+  if (unpaid) return unpaid;
+
+  const requestId = randomUUID();
+  const attestationRequest = normalizeAttestationRequest(input.body);
+  const promptEnvelope = buildAttestationPromptEnvelope(profile, attestationRequest);
+  const reddi = {
+    profileId: profile.id,
+    requestId,
+    model: profile.model,
+    paymentSatisfied: input.config.requirePayment,
+    safetyMode: profile.safetyMode,
+    mockOpenRouter: input.config.mockOpenRouter,
+    mode: "attestation",
+    schemaVersion: promptEnvelope.schemaVersion,
+  };
+  const upstream = await input.client.createChatCompletion({
+    model: profile.model,
+    messages: promptEnvelope.messages,
+    temperature: 0,
+    max_tokens: 600,
+    metadata: reddi,
+  });
+  return {
+    status: 200,
+    headers: JSON_HEADERS,
+    body: {
+      object: "reddi.attestation.verdict",
+      verdict: evaluateAttestation(attestationRequest, profile.id),
+      promptEnvelope,
+      upstream,
+      reddi,
+    },
+  };
+}
+
 export async function handleChatCompletions(input: {
   headers: Headers;
   body: ChatCompletionRequest;
@@ -137,20 +208,13 @@ export async function handleChatCompletions(input: {
   client: OpenRouterClient;
   replayStore?: NonceReplayStore;
 }): Promise<RuntimeResponse> {
+  if (isAttestationMode(input.body)) return handleAttestationEvaluation(input);
+
   const profile = getProfile(input.config.profileId);
   if (!profile) return { status: 500, headers: JSON_HEADERS, body: { error: { code: "unknown_profile" } } };
 
-  if (input.config.requirePayment) {
-    const payment = await verifyPayment({ headers: input.headers, profile, config: input.config, replayStore: input.replayStore });
-    if (!payment.ok) {
-      const response = paymentRequired(buildProfileChallenge(profile, input.config));
-      response.body.error = {
-        code: payment.reason === "invalid_receipt" ? "payment_required" : payment.reason,
-        message: payment.message,
-      };
-      return response;
-    }
-  }
+  const unpaid = await ensurePaid({ headers: input.headers, profile, config: input.config, replayStore: input.replayStore });
+  if (unpaid) return unpaid;
 
   const requestId = randomUUID();
   const messages = input.body.messages ?? [];
@@ -195,6 +259,10 @@ export async function handleRuntimeRequest(request: Request, config = createRunt
   if (request.method === "GET" && url.pathname === "/v1/models") return toResponse(modelsResponse());
   if (request.method === "GET" && url.pathname === "/api/tags") return toResponse(tagsResponse());
   if (request.method === "GET" && url.pathname === "/.well-known/reddi-agent.json") return toResponse({ status: 200, headers: JSON_HEADERS, body: marketplaceMetadata(profile, config) });
+  if (request.method === "POST" && url.pathname === "/v1/attestations") {
+    const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
+    return toResponse(await handleAttestationEvaluation({ headers: request.headers, body, config, client, replayStore: defaultNonceReplayStore }));
+  }
   if (request.method === "POST" && url.pathname === "/v1/chat/completions") {
     const body = (await request.json().catch(() => ({}))) as ChatCompletionRequest;
     return toResponse(await handleChatCompletions({ headers: request.headers, body, config, client, replayStore: defaultNonceReplayStore }));

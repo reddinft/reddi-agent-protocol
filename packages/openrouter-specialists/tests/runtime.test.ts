@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { MockOpenRouterClient } from "../src/openrouter.js";
 import { getProfile, specialistProfiles, validateProfileRegistry } from "../src/profiles/index.js";
-import { createRuntimeConfig, handleChatCompletions, handleRuntimeRequest, marketplaceMetadata, type RuntimeConfig } from "../src/index.js";
+import { createRuntimeConfig, evaluateAttestation, handleAttestationEvaluation, handleChatCompletions, handleRuntimeRequest, marketplaceMetadata, type RuntimeConfig } from "../src/index.js";
 
 const config: RuntimeConfig = {
   profileId: "planning-agent",
@@ -168,7 +168,96 @@ test("well-known metadata includes Reddi marketplace fields", async () => {
   assert.equal(metadata.endpoint, "https://planning.example.test/v1/chat/completions");
 });
 
-test("HTTP core routes expose health, models, tags, metadata, and chat", async () => {
+test("attestor route returns structured release verdict for sample specialist output and receipt chain", async () => {
+  const client = new MockOpenRouterClient();
+  const response = await handleAttestationEvaluation({
+    headers: new Headers({ "x402-payment": "demo:attestation-release-1" }),
+    body: {
+      mode: "attestation",
+      subjectProfileId: "planning-agent",
+      specialistOutput:
+        "Execution plan includes evidence, validation gates, artifact references, and clear risks. Receipt confirms paid specialist work and the output stays within constraints.",
+      receiptChain: [
+        { id: "challenge-1", type: "x402-challenge", status: "issued", amount: "0.03", currency: "USDC" },
+        { id: "receipt-1", type: "x402-payment", status: "satisfied", amount: "0.03", currency: "USDC", txSignature: "demo-signature" },
+      ],
+      domain: "general operations",
+    },
+    config: { ...config, profileId: "verification-validation-agent", allowDemoPayment: true },
+    client,
+  });
+
+  assert.equal(response.status, 200);
+  assert.equal(client.callCount, 1);
+  assert.equal(client.lastRequest?.metadata.mode, "attestation");
+  assert.equal(client.lastRequest?.messages[0]?.role, "system");
+  assert.match(client.lastRequest?.messages[0]?.content ?? "", /Verdict semantics: release=pay specialist, refund=return funds/);
+  const verdict = response.body.verdict as { schemaVersion: string; score: number; recommendedAction: string; checks: unknown[]; summary: string; caveats: string[] };
+  assert.equal(verdict.schemaVersion, "reddi.attestation.v1");
+  assert.equal(verdict.recommendedAction, "release");
+  assert.ok(verdict.score >= 0.8);
+  assert.ok(verdict.checks.length >= 4);
+  assert.match(verdict.summary, /Recommend release/);
+  assert.ok(verdict.caveats.some((caveat) => caveat.includes("not professional certification")));
+});
+
+test("attestation request mode on chat completions uses attestation envelope", async () => {
+  const client = new MockOpenRouterClient();
+  const response = await handleChatCompletions({
+    headers: new Headers({ "x402-payment": "demo:attestation-chat-mode-1" }),
+    body: {
+      metadata: {
+        mode: "attestation",
+        attestation: {
+          subjectProfileId: "document-intelligence-agent",
+          specialistOutput: "Short summary with no receipt evidence.",
+          receiptChain: [],
+        },
+      },
+    },
+    config: { ...config, profileId: "verification-validation-agent", allowDemoPayment: true },
+    client,
+  });
+
+  assert.equal(response.status, 200);
+  assert.equal(response.body.object, "reddi.attestation.verdict");
+  assert.equal((response.body.verdict as { recommendedAction: string }).recommendedAction, "refund");
+});
+
+test("regulated-domain caveat is preserved and borderline verdict disputes", () => {
+  const verdict = evaluateAttestation(
+    {
+      mode: "attestation",
+      subjectProfileId: "conversational-agent",
+      specialistOutput: "Financial explanation with evidence but should remain informational only.",
+      receiptChain: [{ id: "receipt-1", type: "x402-payment", status: "paid", amount: "0.015", currency: "USDC" }],
+      domain: "financial planning",
+    },
+    "verification-validation-agent",
+  );
+
+  assert.equal(verdict.recommendedAction, "dispute");
+  assert.ok(verdict.caveats.some((caveat) => caveat.includes("Regulated-domain caveat")));
+  assert.ok(verdict.semantics.release.includes("Recommend release"));
+  assert.ok(verdict.semantics.refund.includes("Recommend refund"));
+  assert.ok(verdict.semantics.dispute.includes("Recommend dispute"));
+});
+
+test("non-attestor profile cannot evaluate attestations", async () => {
+  const client = new MockOpenRouterClient();
+  const response = await handleAttestationEvaluation({
+    headers: new Headers({ "x402-payment": "demo:not-attestor-1" }),
+    body: { mode: "attestation", specialistOutput: "hello", receiptChain: [] },
+    config: { ...config, allowDemoPayment: true },
+    client,
+  });
+
+  assert.equal(response.status, 403);
+  assert.equal(client.callCount, 0);
+  assert.equal((response.body.error as { code: string }).code, "profile_not_attestor");
+});
+
+test("HTTP core routes expose health, models, tags, metadata, attestation, and chat", async () => {
   const client = new MockOpenRouterClient();
   for (const path of ["/healthz", "/x402/health", "/v1/models", "/api/tags", "/.well-known/reddi-agent.json"]) {
     const response = await handleRuntimeRequest(new Request(`https://planning.example.test${path}`), config, client);
@@ -186,4 +275,23 @@ test("HTTP core routes expose health, models, tags, metadata, and chat", async (
   );
   assert.equal(unpaid.status, 402);
   assert.equal(client.callCount, 0);
+
+  const attestation = await handleRuntimeRequest(
+    new Request("https://planning.example.test/v1/attestations", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x402-payment": "demo:http-attestation-route-1" },
+      body: JSON.stringify({
+        mode: "attestation",
+        subjectProfileId: "planning-agent",
+        specialistOutput: "Plan includes validation artifacts, test evidence, receipt references, risks, and clear settlement recommendation input.",
+        receiptChain: [{ id: "receipt-http-1", type: "x402-payment", status: "satisfied", amount: "0.03", currency: "USDC" }],
+      }),
+    }),
+    { ...config, profileId: "verification-validation-agent", allowDemoPayment: true },
+    client,
+  );
+  assert.equal(attestation.status, 200);
+  const attestationBody = (await attestation.json()) as { object: string; verdict: { recommendedAction: string } };
+  assert.equal(attestationBody.object, "reddi.attestation.verdict");
+  assert.equal(attestationBody.verdict.recommendedAction, "release");
 });
