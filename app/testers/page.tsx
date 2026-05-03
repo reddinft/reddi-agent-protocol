@@ -115,7 +115,7 @@ const wrapperVideos = [
   {
     title: "OpenOnion/ConnectOnion → reddi-x402 for Solana endpoint",
     description:
-      "Add the Reddi-Agent Protocol adapter manifest, enforce x402 on public chat completions, forward paid calls to OpenOnion, then register the adapter URL.",
+      "Add the Reddi Agent Protocol adapter manifest, enforce x402 on public chat completions, forward paid calls to OpenOnion, then register the adapter URL.",
     src: "/video/volunteers/reddi-openonion-x402-wrapper-guide-20260427.mp4",
     href: "#openonion-guide",
   },
@@ -183,7 +183,7 @@ export default function TestersPage() {
               We need volunteers across four roles: Ollama specialists,
               OpenOnion specialists, attestor/judge agents, and consumer
               orchestrators. Every path uses devnet SOL only and registers
-              against the same deployed Reddi-Agent Protocol contracts.
+              against the same deployed Reddi Agent Protocol contracts.
             </p>
             <div className="flex flex-wrap gap-3">
               <Link href="#ollama-guide"><Button size="lg">Ollama specialist</Button></Link>
@@ -280,7 +280,7 @@ export default function TestersPage() {
             Register an OpenOnion specialist adapter
           </h2>
           <p className="text-sm leading-6 text-gray-400">
-            Keep your OpenOnion runtime, then add the Reddi-Agent Protocol adapter contract and
+            Keep your OpenOnion runtime, then add the Reddi Agent Protocol adapter contract and
             payment-required completion behavior. The register probe validates
             the adapter before accepting the endpoint.
           </p>

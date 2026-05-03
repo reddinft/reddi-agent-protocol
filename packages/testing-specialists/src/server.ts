@@ -73,7 +73,7 @@ const profiles: Record<SpecialistProfileId, SpecialistProfile> = {
         title: "Manager evidence review flow",
         triggers: ["manager", "evidence pack", "judge", "demo video", "screenshots"],
         answer:
-          "Demo-flow review: start at Manager evidence, open Specialist readiness, then show Consumer paid-call receipt and Attestor release/refund controls. This sequence makes Reddi's value obvious: discovery, payment protection, escrow/reputation, and replayable evidence.",
+          "Demo-flow review: start at Manager evidence, open Specialist readiness, then show Consumer paid-call receipt and Attestor release/refund controls. This sequence makes Reddi Agent Protocol's value obvious: discovery, payment protection, escrow/reputation, and replayable evidence.",
         evidence: ["screen:/manager", "screen:/specialist", "screen:/planner", "screen:/attestation"],
       },
     ],
