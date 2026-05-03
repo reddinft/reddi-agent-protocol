@@ -383,6 +383,32 @@ test("live delegation mode fails closed before any downstream paid call executor
   assert.equal(client.callCount, 0);
   assert.equal((response.body.error as { code: string }).code, "live_delegation_not_implemented");
   assert.equal((response.body.reddi as { downstreamCallsExecuted: number }).downstreamCallsExecuted, 0);
+
+  const liveWithoutDelegationObject = await handleChatCompletions({
+    headers: new Headers({ "x402-payment": "demo:delegation-live-fail-closed-2" }),
+    body: {
+      messages: [{ role: "user", content: "Hire another agent live." }],
+      metadata: { mode: "delegation_live" },
+    },
+    config: { ...config, allowDemoPayment: true, enableAgentToAgentCalls: true },
+    client,
+  });
+  assert.equal(liveWithoutDelegationObject.status, 501);
+  assert.equal(client.callCount, 0);
+  assert.equal((liveWithoutDelegationObject.body.error as { code: string }).code, "live_delegation_not_implemented");
+
+  const liveWithCallsDisabled = await handleChatCompletions({
+    headers: new Headers({ "x402-payment": "demo:delegation-live-fail-closed-3" }),
+    body: {
+      messages: [{ role: "user", content: "Hire another agent live." }],
+      metadata: { mode: "delegation_live", delegation: { dryRun: false, requiredCapabilities: ["code-generation"] } },
+    },
+    config: { ...config, allowDemoPayment: true, enableAgentToAgentCalls: false },
+    client,
+  });
+  assert.equal(liveWithCallsDisabled.status, 501);
+  assert.equal(client.callCount, 0);
+  assert.equal((liveWithCallsDisabled.body.error as { code: string }).code, "live_delegation_not_implemented");
 });
 
 test("HTTP core routes expose health, models, tags, metadata, attestation, and chat", async () => {

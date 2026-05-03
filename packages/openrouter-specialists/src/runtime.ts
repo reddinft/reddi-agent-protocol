@@ -159,7 +159,7 @@ export function isAttestationMode(body: ChatCompletionRequest): boolean {
 }
 
 export function isDelegationMode(body: ChatCompletionRequest): boolean {
-  return body.metadata?.mode === "delegation_plan" || body.metadata?.mode === "delegation_dry_run" || body.metadata?.delegation !== undefined;
+  return body.metadata?.mode === "delegation_plan" || body.metadata?.mode === "delegation_dry_run" || body.metadata?.mode === "delegation_live" || body.metadata?.delegation !== undefined;
 }
 
 export async function handleDelegationPlanning(input: {
@@ -180,7 +180,7 @@ export async function handleDelegationPlanning(input: {
   const metadata = input.body.metadata ?? {};
   const delegation = typeof metadata.delegation === "object" && metadata.delegation !== null ? (metadata.delegation as Record<string, unknown>) : {};
   const dryRun = delegation.dryRun !== false && metadata.mode !== "delegation_live";
-  if (input.config.enableAgentToAgentCalls && !dryRun) {
+  if (!dryRun) {
     return {
       status: 501,
       headers: JSON_HEADERS,
