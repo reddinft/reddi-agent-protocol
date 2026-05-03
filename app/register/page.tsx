@@ -18,6 +18,12 @@ import {
   INCINERATOR,
 } from "@/lib/program";
 import { toExplorerTxUrl } from "@/lib/config/explorer";
+import {
+  INITIAL_EXISTING_AGENT_STATE,
+  agentDetailHref,
+  isAlreadyRegisteredError,
+  type ExistingAgentState,
+} from "@/lib/register/existing-agent";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import LinkButton from "@/components/LinkButton";
@@ -170,6 +176,7 @@ function RegisterInner() {
   const [endpointProbeStatus, setEndpointProbeStatus] = useState<EndpointProbeStatus>("idle");
   const [endpointProbeMessage, setEndpointProbeMessage] = useState("");
   const [endpointProbeModels, setEndpointProbeModels] = useState<string[]>([]);
+  const [existingAgent, setExistingAgent] = useState<ExistingAgentState>(INITIAL_EXISTING_AGENT_STATE);
   const endpointProbeTimeoutRef = useRef<number | null>(null);
   const endpointProbeRequestRef = useRef(0);
   const endpointCompliancePassed = endpointProbeStatus === "reachable";
@@ -294,12 +301,53 @@ function RegisterInner() {
     };
   }, [form.endpoint]);
 
+  useEffect(() => {
+    if (!publicKey) {
+      setExistingAgent(INITIAL_EXISTING_AGENT_STATE);
+      return;
+    }
+
+    let cancelled = false;
+    const pda = agentPda(publicKey);
+    setExistingAgent({ status: "checking", pda: pda.toBase58() });
+
+    async function checkExistingAgent() {
+      try {
+        const conn = walletConnection ?? new Connection(DEVNET_RPC, "confirmed");
+        const account = await conn.getAccountInfo(pda, "confirmed");
+        if (cancelled) return;
+        setExistingAgent({
+          status: account ? "registered" : "not_registered",
+          pda: pda.toBase58(),
+        });
+      } catch (error: unknown) {
+        if (cancelled) return;
+        setExistingAgent({
+          status: "error",
+          pda: pda.toBase58(),
+          error: error instanceof Error ? error.message : "Could not check existing registration",
+        });
+      }
+    }
+
+    void checkExistingAgent();
+    return () => {
+      cancelled = true;
+    };
+  }, [publicKey, walletConnection]);
+
   const isJudge = form.agentType === "attestation" || form.agentType === "both";
   const activeRpc = DEVNET_RPC;
   const activeProgramId = ESCROW_PROGRAM_ID.toBase58();
+  const myAgentHref = publicKey ? agentDetailHref(publicKey) : "/agents";
+  const alreadyRegistered = existingAgent.status === "registered";
 
   const handleRegister = async () => {
     if (!publicKey || !sendTransaction) return;
+    if (alreadyRegistered) {
+      setTxError("This wallet is already registered. Open My Agent to view the existing registration, or deregister before creating a fresh registration with the same wallet.");
+      return;
+    }
     setRegistering(true);
     setTxError(null);
 
@@ -383,9 +431,12 @@ function RegisterInner() {
     } catch (err: unknown) {
       const msg = formatRegisterError(err);
       setTxError(msg);
+      if (isAlreadyRegisteredError(msg) && publicKey) {
+        setExistingAgent({ status: "registered", pda: agentPda(publicKey).toBase58() });
+      }
       setTxSig(null);
       setSuccess(false);
-      showToast("Registration failed", "error");
+      showToast(isAlreadyRegisteredError(msg) ? "Wallet already registered" : "Registration failed", "error");
     } finally {
       setRegistering(false);
     }
@@ -480,9 +531,30 @@ function RegisterInner() {
       </Card>
       <PageHeader
         label="Registration"
-        title="Register Your Agent"
-        subtitle="One-time 0.01 SOL registration. No subscription. You control your rate."
+        title={alreadyRegistered ? "Your wallet already has an agent" : "Register Your Agent"}
+        subtitle={alreadyRegistered ? "Open your existing agent profile, update details, or deregister before creating a fresh registration with this wallet." : "One-time 0.01 SOL registration. No subscription. You control your rate."}
       />
+      {existingAgent.status === "checking" && (
+        <Card className="border-blue-400/20 bg-blue-500/10 p-4 text-sm text-blue-100">
+          Checking whether this wallet already has an on-chain agent registration…
+        </Card>
+      )}
+      {alreadyRegistered && (
+        <Card className="space-y-3 border-emerald-400/25 bg-emerald-500/10 p-4 text-sm text-emerald-50">
+          <p className="font-semibold">This wallet is already registered.</p>
+          <p className="text-emerald-100/80">
+            Registering again would fail because each wallet maps to one deterministic agent account. Use My Agent to view the existing profile, or deregister first if you need a fresh registration.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <LinkButton href={myAgentHref} className="!bg-emerald-400 !text-black hover:!bg-emerald-300">
+              My Agent →
+            </LinkButton>
+            <LinkButton href="/faq" variant="outline" className="border-emerald-300/30 text-emerald-100">
+              Read FAQ
+            </LinkButton>
+          </div>
+        </Card>
+      )}
       <div className="space-y-4">
         <Button
           type="button"
@@ -987,21 +1059,48 @@ function RegisterInner() {
             >
               Back
             </Button>
-            <Button
-              onClick={handleRegister}
-              disabled={registering || !endpointCompliancePassed}
-              className="w-full !rounded-lg !bg-blue-600 !px-4 !py-2.5 !font-semibold !text-white !transition hover:!bg-blue-700 disabled:!bg-blue-300"
-            >
-              {registering ? "Registering..." : !endpointCompliancePassed ? "Probe endpoint compliance first" : "Register Agent (0.01 SOL)"}
-            </Button>
+            {alreadyRegistered ? (
+              <LinkButton
+                href={myAgentHref}
+                className="w-full !rounded-lg !bg-emerald-400 !px-4 !py-2.5 !font-semibold !text-black !transition hover:!bg-emerald-300"
+              >
+                My Agent →
+              </LinkButton>
+            ) : (
+              <Button
+                onClick={handleRegister}
+                disabled={registering || !endpointCompliancePassed || existingAgent.status === "checking"}
+                className="w-full !rounded-lg !bg-blue-600 !px-4 !py-2.5 !font-semibold !text-white !transition hover:!bg-blue-700 disabled:!bg-blue-300"
+              >
+                {registering ? "Registering..." : existingAgent.status === "checking" ? "Checking registration..." : !endpointCompliancePassed ? "Probe endpoint compliance first" : "Register Agent (0.01 SOL)"}
+              </Button>
+            )}
           </div>
           {txError && (
-            <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3">
-              <p className="text-xs font-semibold text-red-300">Registration transaction failed</p>
-              <p className="mt-1 text-xs text-red-100/80">
-                Check the error details below, then retry. Common causes are low SOL balance, stale blockhash, or program revert.
+            <div className={`rounded-lg border p-3 ${isAlreadyRegisteredError(txError) || alreadyRegistered ? "border-emerald-500/30 bg-emerald-500/10" : "border-red-500/30 bg-red-500/10"}`}>
+              <p className={`text-xs font-semibold ${isAlreadyRegisteredError(txError) || alreadyRegistered ? "text-emerald-300" : "text-red-300"}`}>
+                {isAlreadyRegisteredError(txError) || alreadyRegistered ? "This wallet is already registered" : "Registration transaction failed"}
               </p>
-              <pre className="mt-1 whitespace-pre-wrap break-words font-mono text-xs text-red-100/90">{txError}</pre>
+              {isAlreadyRegisteredError(txError) || alreadyRegistered ? (
+                <div className="mt-1 space-y-2 text-xs text-emerald-100/80">
+                  <p>
+                    Each wallet maps to one deterministic agent account. Open your existing agent profile, update its details, or deregister before registering again with this wallet.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <LinkButton href={myAgentHref} size="sm" className="!bg-emerald-400 !text-black hover:!bg-emerald-300">
+                      My Agent →
+                    </LinkButton>
+                    <LinkButton href="/faq" size="sm" variant="outline" className="border-emerald-300/30 text-emerald-100">
+                      FAQ
+                    </LinkButton>
+                  </div>
+                </div>
+              ) : (
+                <p className="mt-1 text-xs text-red-100/80">
+                  Check the error details below, then retry. Common causes are low SOL balance, stale blockhash, or program revert.
+                </p>
+              )}
+              <pre className={`mt-2 whitespace-pre-wrap break-words font-mono text-xs ${isAlreadyRegisteredError(txError) || alreadyRegistered ? "text-emerald-100/90" : "text-red-100/90"}`}>{txError}</pre>
             </div>
           )}
         </div>
