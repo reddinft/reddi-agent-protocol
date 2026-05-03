@@ -2,11 +2,11 @@ import { isValidSolanaPublicKey } from "@reddi/x402-solana";
 import type { SpecialistProfile } from "../types.js";
 
 const wallets = {
-  planning: "3mL7kbtz3eK24vJ6wftjnLvhZrf93B71UEjB2DBDAddr",
-  documentIntelligence: "6uiQbwMor4UrWYiDtAJcgHKYW4vUaM3BUVChPgzdALse",
-  verificationValidation: "EqQoUabvYzHwedphRYmXhNtT1hVX7ReTTJG4NmpgXAsr",
-  codeGeneration: "2e39zZNWB7J6k29trdBppbPJ8pUzsELrgPtAREvUNYE7",
-  conversational: "FZM9LeQnYQwSdQfZLUdm9VitPnKH41CaDCuaSc4EDEqM",
+  planning: "2wYpzbExNi2vHSdK48jBusfEx3WNVjzPFEVNcbCA5cAs",
+  documentIntelligence: "13CgDqa8K3Mw8iaoUVahbJUmKyQRrUmCRM259NC8Dmy",
+  verificationValidation: "2EmtCTzhoSSorg2rRSnTbngGJqkqNufgtFUZRGU4iFWq",
+  codeGeneration: "8qSuegJzQ9QGWnXZve5fKahq4rDm6K3o9wEnKLkXp3To",
+  conversational: "H8U9JjaeFiyHZrPEyFF2Ku7wmk62S24GAaJMVrwNrZUn",
 } as const;
 
 export const specialistProfiles: SpecialistProfile[] = [
