@@ -189,6 +189,7 @@ test("attestor route returns structured release verdict for sample specialist ou
 
   assert.equal(response.status, 200);
   assert.equal(client.callCount, 1);
+  assert.equal(response.body.verdictSource, "deterministic_local_evaluator");
   assert.equal(client.lastRequest?.metadata.mode, "attestation");
   assert.equal(client.lastRequest?.messages[0]?.role, "system");
   assert.match(client.lastRequest?.messages[0]?.content ?? "", /Verdict semantics: release=pay specialist, refund=return funds/);
@@ -276,6 +277,20 @@ test("HTTP core routes expose health, models, tags, metadata, attestation, and c
   assert.equal(unpaid.status, 402);
   assert.equal(client.callCount, 0);
 
+  const unpaidAttestation = await handleRuntimeRequest(
+    new Request("https://planning.example.test/v1/attestations", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ mode: "attestation", specialistOutput: "hello", receiptChain: [] }),
+    }),
+    { ...config, profileId: "verification-validation-agent", allowDemoPayment: true },
+    client,
+  );
+  assert.equal(unpaidAttestation.status, 402);
+  const unpaidAttestationChallenge = JSON.parse(unpaidAttestation.headers.get("x402-request") ?? "{}") as { endpoint?: string; memo?: string };
+  assert.equal(unpaidAttestationChallenge.endpoint, "https://planning.example.test/v1/attestations");
+  assert.equal(unpaidAttestationChallenge.memo, "reddi:verification-validation-agent:/v1/attestations");
+
   const attestation = await handleRuntimeRequest(
     new Request("https://planning.example.test/v1/attestations", {
       method: "POST",
@@ -291,7 +306,8 @@ test("HTTP core routes expose health, models, tags, metadata, attestation, and c
     client,
   );
   assert.equal(attestation.status, 200);
-  const attestationBody = (await attestation.json()) as { object: string; verdict: { recommendedAction: string } };
+  const attestationBody = (await attestation.json()) as { object: string; verdictSource: string; verdict: { recommendedAction: string } };
   assert.equal(attestationBody.object, "reddi.attestation.verdict");
+  assert.equal(attestationBody.verdictSource, "deterministic_local_evaluator");
   assert.equal(attestationBody.verdict.recommendedAction, "release");
 });

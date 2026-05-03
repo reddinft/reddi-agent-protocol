@@ -2,7 +2,7 @@
 
 Shared runtime for Reddi Agent Protocol marketplace specialists backed by OpenRouter.
 
-Iteration 3 includes the default attestor path: `verification-validation-agent` is both a `specialist` and `attestor`, can evaluate specialist outputs plus receipt chains, and returns a structured `reddi.attestation.v1` verdict.
+Iteration 3 includes the default attestor path: `verification-validation-agent` is both a `specialist` and `attestor`, can evaluate specialist outputs plus receipt chains, and returns a structured `reddi.attestation.v1` deterministic local settlement recommendation.
 
 ## Safety defaults
 
@@ -36,7 +36,7 @@ Minimal request body:
 }
 ```
 
-Response body includes `verdict.schemaVersion`, `score`, `checks`, `summary`, `recommendedAction`, regulated-domain caveats when relevant, and explicit release/refund/dispute semantics.
+Response body includes `verdictSource="deterministic_local_evaluator"`, `verdict.schemaVersion`, `score`, `checks`, `summary`, `recommendedAction`, regulated-domain caveats when relevant, and explicit release/refund/dispute semantics. The runtime still sends an attestation prompt envelope through the configured OpenRouter/mock client for auditability and future LLM attestor parsing, but the returned settlement recommendation is currently produced by the deterministic local evaluator. A future live-LLM attestor must parse and validate upstream `reddi.attestation.v1` output and fail closed/dispute on malformed output.
 
 ## Validation
 
