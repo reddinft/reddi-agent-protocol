@@ -34,16 +34,16 @@ export function createOpenRouterClient(config: RuntimeConfig): OpenRouterClient 
   return new FetchOpenRouterClient(config.openRouterApiKey, config.openRouterBaseUrl);
 }
 
-export function buildProfileChallenge(profile: SpecialistProfile, config: RuntimeConfig, nonce: string = randomUUID()): X402Challenge {
+export function buildProfileChallenge(profile: SpecialistProfile, config: RuntimeConfig, nonce: string = randomUUID(), endpointPath = profile.endpointPath): X402Challenge {
   return buildX402Challenge({
     version: "1",
     network: PAYMENT_NETWORK,
     payTo: profile.walletAddress,
     amount: profile.price.amount,
     currency: profile.price.currency,
-    endpoint: `${config.endpointBaseUrl}${profile.endpointPath}`,
+    endpoint: `${config.endpointBaseUrl}${endpointPath}`,
     nonce,
-    memo: `reddi:${profile.id}`,
+    memo: `reddi:${profile.id}:${endpointPath}`,
   });
 }
 
@@ -64,8 +64,8 @@ function paymentRequired(challenge: X402Challenge): RuntimeResponse {
   };
 }
 
-export function x402Challenge(profile: SpecialistProfile, config: RuntimeConfig): RuntimeResponse {
-  return paymentRequired(buildProfileChallenge(profile, config));
+export function x402Challenge(profile: SpecialistProfile, config: RuntimeConfig, endpointPath = profile.endpointPath): RuntimeResponse {
+  return paymentRequired(buildProfileChallenge(profile, config, randomUUID(), endpointPath));
 }
 
 export async function verifyPayment(input: {
@@ -73,6 +73,7 @@ export async function verifyPayment(input: {
   profile: SpecialistProfile;
   config: RuntimeConfig;
   replayStore?: NonceReplayStore;
+  endpointPath?: string;
 }): Promise<ReceiptVerificationResult> {
   const value = input.headers.get("x402-payment") ?? input.headers.get("x-payment");
   if (!value) return { ok: false, reason: "invalid_receipt", message: "missing x402-payment header" };
@@ -85,7 +86,7 @@ export async function verifyPayment(input: {
         ? (parsed as { nonce: string }).nonce
         : randomUUID();
   if (!receiptNonce) return { ok: false, reason: "invalid_nonce", message: "x402 payment nonce is required" };
-  const challenge = buildProfileChallenge(input.profile, input.config, receiptNonce);
+  const challenge = buildProfileChallenge(input.profile, input.config, receiptNonce, input.endpointPath);
   const verifier = new DemoPaymentVerifier(input.config.allowDemoPayment === true);
   return verifier.verifyReceipt(parsed, challenge, input.replayStore);
 }
@@ -136,11 +137,12 @@ export async function ensurePaid(input: {
   profile: SpecialistProfile;
   config: RuntimeConfig;
   replayStore?: NonceReplayStore;
+  endpointPath?: string;
 }): Promise<RuntimeResponse | undefined> {
   if (!input.config.requirePayment) return undefined;
-  const payment = await verifyPayment({ headers: input.headers, profile: input.profile, config: input.config, replayStore: input.replayStore });
+  const payment = await verifyPayment({ headers: input.headers, profile: input.profile, config: input.config, replayStore: input.replayStore, endpointPath: input.endpointPath });
   if (payment.ok) return undefined;
-  const response = paymentRequired(buildProfileChallenge(input.profile, input.config));
+  const response = paymentRequired(buildProfileChallenge(input.profile, input.config, randomUUID(), input.endpointPath));
   response.body.error = {
     code: payment.reason === "invalid_receipt" ? "payment_required" : payment.reason,
     message: payment.message,
@@ -158,6 +160,7 @@ export async function handleAttestationEvaluation(input: {
   config: RuntimeConfig;
   client: OpenRouterClient;
   replayStore?: NonceReplayStore;
+  endpointPath?: string;
 }): Promise<RuntimeResponse> {
   const profile = getProfile(input.config.profileId);
   if (!profile) return { status: 500, headers: JSON_HEADERS, body: { error: { code: "unknown_profile" } } };
@@ -165,7 +168,7 @@ export async function handleAttestationEvaluation(input: {
     return { status: 403, headers: JSON_HEADERS, body: { error: { code: "profile_not_attestor", message: `${profile.id} is not configured for attestation.` } } };
   }
 
-  const unpaid = await ensurePaid({ headers: input.headers, profile, config: input.config, replayStore: input.replayStore });
+  const unpaid = await ensurePaid({ headers: input.headers, profile, config: input.config, replayStore: input.replayStore, endpointPath: input.endpointPath ?? "/v1/attestations" });
   if (unpaid) return unpaid;
 
   const requestId = randomUUID();
@@ -193,6 +196,7 @@ export async function handleAttestationEvaluation(input: {
     headers: JSON_HEADERS,
     body: {
       object: "reddi.attestation.verdict",
+      verdictSource: "deterministic_local_evaluator",
       verdict: evaluateAttestation(attestationRequest, profile.id),
       promptEnvelope,
       upstream,
@@ -208,7 +212,7 @@ export async function handleChatCompletions(input: {
   client: OpenRouterClient;
   replayStore?: NonceReplayStore;
 }): Promise<RuntimeResponse> {
-  if (isAttestationMode(input.body)) return handleAttestationEvaluation(input);
+  if (isAttestationMode(input.body)) return handleAttestationEvaluation({ ...input, endpointPath: "/v1/chat/completions" });
 
   const profile = getProfile(input.config.profileId);
   if (!profile) return { status: 500, headers: JSON_HEADERS, body: { error: { code: "unknown_profile" } } };
@@ -261,7 +265,7 @@ export async function handleRuntimeRequest(request: Request, config = createRunt
   if (request.method === "GET" && url.pathname === "/.well-known/reddi-agent.json") return toResponse({ status: 200, headers: JSON_HEADERS, body: marketplaceMetadata(profile, config) });
   if (request.method === "POST" && url.pathname === "/v1/attestations") {
     const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
-    return toResponse(await handleAttestationEvaluation({ headers: request.headers, body, config, client, replayStore: defaultNonceReplayStore }));
+    return toResponse(await handleAttestationEvaluation({ headers: request.headers, body, config, client, replayStore: defaultNonceReplayStore, endpointPath: "/v1/attestations" }));
   }
   if (request.method === "POST" && url.pathname === "/v1/chat/completions") {
     const body = (await request.json().catch(() => ({}))) as ChatCompletionRequest;
