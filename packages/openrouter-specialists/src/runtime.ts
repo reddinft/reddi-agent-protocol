@@ -11,8 +11,9 @@ export function createRuntimeConfig(env: NodeJS.ProcessEnv = process.env): Runti
     endpointBaseUrl: env.PUBLIC_BASE_URL ?? "http://localhost:8787",
     openRouterApiKey: env.OPENROUTER_API_KEY,
     openRouterBaseUrl: env.OPENROUTER_BASE_URL ?? "https://openrouter.ai/api/v1",
-    mockOpenRouter: env.OPENROUTER_MOCK === "1" || env.OPENROUTER_MOCK === "true" || !env.OPENROUTER_API_KEY,
+    mockOpenRouter: env.OPENROUTER_MOCK === "1" || env.OPENROUTER_MOCK === "true",
     requirePayment: env.REQUIRE_X402_PAYMENT !== "false",
+    allowDemoPayment: env.ALLOW_DEMO_X402_PAYMENT === "1" || env.ALLOW_DEMO_X402_PAYMENT === "true",
   };
 }
 
@@ -22,10 +23,15 @@ export function createOpenRouterClient(config: RuntimeConfig): OpenRouterClient 
   return new FetchOpenRouterClient(config.openRouterApiKey, config.openRouterBaseUrl);
 }
 
-export function isPaymentSatisfied(headers: Headers): boolean {
-  const value = headers.get("x402-payment") ?? headers.get("x-payment");
+export function isPaymentSatisfied(headers: Headers, config: RuntimeConfig): boolean {
+  const value = headers.get("x402-payment");
   if (!value) return false;
-  return value.startsWith("demo:") || value.startsWith("paid:") || value.includes("signature");
+
+  if (config.allowDemoPayment && value.startsWith("demo:")) return true;
+
+  // Until a real x402 settlement verifier is wired, fail closed. In particular,
+  // never treat caller-supplied words like "paid" or "signature" as proof of payment.
+  return false;
 }
 
 export function x402Challenge(profile: SpecialistProfile, config: RuntimeConfig): RuntimeResponse {
@@ -109,7 +115,7 @@ export async function handleChatCompletions(input: {
   const profile = getProfile(input.config.profileId);
   if (!profile) return { status: 500, headers: JSON_HEADERS, body: { error: { code: "unknown_profile" } } };
 
-  if (input.config.requirePayment && !isPaymentSatisfied(input.headers)) {
+  if (input.config.requirePayment && !isPaymentSatisfied(input.headers, input.config)) {
     return x402Challenge(profile, input.config);
   }
 

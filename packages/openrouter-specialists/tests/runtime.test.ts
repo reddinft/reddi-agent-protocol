@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { MockOpenRouterClient } from "../src/openrouter.js";
 import { getProfile, specialistProfiles, validateProfileRegistry } from "../src/profiles/index.js";
-import { handleChatCompletions, handleRuntimeRequest, marketplaceMetadata, type RuntimeConfig } from "../src/index.js";
+import { createOpenRouterClient, createRuntimeConfig, handleChatCompletions, handleRuntimeRequest, marketplaceMetadata, type RuntimeConfig } from "../src/index.js";
 
 const config: RuntimeConfig = {
   profileId: "planning-agent",
@@ -10,6 +10,7 @@ const config: RuntimeConfig = {
   openRouterBaseUrl: "https://openrouter.ai/api/v1",
   mockOpenRouter: true,
   requirePayment: true,
+  allowDemoPayment: true,
 };
 
 test("profile registry has first five unique valid profiles with required marketplace metadata", () => {
@@ -37,7 +38,22 @@ test("unpaid completion returns 402 challenge before OpenRouter client call", as
   assert.equal((response.body.error as { code: string }).code, "payment_required");
 });
 
-test("paid completion invokes OpenRouter mock with profile guardrails and Reddi metadata", async () => {
+test("spoofed paid or signature headers still fail closed", async () => {
+  for (const headerValue of ["paid:anything", "{\"signature\":\"caller-controlled\"}"]) {
+    const client = new MockOpenRouterClient();
+    const response = await handleChatCompletions({
+      headers: new Headers({ "x402-payment": headerValue }),
+      body: { messages: [{ role: "user", content: "Build a plan" }] },
+      config: { ...config, allowDemoPayment: false },
+      client,
+    });
+
+    assert.equal(response.status, 402);
+    assert.equal(client.callCount, 0);
+  }
+});
+
+test("demo-paid completion invokes OpenRouter mock only when explicitly enabled", async () => {
   const client = new MockOpenRouterClient();
   const response = await handleChatCompletions({
     headers: new Headers({ "x402-payment": "demo:paid" }),
@@ -72,6 +88,18 @@ test("well-known metadata includes Reddi marketplace fields", async () => {
   }
   assert.equal(metadata.profileId, "planning-agent");
   assert.equal(metadata.endpoint, "https://planning.example.test/v1/chat/completions");
+});
+
+test("runtime config requires explicit mock mode and api key for real OpenRouter", () => {
+  const productionConfig = createRuntimeConfig({});
+  assert.equal(productionConfig.mockOpenRouter, false);
+  assert.equal(productionConfig.allowDemoPayment, false);
+  assert.throws(() => createOpenRouterClient(productionConfig), /OPENROUTER_API_KEY is required/);
+
+  const mockConfig = createRuntimeConfig({ OPENROUTER_MOCK: "true", ALLOW_DEMO_X402_PAYMENT: "true" });
+  assert.equal(mockConfig.mockOpenRouter, true);
+  assert.equal(mockConfig.allowDemoPayment, true);
+  assert.equal(createOpenRouterClient(mockConfig).constructor.name, "MockOpenRouterClient");
 });
 
 test("HTTP core routes expose health, models, tags, metadata, and chat", async () => {
