@@ -104,6 +104,20 @@ test("HTTP runtime rejects duplicate demo receipt nonces", async () => {
   assert.equal(body.error.code, "duplicate_nonce");
 });
 
+test("empty demo receipt nonce returns controlled 402", async () => {
+  const client = new MockOpenRouterClient();
+  const response = await handleChatCompletions({
+    headers: new Headers({ "x402-payment": "demo:" }),
+    body: { messages: [{ role: "user", content: "Build a plan" }] },
+    config: { ...config, allowDemoPayment: true },
+    client,
+  });
+
+  assert.equal(response.status, 402);
+  assert.equal(client.callCount, 0);
+  assert.equal((response.body.error as { code: string }).code, "invalid_nonce");
+});
+
 test("caller-authored structured demo receipts are rejected", async () => {
   const client = new MockOpenRouterClient();
   const profile = getProfile("planning-agent");
@@ -127,6 +141,19 @@ test("caller-authored structured demo receipts are rejected", async () => {
   assert.equal(response.status, 402);
   assert.equal(client.callCount, 0);
   assert.equal((response.body.error as { code: string }).code, "payment_required");
+
+  const tokenResponse = await handleChatCompletions({
+    headers: new Headers({
+      "x402-payment": JSON.stringify({ demo: true, token: "demo:nonce-structured-token", nonce: "nonce-structured-token" }),
+    }),
+    body: { messages: [{ role: "user", content: "Build a plan" }] },
+    config: { ...config, allowDemoPayment: true },
+    client,
+  });
+
+  assert.equal(tokenResponse.status, 402);
+  assert.equal(client.callCount, 0);
+  assert.equal((tokenResponse.body.error as { code: string }).code, "payment_required");
 });
 
 test("well-known metadata includes Reddi marketplace fields", async () => {

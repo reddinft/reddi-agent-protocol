@@ -69,10 +69,7 @@ export function parseX402Header(header: string): X402Request {
 }
 
 export function parseX402PaymentHeader(header: string): unknown {
-  if (header.startsWith('demo:')) {
-    const nonce = header.slice('demo:'.length);
-    return { demo: true, token: header, nonce };
-  }
+  if (header.startsWith('demo:')) return header;
   try {
     return JSON.parse(header);
   } catch {
@@ -81,18 +78,18 @@ export function parseX402PaymentHeader(header: string): unknown {
 }
 
 function normalizeReceipt(receipt: unknown): X402PaymentReceipt | undefined {
-  if (!receipt || typeof receipt !== 'object') return undefined;
-  const record = receipt as Record<string, unknown>;
-  if (typeof record.token === 'string' && record.token.startsWith('demo:') && record.demo === true) {
+  if (typeof receipt === 'string' && receipt.startsWith('demo:')) {
     return {
       demo: true,
       network: 'solana-devnet',
       payTo: '',
       amount: '',
       currency: '',
-      nonce: typeof record.nonce === 'string' ? record.nonce : record.token.slice('demo:'.length),
+      nonce: receipt.slice('demo:'.length),
     };
   }
+  if (!receipt || typeof receipt !== 'object') return undefined;
+  const record = receipt as Record<string, unknown>;
   if (record.demo === true) return undefined;
   if (
     typeof record.network !== 'string' ||

@@ -119,7 +119,7 @@ describe('x402 Payment Module', () => {
 
     it('fails closed unless demo payments are explicitly enabled', async () => {
       const verifier = new DemoPaymentVerifier(false);
-      const result = await verifier.verifyReceipt({ demo: true, token: `demo:${challenge.nonce}`, nonce: challenge.nonce }, challenge);
+      const result = await verifier.verifyReceipt(`demo:${challenge.nonce}`, challenge);
       expect(result.ok).toBe(false);
       if (!result.ok) expect(result.reason).toBe('demo_payment_disabled');
     });
@@ -127,7 +127,7 @@ describe('x402 Payment Module', () => {
     it('accepts explicit demo receipts and stores nonce once', async () => {
       const verifier = new DemoPaymentVerifier(true);
       const store = new MemoryNonceReplayStore();
-      const receipt = { demo: true, token: `demo:${challenge.nonce}`, nonce: challenge.nonce };
+      const receipt = `demo:${challenge.nonce}`;
       const first = await verifier.verifyReceipt(receipt, challenge, store);
       expect(first.ok).toBe(true);
       const second = await verifier.verifyReceipt(receipt, challenge, store);
@@ -140,6 +140,10 @@ describe('x402 Payment Module', () => {
       const structured = await verifier.verifyReceipt({ demo: true, ...challenge }, challenge);
       expect(structured.ok).toBe(false);
       if (!structured.ok) expect(structured.reason).toBe('invalid_receipt');
+
+      const structuredToken = await verifier.verifyReceipt({ demo: true, token: `demo:${challenge.nonce}`, nonce: challenge.nonce }, challenge);
+      expect(structuredToken.ok).toBe(false);
+      if (!structuredToken.ok) expect(structuredToken.reason).toBe('invalid_receipt');
     });
 
     it('rejects non-demo structured receipts until real settlement verification exists', async () => {

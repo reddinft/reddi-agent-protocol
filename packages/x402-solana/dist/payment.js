@@ -77,10 +77,8 @@ function parseX402Header(header) {
     }
 }
 function parseX402PaymentHeader(header) {
-    if (header.startsWith('demo:')) {
-        const nonce = header.slice('demo:'.length);
-        return { demo: true, token: header, nonce };
-    }
+    if (header.startsWith('demo:'))
+        return header;
     try {
         return JSON.parse(header);
     }
@@ -89,19 +87,19 @@ function parseX402PaymentHeader(header) {
     }
 }
 function normalizeReceipt(receipt) {
-    if (!receipt || typeof receipt !== 'object')
-        return undefined;
-    const record = receipt;
-    if (typeof record.token === 'string' && record.token.startsWith('demo:') && record.demo === true) {
+    if (typeof receipt === 'string' && receipt.startsWith('demo:')) {
         return {
             demo: true,
             network: 'solana-devnet',
             payTo: '',
             amount: '',
             currency: '',
-            nonce: typeof record.nonce === 'string' ? record.nonce : record.token.slice('demo:'.length),
+            nonce: receipt.slice('demo:'.length),
         };
     }
+    if (!receipt || typeof receipt !== 'object')
+        return undefined;
+    const record = receipt;
     if (record.demo === true)
         return undefined;
     if (typeof record.network !== 'string' ||

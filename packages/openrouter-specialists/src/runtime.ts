@@ -77,7 +77,13 @@ export async function verifyPayment(input: {
   if (!value) return { ok: false, reason: "invalid_receipt", message: "missing x402-payment header" };
 
   const parsed = parseX402PaymentHeader(value);
-  const receiptNonce = parsed && typeof parsed === "object" && "nonce" in parsed && typeof (parsed as { nonce?: unknown }).nonce === "string" ? (parsed as { nonce: string }).nonce : randomUUID();
+  const receiptNonce =
+    typeof parsed === "string" && parsed.startsWith("demo:")
+      ? parsed.slice("demo:".length)
+      : parsed && typeof parsed === "object" && "nonce" in parsed && typeof (parsed as { nonce?: unknown }).nonce === "string"
+        ? (parsed as { nonce: string }).nonce
+        : randomUUID();
+  if (!receiptNonce) return { ok: false, reason: "invalid_nonce", message: "x402 payment nonce is required" };
   const challenge = buildProfileChallenge(input.profile, input.config, receiptNonce);
   const verifier = new DemoPaymentVerifier(input.config.allowDemoPayment === true);
   return verifier.verifyReceipt(parsed, challenge, input.replayStore);
