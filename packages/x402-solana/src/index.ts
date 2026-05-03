@@ -9,3 +9,4 @@ export * from './types';
 export * from './nonce';
 export * from './payment';
 export * from './middleware';
+export * from './jupiter';

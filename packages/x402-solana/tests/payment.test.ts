@@ -119,7 +119,7 @@ describe('x402 Payment Module', () => {
 
     it('fails closed unless demo payments are explicitly enabled', async () => {
       const verifier = new DemoPaymentVerifier(false);
-      const result = await verifier.verifyReceipt({ demo: true, ...challenge }, challenge);
+      const result = await verifier.verifyReceipt({ demo: true, token: `demo:${challenge.nonce}`, nonce: challenge.nonce }, challenge);
       expect(result.ok).toBe(false);
       if (!result.ok) expect(result.reason).toBe('demo_payment_disabled');
     });
@@ -127,7 +127,7 @@ describe('x402 Payment Module', () => {
     it('accepts explicit demo receipts and stores nonce once', async () => {
       const verifier = new DemoPaymentVerifier(true);
       const store = new MemoryNonceReplayStore();
-      const receipt = { demo: true, ...challenge };
+      const receipt = { demo: true, token: `demo:${challenge.nonce}`, nonce: challenge.nonce };
       const first = await verifier.verifyReceipt(receipt, challenge, store);
       expect(first.ok).toBe(true);
       const second = await verifier.verifyReceipt(receipt, challenge, store);
@@ -135,19 +135,18 @@ describe('x402 Payment Module', () => {
       if (!second.ok) expect(second.reason).toBe('duplicate_nonce');
     });
 
-    it('represents wrong amount, payee, and network failures', async () => {
+    it('rejects caller-authored structured demo receipts', async () => {
       const verifier = new DemoPaymentVerifier(true);
-      const wrongAmount = await verifier.verifyReceipt({ demo: true, ...challenge, amount: '0.04' }, challenge);
-      expect(wrongAmount.ok).toBe(false);
-      if (!wrongAmount.ok) expect(wrongAmount.reason).toBe('wrong_amount');
+      const structured = await verifier.verifyReceipt({ demo: true, ...challenge }, challenge);
+      expect(structured.ok).toBe(false);
+      if (!structured.ok) expect(structured.reason).toBe('invalid_receipt');
+    });
 
-      const wrongPayee = await verifier.verifyReceipt({ demo: true, ...challenge, payTo: otherValidAddress }, challenge);
-      expect(wrongPayee.ok).toBe(false);
-      if (!wrongPayee.ok) expect(wrongPayee.reason).toBe('wrong_payee');
-
-      const wrongNetwork = await verifier.verifyReceipt({ demo: true, ...challenge, network: 'solana-mainnet-beta' }, challenge);
-      expect(wrongNetwork.ok).toBe(false);
-      if (!wrongNetwork.ok) expect(wrongNetwork.reason).toBe('wrong_network');
+    it('rejects non-demo structured receipts until real settlement verification exists', async () => {
+      const verifier = new DemoPaymentVerifier(true);
+      const unsigned = await verifier.verifyReceipt({ ...challenge, signature: 'caller-authored' }, challenge);
+      expect(unsigned.ok).toBe(false);
+      if (!unsigned.ok) expect(unsigned.reason).toBe('unsupported_receipt');
     });
   });
 

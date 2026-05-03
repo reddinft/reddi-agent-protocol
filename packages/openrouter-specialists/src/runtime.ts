@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import {
   buildX402Challenge,
+  defaultNonceReplayStore,
   DemoPaymentVerifier,
   parseX402PaymentHeader,
   type NonceReplayStore,
@@ -190,7 +191,7 @@ export async function handleRuntimeRequest(request: Request, config = createRunt
   if (request.method === "GET" && url.pathname === "/.well-known/reddi-agent.json") return toResponse({ status: 200, headers: JSON_HEADERS, body: marketplaceMetadata(profile, config) });
   if (request.method === "POST" && url.pathname === "/v1/chat/completions") {
     const body = (await request.json().catch(() => ({}))) as ChatCompletionRequest;
-    return toResponse(await handleChatCompletions({ headers: request.headers, body, config, client }));
+    return toResponse(await handleChatCompletions({ headers: request.headers, body, config, client, replayStore: defaultNonceReplayStore }));
   }
   return toResponse({ status: 404, headers: JSON_HEADERS, body: { error: { code: "not_found" } } });
 }

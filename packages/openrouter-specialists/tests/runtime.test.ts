@@ -62,16 +62,8 @@ test("paid completion invokes OpenRouter mock with explicit demo flag, profile g
   const demoConfig = { ...config, allowDemoPayment: true };
   const profile = getProfile("planning-agent");
   assert.ok(profile);
-  const receipt = {
-    demo: true,
-    network: "solana-devnet",
-    payTo: profile.walletAddress,
-    amount: profile.price.amount,
-    currency: profile.price.currency,
-    nonce: "nonce-paid-1",
-  };
   const response = await handleChatCompletions({
-    headers: new Headers({ "x402-payment": JSON.stringify(receipt) }),
+    headers: new Headers({ "x402-payment": "demo:nonce-paid-1" }),
     body: { messages: [{ role: "user", content: "Build a plan" }] },
     config: demoConfig,
     client,
@@ -91,6 +83,50 @@ test("paid completion invokes OpenRouter mock with explicit demo flag, profile g
     mockOpenRouter: true,
   });
   assert.match((response.body.reddi as { requestId: string }).requestId, /^[0-9a-f-]{36}$/);
+});
+
+test("HTTP runtime rejects duplicate demo receipt nonces", async () => {
+  const client = new MockOpenRouterClient();
+  const demoConfig = { ...config, allowDemoPayment: true };
+  const request = () =>
+    new Request("https://planning.example.test/v1/chat/completions", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x402-payment": "demo:nonce-http-replay-1" },
+      body: JSON.stringify({ messages: [{ role: "user", content: "hello" }] }),
+    });
+
+  const first = await handleRuntimeRequest(request(), demoConfig, client);
+  const second = await handleRuntimeRequest(request(), demoConfig, client);
+
+  assert.equal(first.status, 200);
+  assert.equal(second.status, 402);
+  const body = (await second.json()) as { error: { code: string } };
+  assert.equal(body.error.code, "duplicate_nonce");
+});
+
+test("caller-authored structured demo receipts are rejected", async () => {
+  const client = new MockOpenRouterClient();
+  const profile = getProfile("planning-agent");
+  assert.ok(profile);
+  const response = await handleChatCompletions({
+    headers: new Headers({
+      "x402-payment": JSON.stringify({
+        demo: true,
+        network: "solana-devnet",
+        payTo: profile.walletAddress,
+        amount: profile.price.amount,
+        currency: profile.price.currency,
+        nonce: "nonce-structured-demo",
+      }),
+    }),
+    body: { messages: [{ role: "user", content: "Build a plan" }] },
+    config: { ...config, allowDemoPayment: true },
+    client,
+  });
+
+  assert.equal(response.status, 402);
+  assert.equal(client.callCount, 0);
+  assert.equal((response.body.error as { code: string }).code, "payment_required");
 });
 
 test("well-known metadata includes Reddi marketplace fields", async () => {

@@ -77,8 +77,10 @@ function parseX402Header(header) {
     }
 }
 function parseX402PaymentHeader(header) {
-    if (header.startsWith('demo:'))
-        return { demo: true, token: header };
+    if (header.startsWith('demo:')) {
+        const nonce = header.slice('demo:'.length);
+        return { demo: true, token: header, nonce };
+    }
     try {
         return JSON.parse(header);
     }
@@ -90,19 +92,18 @@ function normalizeReceipt(receipt) {
     if (!receipt || typeof receipt !== 'object')
         return undefined;
     const record = receipt;
-    if (record.demo === true || (typeof record.token === 'string' && record.token.startsWith('demo:'))) {
+    if (typeof record.token === 'string' && record.token.startsWith('demo:') && record.demo === true) {
         return {
             demo: true,
-            network: typeof record.network === 'string' ? record.network : 'solana-devnet',
-            payTo: typeof record.payTo === 'string' ? record.payTo : '',
-            amount: typeof record.amount === 'string' || typeof record.amount === 'number' ? record.amount : '',
-            currency: typeof record.currency === 'string' ? record.currency : '',
-            nonce: typeof record.nonce === 'string' ? record.nonce : '',
-            signature: typeof record.signature === 'string' ? record.signature : undefined,
-            txSignature: typeof record.txSignature === 'string' ? record.txSignature : undefined,
-            payer: typeof record.payer === 'string' ? record.payer : undefined,
+            network: 'solana-devnet',
+            payTo: '',
+            amount: '',
+            currency: '',
+            nonce: typeof record.nonce === 'string' ? record.nonce : record.token.slice('demo:'.length),
         };
     }
+    if (record.demo === true)
+        return undefined;
     if (typeof record.network !== 'string' ||
         typeof record.payTo !== 'string' ||
         (typeof record.amount !== 'string' && typeof record.amount !== 'number') ||
@@ -128,13 +129,14 @@ async function verifyDemoPaymentReceipt(input) {
     }
     const receipt = normalizeReceipt(input.receipt);
     if (!receipt)
-        return { ok: false, reason: 'invalid_receipt', message: 'x402 payment receipt is not structured JSON/demo receipt' };
+        return { ok: false, reason: 'invalid_receipt', message: 'x402 payment receipt is not an explicit demo receipt' };
+    if (!receipt.demo)
+        return { ok: false, reason: 'unsupported_receipt', message: 'real Solana receipt verification is not implemented yet' };
     const expected = input.challenge;
-    if (receipt.demo && receipt.payTo === '' && receipt.amount === '' && receipt.currency === '' && receipt.nonce === '') {
+    if (receipt.demo && receipt.payTo === '' && receipt.amount === '' && receipt.currency === '') {
         receipt.payTo = expected.payTo;
         receipt.amount = expected.amount;
         receipt.currency = expected.currency;
-        receipt.nonce = expected.nonce;
         receipt.network = expected.network;
     }
     if (receipt.network !== expected.network) {
