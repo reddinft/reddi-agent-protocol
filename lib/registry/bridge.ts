@@ -29,6 +29,7 @@ import {
   computeSpecialistRankingScore,
   type SpecialistIndexEntry,
 } from "@/lib/onboarding/specialist-index";
+import { enrichCapabilityIndexWithOpenRouterProfiles } from "@/lib/registry/openrouter-enrichment";
 import type { TaskTypeId, InputModeId, OutputModeId, PrivacyModeId, RuntimeCapability, ContextRequirement } from "@/lib/capabilities/taxonomy";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -106,10 +107,11 @@ function toBase58(bytes: Buffer): string {
 
 function loadCapabilityIndex(): SpecialistIndexEntry[] {
   try {
-    return JSON.parse(
+    const entries = JSON.parse(
       readFileSync(join(process.cwd(), "data", "onboarding", "specialist-index.json"), "utf8")
     ) as SpecialistIndexEntry[];
-  } catch { return []; }
+    return enrichCapabilityIndexWithOpenRouterProfiles(entries);
+  } catch { return enrichCapabilityIndexWithOpenRouterProfiles([]); }
 }
 
 type AttestationRecord = {
