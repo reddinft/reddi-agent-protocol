@@ -1,0 +1,19 @@
+{
+  "name": "@reddi/openrouter-specialists",
+  "version": "0.1.0",
+  "description": "Shared OpenRouter-backed specialist runtime for Reddi marketplace agents.",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist", "Dockerfile", "README.md"],
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node --test dist/tests/*.test.js"
+  },
+  "engines": {"node": ">=20"},
+  "devDependencies": {
+    "@types/node": "^20",
+    "typescript": "^5"
+  }
+}
