@@ -11,7 +11,7 @@ const requestLamports = Number(process.env.AIRDROP_LAMPORTS ?? Math.max(targetLa
 const maxAttempts = Number(process.env.AIRDROP_MAX_ATTEMPTS ?? 3);
 const baseDelayMs = Number(process.env.AIRDROP_RETRY_BASE_MS ?? 2_000);
 
-if (!endpoint.includes('devnet')) throw new Error('airdrop script is devnet-only; SOLANA_DEVNET_RPC_URL must point at devnet');
+assertDevnetRpcEndpoint(endpoint, 'airdrop');
 for (const [name, value] of Object.entries({ targetLamports, requestLamports, maxAttempts, baseDelayMs })) {
   if (!Number.isFinite(value) || value < 0) throw new Error(`${name} must be a non-negative number`);
 }
@@ -74,4 +74,19 @@ if (report.some((entry) => entry.afterLamports < targetLamports)) process.exitCo
 
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function assertDevnetRpcEndpoint(value, label) {
+  let url;
+  try {
+    url = new URL(value);
+  } catch {
+    throw new Error(`${label} script is devnet-only; SOLANA_DEVNET_RPC_URL must be a valid devnet HTTPS URL`);
+  }
+  const hostname = url.hostname.toLowerCase();
+  const isDevnetHost = hostname === 'api.devnet.solana.com' || hostname.includes('devnet');
+  const unsafeClusterHost = hostname.includes('mainnet') || hostname.includes('testnet');
+  if (url.protocol !== 'https:' || !isDevnetHost || unsafeClusterHost) {
+    throw new Error(`${label} script is devnet-only; SOLANA_DEVNET_RPC_URL hostname must identify a devnet RPC endpoint`);
+  }
 }
