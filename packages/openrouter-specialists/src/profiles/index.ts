@@ -1,44 +1,20 @@
+import { isValidSolanaPublicKey } from "@reddi/x402-solana";
 import type { SpecialistProfile } from "../types.js";
 
-const walletAddresses = {
-  planning: "AXfCzZmfKsGDr8XdE4SZXDXdfvrqSSUm9xdX6EbmLA5H",
-  documentIntelligence: "82Lpdv8FjaQUELikS9jc2ga3LQSxzKJmWKHwQr4v9acN",
-  verificationValidation: "7eHBdFN8qUrG9ifyyM2RzqYaxX5T5ijeF7D5BZnQJyD7",
-  codeGeneration: "GctzwjmUTJphtBLHA4VwfjY4qCajRywunMvUoKTB6Prn",
-  conversational: "5qVJ6XhYiDqNXHYR4B5QLT6rDSQ72iyuG5ooHyV9B2Xc",
+const wallets = {
+  planning: "3mL7kbtz3eK24vJ6wftjnLvhZrf93B71UEjB2DBDAddr",
+  documentIntelligence: "6uiQbwMor4UrWYiDtAJcgHKYW4vUaM3BUVChPgzdALse",
+  verificationValidation: "EqQoUabvYzHwedphRYmXhNtT1hVX7ReTTJG4NmpgXAsr",
+  codeGeneration: "2e39zZNWB7J6k29trdBppbPJ8pUzsELrgPtAREvUNYE7",
+  conversational: "FZM9LeQnYQwSdQfZLUdm9VitPnKH41CaDCuaSc4EDEqM",
 } as const;
-
-function isBase58SolanaPublicKey(value: string): boolean {
-  if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(value)) return false;
-  const alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
-  const bytes = [0];
-  for (const char of value) {
-    const carryStart = alphabet.indexOf(char);
-    if (carryStart < 0) return false;
-    let carry = carryStart;
-    for (let index = 0; index < bytes.length; index += 1) {
-      carry += bytes[index] * 58;
-      bytes[index] = carry & 0xff;
-      carry >>= 8;
-    }
-    while (carry > 0) {
-      bytes.push(carry & 0xff);
-      carry >>= 8;
-    }
-  }
-  for (const char of value) {
-    if (char !== "1") break;
-    bytes.push(0);
-  }
-  return bytes.length === 32;
-}
 
 export const specialistProfiles: SpecialistProfile[] = [
   {
     id: "planning-agent",
     displayName: "Planning Agent",
     description: "Turns broad goals into sequenced execution plans with assumptions, risks, and validation gates.",
-    walletAddress: walletAddresses.planning,
+    walletAddress: wallets.planning,
     endpointPath: "/v1/chat/completions",
     capabilities: ["planning", "task-decomposition", "risk-analysis", "agent-orchestration"],
     roles: ["specialist", "consumer"],
@@ -54,7 +30,7 @@ export const specialistProfiles: SpecialistProfile[] = [
     id: "document-intelligence-agent",
     displayName: "Document Intelligence Agent",
     description: "Extracts, classifies, summarizes, and cross-checks document evidence.",
-    walletAddress: walletAddresses.documentIntelligence,
+    walletAddress: wallets.documentIntelligence,
     endpointPath: "/v1/chat/completions",
     capabilities: ["document-analysis", "summarization", "evidence-extraction", "classification"],
     roles: ["specialist"],
@@ -70,7 +46,7 @@ export const specialistProfiles: SpecialistProfile[] = [
     id: "verification-validation-agent",
     displayName: "Verification & Validation Agent",
     description: "Reviews specialist outputs for evidence quality, safety boundaries, and release/refund/dispute recommendations.",
-    walletAddress: walletAddresses.verificationValidation,
+    walletAddress: wallets.verificationValidation,
     endpointPath: "/v1/chat/completions",
     capabilities: ["verification", "validation", "attestation", "quality-review", "safety-review"],
     roles: ["specialist", "attestor"],
@@ -86,7 +62,7 @@ export const specialistProfiles: SpecialistProfile[] = [
     id: "code-generation-agent",
     displayName: "Code Generation Agent",
     description: "Builds scoped code changes, tests, migrations, and implementation notes.",
-    walletAddress: walletAddresses.codeGeneration,
+    walletAddress: wallets.codeGeneration,
     endpointPath: "/v1/chat/completions",
     capabilities: ["code-generation", "debugging", "test-writing", "technical-design"],
     roles: ["specialist"],
@@ -102,7 +78,7 @@ export const specialistProfiles: SpecialistProfile[] = [
     id: "conversational-agent",
     displayName: "Conversational Agent",
     description: "Handles general dialogue, intake, clarification, and user-friendly handoff summaries.",
-    walletAddress: walletAddresses.conversational,
+    walletAddress: wallets.conversational,
     endpointPath: "/v1/chat/completions",
     capabilities: ["conversation", "intake", "clarification", "handoff-summary"],
     roles: ["specialist"],
@@ -125,7 +101,7 @@ export function validateProfile(profile: SpecialistProfile): string[] {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(profile.id)) errors.push(`invalid id: ${profile.id}`);
   if (!profile.displayName.trim()) errors.push(`${profile.id}: missing displayName`);
   if (!profile.walletAddress.trim()) errors.push(`${profile.id}: missing walletAddress`);
-  if (profile.walletAddress.trim() && !isBase58SolanaPublicKey(profile.walletAddress)) errors.push(`${profile.id}: invalid Solana walletAddress`);
+  else if (!isValidSolanaPublicKey(profile.walletAddress)) errors.push(`${profile.id}: invalid Solana walletAddress`);
   if (profile.endpointPath !== "/v1/chat/completions") errors.push(`${profile.id}: unsupported endpointPath`);
   if (profile.capabilities.length === 0) errors.push(`${profile.id}: missing capabilities`);
   if (profile.roles.length === 0 || !profile.roles.includes("specialist")) errors.push(`${profile.id}: must include specialist role`);

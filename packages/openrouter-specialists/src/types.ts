@@ -31,7 +31,7 @@ export interface RuntimeConfig {
   openRouterBaseUrl: string;
   mockOpenRouter: boolean;
   requirePayment: boolean;
-  allowDemoPayment: boolean;
+  allowDemoPayment?: boolean;
   safetyMode?: SafetyMode;
 }
 

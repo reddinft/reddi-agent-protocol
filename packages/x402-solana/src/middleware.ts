@@ -1,31 +1,13 @@
 import { parseX402Header, sendPayment, isValidPaymentAddress } from './payment';
 import { checkAndStoreNonce } from './nonce';
 import { X402Request, PaymentReceipt } from './types';
-import { SwapClient } from './jupiter';
-
-type ReqLike = {
-  headers: Record<string, string | undefined>;
-};
-
-type ResLike = {
-  status: (code: number) => ResLike;
-  json: (payload: unknown) => unknown;
-  setHeader: (name: string, value: string) => void;
-};
-
-type NextLike = () => unknown;
-
-export interface X402MiddlewareOptions {
-  swapClient?: SwapClient;
-  slippageBps?: number;
-}
 
 /**
  * Express middleware for x402 payment processing
  * Intercepts requests with x402-request header, validates, and sends payment
  */
-export function createX402Middleware(options: X402MiddlewareOptions = {}) {
-  return async (req: ReqLike, res: ResLike, next: NextLike) => {
+export function createX402Middleware() {
+  return async (req: any, res: any, next: any) => {
     // Check for x402-request header
     const header = req.headers['x402-request'] as string | undefined;
     if (!header) {
@@ -53,10 +35,7 @@ export function createX402Middleware(options: X402MiddlewareOptions = {}) {
       }
 
       // Send the payment (Phase 2 will implement actual Solana transfer)
-      const receipt: PaymentReceipt = await sendPayment(x402req, {
-        swapClient: options.swapClient,
-        slippageBps: options.slippageBps,
-      });
+      const receipt: PaymentReceipt = await sendPayment(x402req);
 
       // Set response headers
       res.setHeader('x402-payment', JSON.stringify(receipt));
@@ -64,33 +43,25 @@ export function createX402Middleware(options: X402MiddlewareOptions = {}) {
         message: 'payment_processed',
         receipt,
       });
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'invalid_request';
-
+    } catch (error: any) {
       // Handle different error types
-      if (message.includes('JSON')) {
+      if (error.message.includes('JSON')) {
         return res.status(400).json({
           error: 'invalid_request',
-          detail: message,
+          detail: error.message,
         });
       }
-      if (message.includes('timeout')) {
+      if (error.message.includes('timeout')) {
         return res.status(503).json({
           error: 'rpc_timeout',
           detail: 'Payment confirmation timeout',
-        });
-      }
-      if (message.includes('token_mismatch_requires_swap_client')) {
-        return res.status(400).json({
-          error: 'invalid_request',
-          detail: 'Token mismatch detected but no Jupiter swap client configured',
         });
       }
 
       // Generic error
       return res.status(400).json({
         error: 'invalid_request',
-        detail: message,
+        detail: error.message,
       });
     }
   };
@@ -103,8 +74,7 @@ export function createX402Header(
   amount: number,
   paymentAddress: string,
   nonce: string,
-  currency = 'SOL',
-  extras?: Partial<Pick<X402Request, 'payerCurrency' | 'payerAddress' | 'autoSwap'>>
+  currency = 'SOL'
 ): string {
-  return JSON.stringify({ amount, currency, paymentAddress, nonce, ...extras });
+  return JSON.stringify({ amount, currency, paymentAddress, nonce });
 }

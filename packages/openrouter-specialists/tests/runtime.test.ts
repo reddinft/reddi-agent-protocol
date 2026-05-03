@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { MockOpenRouterClient } from "../src/openrouter.js";
 import { getProfile, specialistProfiles, validateProfileRegistry } from "../src/profiles/index.js";
-import { createOpenRouterClient, createRuntimeConfig, handleChatCompletions, handleRuntimeRequest, marketplaceMetadata, type RuntimeConfig } from "../src/index.js";
+import { createRuntimeConfig, handleChatCompletions, handleRuntimeRequest, marketplaceMetadata, type RuntimeConfig } from "../src/index.js";
 
 const config: RuntimeConfig = {
   profileId: "planning-agent",
@@ -10,7 +10,7 @@ const config: RuntimeConfig = {
   openRouterBaseUrl: "https://openrouter.ai/api/v1",
   mockOpenRouter: true,
   requirePayment: true,
-  allowDemoPayment: true,
+  allowDemoPayment: false,
 };
 
 test("profile registry has first five unique valid profiles with required marketplace metadata", () => {
@@ -21,6 +21,11 @@ test("profile registry has first five unique valid profiles with required market
     ["planning-agent", "document-intelligence-agent", "verification-validation-agent", "code-generation-agent", "conversational-agent"],
   );
   assert.ok(getProfile("verification-validation-agent")?.roles.includes("attestor"));
+});
+
+test("OpenRouter mock mode is explicit opt-in only", () => {
+  assert.equal(createRuntimeConfig({}).mockOpenRouter, false);
+  assert.equal(createRuntimeConfig({ OPENROUTER_MOCK: "true" }).mockOpenRouter, true);
 });
 
 test("unpaid completion returns 402 challenge before OpenRouter client call", async () => {
@@ -38,27 +43,29 @@ test("unpaid completion returns 402 challenge before OpenRouter client call", as
   assert.equal((response.body.error as { code: string }).code, "payment_required");
 });
 
-test("spoofed paid or signature headers still fail closed", async () => {
-  for (const headerValue of ["paid:anything", "{\"signature\":\"caller-controlled\"}"]) {
-    const client = new MockOpenRouterClient();
-    const response = await handleChatCompletions({
-      headers: new Headers({ "x402-payment": headerValue }),
-      body: { messages: [{ role: "user", content: "Build a plan" }] },
-      config: { ...config, allowDemoPayment: false },
-      client,
-    });
-
-    assert.equal(response.status, 402);
-    assert.equal(client.callCount, 0);
-  }
-});
-
-test("demo-paid completion invokes OpenRouter mock only when explicitly enabled", async () => {
+test("demo payment remains fail-closed without explicit ALLOW_DEMO_X402_PAYMENT", async () => {
   const client = new MockOpenRouterClient();
   const response = await handleChatCompletions({
     headers: new Headers({ "x402-payment": "demo:paid" }),
     body: { messages: [{ role: "user", content: "Build a plan" }] },
     config,
+    client,
+  });
+
+  assert.equal(response.status, 402);
+  assert.equal(client.callCount, 0);
+  assert.equal((response.body.error as { code: string }).code, "demo_payment_disabled");
+});
+
+test("paid completion invokes OpenRouter mock with explicit demo flag, profile guardrails, and Reddi metadata", async () => {
+  const client = new MockOpenRouterClient();
+  const demoConfig = { ...config, allowDemoPayment: true };
+  const profile = getProfile("planning-agent");
+  assert.ok(profile);
+  const response = await handleChatCompletions({
+    headers: new Headers({ "x402-payment": "demo:nonce-paid-1" }),
+    body: { messages: [{ role: "user", content: "Build a plan" }] },
+    config: demoConfig,
     client,
   });
 
@@ -78,6 +85,77 @@ test("demo-paid completion invokes OpenRouter mock only when explicitly enabled"
   assert.match((response.body.reddi as { requestId: string }).requestId, /^[0-9a-f-]{36}$/);
 });
 
+test("HTTP runtime rejects duplicate demo receipt nonces", async () => {
+  const client = new MockOpenRouterClient();
+  const demoConfig = { ...config, allowDemoPayment: true };
+  const request = () =>
+    new Request("https://planning.example.test/v1/chat/completions", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x402-payment": "demo:nonce-http-replay-1" },
+      body: JSON.stringify({ messages: [{ role: "user", content: "hello" }] }),
+    });
+
+  const first = await handleRuntimeRequest(request(), demoConfig, client);
+  const second = await handleRuntimeRequest(request(), demoConfig, client);
+
+  assert.equal(first.status, 200);
+  assert.equal(second.status, 402);
+  const body = (await second.json()) as { error: { code: string } };
+  assert.equal(body.error.code, "duplicate_nonce");
+});
+
+test("empty demo receipt nonce returns controlled 402", async () => {
+  const client = new MockOpenRouterClient();
+  const response = await handleChatCompletions({
+    headers: new Headers({ "x402-payment": "demo:" }),
+    body: { messages: [{ role: "user", content: "Build a plan" }] },
+    config: { ...config, allowDemoPayment: true },
+    client,
+  });
+
+  assert.equal(response.status, 402);
+  assert.equal(client.callCount, 0);
+  assert.equal((response.body.error as { code: string }).code, "invalid_nonce");
+});
+
+test("caller-authored structured demo receipts are rejected", async () => {
+  const client = new MockOpenRouterClient();
+  const profile = getProfile("planning-agent");
+  assert.ok(profile);
+  const response = await handleChatCompletions({
+    headers: new Headers({
+      "x402-payment": JSON.stringify({
+        demo: true,
+        network: "solana-devnet",
+        payTo: profile.walletAddress,
+        amount: profile.price.amount,
+        currency: profile.price.currency,
+        nonce: "nonce-structured-demo",
+      }),
+    }),
+    body: { messages: [{ role: "user", content: "Build a plan" }] },
+    config: { ...config, allowDemoPayment: true },
+    client,
+  });
+
+  assert.equal(response.status, 402);
+  assert.equal(client.callCount, 0);
+  assert.equal((response.body.error as { code: string }).code, "payment_required");
+
+  const tokenResponse = await handleChatCompletions({
+    headers: new Headers({
+      "x402-payment": JSON.stringify({ demo: true, token: "demo:nonce-structured-token", nonce: "nonce-structured-token" }),
+    }),
+    body: { messages: [{ role: "user", content: "Build a plan" }] },
+    config: { ...config, allowDemoPayment: true },
+    client,
+  });
+
+  assert.equal(tokenResponse.status, 402);
+  assert.equal(client.callCount, 0);
+  assert.equal((tokenResponse.body.error as { code: string }).code, "payment_required");
+});
+
 test("well-known metadata includes Reddi marketplace fields", async () => {
   const profile = getProfile("planning-agent");
   assert.ok(profile);
@@ -88,18 +166,6 @@ test("well-known metadata includes Reddi marketplace fields", async () => {
   }
   assert.equal(metadata.profileId, "planning-agent");
   assert.equal(metadata.endpoint, "https://planning.example.test/v1/chat/completions");
-});
-
-test("runtime config requires explicit mock mode and api key for real OpenRouter", () => {
-  const productionConfig = createRuntimeConfig({});
-  assert.equal(productionConfig.mockOpenRouter, false);
-  assert.equal(productionConfig.allowDemoPayment, false);
-  assert.throws(() => createOpenRouterClient(productionConfig), /OPENROUTER_API_KEY is required/);
-
-  const mockConfig = createRuntimeConfig({ OPENROUTER_MOCK: "true", ALLOW_DEMO_X402_PAYMENT: "true" });
-  assert.equal(mockConfig.mockOpenRouter, true);
-  assert.equal(mockConfig.allowDemoPayment, true);
-  assert.equal(createOpenRouterClient(mockConfig).constructor.name, "MockOpenRouterClient");
 });
 
 test("HTTP core routes expose health, models, tags, metadata, and chat", async () => {

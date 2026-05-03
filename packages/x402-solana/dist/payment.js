@@ -1,68 +1,217 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.DemoPaymentVerifier = exports.isValidPaymentAddress = void 0;
+exports.isValidSolanaPublicKey = isValidSolanaPublicKey;
+exports.buildX402Challenge = buildX402Challenge;
 exports.parseX402Header = parseX402Header;
+exports.parseX402PaymentHeader = parseX402PaymentHeader;
+exports.verifyDemoPaymentReceipt = verifyDemoPaymentReceipt;
 exports.sendPayment = sendPayment;
-exports.isValidPaymentAddress = isValidPaymentAddress;
+const web3_js_1 = require("@solana/web3.js");
+const jupiter_1 = require("./jupiter");
+const SUPPORTED_NETWORKS = ['solana-devnet', 'solana-mainnet-beta', 'solana-testnet'];
 /**
- * Parse x402-request header into structured request
- * Expected format: JSON string with amount, currency, paymentAddress, nonce
- * @throws Error if header is invalid
+ * Strictly validate canonical Solana public-key text.
+ * Requires base58 decode to exactly 32 bytes and round-trips to the same string.
+ */
+function isValidSolanaPublicKey(address) {
+    if (typeof address !== 'string' || address.trim() !== address || address.length === 0)
+        return false;
+    try {
+        const publicKey = new web3_js_1.PublicKey(address);
+        return publicKey.toBytes().length === 32 && publicKey.toBase58() === address;
+    }
+    catch {
+        return false;
+    }
+}
+/** Backwards-compatible alias for older callers. */
+exports.isValidPaymentAddress = isValidSolanaPublicKey;
+function buildX402Challenge(input) {
+    if (!SUPPORTED_NETWORKS.includes(input.network))
+        throw new Error(`unsupported Solana network: ${input.network}`);
+    if (!isValidSolanaPublicKey(input.payTo))
+        throw new Error('payTo must be a valid Solana public key');
+    if (!input.nonce || typeof input.nonce !== 'string')
+        throw new Error('nonce is required');
+    if (!input.currency || typeof input.currency !== 'string')
+        throw new Error('currency is required');
+    if (String(input.amount).length === 0 || Number(input.amount) <= 0)
+        throw new Error('amount must be positive');
+    if (!input.endpoint || typeof input.endpoint !== 'string')
+        throw new Error('endpoint is required');
+    return { version: input.version ?? '1', ...input };
+}
+/**
+ * Parse x402-request header into structured request.
+ * Expected format: JSON string with amount, currency, paymentAddress, nonce.
+ * @throws Error if header is invalid.
  */
 function parseX402Header(header) {
     try {
         const parsed = JSON.parse(header);
-        // Validate required fields
-        if (typeof parsed.amount !== 'number' || parsed.amount <= 0) {
+        if (typeof parsed.amount !== 'number' || parsed.amount <= 0)
             throw new Error('amount must be a positive number');
-        }
-        if (!parsed.currency || typeof parsed.currency !== 'string') {
+        if (!parsed.currency || typeof parsed.currency !== 'string')
             throw new Error('currency is required (e.g., "SOL")');
-        }
-        if (!parsed.paymentAddress || typeof parsed.paymentAddress !== 'string') {
+        if (!parsed.paymentAddress || typeof parsed.paymentAddress !== 'string')
             throw new Error('paymentAddress is required');
-        }
-        if (!parsed.nonce || typeof parsed.nonce !== 'string') {
+        if (!parsed.nonce || typeof parsed.nonce !== 'string')
             throw new Error('nonce is required');
-        }
+        if (!isValidSolanaPublicKey(parsed.paymentAddress))
+            throw new Error('paymentAddress must be a valid Solana public key');
         return {
             amount: parsed.amount,
             currency: parsed.currency,
             paymentAddress: parsed.paymentAddress,
             nonce: parsed.nonce,
+            payerCurrency: typeof parsed.payerCurrency === 'string' ? parsed.payerCurrency : undefined,
+            payerAddress: typeof parsed.payerAddress === 'string' ? parsed.payerAddress : undefined,
+            autoSwap: typeof parsed.autoSwap === 'boolean' ? parsed.autoSwap : false,
         };
     }
     catch (e) {
-        if (e instanceof SyntaxError) {
+        if (e instanceof SyntaxError)
             throw new Error('x402-request header is not valid JSON');
-        }
         throw e;
     }
 }
+function parseX402PaymentHeader(header) {
+    if (header.startsWith('demo:'))
+        return header;
+    try {
+        return JSON.parse(header);
+    }
+    catch {
+        return header;
+    }
+}
+function normalizeReceipt(receipt) {
+    if (typeof receipt === 'string' && receipt.startsWith('demo:')) {
+        return {
+            demo: true,
+            network: 'solana-devnet',
+            payTo: '',
+            amount: '',
+            currency: '',
+            nonce: receipt.slice('demo:'.length),
+        };
+    }
+    if (!receipt || typeof receipt !== 'object')
+        return undefined;
+    const record = receipt;
+    if (record.demo === true)
+        return undefined;
+    if (typeof record.network !== 'string' ||
+        typeof record.payTo !== 'string' ||
+        (typeof record.amount !== 'string' && typeof record.amount !== 'number') ||
+        typeof record.currency !== 'string' ||
+        typeof record.nonce !== 'string') {
+        return undefined;
+    }
+    return {
+        network: record.network,
+        payTo: record.payTo,
+        amount: record.amount,
+        currency: record.currency,
+        nonce: record.nonce,
+        signature: typeof record.signature === 'string' ? record.signature : undefined,
+        txSignature: typeof record.txSignature === 'string' ? record.txSignature : undefined,
+        payer: typeof record.payer === 'string' ? record.payer : undefined,
+        demo: record.demo === true,
+    };
+}
+async function verifyDemoPaymentReceipt(input) {
+    if (!input.allowDemoPayment) {
+        return { ok: false, reason: 'demo_payment_disabled', message: 'demo x402 payments require explicit ALLOW_DEMO_X402_PAYMENT' };
+    }
+    const receipt = normalizeReceipt(input.receipt);
+    if (!receipt)
+        return { ok: false, reason: 'invalid_receipt', message: 'x402 payment receipt is not an explicit demo receipt' };
+    if (!receipt.demo)
+        return { ok: false, reason: 'unsupported_receipt', message: 'real Solana receipt verification is not implemented yet' };
+    const expected = input.challenge;
+    if (receipt.demo && receipt.payTo === '' && receipt.amount === '' && receipt.currency === '') {
+        receipt.payTo = expected.payTo;
+        receipt.amount = expected.amount;
+        receipt.currency = expected.currency;
+        receipt.network = expected.network;
+    }
+    if (receipt.network !== expected.network) {
+        return { ok: false, reason: 'wrong_network', message: 'receipt network does not match challenge', expected: expected.network, actual: receipt.network };
+    }
+    if (!isValidSolanaPublicKey(receipt.payTo)) {
+        return { ok: false, reason: 'invalid_payee', message: 'receipt payTo is not a valid Solana public key', actual: receipt.payTo };
+    }
+    if (receipt.payTo !== expected.payTo) {
+        return { ok: false, reason: 'wrong_payee', message: 'receipt payee does not match challenge', expected: expected.payTo, actual: receipt.payTo };
+    }
+    if (String(receipt.amount) !== String(expected.amount)) {
+        return { ok: false, reason: 'wrong_amount', message: 'receipt amount does not match challenge', expected: expected.amount, actual: receipt.amount };
+    }
+    if (receipt.currency !== expected.currency) {
+        return { ok: false, reason: 'wrong_currency', message: 'receipt currency does not match challenge', expected: expected.currency, actual: receipt.currency };
+    }
+    if (receipt.nonce !== expected.nonce) {
+        return { ok: false, reason: 'invalid_nonce', message: 'receipt nonce does not match challenge', expected: expected.nonce, actual: receipt.nonce };
+    }
+    if (input.replayStore) {
+        const accepted = await input.replayStore.checkAndStore(receipt.nonce);
+        if (!accepted)
+            return { ok: false, reason: 'duplicate_nonce', message: 'receipt nonce has already been used', actual: receipt.nonce };
+    }
+    return { ok: true, receipt, demo: true };
+}
+class DemoPaymentVerifier {
+    constructor(allowDemoPayment) {
+        this.allowDemoPayment = allowDemoPayment;
+    }
+    verifyReceipt(receipt, challenge, replayStore) {
+        return verifyDemoPaymentReceipt({ receipt, challenge, allowDemoPayment: this.allowDemoPayment, replayStore });
+    }
+}
+exports.DemoPaymentVerifier = DemoPaymentVerifier;
 /**
- * Send a payment via Solana SystemProgram.transfer
- * In Phase 1, this is a stub. Full implementation in Phase 2.
- * @param request The payment request
- * @returns Promise resolving to payment receipt
+ * Send a payment via Solana SystemProgram.transfer.
+ * In this package version, this remains a test stub; no funding transactions are submitted.
  */
-async function sendPayment(request) {
-    // Phase 2 implementation will:
-    // - Create a Solana connection
-    // - Load payer keypair
-    // - Create SystemProgram.transfer instruction
-    // - Send and confirm transaction with 5s timeout
-    // - Return receipt with txSignature, slot, etc.
-    // For now, return a mock receipt for testing
+async function sendPayment(request, options = {}) {
+    let swapMeta;
+    if ((0, jupiter_1.needsAutoSwap)(request)) {
+        if (!options.swapClient)
+            throw new Error('token_mismatch_requires_swap_client');
+        if (!request.payerAddress)
+            throw new Error('payerAddress is required when autoSwap=true');
+        const swapResult = await options.swapClient.swap({
+            inputMint: (0, jupiter_1.resolveMint)(request.payerCurrency || request.currency),
+            outputMint: (0, jupiter_1.resolveMint)(request.currency),
+            amount: String(request.amount),
+            userPublicKey: request.payerAddress,
+            slippageBps: options.slippageBps ?? 50,
+        });
+        swapMeta = {
+            performed: true,
+            fromCurrency: request.payerCurrency,
+            toCurrency: request.currency,
+            orderId: swapResult.orderId,
+            executeId: swapResult.executeId,
+            inAmount: swapResult.inAmount,
+            outAmount: swapResult.outAmount,
+        };
+    }
+    else {
+        swapMeta = {
+            performed: false,
+            fromCurrency: request.payerCurrency || request.currency,
+            toCurrency: request.currency,
+        };
+    }
     return {
         txSignature: 'mock_tx_signature_' + Math.random().toString(36).substring(7),
         slot: Math.floor(Math.random() * 1000000),
         lamports: request.amount,
         nonce: request.nonce,
+        settlementCurrency: request.currency,
+        swap: swapMeta,
     };
-}
-/**
- * Validate payment address format (basic check)
- * Real validation would use @solana/web3.js PublicKey
- */
-function isValidPaymentAddress(address) {
-    return address.length >= 32 && address.length <= 44; // Base58 Solana addresses
 }
