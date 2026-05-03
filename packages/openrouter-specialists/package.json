@@ -16,7 +16,8 @@
     "build": "tsc -p tsconfig.json",
     "test": "npm run build && node --test dist/tests/*.test.js",
     "validate:wallet-manifest": "node scripts/validate-wallet-manifest.mjs",
-    "check:devnet-balances": "node scripts/check-devnet-balances.mjs"
+    "check:devnet-balances": "node scripts/check-devnet-balances.mjs",
+    "deployment:readiness": "npm run build && node scripts/deployment-readiness.mjs"
   },
   "engines": {
     "node": ">=20"

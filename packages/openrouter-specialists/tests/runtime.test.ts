@@ -1,16 +1,22 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import test from "node:test";
 import { MockOpenRouterClient } from "../src/openrouter.js";
 import { getProfile, specialistProfiles, validateProfileRegistry } from "../src/profiles/index.js";
 import {
   buildDryRunDelegationPlan,
+  buildDeploymentReadinessReport,
+  candidatesFromWalletManifest,
   createRuntimeConfig,
   evaluateAttestation,
   handleAttestationEvaluation,
   handleChatCompletions,
   handleRuntimeRequest,
   marketplaceMetadata,
+  ManifestMarketplaceDiscoveryClient,
   rankMarketplaceCandidates,
+  type WalletManifest,
   type RuntimeConfig,
 } from "../src/index.js";
 
@@ -22,6 +28,8 @@ const config: RuntimeConfig = {
   requirePayment: true,
   allowDemoPayment: false,
 };
+
+const walletManifest = JSON.parse(readFileSync(join(process.cwd(), "public/wallet-manifest.json"), "utf8")) as WalletManifest;
 
 test("profile registry has first five unique valid profiles with required marketplace metadata", () => {
   assert.deepEqual(validateProfileRegistry(), []);
@@ -365,6 +373,71 @@ test("dry-run marketplace ranking is deterministic for sample candidates", async
     ranked.map((candidate) => candidate.profileId),
     ["a-agent", "b-agent"],
   );
+});
+
+test("manifest marketplace discovery matches deterministic first-five ranking", async () => {
+  const discoveryClient = new ManifestMarketplaceDiscoveryClient(walletManifest);
+  const plan = await buildDryRunDelegationPlan({
+    request: {
+      requesterProfileId: "planning-agent",
+      task: "Need document evidence and code implementation",
+      requiredCapabilities: ["document-analysis", "code-generation"],
+      maxCandidates: 3,
+    },
+    discoveryClient,
+  });
+
+  assert.deepEqual(plan.discoveryDiagnostics?.excluded, []);
+  assert.deepEqual(plan.discoveryDiagnostics?.includedProfileIds, [
+    "code-generation-agent",
+    "conversational-agent",
+    "document-intelligence-agent",
+    "planning-agent",
+    "verification-validation-agent",
+  ]);
+  assert.deepEqual(
+    plan.candidates.map((candidate) => candidate.profileId),
+    ["code-generation-agent", "document-intelligence-agent"],
+  );
+  assert.equal(plan.selectedCandidate?.walletAddress, getProfile("code-generation-agent")?.walletAddress);
+});
+
+test("manifest discovery excludes malformed candidates with explicit reasons", () => {
+  const malformedManifest: WalletManifest = {
+    ...walletManifest,
+    profiles: [
+      ...walletManifest.profiles,
+      { profileId: "ghost-agent", displayName: "Ghost", publicKey: "not-a-public-key" },
+      { profileId: "planning-agent", displayName: "Duplicate Planning", publicKey: walletManifest.profiles[0]?.publicKey ?? "" },
+    ],
+  };
+  const result = candidatesFromWalletManifest(malformedManifest);
+  const ghost = result.excluded.find((entry) => entry.profileId === "ghost-agent");
+  const duplicate = result.excluded.find((entry) => entry.profileId === "planning-agent");
+  assert.ok(ghost?.reasons.includes("profile not found in specialist registry"));
+  assert.ok(ghost?.reasons.includes("invalid Solana public key"));
+  assert.ok(duplicate?.reasons.includes("duplicate profileId in wallet manifest"));
+  assert.ok(duplicate?.reasons.includes("duplicate public key in wallet manifest"));
+});
+
+test("deployment readiness report is public-data-only and blocks missing funding/deployment", () => {
+  const report = buildDeploymentReadinessReport({
+    manifest: walletManifest,
+    endpointBaseUrl: "https://planning.example.test",
+    fundedProfileIds: [],
+    deployedProfileIds: [],
+    generatedAt: "2026-05-04T00:00:00.000Z",
+  });
+
+  assert.equal(report.schemaVersion, "reddi.openrouter.deployment-readiness.v1");
+  assert.equal(report.status, "blocked");
+  assert.equal(report.entries.length, 5);
+  assert.ok(report.guardrails.includes("no private keys or signer material inspected"));
+  assert.ok(report.guardrails.includes("no devnet SOL spent"));
+  assert.ok(report.nextApprovalRequired.some((item) => item.includes("fund")));
+  assert.ok(report.entries.every((entry) => entry.endpoint?.startsWith("https://planning.example.test/")));
+  assert.ok(report.entries.every((entry) => entry.blockers.includes("funding not confirmed; approval/funding required")));
+  assert.ok(report.entries.every((entry) => entry.blockers.includes("Coolify deployment not confirmed")));
 });
 
 test("live delegation mode fails closed before any downstream paid call executor exists", async () => {
