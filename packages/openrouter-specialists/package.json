@@ -15,7 +15,11 @@
     "clean": "rm -rf dist",
     "build": "tsc -p tsconfig.json",
     "test": "npm run build && node --test dist/tests/*.test.js",
-    "validate:wallet-manifest": "node scripts/validate-wallet-manifest.mjs",
+    "validate:wallet-manifest": "npm run build && node scripts/validate-wallet-manifest.mjs",
+    "wallet:render-signer-manifest": "npm run build && node scripts/render-signer-wallet-manifest.mjs",
+    "wallet:verify-signer-provenance": "npm run build && node scripts/validate-wallet-manifest.mjs --require-signer-provenance",
+    "wallet:airdrop-devnet": "npm run build && node scripts/airdrop-devnet-wallets.mjs",
+    "wallet:register-devnet": "npm run build && node scripts/register-devnet-specialists.mjs",
     "check:devnet-balances": "node scripts/check-devnet-balances.mjs",
     "deployment:readiness": "npm run build && node scripts/deployment-readiness.mjs"
   },
