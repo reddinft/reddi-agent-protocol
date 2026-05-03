@@ -2,7 +2,17 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { MockOpenRouterClient } from "../src/openrouter.js";
 import { getProfile, specialistProfiles, validateProfileRegistry } from "../src/profiles/index.js";
-import { createRuntimeConfig, evaluateAttestation, handleAttestationEvaluation, handleChatCompletions, handleRuntimeRequest, marketplaceMetadata, type RuntimeConfig } from "../src/index.js";
+import {
+  buildDryRunDelegationPlan,
+  createRuntimeConfig,
+  evaluateAttestation,
+  handleAttestationEvaluation,
+  handleChatCompletions,
+  handleRuntimeRequest,
+  marketplaceMetadata,
+  rankMarketplaceCandidates,
+  type RuntimeConfig,
+} from "../src/index.js";
 
 const config: RuntimeConfig = {
   profileId: "planning-agent",
@@ -26,6 +36,9 @@ test("profile registry has first five unique valid profiles with required market
 test("OpenRouter mock mode is explicit opt-in only", () => {
   assert.equal(createRuntimeConfig({}).mockOpenRouter, false);
   assert.equal(createRuntimeConfig({ OPENROUTER_MOCK: "true" }).mockOpenRouter, true);
+  assert.equal(createRuntimeConfig({}).enableAgentToAgentCalls, false);
+  assert.equal(createRuntimeConfig({ ENABLE_AGENT_TO_AGENT_CALLS: "true", MAX_DOWNSTREAM_CALLS: "2", MAX_DOWNSTREAM_LAMPORTS: "5000" }).enableAgentToAgentCalls, true);
+  assert.equal(createRuntimeConfig({ ENABLE_AGENT_TO_AGENT_CALLS: "true", MAX_DOWNSTREAM_CALLS: "2", MAX_DOWNSTREAM_LAMPORTS: "5000" }).maxDownstreamCalls, 2);
 });
 
 test("unpaid completion returns 402 challenge before OpenRouter client call", async () => {
@@ -256,6 +269,120 @@ test("non-attestor profile cannot evaluate attestations", async () => {
   assert.equal(response.status, 403);
   assert.equal(client.callCount, 0);
   assert.equal((response.body.error as { code: string }).code, "profile_not_attestor");
+});
+
+test("dry-run marketplace delegation ranks candidates deterministically without downstream paid calls", async () => {
+  const client = new MockOpenRouterClient();
+  const response = await handleChatCompletions({
+    headers: new Headers({ "x402-payment": "demo:delegation-dry-run-1" }),
+    body: {
+      messages: [{ role: "user", content: "Plan a launch that needs document evidence extraction and code implementation." }],
+      metadata: {
+        mode: "delegation_plan",
+        delegation: {
+          requiredCapabilities: ["document-analysis", "code-generation"],
+          maxCandidates: 3,
+        },
+      },
+    },
+    config: { ...config, allowDemoPayment: true },
+    client,
+  });
+
+  assert.equal(response.status, 200);
+  assert.equal(client.callCount, 0);
+  assert.equal(response.body.object, "reddi.delegation.plan");
+  const plan = response.body.plan as {
+    mode: string;
+    liveCallsEnabled: boolean;
+    downstreamCallsExecuted: number;
+    requiredCapabilities: string[];
+    candidates: Array<{ profileId: string; matchedCapabilities: string[]; rankScore: number }>;
+    selectedCandidate: { profileId: string };
+    estimatedCost: { amount: string; currency: string };
+    requiredAttestor: string;
+    guardrails: string[];
+  };
+  assert.equal(plan.mode, "dry_run");
+  assert.equal(plan.liveCallsEnabled, false);
+  assert.equal(plan.downstreamCallsExecuted, 0);
+  assert.deepEqual(plan.requiredCapabilities, ["code-generation", "document-analysis"]);
+  assert.deepEqual(
+    plan.candidates.map((candidate) => candidate.profileId),
+    ["code-generation-agent", "document-intelligence-agent"],
+  );
+  assert.equal(plan.selectedCandidate.profileId, "code-generation-agent");
+  assert.deepEqual(plan.candidates.map((candidate) => candidate.rankScore), [...plan.candidates.map((candidate) => candidate.rankScore)].sort((a, b) => b - a));
+  assert.equal(plan.estimatedCost.currency, "USDC");
+  assert.equal(plan.requiredAttestor, "verification-validation-agent");
+  assert.ok(plan.guardrails.some((guardrail) => guardrail.includes("no devnet SOL spent")));
+  assert.equal((response.body.reddi as { downstreamCallsExecuted: number; liveCallsEnabled: boolean }).downstreamCallsExecuted, 0);
+  assert.equal((response.body.reddi as { downstreamCallsExecuted: number; liveCallsEnabled: boolean }).liveCallsEnabled, false);
+});
+
+test("dry-run marketplace ranking is deterministic for sample candidates", async () => {
+  const plan = await buildDryRunDelegationPlan({
+    request: {
+      requesterProfileId: "planning-agent",
+      task: "Need code and tests",
+      requiredCapabilities: ["code-generation"],
+      maxCandidates: 3,
+    },
+  });
+  assert.equal(plan.candidates[0]?.profileId, "code-generation-agent");
+  assert.equal(plan.selectedCandidate?.profileId, "code-generation-agent");
+
+  const ranked = rankMarketplaceCandidates(
+    [
+      {
+        profileId: "b-agent",
+        displayName: "B",
+        endpointPath: "/v1/chat/completions",
+        capabilities: ["code-generation"],
+        roles: ["specialist"],
+        price: { currency: "USDC", amount: "0.02", unit: "request" },
+        reputationScore: 0.8,
+        freshnessScore: 0.8,
+        preferredAttestors: ["verification-validation-agent"],
+        safetyMode: "standard",
+      },
+      {
+        profileId: "a-agent",
+        displayName: "A",
+        endpointPath: "/v1/chat/completions",
+        capabilities: ["code-generation"],
+        roles: ["specialist"],
+        price: { currency: "USDC", amount: "0.02", unit: "request" },
+        reputationScore: 0.8,
+        freshnessScore: 0.8,
+        preferredAttestors: ["verification-validation-agent"],
+        safetyMode: "standard",
+      },
+    ],
+    ["code-generation"],
+  );
+  assert.deepEqual(
+    ranked.map((candidate) => candidate.profileId),
+    ["a-agent", "b-agent"],
+  );
+});
+
+test("live delegation mode fails closed before any downstream paid call executor exists", async () => {
+  const client = new MockOpenRouterClient();
+  const response = await handleChatCompletions({
+    headers: new Headers({ "x402-payment": "demo:delegation-live-fail-closed-1" }),
+    body: {
+      messages: [{ role: "user", content: "Hire a code agent for this task." }],
+      metadata: { mode: "delegation_live", delegation: { dryRun: false, requiredCapabilities: ["code-generation"] } },
+    },
+    config: { ...config, allowDemoPayment: true, enableAgentToAgentCalls: true, maxDownstreamCalls: 1, maxDownstreamLamports: 1000 },
+    client,
+  });
+
+  assert.equal(response.status, 501);
+  assert.equal(client.callCount, 0);
+  assert.equal((response.body.error as { code: string }).code, "live_delegation_not_implemented");
+  assert.equal((response.body.reddi as { downstreamCallsExecuted: number }).downstreamCallsExecuted, 0);
 });
 
 test("HTTP core routes expose health, models, tags, metadata, attestation, and chat", async () => {

@@ -9,6 +9,7 @@ import {
   type X402Challenge,
 } from "@reddi/x402-solana";
 import { buildAttestationPromptEnvelope, evaluateAttestation, normalizeAttestationRequest } from "./attestation.js";
+import { buildDryRunDelegationPlan, inferRequiredCapabilities } from "./marketplace-client.js";
 import { getProfile, specialistProfiles, validateProfileRegistry } from "./profiles/index.js";
 import { FetchOpenRouterClient, MockOpenRouterClient } from "./openrouter.js";
 import type { AttestationRequest, ChatCompletionRequest, OpenRouterClient, RuntimeConfig, RuntimeResponse, SpecialistProfile } from "./types.js";
@@ -25,6 +26,9 @@ export function createRuntimeConfig(env: NodeJS.ProcessEnv = process.env): Runti
     mockOpenRouter: env.OPENROUTER_MOCK === "1" || env.OPENROUTER_MOCK === "true",
     requirePayment: env.REQUIRE_X402_PAYMENT !== "false",
     allowDemoPayment: env.ALLOW_DEMO_X402_PAYMENT === "1" || env.ALLOW_DEMO_X402_PAYMENT === "true",
+    enableAgentToAgentCalls: env.ENABLE_AGENT_TO_AGENT_CALLS === "1" || env.ENABLE_AGENT_TO_AGENT_CALLS === "true",
+    maxDownstreamCalls: env.MAX_DOWNSTREAM_CALLS ? Number.parseInt(env.MAX_DOWNSTREAM_CALLS, 10) : 0,
+    maxDownstreamLamports: env.MAX_DOWNSTREAM_LAMPORTS ? Number.parseInt(env.MAX_DOWNSTREAM_LAMPORTS, 10) : 0,
   };
 }
 
@@ -154,6 +158,88 @@ export function isAttestationMode(body: ChatCompletionRequest): boolean {
   return body.metadata?.mode === "attestation" || body.metadata?.attestation !== undefined;
 }
 
+export function isDelegationMode(body: ChatCompletionRequest): boolean {
+  return body.metadata?.mode === "delegation_plan" || body.metadata?.mode === "delegation_dry_run" || body.metadata?.delegation !== undefined;
+}
+
+export async function handleDelegationPlanning(input: {
+  headers: Headers;
+  body: ChatCompletionRequest;
+  config: RuntimeConfig;
+  replayStore?: NonceReplayStore;
+}): Promise<RuntimeResponse> {
+  const profile = getProfile(input.config.profileId);
+  if (!profile) return { status: 500, headers: JSON_HEADERS, body: { error: { code: "unknown_profile" } } };
+  if (!profile.roles.includes("consumer")) {
+    return { status: 403, headers: JSON_HEADERS, body: { error: { code: "profile_not_consumer", message: `${profile.id} cannot plan downstream marketplace delegation.` } } };
+  }
+
+  const unpaid = await ensurePaid({ headers: input.headers, profile, config: input.config, replayStore: input.replayStore });
+  if (unpaid) return unpaid;
+
+  const metadata = input.body.metadata ?? {};
+  const delegation = typeof metadata.delegation === "object" && metadata.delegation !== null ? (metadata.delegation as Record<string, unknown>) : {};
+  const dryRun = delegation.dryRun !== false && metadata.mode !== "delegation_live";
+  if (input.config.enableAgentToAgentCalls && !dryRun) {
+    return {
+      status: 501,
+      headers: JSON_HEADERS,
+      body: {
+        error: {
+          code: "live_delegation_not_implemented",
+          message: "Live agent-to-agent x402 calls are intentionally fail-closed until the guarded live-call iteration.",
+        },
+        reddi: {
+          profileId: profile.id,
+          liveCallsEnabled: true,
+          downstreamCallsExecuted: 0,
+          maxDownstreamCalls: input.config.maxDownstreamCalls ?? 0,
+          maxDownstreamLamports: input.config.maxDownstreamLamports ?? 0,
+        },
+      },
+    };
+  }
+
+  const task =
+    typeof delegation.task === "string"
+      ? delegation.task
+      : input.body.messages
+          ?.filter((message) => message.role === "user")
+          .map((message) => message.content)
+          .join("\n")
+          .trim() || "";
+  const explicitCapabilities = Array.isArray(delegation.requiredCapabilities) ? delegation.requiredCapabilities.filter((value): value is string => typeof value === "string") : [];
+  const requiredCapabilities = explicitCapabilities.length > 0 ? explicitCapabilities : inferRequiredCapabilities(task);
+  const maxCandidates = typeof delegation.maxCandidates === "number" && Number.isFinite(delegation.maxCandidates) ? Math.max(1, Math.floor(delegation.maxCandidates)) : 3;
+  const plan = await buildDryRunDelegationPlan({
+    request: {
+      task,
+      requesterProfileId: profile.id,
+      requiredCapabilities,
+      maxCandidates,
+    },
+  });
+  const requestId = randomUUID();
+
+  return {
+    status: 200,
+    headers: JSON_HEADERS,
+    body: {
+      object: "reddi.delegation.plan",
+      plan,
+      reddi: {
+        profileId: profile.id,
+        requestId,
+        mode: "delegation_dry_run",
+        paymentSatisfied: input.config.requirePayment,
+        liveCallsEnabled: false,
+        downstreamCallsExecuted: 0,
+        requiredAttestor: plan.requiredAttestor,
+      },
+    },
+  };
+}
+
 export async function handleAttestationEvaluation(input: {
   headers: Headers;
   body: AttestationRequest | ChatCompletionRequest | Record<string, unknown>;
@@ -213,6 +299,7 @@ export async function handleChatCompletions(input: {
   replayStore?: NonceReplayStore;
 }): Promise<RuntimeResponse> {
   if (isAttestationMode(input.body)) return handleAttestationEvaluation({ ...input, endpointPath: "/v1/chat/completions" });
+  if (isDelegationMode(input.body)) return handleDelegationPlanning(input);
 
   const profile = getProfile(input.config.profileId);
   if (!profile) return { status: 500, headers: JSON_HEADERS, body: { error: { code: "unknown_profile" } } };
