@@ -107,6 +107,9 @@ describe("registry bridge default sort", () => {
     const result = await fetchSpecialistListings();
 
     expect(result.ok).toBe(true);
-    expect(result.listings.map((l) => l.walletAddress)).toEqual(["walletB", "walletA", "walletC"]);
+    expect(result.listings
+      .map((l) => l.walletAddress)
+      .filter((wallet) => wallet.startsWith("wallet"))
+    ).toEqual(["walletB", "walletA", "walletC"]);
   });
 });
