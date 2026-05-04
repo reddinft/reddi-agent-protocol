@@ -1,11 +1,11 @@
 # Reddi Agent Protocol Code — STATUS
 
 **Last updated:** 2026-05-05 AEST
-**State:** 🟢 PR #202 merged and post-merge Anchor CI green; PR #203 opened for disclosure-ledger evidence tooling.
+**State:** 🟢 PR #203 merged — disclosure-ledger evidence gate on `main`; post-merge Anchor CI queued at last check.
 
 ## RESUME FROM HERE
 
-1. Watch PR #203 checks and merge if green: https://github.com/nissan/reddi-agent-protocol/pull/203
+1. Check post-merge `main` Anchor run `25344663797` for PR #203 merge commit `ca20e898`.
 2. Continue the next Phase 6.5 follow-up slice:
    - Preferred safe/local slice: update the live workflow smoke/evidence pack to assert and display `reddi.downstream-disclosure-ledger.v1` entries.
    - External-infra slice, only with explicit operator intent: redeploy/smoke all 30 hosted Coolify specialists so public `/.well-known/reddi-agent.json` endpoints expose `agenticWorkflowDisclosure`.
@@ -23,7 +23,7 @@
 
 **Disclosure-ledger evidence tooling**
 
-PR #203 makes the retrospective requirement executable in future evidence:
+PR #203 merged to `main` as `ca20e898` and makes the retrospective requirement executable in future evidence:
 
 - Guarded webpage live x402 workflow smoke now requires `reddi.downstream-disclosure-ledger.v1` in every paid response.
 - Future live workflow artifacts include `disclosureContract` and per-edge ledger summaries.
@@ -92,6 +92,6 @@ Do not proceed as a waterfall into research/picture live workflows until the dis
 
 ## Blockers / Watch Items
 
-- PR #203 checks pending at last update.
+- Post-merge Anchor run `25344663797` queued at last update.
 - Hosted specialist manifests need redeploy/smoke before public endpoints expose `agenticWorkflowDisclosure`.
 - External Coolify redeploy is an infra mutation; avoid doing it silently unless the current instruction clearly authorizes it.
