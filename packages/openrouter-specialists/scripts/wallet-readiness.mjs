@@ -2,7 +2,7 @@ import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { buildWalletReadinessReport } from '../dist/src/index.js';
 
-const signerManifestPath = process.argv.slice(2).find((arg) => !arg.startsWith('--')) ?? process.env.SIGNER_BACKED_WALLET_MANIFEST;
+const signerManifestPath = process.argv.slice(2).find((arg) => !arg.startsWith('--')) ?? process.env.SIGNER_BACKED_WALLET_MANIFEST ?? join(process.cwd(), 'public/wallet-manifest.json');
 const outPath = process.env.WALLET_READINESS_OUT ?? join(process.cwd(), 'artifacts/wallet-readiness.json');
 const signerBackedManifest = signerManifestPath ? JSON.parse(readFileSync(signerManifestPath, 'utf8')) : undefined;
 const report = buildWalletReadinessReport({ signerBackedManifest });

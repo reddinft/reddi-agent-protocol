@@ -52,6 +52,21 @@ test("wallet readiness marks only signer-backed matching profiles as funding and
   assert.equal(report.entries[2]?.registrationReady, false);
 });
 
+test("wallet readiness ready guidance moves to funder-only funding and registration", () => {
+  const profiles = cloneProfiles();
+  const loaded = profiles.map((_, index) => signerLoadedForProfile(profiles, index));
+  const manifest = buildSignerBackedWalletManifest({ loaded, generatedAt: "2026-05-04T00:00:00.000Z" });
+  const report = buildWalletReadinessReport({ profiles, signerBackedManifest: manifest, generatedAt: "2026-05-04T00:00:00.000Z" });
+
+  assert.equal(report.status, "ready");
+  assert.equal(report.signerBackedCount, 30);
+  assert.equal(report.placeholderOrUnverifiedCount, 0);
+  assert.ok(report.nextApprovalRequired.some((item) => item.includes("funder-only devnet wallet")));
+  assert.ok(report.nextApprovalRequired.some((item) => item.includes("each agent-specific wallet")));
+  assert.ok(!report.nextApprovalRequired.some((item) => item.includes("placeholder_or_unverified")));
+  assert.ok(!report.nextApprovalRequired.some((item) => item.includes("Rotate profile wallet constants")));
+});
+
 test("wallet readiness blocks signer-backed public keys that do not match profile wallets", () => {
   const profiles = cloneProfiles();
   const profile = profiles[0];

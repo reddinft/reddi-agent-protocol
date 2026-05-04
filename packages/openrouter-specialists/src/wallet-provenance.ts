@@ -77,7 +77,7 @@ export function loadSignerKeypairsFromEnv(options?: {
   requireAll?: boolean;
 }): SignerEnvLoadResult {
   const env = options?.env ?? process.env;
-  const profiles = options?.profiles ?? specialistProfiles.slice(0, 5);
+  const profiles = options?.profiles ?? specialistProfiles;
   const loaded: LoadedSignerProfile[] = [];
   const missingProfileIds: string[] = [];
   const bulk = loadBulkSignerEnv(env[BULK_SIGNER_ENV]);

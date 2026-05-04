@@ -14,7 +14,7 @@ if (!Number.isFinite(minimumBalanceLamports) || minimumBalanceLamports < 0) {
   throw new Error('MIN_DEVNET_BALANCE_LAMPORTS must be a non-negative number');
 }
 
-const result = loadSignerKeypairsFromEnv({ profiles: specialistProfiles.slice(0, 5), requireAll: true });
+const result = loadSignerKeypairsFromEnv({ profiles: specialistProfiles, requireAll: true });
 const manifest = buildSignerBackedWalletManifest({ loaded: result.loaded, minimumBalanceLamports });
 const errors = validateSignerBackedManifest(manifest, { requireSignerProvenance: true });
 if (errors.length > 0) throw new Error(`rendered manifest failed validation:\n- ${errors.join('\n- ')}`);

@@ -79,9 +79,10 @@ export function buildWalletReadinessReport(input?: {
     (entry) => entry.provenance === "signer_backed",
   ).length;
   const placeholderOrUnverifiedCount = entries.length - signerBackedCount;
+  const status: WalletReadinessStatus = placeholderOrUnverifiedCount === 0 ? "ready" : "blocked";
   return {
     schemaVersion: "reddi.openrouter.wallet-readiness.v1",
-    status: placeholderOrUnverifiedCount === 0 ? "ready" : "blocked",
+    status,
     generatedAt: input?.generatedAt ?? new Date().toISOString(),
     network: "solana-devnet",
     profileCount: entries.length,
@@ -95,11 +96,17 @@ export function buildWalletReadinessReport(input?: {
       "devnet funding requires separate operator approval",
     ],
     entries,
-    nextApprovalRequired: [
-      "Generate or import signer-backed devnet wallets for every placeholder_or_unverified profile.",
-      "Rotate profile wallet constants/public manifest from signer-derived public keys before funding.",
-      "Run balance checks and request explicit devnet funding approval before any transfer.",
-      "Run devnet registration only after signer/profile/manifest wallet equality passes.",
-    ],
+    nextApprovalRequired: status === "ready"
+      ? [
+          "Use the approved funder-only devnet wallet to fund each agent-specific wallet to the minimum balance threshold.",
+          "Run devnet registration only after funded balances pass for every signer-backed specialist/attestor/consumer profile.",
+          "Mutate Coolify only after registration evidence is captured and operator approval remains in scope.",
+        ]
+      : [
+          "Generate or import signer-backed devnet wallets for every placeholder_or_unverified profile.",
+          "Rotate profile wallet constants/public manifest from signer-derived public keys before funding.",
+          "Run balance checks and request explicit devnet funding approval before any transfer.",
+          "Run devnet registration only after signer/profile/manifest wallet equality passes.",
+        ],
   };
 }
