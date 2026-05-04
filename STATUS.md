@@ -1,20 +1,20 @@
 # Reddi Agent Protocol Code — STATUS
 
 **Last updated:** 2026-05-05 AEST
-**State:** 🟢 PR #203 merged and post-merge Anchor CI green; working on public marketplace manifest disclosure slice.
+**State:** 🟢 PR #205 merged; Phase 0 BDD iterative plan for manifest/disclosure-ledger loop in progress on docs branch.
 
 ## RESUME FROM HERE
 
-1. Finish current branch `feature/public-agent-manifest-marketplace-20260505`: public `/agents` cards + `/agents/[wallet]` detail must show manifest tools/skills and downstream marketplace/MCP/non-marketplace agent dependencies.
-2. Open PR and wait for checks. Local validation already run: targeted Jest, targeted ESLint, `npm run build`.
-3. Next safe/local slice after this: update live workflow smoke/evidence pack UI/artifacts to display `reddi.downstream-disclosure-ledger.v1` entries. External Coolify redeploy remains explicit-operator-only.
+1. Finish Phase 0 docs branch `docs/bdd-agentic-marketplace-plan-20260505`: plan doc + BDD lock for public manifest/dependency disclosure and disclosure-ledger evidence display.
+2. Validate with `npm run test:bdd:index` and `git diff --check`, complete Phase 0 retrospective, then open PR.
+3. After Phase 0 lands, continue Phase 1: update live workflow smoke/evidence pack artifacts to display `reddi.downstream-disclosure-ledger.v1` entries. External Coolify redeploy remains explicit-operator-only.
 
 ## Current Branch / Repo State
 
-- Local branch: `feature/public-agent-manifest-marketplace-20260505`
-- Local working tree: current manifest marketplace slice in progress.
-- Latest merge on main: `ca20e898 test: require disclosure ledger in economic demo evidence (#203)`.
-- PR #203: merged 2026-05-05 AEST; post-merge Anchor run `25344663797` passed.
+- Local branch: `docs/bdd-agentic-marketplace-plan-20260505`
+- Local working tree: Phase 0 plan/BDD docs in progress.
+- Latest merge on main: `345f6af4 feat: expose agent manifests in marketplace (#205)`.
+- PR #205: merged 2026-05-05 AEST; post-merge Anchor run `25345416486` passed.
 
 
 ## Current Follow-up PR — #203
@@ -64,11 +64,13 @@ Post-merge `main` CI:
 
 - Run `25344663797` for merge commit `ca20e898` — PASS, 7m20s.
 
-Current local validation for public manifest marketplace slice:
+Validation for public manifest marketplace slice / PR #205:
 
 - `npx jest --runTestsByPath lib/__tests__/openrouter-registry-enrichment.test.ts lib/__tests__/capabilities-disclosure.test.ts --runInBand` — PASS, 6/6.
 - Targeted `npx eslint` over changed marketplace/registry/capability files — PASS.
 - `npm run build` — PASS.
+- PR #205 checks before merge — PASS: two Anchor runs + Vercel.
+- PR #205 post-merge `main` Anchor run `25345416486` — PASS, 7m11s.
 
 ## Retrospective — Phase 6.5 Slice A
 
@@ -96,8 +98,9 @@ Do not proceed as a waterfall into research/picture live workflows until the dis
 
 - 2026-05-05: Public marketplace pages must expose agent manifest fields: tools, skills, marketplace-agent calls, external MCP servers, and non-marketplace agent/service calls, not just task capability tags.
 
+- 2026-05-05: BDD iterative plan for the agentic marketplace work must use explicit phase retrospectives before expanding scope: plan/BDD lock → artifact ledger summary → UI ledger display → manifest parity → hosted redeploy smoke → research → picture.
+
 ## Blockers / Watch Items
 
-- Current public marketplace manifest slice needs PR opened and remote CI checked.
 - Hosted specialist manifests need redeploy/smoke before public endpoints expose `agenticWorkflowDisclosure`.
 - External Coolify redeploy is an infra mutation; avoid doing it silently unless the current instruction clearly authorizes it.

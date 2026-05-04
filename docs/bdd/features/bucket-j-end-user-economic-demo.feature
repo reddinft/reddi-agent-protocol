@@ -60,11 +60,20 @@ Feature: End-user economic workflow demo
     And it captures before and after balances for payer and payee
     And it does not retry automatically
 
+  Scenario: Public marketplace pages show agent manifest tools, skills, and dependencies
+    Given a marketplace specialist or attestor may call other agents or external MCP services while fulfilling its role
+    When a user opens /agents or /agents/:wallet
+    Then the public marketplace shows manifest tools and skills for the agent
+    And the detail page lists marketplace agents it may call
+    And the detail page lists external MCP servers it may use
+    And the detail page lists non-marketplace agents or services it may leverage
+    And the disclosure is visible before the user invokes the agent
+
   Scenario: Agent manifests disclose downstream marketplace delegation
     Given a marketplace specialist or attestor may call other agents while fulfilling its role
     When a consumer agent reads /.well-known/reddi-agent.json
     Then the manifest declares that downstream marketplace calls may occur
-    And it lists expected downstream capability categories, budget policy, attestor expectations, and payload-disclosure policy
+    And it lists expected downstream capability categories, tools, skills, external MCP servers, non-marketplace agent calls, budget policy, attestor expectations, and payload-disclosure policy
     And the consumer agent can reject the agent before purchase if the disclosure is unacceptable
 
   Scenario: Downstream calls return transparent disclosure without exposing proprietary value-add
@@ -75,10 +84,11 @@ Feature: End-user economic workflow demo
     And any obfuscated returned details include an explicit moat_protection reason
     And called-agent identity, payload class, payment evidence, and attestation chain are not hidden
 
-  Scenario: Multi-edge demo returns output and economic impact
+  Scenario: Multi-edge demo returns output, disclosure ledger, and economic impact
     Given multi-edge demo mode is explicitly approved
     When the webpage or research article workflow completes
     Then the final output is shown to the user
     And attestor guidance is shown
+    And each downstream call has a reddi.downstream-disclosure-ledger.v1 entry
     And each participating wallet has a start balance, end balance, and delta
     And a bounded evidence artifact is produced
