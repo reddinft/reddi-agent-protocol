@@ -14,6 +14,7 @@ import type { SurfpoolRehearsalReport } from "@/lib/economic-demo/surfpool-rehea
 import type { EconomicDemoPaymentReadiness } from "@/lib/economic-demo/payment-readiness";
 import type { WebpageLiveWorkflowEvidence } from "@/lib/economic-demo/webpage-live-workflow-evidence";
 import type { EconomicDemoLedgerReconciliation } from "@/lib/economic-demo/ledger-reconciliation";
+import type { ResearchWorkflowDesign } from "@/lib/economic-demo/research-workflow-design";
 
 function shortWallet(wallet: string) {
   return `${wallet.slice(0, 8)}…${wallet.slice(-6)}`;
@@ -40,6 +41,8 @@ export default function EconomicDemoPage() {
   const [webpageLiveEvidenceStatus, setWebpageLiveEvidenceStatus] = useState<"idle" | "loading" | "loaded" | "error">("idle");
   const [ledgerReconciliation, setLedgerReconciliation] = useState<EconomicDemoLedgerReconciliation | null>(null);
   const [ledgerReconciliationStatus, setLedgerReconciliationStatus] = useState<"idle" | "loading" | "loaded" | "error">("idle");
+  const [researchDesign, setResearchDesign] = useState<ResearchWorkflowDesign | null>(null);
+  const [researchDesignStatus, setResearchDesignStatus] = useState<"idle" | "loading" | "loaded" | "error">("idle");
   const scenario = useMemo(
     () => economicDemoScenarios.find((candidate) => candidate.id === scenarioId) ?? economicDemoScenarios[0],
     [scenarioId],
@@ -133,6 +136,19 @@ export default function EconomicDemoPage() {
     }
   }
 
+  async function loadResearchDesign() {
+    setResearchDesignStatus("loading");
+    try {
+      const res = await fetch("/api/economic-demo/research-workflow-design");
+      const payload = (await res.json()) as { ok?: boolean; design?: ResearchWorkflowDesign };
+      if (!res.ok || !payload.ok || !payload.design) throw new Error("research_design_failed");
+      setResearchDesign(payload.design);
+      setResearchDesignStatus("loaded");
+    } catch {
+      setResearchDesignStatus("error");
+    }
+  }
+
   return (
     <main className="min-h-screen bg-page">
       <section className="relative overflow-hidden border-b border-white/5">
@@ -217,6 +233,13 @@ export default function EconomicDemoPage() {
                 >
                   {ledgerReconciliationStatus === "loading" ? "Reconciling ledger…" : "Reconcile ledger"}
                 </button>
+                <button
+                  onClick={loadResearchDesign}
+                  disabled={researchDesignStatus === "loading"}
+                  className="rounded-lg border border-accent-purple/30 bg-accent-purple/10 px-4 py-2 text-sm font-semibold text-accent-purple transition hover:bg-accent-purple/15 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {researchDesignStatus === "loading" ? "Designing research path…" : "Design research workflow"}
+                </button>
                 <span className="text-xs text-gray-500">
                   Uses deployed 30-agent profile metadata · zero downstream calls
                 </span>
@@ -249,6 +272,11 @@ export default function EconomicDemoPage() {
               {ledgerReconciliationStatus === "error" && (
                 <p className="mt-3 rounded-lg border border-yellow-400/30 bg-yellow-400/10 p-3 text-sm text-yellow-100">
                   Ledger reconciliation failed. No live call or transfer was attempted.
+                </p>
+              )}
+              {researchDesignStatus === "error" && (
+                <p className="mt-3 rounded-lg border border-yellow-400/30 bg-yellow-400/10 p-3 text-sm text-yellow-100">
+                  Research workflow design failed. No live call or Coolify mutation was attempted.
                 </p>
               )}
               <dl className="mt-5 grid grid-cols-2 gap-3 text-sm">
@@ -417,6 +445,39 @@ export default function EconomicDemoPage() {
                       ? "Controlled demo-paid completion reached HTTP 200 against the deployed code-generation specialist. The UI still will not auto-retry live payment; the next demo loop can promote this from one paid edge to a multi-edge workflow."
                       : "Paid completion is blocked because the deployed specialist rejects demo receipts. The UI will not auto-retry live payment; choose controlled demo receipts or real devnet receipt verification next."}
                   </p>
+                </div>
+              )}
+
+              {researchDesign && (
+                <div className="mt-6 rounded-xl border border-accent-purple/25 bg-accent-purple/10 p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-accent-purple">Phase 8A research workflow design</p>
+                      <p className="mt-1 text-sm leading-6 text-gray-200">{researchDesign.userRequest}</p>
+                    </div>
+                    <span className="rounded-full border border-accent-purple/40 bg-accent-purple/10 px-2 py-0.5 text-xs text-accent-purple">
+                      design only · no live calls
+                    </span>
+                  </div>
+                  <div className="mt-4 grid gap-3 md:grid-cols-2">
+                    {researchDesign.edges.map((edge) => (
+                      <div key={edge.profileId} className="rounded-lg border border-white/10 bg-black/20 p-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <p className="font-mono text-sm text-white">{edge.step}. {edge.profileId}</p>
+                          <p className="text-xs text-yellow-100">{edge.controlledDemoReceiptReadiness.replaceAll("_", " ")}</p>
+                        </div>
+                        <p className="mt-1 text-xs text-gray-400">{edge.capability} · {edge.priceUsdc} USDC</p>
+                        <p className="mt-2 text-sm leading-6 text-gray-300">{edge.scopedPayload}</p>
+                        <p className="mt-2 text-xs leading-5 text-[#14F195]">Evidence gate: {edge.evidenceRequirement}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-4 rounded-lg border border-white/10 bg-black/20 p-3">
+                    <p className="text-xs uppercase tracking-wide text-gray-400">Acceptance criteria</p>
+                    <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-6 text-gray-300">
+                      {researchDesign.acceptanceCriteria.map((criterion) => <li key={criterion}>{criterion}</li>)}
+                    </ul>
+                  </div>
                 </div>
               )}
 
