@@ -4,6 +4,7 @@ Feature: End-user economic workflow demo
     Given the Reddi Agent Protocol marketplace is running on Solana devnet
     And live downstream specialist calls are disabled unless explicit spend gates are enabled
     And demo artifacts must not expose private keys, signer material, provider API keys, or payment secrets
+    And autonomous specialists and attestors may act as consumer agents only when their manifest discloses downstream marketplace delegation
 
   Scenario: Static fixture explains the economic workflow without spending
     Given the user opens /economic-demo
@@ -58,6 +59,21 @@ Feature: End-user economic workflow demo
     Then it captures an x402 receipt or fail-closed reason
     And it captures before and after balances for payer and payee
     And it does not retry automatically
+
+  Scenario: Agent manifests disclose downstream marketplace delegation
+    Given a marketplace specialist or attestor may call other agents while fulfilling its role
+    When a consumer agent reads /.well-known/reddi-agent.json
+    Then the manifest declares that downstream marketplace calls may occur
+    And it lists expected downstream capability categories, budget policy, attestor expectations, and payload-disclosure policy
+    And the consumer agent can reject the agent before purchase if the disclosure is unacceptable
+
+  Scenario: Downstream calls return transparent disclosure without exposing proprietary value-add
+    Given an autonomous specialist calls another marketplace agent during execution
+    When it returns its result to the consumer agent
+    Then the response includes a downstream-disclosure ledger
+    And the ledger identifies each called agent, endpoint or wallet, payload summary or hash, x402 amount and receipt or challenge state, and attestor links
+    And any obfuscated returned details include an explicit moat_protection reason
+    And called-agent identity, payload class, payment evidence, and attestation chain are not hidden
 
   Scenario: Multi-edge demo returns output and economic impact
     Given multi-edge demo mode is explicitly approved

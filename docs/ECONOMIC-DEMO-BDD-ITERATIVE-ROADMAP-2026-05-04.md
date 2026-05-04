@@ -14,7 +14,8 @@ A judge can open `/economic-demo`, choose an end-user request, and understand th
 3. every paid edge returns an x402 challenge and receipt/completion evidence;
 4. final output is verified by an attestor;
 5. balances/ledger show economic impact or an explicitly labeled controlled-demo receipt state;
-6. every phase has a retrospective before expanding scope.
+6. every phase has a retrospective before expanding scope;
+7. every autonomous specialist/attestor that may become a consumer agent discloses that capability in its manifest and returns a downstream-disclosure ledger when it delegates.
 
 ## Iteration contract
 
@@ -30,6 +31,7 @@ Phase expansion is not automatic. At the end of each phase we ask:
 - Did we accidentally add hidden spend, retries, or secret exposure?
 - Did judge-facing clarity improve?
 - What did the result change about the next phase?
+- Did the phase preserve agentic workflow transparency: manifest disclosure before execution, downstream payload/payment disclosure after execution, and clearly labeled obfuscation only where protecting a specialist's competitive moat?
 
 ## Current baseline
 
@@ -132,6 +134,34 @@ Completed before this roadmap:
 - UI smoke/build.
 
 **Retrospective prompt:** Is the money-flow story honest and still compelling?
+
+## Phase 7D — Agentic workflow manifest and downstream-disclosure contract
+
+**BDD expectation:** Consumer agents can discover, before purchase, whether a specialist or attestor may hire other marketplace agents; after completion, they receive transparent downstream delegation evidence.
+
+**Scope:**
+
+- Extend the Reddi agent manifest with `mayCallMarketplaceAgents`, expected downstream capabilities/categories, budget/allowlist policy, attestor expectations, and payload-disclosure policy.
+- Define a response-level downstream-disclosure ledger for live and controlled-demo delegation runs.
+- Show disclosure in `/economic-demo` beside the receipt chain.
+- Allow proprietary value-add obfuscation only for returned implementation details; never for called-agent identity, payload class/summary or hash, wallet/endpoint, payment evidence, or attestation links.
+
+**Acceptance criteria:**
+
+- Manifest makes downstream delegation optically obvious to consumer agents before execution.
+- Response ledger lists each downstream agent call, payload summary/hash, amount/challenge/receipt status, and any obfuscation reason.
+- Tests fail if a downstream call is executed without disclosure metadata.
+- Documentation distinguishes autonomous agentic workflow from a central orchestrator fan-out.
+
+**Validation:**
+
+- manifest/runtime unit tests;
+- BDD index check;
+- targeted lint/build.
+
+**Retrospective prompt:** Does this preserve full disclosure to the consumer agent while still allowing specialists to keep their proprietary synthesis/value-add opaque?
+
+**Expected next refinement:** Wire manifest fields into all 30 hosted agents, then require disclosure-ledger evidence in webpage/research/picture live smokes.
 
 ## Phase 8A — Research workflow dry-run/evidence design
 

@@ -523,3 +523,34 @@ Before Phase 8B live controlled receipts, choose orchestrator separation and ena
 
 - Research acceptance requires citations or explicit evidence caveats; fluent prose alone fails.
 - Phase 8B must not start until controlled receipt readiness is deliberately enabled and exact endpoints are confirmed.
+
+## Interactive retrospective adjustment — agentic workflow disclosure contract
+
+**Date:** 2026-05-05 AEST
+**Trigger:** Nissan clarified that the demo must be framed as an agentic workflow: every specialist/attestor is autonomous, has its own wallet, and may act as a consumer agent by calling other marketplace agents when that is part of its execution plan.
+**Plan updates:** Added Phase 6.5 to the delivery plan and Phase 7D to the iterative roadmap; added BDD scenarios for manifest disclosure and downstream-disclosure ledgers.
+**Validation:** `npm run test:bdd:index`; `git diff --check`.
+**Result:** PASS.
+
+### What worked
+
+The retrospective changed the next implementation shape before we kept building: the value is not merely showing a central orchestrator paying specialists. The value is transparent autonomous delegation where any agent can hire other agents through Reddi/x402 while preserving buyer awareness, bounded spend, and receipt/attestation evidence.
+
+### What failed or surprised us
+
+The existing plan implied delegation evidence through receipt chains, but it did not make pre-purchase disclosure explicit enough. A consumer agent needs to know from the manifest whether a specialist/attestor may call downstream agents, and the final response needs a disclosure ledger even when returned implementation details are obfuscated for moat protection.
+
+### Drift check
+
+This improves payload flow, money flow, and trust transparency. It also keeps the build loop agile: the plan was refined before more research/picture workflow expansion, rather than discovering the disclosure gap after implementation.
+
+### Next phase adjustment
+
+Before expanding beyond the controlled webpage proof, implement the agentic workflow manifest/disclosure contract: manifest fields for downstream delegation policy, response-level downstream-disclosure ledger, tests that fail when downstream calls are not disclosed, and `/economic-demo` copy showing the distinction between transparent payload/payment disclosure and allowed proprietary result obfuscation.
+
+### Decision log additions
+
+- Specialists and attestors are wallet-bearing autonomous agents and may act as consumer agents when fulfilling their role.
+- Downstream delegation must be disclosed in `/.well-known/reddi-agent.json` before purchase.
+- Return payloads must include downstream-disclosure ledger entries for called agents, payload summaries/hashes, payment/receipt state, and attestor links.
+- Competitive moat protection may obfuscate returned value-add details, but not called-agent identity, payload class, payment evidence, or attestation chain.
