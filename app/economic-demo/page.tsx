@@ -109,6 +109,17 @@ export default function EconomicDemoPage() {
                 ))}
               </ul>
             </div>
+
+            {scenario.id === "picture" && (
+              <div className="rounded-2xl border border-accent-purple/25 bg-accent-purple/10 p-6 shadow-card">
+                <p className="section-label">Image adapter path</p>
+                <h3 className="mt-2 text-xl font-semibold text-white">OpenAI first · Fal.ai fallback</h3>
+                <p className="mt-3 text-sm leading-6 text-gray-300">
+                  The picture scenario is now modeled as a gated tool adapter: `tool-using-agent` can call OpenAI image generation when configured, or Fal.ai as fallback. The live route stays disabled until `ENABLE_ECONOMIC_DEMO_IMAGE_GENERATION=true`.
+                </p>
+                <p className="mt-3 font-mono text-xs text-gray-500">/api/economic-demo/image · GET readiness · POST generate</p>
+              </div>
+            )}
           </div>
 
           <div className="space-y-6">

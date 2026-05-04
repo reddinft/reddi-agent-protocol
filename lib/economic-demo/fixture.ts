@@ -150,7 +150,7 @@ export const economicDemoScenarios: EconomicDemoScenario[] = [
     ],
     edges: [
       { from: "end-user", to: "tool-using-agent", capability: "visual-workflow-planning", payloadSummary: "Prompt, style, safety constraints, and budget cap.", amountLamports: 1_000_000, status: "planned", receipt: "fixture:x402:challenge:picture-orchestrator" },
-      { from: "tool-using-agent", to: "image-generation-adapter", capability: "image-generation", payloadSummary: "Blocked pending approved adapter and exact endpoint allowlist.", amountLamports: 0, status: "blocked", receipt: "blocked:adapter-not-approved" },
+      { from: "tool-using-agent", to: "image-generation-adapter", capability: "image-generation", payloadSummary: "Adapter gated by env flag, provider key, and exact OpenAI/Fal provider route.", amountLamports: 0, status: "blocked", receipt: "blocked:image-generation-disabled" },
       { from: "tool-using-agent", to: "vision-language-agent", capability: "image-validation", payloadSummary: "Generated image or storyboard plus prompt criteria.", amountLamports: 500_000, status: "planned", receipt: "fixture:x402:challenge:vision-validation" },
     ],
     balances: [
@@ -160,7 +160,7 @@ export const economicDemoScenarios: EconomicDemoScenario[] = [
       { profileId: "vision-language-agent", role: "specialist", wallet: "VisionLanguage11111111111111111111111111", startingLamports: 2_000_000, endingLamports: 2_000_000 },
       { profileId: "verification-validation-agent", role: "attestor", wallet: "VerifyValidate11111111111111111111111111", startingLamports: 3_000_000, endingLamports: 3_000_000 },
     ],
-    guardrails: ["Actual image generation blocked until adapter approval", "No unapproved external generation services", "Vision validation follows adapter approval"],
+    guardrails: ["OpenAI/Fal image adapter route exists but is disabled until ENABLE_ECONOMIC_DEMO_IMAGE_GENERATION=true", "Provider order: OpenAI first when configured, Fal.ai fallback when configured", "Vision validation follows generated image receipt capture"],
   },
 ];
 
