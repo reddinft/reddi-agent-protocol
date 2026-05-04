@@ -10,6 +10,7 @@ import {
 } from "@reddi/x402-solana";
 import { buildAttestationPromptEnvelope, evaluateAttestation, normalizeAttestationRequest } from "./attestation.js";
 import { evaluateDelegationBudget } from "./delegation-budget.js";
+import { buildLiveDelegationIntentPlan } from "./delegation-intent.js";
 import { buildDryRunDelegationPlan, inferRequiredCapabilities } from "./marketplace-client.js";
 import { getProfile, specialistProfiles, validateProfileRegistry } from "./profiles/index.js";
 import { FetchOpenRouterClient, MockOpenRouterClient } from "./openrouter.js";
@@ -180,6 +181,17 @@ export async function handleDelegationPlanning(input: {
 
   const metadata = input.body.metadata ?? {};
   const delegation = typeof metadata.delegation === "object" && metadata.delegation !== null ? (metadata.delegation as Record<string, unknown>) : {};
+  const task =
+    typeof delegation.task === "string"
+      ? delegation.task
+      : input.body.messages
+          ?.filter((message) => message.role === "user")
+          .map((message) => message.content)
+          .join("\n")
+          .trim() || "";
+  const explicitCapabilities = Array.isArray(delegation.requiredCapabilities) ? delegation.requiredCapabilities.filter((value): value is string => typeof value === "string") : [];
+  const requiredCapabilities = explicitCapabilities.length > 0 ? explicitCapabilities : inferRequiredCapabilities(task);
+  const maxCandidates = typeof delegation.maxCandidates === "number" && Number.isFinite(delegation.maxCandidates) ? Math.max(1, Math.floor(delegation.maxCandidates)) : 3;
   const dryRun = delegation.dryRun !== false && metadata.mode !== "delegation_live";
   if (!dryRun) {
     if (!input.config.enableAgentToAgentCalls) {
@@ -229,6 +241,25 @@ export async function handleDelegationPlanning(input: {
       };
     }
 
+    const plan = await buildDryRunDelegationPlan({
+      request: {
+        task,
+        requesterProfileId: profile.id,
+        requiredCapabilities,
+        maxCandidates,
+      },
+    });
+    const intentPlan = buildLiveDelegationIntentPlan({
+      requesterProfileId: profile.id,
+      task,
+      requiredCapabilities,
+      selectedCandidate: plan.selectedCandidate,
+      delegationPlan: plan,
+      budget: budgetDecision,
+      maxDownstreamCalls: input.config.maxDownstreamCalls ?? 0,
+      maxDownstreamLamports: input.config.maxDownstreamLamports ?? 0,
+    });
+
     return {
       status: 501,
       headers: JSON_HEADERS,
@@ -244,22 +275,12 @@ export async function handleDelegationPlanning(input: {
           maxDownstreamCalls: input.config.maxDownstreamCalls ?? 0,
           maxDownstreamLamports: input.config.maxDownstreamLamports ?? 0,
           budget: budgetDecision,
+          intentPlan,
         },
       },
     };
   }
 
-  const task =
-    typeof delegation.task === "string"
-      ? delegation.task
-      : input.body.messages
-          ?.filter((message) => message.role === "user")
-          .map((message) => message.content)
-          .join("\n")
-          .trim() || "";
-  const explicitCapabilities = Array.isArray(delegation.requiredCapabilities) ? delegation.requiredCapabilities.filter((value): value is string => typeof value === "string") : [];
-  const requiredCapabilities = explicitCapabilities.length > 0 ? explicitCapabilities : inferRequiredCapabilities(task);
-  const maxCandidates = typeof delegation.maxCandidates === "number" && Number.isFinite(delegation.maxCandidates) ? Math.max(1, Math.floor(delegation.maxCandidates)) : 3;
   const plan = await buildDryRunDelegationPlan({
     request: {
       task,

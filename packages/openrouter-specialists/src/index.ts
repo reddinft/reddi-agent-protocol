@@ -5,4 +5,5 @@ export * from "./attestation.js";
 export * from "./marketplace-client.js";
 export * from "./deployment-readiness.js";
 export * from "./delegation-budget.js";
+export * from "./delegation-intent.js";
 export * from "./runtime.js";
