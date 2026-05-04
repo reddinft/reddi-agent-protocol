@@ -9,6 +9,7 @@ import {
   type X402Challenge,
 } from "@reddi/x402-solana";
 import { buildAttestationPromptEnvelope, evaluateAttestation, normalizeAttestationRequest } from "./attestation.js";
+import { evaluateDelegationBudget } from "./delegation-budget.js";
 import { buildDryRunDelegationPlan, inferRequiredCapabilities } from "./marketplace-client.js";
 import { getProfile, specialistProfiles, validateProfileRegistry } from "./profiles/index.js";
 import { FetchOpenRouterClient, MockOpenRouterClient } from "./openrouter.js";
@@ -181,6 +182,53 @@ export async function handleDelegationPlanning(input: {
   const delegation = typeof metadata.delegation === "object" && metadata.delegation !== null ? (metadata.delegation as Record<string, unknown>) : {};
   const dryRun = delegation.dryRun !== false && metadata.mode !== "delegation_live";
   if (!dryRun) {
+    if (!input.config.enableAgentToAgentCalls) {
+      return {
+        status: 403,
+        headers: JSON_HEADERS,
+        body: {
+          error: {
+            code: "live_delegation_disabled",
+            message: "Live agent-to-agent x402 calls are disabled until spend guards and operator approval are configured.",
+          },
+          reddi: {
+            profileId: profile.id,
+            liveCallsEnabled: false,
+            downstreamCallsExecuted: 0,
+            maxDownstreamCalls: input.config.maxDownstreamCalls ?? 0,
+            maxDownstreamLamports: input.config.maxDownstreamLamports ?? 0,
+          },
+        },
+      };
+    }
+
+    const budgetPolicy = typeof delegation.budgetPolicy === "object" && delegation.budgetPolicy !== null ? delegation.budgetPolicy : undefined;
+    const budgetDecision = evaluateDelegationBudget({
+      policy: budgetPolicy,
+      estimatedLamports: budgetPolicy ? (typeof delegation.estimatedLamports === "number" ? delegation.estimatedLamports : Number.NaN) : 0,
+      usage: typeof delegation.budgetUsage === "object" && delegation.budgetUsage !== null ? delegation.budgetUsage : undefined,
+    });
+    if (!budgetDecision.allowed) {
+      return {
+        status: 403,
+        headers: JSON_HEADERS,
+        body: {
+          error: {
+            code: budgetDecision.reason,
+            message: budgetDecision.message,
+            details: budgetDecision.details,
+          },
+          reddi: {
+            profileId: profile.id,
+            liveCallsEnabled: true,
+            downstreamCallsExecuted: 0,
+            maxDownstreamCalls: input.config.maxDownstreamCalls ?? 0,
+            maxDownstreamLamports: input.config.maxDownstreamLamports ?? 0,
+          },
+        },
+      };
+    }
+
     return {
       status: 501,
       headers: JSON_HEADERS,
@@ -195,6 +243,7 @@ export async function handleDelegationPlanning(input: {
           downstreamCallsExecuted: 0,
           maxDownstreamCalls: input.config.maxDownstreamCalls ?? 0,
           maxDownstreamLamports: input.config.maxDownstreamLamports ?? 0,
+          budget: budgetDecision,
         },
       },
     };
