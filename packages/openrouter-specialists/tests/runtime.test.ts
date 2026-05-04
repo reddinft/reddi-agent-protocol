@@ -463,6 +463,13 @@ test("live delegation mode fails closed before any downstream paid call executor
   assert.equal((response.body.error as { code: string }).code, "live_delegation_not_implemented");
   assert.equal((response.body.reddi as { downstreamCallsExecuted: number }).downstreamCallsExecuted, 0);
   assert.equal(((response.body.reddi as { budget: { allowed: boolean } }).budget).allowed, true);
+  const intentPlan = (response.body.reddi as { intentPlan: { schemaVersion: string; executionStatus: string; selectedCandidate?: { profileId: string }; guardrails: { downstreamCallsExecuted: number; noDownstreamX402Executed: boolean }; estimatedLamports: number } }).intentPlan;
+  assert.equal(intentPlan.schemaVersion, "reddi.live-delegation-intent.v1");
+  assert.equal(intentPlan.executionStatus, "not_executed");
+  assert.equal(intentPlan.selectedCandidate?.profileId, "code-generation-agent");
+  assert.equal(intentPlan.estimatedLamports, 500);
+  assert.equal(intentPlan.guardrails.downstreamCallsExecuted, 0);
+  assert.equal(intentPlan.guardrails.noDownstreamX402Executed, true);
 
   const liveWithoutBudgetPolicy = await handleChatCompletions({
     headers: new Headers({ "x402-payment": "demo:delegation-live-fail-closed-2" }),
@@ -476,7 +483,8 @@ test("live delegation mode fails closed before any downstream paid call executor
   assert.equal(liveWithoutBudgetPolicy.status, 403);
   assert.equal(client.callCount, 0);
   assert.equal((liveWithoutBudgetPolicy.body.error as { code: string }).code, "budget_policy_required");
-  assert.equal((liveWithoutBudgetPolicy.body.reddi as { downstreamCallsExecuted: number }).downstreamCallsExecuted, 0);
+  assert.equal((liveWithoutBudgetPolicy.body.reddi as { downstreamCallsExecuted: number; intentPlan?: unknown }).downstreamCallsExecuted, 0);
+  assert.equal((liveWithoutBudgetPolicy.body.reddi as { intentPlan?: unknown }).intentPlan, undefined);
 
   const liveWithCallsDisabled = await handleChatCompletions({
     headers: new Headers({ "x402-payment": "demo:delegation-live-fail-closed-3" }),
