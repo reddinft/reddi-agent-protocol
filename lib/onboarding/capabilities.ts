@@ -22,8 +22,25 @@ export type CapabilityInput = {
     llm?: string;
     control_loop?: string;
     tools?: string[];
+    skills?: string[];
     memory?: string[];
     goals?: string[];
+    external_mcp_servers?: string[];
+    marketplace_agent_calls?: string[];
+    non_marketplace_agent_calls?: string[];
+  };
+  manifest?: {
+    profileId?: string;
+    displayName?: string;
+    description?: string;
+    roles?: string[];
+    tools?: string[];
+    skills?: string[];
+    marketplace_agent_calls?: string[];
+    external_mcp_servers?: string[];
+    non_marketplace_agent_calls?: string[];
+    preferred_attestors?: string[];
+    disclosure_policy?: string;
   };
   quality_claims?: string[];
   attestor_checkpoints?: string[];
@@ -48,8 +65,27 @@ export function computeCapabilityHash(walletAddress: string, caps: ReturnType<ty
           llm: caps.agent_composition.llm,
           control_loop: caps.agent_composition.control_loop,
           tools: [...(caps.agent_composition.tools ?? [])].sort(),
+          skills: [...(caps.agent_composition.skills ?? [])].sort(),
           memory: [...(caps.agent_composition.memory ?? [])].sort(),
           goals: [...(caps.agent_composition.goals ?? [])].sort(),
+          external_mcp_servers: [...(caps.agent_composition.external_mcp_servers ?? [])].sort(),
+          marketplace_agent_calls: [...(caps.agent_composition.marketplace_agent_calls ?? [])].sort(),
+          non_marketplace_agent_calls: [...(caps.agent_composition.non_marketplace_agent_calls ?? [])].sort(),
+        }
+      : undefined,
+    manifest: caps.manifest
+      ? {
+          profileId: caps.manifest.profileId,
+          displayName: caps.manifest.displayName,
+          description: caps.manifest.description,
+          roles: [...(caps.manifest.roles ?? [])].sort(),
+          tools: [...(caps.manifest.tools ?? [])].sort(),
+          skills: [...(caps.manifest.skills ?? [])].sort(),
+          marketplace_agent_calls: [...(caps.manifest.marketplace_agent_calls ?? [])].sort(),
+          external_mcp_servers: [...(caps.manifest.external_mcp_servers ?? [])].sort(),
+          non_marketplace_agent_calls: [...(caps.manifest.non_marketplace_agent_calls ?? [])].sort(),
+          preferred_attestors: [...(caps.manifest.preferred_attestors ?? [])].sort(),
+          disclosure_policy: caps.manifest.disclosure_policy,
         }
       : undefined,
     attestor_checkpoints: [...(caps.attestor_checkpoints ?? [])].sort(),
@@ -121,9 +157,28 @@ export function validateCapabilities(input: CapabilityInput) {
           typeof input.agent_composition.control_loop === "string"
             ? input.agent_composition.control_loop.trim()
             : undefined,
-        tools: normalizeOptionalList(input.agent_composition.tools, 12),
+        tools: normalizeOptionalList(input.agent_composition.tools, 16),
+        skills: normalizeOptionalList(input.agent_composition.skills, 24),
         memory: normalizeOptionalList(input.agent_composition.memory, 12),
         goals: normalizeOptionalList(input.agent_composition.goals, 12),
+        external_mcp_servers: normalizeOptionalList(input.agent_composition.external_mcp_servers, 12),
+        marketplace_agent_calls: normalizeOptionalList(input.agent_composition.marketplace_agent_calls, 24),
+        non_marketplace_agent_calls: normalizeOptionalList(input.agent_composition.non_marketplace_agent_calls, 24),
+      }
+    : undefined;
+  const manifest = input.manifest
+    ? {
+        profileId: typeof input.manifest.profileId === "string" ? input.manifest.profileId.trim() : undefined,
+        displayName: typeof input.manifest.displayName === "string" ? input.manifest.displayName.trim() : undefined,
+        description: typeof input.manifest.description === "string" ? input.manifest.description.trim() : undefined,
+        roles: normalizeOptionalList(input.manifest.roles, 8),
+        tools: normalizeOptionalList(input.manifest.tools, 16),
+        skills: normalizeOptionalList(input.manifest.skills, 24),
+        marketplace_agent_calls: normalizeOptionalList(input.manifest.marketplace_agent_calls, 24),
+        external_mcp_servers: normalizeOptionalList(input.manifest.external_mcp_servers, 12),
+        non_marketplace_agent_calls: normalizeOptionalList(input.manifest.non_marketplace_agent_calls, 24),
+        preferred_attestors: normalizeOptionalList(input.manifest.preferred_attestors, 12),
+        disclosure_policy: typeof input.manifest.disclosure_policy === "string" ? input.manifest.disclosure_policy.trim() : undefined,
       }
     : undefined;
 
@@ -170,6 +225,7 @@ export function validateCapabilities(input: CapabilityInput) {
 
   return {
     agent_composition: agentComposition,
+    manifest,
     attestor_checkpoints: attestorCheckpoints,
     taskTypes,
     inputModes,

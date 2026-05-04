@@ -15,6 +15,11 @@ interface SpecialistCardProps {
   freshnessState?: "fresh" | "warm" | "stale" | "unknown"
   ratePerCall?: number
   progress?: number
+  tools?: string[]
+  skills?: string[]
+  marketplaceAgentCalls?: string[]
+  externalMcpServers?: string[]
+  nonMarketplaceAgentCalls?: string[]
 }
 
 function shortWallet(wallet: string) {
@@ -48,6 +53,11 @@ export function SpecialistCard({
   freshnessState = "unknown",
   ratePerCall = 0,
   progress = 0,
+  tools = [],
+  skills = [],
+  marketplaceAgentCalls = [],
+  externalMcpServers = [],
+  nonMarketplaceAgentCalls = [],
 }: SpecialistCardProps) {
   const healthTone =
     health === "online"
@@ -64,6 +74,8 @@ export function SpecialistCard({
       : freshnessState === "stale"
       ? "border-rose-500/30 bg-rose-500/10 text-rose-300"
       : "border-white/10 bg-white/5 text-gray-400"
+
+  const downstreamCount = marketplaceAgentCalls.length + externalMcpServers.length + nonMarketplaceAgentCalls.length
 
   return (
     <Link href={`/agents/${wallet}`} className="block h-full" data-testid="agent-card">
@@ -102,6 +114,18 @@ export function SpecialistCard({
                 {task}
               </Badge>
             ))}
+          </div>
+
+          <div className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-[11px] text-gray-300">
+            <div className="flex items-center justify-between gap-2">
+              <span>Manifest</span>
+              <span className="text-gray-400">{tools.length} tools · {skills.length} skills</span>
+            </div>
+            <div className="mt-1 text-gray-400">
+              {downstreamCount > 0
+                ? `${downstreamCount} disclosed downstream/MCP dependencies`
+                : "No downstream dependencies disclosed"}
+            </div>
           </div>
 
           <div className="flex items-center justify-between gap-2 text-xs text-gray-300">
