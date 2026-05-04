@@ -1,4 +1,6 @@
+import { specialistProfiles } from "../../packages/openrouter-specialists/src/profiles/index";
 import { buildEconomicDemoDryRunPlan, endpointForProfile } from "@/lib/economic-demo/dry-run";
+import { openRouterAll30EndpointEvidence } from "@/lib/economic-demo/openrouter-endpoints";
 
 describe("economic demo dry-run planning", () => {
   it("builds a zero-spend webpage plan from deployed specialist profile metadata", () => {
@@ -32,8 +34,13 @@ describe("economic demo dry-run planning", () => {
     expect(plan.notes.join(" ")).toContain("Dry-run only");
   });
 
-  it("uses exact known endpoints for first-five live deployed routes", () => {
+  it("uses smoke-proven endpoint evidence for all 30 deployed specialist routes", () => {
+    expect(openRouterAll30EndpointEvidence).toHaveLength(30);
+    expect(openRouterAll30EndpointEvidence.map((entry) => entry.profileId).sort()).toEqual(
+      specialistProfiles.map((profile) => profile.id).sort(),
+    );
     expect(endpointForProfile("code-generation-agent")).toBe("https://reddi-code-generation.preview.reddi.tech/v1/chat/completions");
     expect(endpointForProfile("agentic-workflow-system")).toBe("https://reddi-agentic-workflow-system.preview.reddi.tech/v1/chat/completions");
+    expect(openRouterAll30EndpointEvidence.every((entry) => entry.smokePassed && entry.endpoint.endsWith("/v1/chat/completions"))).toBe(true);
   });
 });

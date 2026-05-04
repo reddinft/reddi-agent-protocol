@@ -109,3 +109,33 @@ Before Phase 4 balance snapshots, add Phase 3 slice B: exact all-30 endpoint evi
 
 - Phase 3 remains zero-spend: no x402 payment header generation and no downstream fetch.
 - Dry-run graph should become evidence-backed by all-30 hosted smoke data before live edges.
+
+### Phase 3 implementation reflection — dry-run endpoint evidence slice B
+
+**Date:** 2026-05-04 AEST  
+**Scope shipped:** Promoted all-30 hosted smoke endpoint evidence into committed public-data helper and removed naming-convention fallback from dry-run planning.  
+**BDD scenarios touched:** Dry-run orchestration builds a real planned economic graph.  
+**Validation:** `npx jest lib/__tests__/economic-demo-dry-run.test.ts --runInBand`; targeted lint; `npm run build`.  
+**Result:** PASS.
+**Evidence artifacts:** `lib/economic-demo/openrouter-endpoints.ts` generated from local public smoke artifact `artifacts/openrouter-specialists-all30-hosted-smoke-20260504.json`.
+
+#### What worked
+
+Dry-run planning now requires smoke-proven endpoint evidence for every selected specialist. Tests assert the evidence covers exactly all 30 specialist profiles and that each endpoint is a chat-completions endpoint.
+
+#### What failed or surprised us
+
+One assumption was corrected by evidence: `agentic-workflow-system` is deployed at `reddi-agentic-workflow-system.preview.reddi.tech`, not the shorter derived hostname. This validates the need for committed endpoint evidence before later phases.
+
+#### Drift check
+
+This improves payload flow accuracy and keeps the planned graph aligned with deployed infrastructure. Still zero spend.
+
+#### Next phase adjustment
+
+Phase 4 can now fetch balances against wallet addresses from the smoke-proven profile/evidence map. The next step should add balance snapshot types/route/tests with mocked RPC first, then one optional live devnet read-only smoke.
+
+#### Decision log additions
+
+- Dry-run endpoint resolution must fail closed if a profile lacks committed hosted endpoint evidence.
+- Do not use naming-convention-derived endpoints for live or rehearsal planning.
