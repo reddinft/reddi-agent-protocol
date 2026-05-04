@@ -33,7 +33,8 @@
     "demo:testing-specialist:capture": "node ./scripts/capture-testing-specialist-demo.mjs",
     "smoke:app-adapter": "node ./scripts/run-app-adapter-smoke.mjs",
     "smoke:economic-demo:surfpool": "node ./scripts/run-economic-demo-surfpool-rehearsal.mjs",
-    "smoke:economic-demo:live-x402-readiness": "node ./scripts/run-economic-demo-live-x402-readiness.mjs"
+    "smoke:economic-demo:live-x402-readiness": "node ./scripts/run-economic-demo-live-x402-readiness.mjs",
+    "smoke:economic-demo:webpage-live-x402-workflow": "node ./scripts/run-economic-demo-webpage-live-x402-workflow.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",
