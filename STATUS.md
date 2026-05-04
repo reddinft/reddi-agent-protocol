@@ -1,29 +1,27 @@
 # Reddi Agent Protocol Code — STATUS
 
 **Last updated:** 2026-05-05 AEST
-**State:** 🟢 PR #202 merged and post-merge Anchor CI green; PR #203 opened for disclosure-ledger evidence tooling.
+**State:** 🟢 PR #203 merged and post-merge Anchor CI green; working on public marketplace manifest disclosure slice.
 
 ## RESUME FROM HERE
 
-1. Watch PR #203 checks and merge if green: https://github.com/nissan/reddi-agent-protocol/pull/203
-2. Continue the next Phase 6.5 follow-up slice:
-   - Preferred safe/local slice: update the live workflow smoke/evidence pack to assert and display `reddi.downstream-disclosure-ledger.v1` entries.
-   - External-infra slice, only with explicit operator intent: redeploy/smoke all 30 hosted Coolify specialists so public `/.well-known/reddi-agent.json` endpoints expose `agenticWorkflowDisclosure`.
-3. Keep the agile loop active: BDD expectation → scoped implementation → validation → evidence artifact → retrospective → plan refinement → STATUS update.
+1. Finish current branch `feature/public-agent-manifest-marketplace-20260505`: public `/agents` cards + `/agents/[wallet]` detail must show manifest tools/skills and downstream marketplace/MCP/non-marketplace agent dependencies.
+2. Open PR and wait for checks. Local validation already run: targeted Jest, targeted ESLint, `npm run build`.
+3. Next safe/local slice after this: update live workflow smoke/evidence pack UI/artifacts to display `reddi.downstream-disclosure-ledger.v1` entries. External Coolify redeploy remains explicit-operator-only.
 
 ## Current Branch / Repo State
 
-- Local branch: `main`
-- Local working tree: clean at last check after PR #202 merge.
-- Latest merge: `95ab928b feat: add agentic workflow disclosure contract (#202)`.
-- PR #202: merged 2026-05-05 AEST.
+- Local branch: `feature/public-agent-manifest-marketplace-20260505`
+- Local working tree: current manifest marketplace slice in progress.
+- Latest merge on main: `ca20e898 test: require disclosure ledger in economic demo evidence (#203)`.
+- PR #203: merged 2026-05-05 AEST; post-merge Anchor run `25344663797` passed.
 
 
 ## Current Follow-up PR — #203
 
 **Disclosure-ledger evidence tooling**
 
-PR #203 makes the retrospective requirement executable in future evidence:
+PR #203 merged to `main` as `ca20e898` and makes the retrospective requirement executable in future evidence:
 
 - Guarded webpage live x402 workflow smoke now requires `reddi.downstream-disclosure-ledger.v1` in every paid response.
 - Future live workflow artifacts include `disclosureContract` and per-edge ledger summaries.
@@ -64,7 +62,13 @@ Local/PR validation for #202:
 
 Post-merge `main` CI:
 
-- Run `25343819366` started after merge; still in progress at last check.
+- Run `25344663797` for merge commit `ca20e898` — PASS, 7m20s.
+
+Current local validation for public manifest marketplace slice:
+
+- `npx jest --runTestsByPath lib/__tests__/openrouter-registry-enrichment.test.ts lib/__tests__/capabilities-disclosure.test.ts --runInBand` — PASS, 6/6.
+- Targeted `npx eslint` over changed marketplace/registry/capability files — PASS.
+- `npm run build` — PASS.
 
 ## Retrospective — Phase 6.5 Slice A
 
@@ -90,8 +94,10 @@ Do not proceed as a waterfall into research/picture live workflows until the dis
 - 2026-05-05: Return payloads must include downstream disclosure for called agent identity, wallet/endpoint, payload summary/hash, x402 state, and attestor links.
 - 2026-05-05: Moat protection may obfuscate proprietary returned value-add details, but not called-agent identity, payload class, payment evidence, or attestation chain.
 
+- 2026-05-05: Public marketplace pages must expose agent manifest fields: tools, skills, marketplace-agent calls, external MCP servers, and non-marketplace agent/service calls, not just task capability tags.
+
 ## Blockers / Watch Items
 
-- PR #203 checks pending at last update.
+- Current public marketplace manifest slice needs PR opened and remote CI checked.
 - Hosted specialist manifests need redeploy/smoke before public endpoints expose `agenticWorkflowDisclosure`.
 - External Coolify redeploy is an infra mutation; avoid doing it silently unless the current instruction clearly authorizes it.

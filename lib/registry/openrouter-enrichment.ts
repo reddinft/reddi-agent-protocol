@@ -115,15 +115,75 @@ function toCapabilityInput(profile: SpecialistProfile): CapabilityInput {
     agent_composition: {
       llm: profile.model,
       control_loop: "openrouter-x402-specialist-runtime",
-      tools: profile.roles.includes("attestor") ? ["receipt_review", "evidence_checks"] : ["chat_completion"],
+      tools: toolsFor(profile, normalizedCapabilities),
+      skills: skillsFor(profile, normalizedCapabilities),
       memory: ["request_scoped"],
       goals: profile.capabilities,
+      external_mcp_servers: externalMcpServersFor(profile, normalizedCapabilities),
+      marketplace_agent_calls: marketplaceAgentCallsFor(profile),
+      non_marketplace_agent_calls: nonMarketplaceAgentCallsFor(profile, normalizedCapabilities),
+    },
+    manifest: {
+      profileId: profile.id,
+      displayName: profile.displayName,
+      description: profile.description,
+      roles: profile.roles,
+      tools: toolsFor(profile, normalizedCapabilities),
+      skills: skillsFor(profile, normalizedCapabilities),
+      marketplace_agent_calls: marketplaceAgentCallsFor(profile),
+      external_mcp_servers: externalMcpServersFor(profile, normalizedCapabilities),
+      non_marketplace_agent_calls: nonMarketplaceAgentCallsFor(profile, normalizedCapabilities),
+      preferred_attestors: profile.preferredAttestors,
+      disclosure_policy:
+        "Public manifest discloses tool, skill, MCP, marketplace-agent, and non-marketplace-agent dependencies before purchase. Paid responses must return reddi.downstream-disclosure-ledger.v1 for attempted downstream calls.",
     },
     quality_claims: [profile.description],
     attestor_checkpoints: profile.roles.includes("attestor")
       ? ["receipt_integrity", "output_completeness", "evidence_quality", "safety_boundary"]
       : ["requires-verification-validation-agent"],
   };
+}
+
+function toolsFor(profile: SpecialistProfile, capabilities: string[]): string[] {
+  const tools = new Set<string>(["chat_completion"]);
+  if (profile.roles.includes("consumer")) tools.add("marketplace_discovery");
+  if (profile.roles.includes("consumer")) tools.add("x402_specialist_call");
+  if (profile.roles.includes("attestor")) tools.add("receipt_review");
+  if (profile.roles.includes("attestor")) tools.add("evidence_checks");
+  if (capabilities.some((capability) => /document|evidence|classification|summarization/.test(capability))) tools.add("document_parser");
+  if (capabilities.some((capability) => /code|debug|test/.test(capability))) tools.add("code_review_workspace");
+  return [...tools];
+}
+
+function skillsFor(profile: SpecialistProfile, capabilities: string[]): string[] {
+  return [...new Set([...profile.tags, ...capabilities])];
+}
+
+function marketplaceAgentCallsFor(profile: SpecialistProfile): string[] {
+  return [...new Set(profile.preferredAttestors)];
+}
+
+function externalMcpServersFor(_profile: SpecialistProfile, capabilities: string[]): string[] {
+  const servers = new Set<string>();
+  if (capabilities.some((capability) => /document|evidence|classification|summarization/.test(capability))) {
+    servers.add("reddi.document-context-mcp");
+  }
+  if (capabilities.some((capability) => /code|debug|test/.test(capability))) {
+    servers.add("reddi.code-workspace-mcp");
+  }
+  return [...servers];
+}
+
+function nonMarketplaceAgentCallsFor(profile: SpecialistProfile, capabilities: string[]): string[] {
+  const calls = new Set<string>();
+  if (profile.model) calls.add(`openrouter:${profile.model}`);
+  if (capabilities.some((capability) => /document|evidence|classification|summarization/.test(capability))) {
+    calls.add("non-marketplace:document-parser");
+  }
+  if (capabilities.some((capability) => /code|debug|test/.test(capability))) {
+    calls.add("non-marketplace:static-analysis-worker");
+  }
+  return [...calls];
 }
 
 function mapTaskTypes(capabilities: string[]): CapabilityInput["taskTypes"] {

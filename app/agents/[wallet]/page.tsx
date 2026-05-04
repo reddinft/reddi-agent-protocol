@@ -26,6 +26,21 @@ function avatarGradient(seed: string) {
   return palette[index]
 }
 
+function ManifestList({ title, items, empty = "None declared." }: { title: string; items: string[]; empty?: string }) {
+  return (
+    <div>
+      <p className="text-xs uppercase tracking-wider text-gray-500">{title}</p>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {items.length > 0 ? items.map((item) => (
+          <Badge key={item} variant="outline" className="border-white/10 bg-white/5 text-gray-300">
+            {item}
+          </Badge>
+        )) : <p className="text-sm text-gray-400">{empty}</p>}
+      </div>
+    </div>
+  )
+}
+
 export default function SpecialistDetailPage() {
   const params = useParams<{ wallet: string }>()
   const wallet = decodeURIComponent(params.wallet)
@@ -54,6 +69,13 @@ export default function SpecialistDetailPage() {
   const privacyModes = listing?.capabilities?.privacyModes ?? []
   const contextRequirements = listing?.capabilities?.context_requirements ?? []
   const runtimeCaps = listing?.capabilities?.runtime_capabilities ?? []
+  const manifest = listing?.capabilities?.manifest
+  const composition = listing?.capabilities?.agent_composition
+  const manifestTools = manifest?.tools ?? composition?.tools ?? []
+  const manifestSkills = manifest?.skills ?? listing?.capabilities?.tags ?? []
+  const marketplaceAgentCalls = manifest?.marketplace_agent_calls ?? composition?.marketplace_agent_calls ?? []
+  const externalMcpServers = manifest?.external_mcp_servers ?? composition?.external_mcp_servers ?? []
+  const nonMarketplaceAgentCalls = manifest?.non_marketplace_agent_calls ?? composition?.non_marketplace_agent_calls ?? []
 
   const attestationHistory = useMemo(() => {
     if (!listing?.attestation.lastAttestedAt) return []
@@ -92,7 +114,7 @@ export default function SpecialistDetailPage() {
 
         <PageHeader
           label="Specialist profile"
-          title={listing.onchain.model || shortWallet(wallet)}
+          title={manifest?.displayName || listing.onchain.model || shortWallet(wallet)}
           subtitle={wallet}
         />
 
@@ -152,6 +174,19 @@ export default function SpecialistDetailPage() {
                 </div>
               </div>
 
+              <div className="rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-4">
+                <p className="section-label mb-2">Public agent manifest</p>
+                <p className="text-sm text-gray-300">
+                  {manifest?.description || "This specialist has not published a detailed manifest description yet."}
+                </p>
+                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                  <ManifestList title="Roles" items={manifest?.roles ?? []} />
+                  <ManifestList title="Tools" items={manifestTools} />
+                  <ManifestList title="Skills" items={manifestSkills} />
+                  <ManifestList title="Preferred attestors" items={manifest?.preferred_attestors ?? []} />
+                </div>
+              </div>
+
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <p className="text-xs uppercase tracking-wider text-gray-500">Runtime capabilities</p>
@@ -172,6 +207,18 @@ export default function SpecialistDetailPage() {
                       </div>
                     )) : <p className="text-sm text-gray-400">None declared.</p>}
                   </div>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
+                <p className="section-label mb-2">Downstream execution disclosure</p>
+                <p className="text-sm text-gray-300">
+                  {manifest?.disclosure_policy || "No explicit downstream disclosure policy has been published for this specialist."}
+                </p>
+                <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                  <ManifestList title="Marketplace agents it may call" items={marketplaceAgentCalls} empty="No marketplace-agent calls disclosed." />
+                  <ManifestList title="External MCP servers" items={externalMcpServers} empty="No external MCP servers disclosed." />
+                  <ManifestList title="Non-marketplace agents/services" items={nonMarketplaceAgentCalls} empty="No non-marketplace agents disclosed." />
                 </div>
               </div>
 

@@ -56,8 +56,25 @@ export type SpecialistListing = {
       llm?: string;
       control_loop?: string;
       tools?: string[];
+      skills?: string[];
       memory?: string[];
       goals?: string[];
+      external_mcp_servers?: string[];
+      marketplace_agent_calls?: string[];
+      non_marketplace_agent_calls?: string[];
+    };
+    manifest?: {
+      profileId?: string;
+      displayName?: string;
+      description?: string;
+      roles?: string[];
+      tools?: string[];
+      skills?: string[];
+      marketplace_agent_calls?: string[];
+      external_mcp_servers?: string[];
+      non_marketplace_agent_calls?: string[];
+      preferred_attestors?: string[];
+      disclosure_policy?: string;
     };
     quality_claims?: string[];
     attestor_checkpoints?: string[];
@@ -216,34 +233,7 @@ export async function fetchSpecialistListings(): Promise<{
       feedbackAvg: indexEntry?.routingSignals?.avgFeedbackScore ?? 0,
     });
 
-    const cap = indexEntry?.capabilities;
-    const capabilities = cap
-      ? {
-          taskTypes: normalizeArray<TaskTypeId>(cap.taskTypes),
-          inputModes: normalizeArray<InputModeId>(cap.inputModes),
-          outputModes: normalizeArray<OutputModeId>(cap.outputModes),
-          privacyModes: normalizeArray<PrivacyModeId>(cap.privacyModes),
-          tags: normalizeArray<string>(cap.tags ?? []),
-          baseUsd: typeof cap.pricing === "object" ? (cap.pricing?.baseUsd ?? 0) : 0,
-          perCallUsd: typeof cap.pricing === "object" ? (cap.pricing?.perCallUsd ?? 0) : 0,
-          context_requirements: Array.isArray(cap.context_requirements) ? cap.context_requirements : [],
-          runtime_capabilities: Array.isArray(cap.runtime_capabilities) ? normalizeArray<RuntimeCapability>(cap.runtime_capabilities) : [],
-          agent_composition: cap.agent_composition
-            ? {
-                llm: typeof cap.agent_composition.llm === "string" ? cap.agent_composition.llm : undefined,
-                control_loop:
-                  typeof cap.agent_composition.control_loop === "string"
-                    ? cap.agent_composition.control_loop
-                    : undefined,
-                tools: normalizeArray<string>(cap.agent_composition.tools ?? []),
-                memory: normalizeArray<string>(cap.agent_composition.memory ?? []),
-                goals: normalizeArray<string>(cap.agent_composition.goals ?? []),
-              }
-            : undefined,
-          quality_claims: normalizeArray<string>(cap.quality_claims ?? []),
-          attestor_checkpoints: normalizeArray<string>(cap.attestor_checkpoints ?? []),
-        }
-      : null;
+    const capabilities = normalizeCapabilities(indexEntry?.capabilities);
 
     const signals = indexEntry?.routingSignals ?? {
       feedbackCount: 0,
@@ -344,33 +334,7 @@ function buildFromIndexOnly(entry: SpecialistIndexEntry): SpecialistListing {
       active: true,
       attestationAccuracy: 0,
     },
-    capabilities: cap
-      ? {
-          taskTypes: normalizeArray(cap.taskTypes),
-          inputModes: normalizeArray(cap.inputModes),
-          outputModes: normalizeArray(cap.outputModes),
-          privacyModes: normalizeArray(cap.privacyModes),
-          tags: normalizeArray(cap.tags ?? []),
-          baseUsd: typeof cap.pricing === "object" ? (cap.pricing?.baseUsd ?? 0) : 0,
-          perCallUsd: typeof cap.pricing === "object" ? (cap.pricing?.perCallUsd ?? 0) : 0,
-          context_requirements: Array.isArray(cap.context_requirements) ? cap.context_requirements : [],
-          runtime_capabilities: Array.isArray(cap.runtime_capabilities) ? normalizeArray<RuntimeCapability>(cap.runtime_capabilities) : [],
-          agent_composition: cap.agent_composition
-            ? {
-                llm: typeof cap.agent_composition.llm === "string" ? cap.agent_composition.llm : undefined,
-                control_loop:
-                  typeof cap.agent_composition.control_loop === "string"
-                    ? cap.agent_composition.control_loop
-                    : undefined,
-                tools: normalizeArray<string>(cap.agent_composition.tools ?? []),
-                memory: normalizeArray<string>(cap.agent_composition.memory ?? []),
-                goals: normalizeArray<string>(cap.agent_composition.goals ?? []),
-              }
-            : undefined,
-          quality_claims: normalizeArray<string>(cap.quality_claims ?? []),
-          attestor_checkpoints: normalizeArray<string>(cap.attestor_checkpoints ?? []),
-        }
-      : null,
+    capabilities: normalizeCapabilities(cap),
     health: {
       status: entry.healthcheckStatus === "pass" ? "pass"
             : entry.healthcheckStatus === "fail" ? "fail"
@@ -394,5 +358,53 @@ function buildFromIndexOnly(entry: SpecialistIndexEntry): SpecialistListing {
       schemaVersion: entry.schema_version ?? 1,
       rankingFormulaVersion: entry.ranking_formula_version ?? 1,
     },
+  };
+}
+
+function normalizeCapabilities(cap: SpecialistIndexEntry["capabilities"] | undefined): SpecialistListing["capabilities"] {
+  if (!cap) return null;
+  return {
+    taskTypes: normalizeArray<TaskTypeId>(cap.taskTypes),
+    inputModes: normalizeArray<InputModeId>(cap.inputModes),
+    outputModes: normalizeArray<OutputModeId>(cap.outputModes),
+    privacyModes: normalizeArray<PrivacyModeId>(cap.privacyModes),
+    tags: normalizeArray<string>(cap.tags ?? []),
+    baseUsd: typeof cap.pricing === "object" ? (cap.pricing?.baseUsd ?? 0) : 0,
+    perCallUsd: typeof cap.pricing === "object" ? (cap.pricing?.perCallUsd ?? 0) : 0,
+    context_requirements: Array.isArray(cap.context_requirements) ? cap.context_requirements : [],
+    runtime_capabilities: Array.isArray(cap.runtime_capabilities) ? normalizeArray<RuntimeCapability>(cap.runtime_capabilities) : [],
+    agent_composition: cap.agent_composition
+      ? {
+          llm: typeof cap.agent_composition.llm === "string" ? cap.agent_composition.llm : undefined,
+          control_loop:
+            typeof cap.agent_composition.control_loop === "string"
+              ? cap.agent_composition.control_loop
+              : undefined,
+          tools: normalizeArray<string>(cap.agent_composition.tools ?? []),
+          skills: normalizeArray<string>(cap.agent_composition.skills ?? []),
+          memory: normalizeArray<string>(cap.agent_composition.memory ?? []),
+          goals: normalizeArray<string>(cap.agent_composition.goals ?? []),
+          external_mcp_servers: normalizeArray<string>(cap.agent_composition.external_mcp_servers ?? []),
+          marketplace_agent_calls: normalizeArray<string>(cap.agent_composition.marketplace_agent_calls ?? []),
+          non_marketplace_agent_calls: normalizeArray<string>(cap.agent_composition.non_marketplace_agent_calls ?? []),
+        }
+      : undefined,
+    manifest: cap.manifest
+      ? {
+          profileId: typeof cap.manifest.profileId === "string" ? cap.manifest.profileId : undefined,
+          displayName: typeof cap.manifest.displayName === "string" ? cap.manifest.displayName : undefined,
+          description: typeof cap.manifest.description === "string" ? cap.manifest.description : undefined,
+          roles: normalizeArray<string>(cap.manifest.roles ?? []),
+          tools: normalizeArray<string>(cap.manifest.tools ?? []),
+          skills: normalizeArray<string>(cap.manifest.skills ?? []),
+          marketplace_agent_calls: normalizeArray<string>(cap.manifest.marketplace_agent_calls ?? []),
+          external_mcp_servers: normalizeArray<string>(cap.manifest.external_mcp_servers ?? []),
+          non_marketplace_agent_calls: normalizeArray<string>(cap.manifest.non_marketplace_agent_calls ?? []),
+          preferred_attestors: normalizeArray<string>(cap.manifest.preferred_attestors ?? []),
+          disclosure_policy: typeof cap.manifest.disclosure_policy === "string" ? cap.manifest.disclosure_policy : undefined,
+        }
+      : undefined,
+    quality_claims: normalizeArray<string>(cap.quality_claims ?? []),
+    attestor_checkpoints: normalizeArray<string>(cap.attestor_checkpoints ?? []),
   };
 }

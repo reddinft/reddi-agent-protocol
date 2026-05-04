@@ -82,7 +82,7 @@ export default function AgentsPage() {
               <SpecialistCard
                 key={agent.walletAddress}
                 wallet={agent.walletAddress}
-                name={agent.onchain.model ? `${agent.onchain.model}` : agent.walletAddress.slice(0, 8)}
+                name={agent.capabilities?.manifest?.displayName || (agent.onchain.model ? `${agent.onchain.model}` : agent.walletAddress.slice(0, 8))}
                 model={agent.onchain.model || "Specialist endpoint"}
                 taskTypes={agent.capabilities?.taskTypes ?? []}
                 reputationScore={agent.onchain.reputationScore}
@@ -91,6 +91,11 @@ export default function AgentsPage() {
                 freshnessState={agent.health.freshnessState}
                 ratePerCall={Number(agent.onchain.rateLamports)}
                 progress={Math.min(100, Number(agent.onchain.jobsCompleted) * 10)}
+                tools={agent.capabilities?.manifest?.tools ?? agent.capabilities?.agent_composition?.tools ?? []}
+                skills={agent.capabilities?.manifest?.skills ?? agent.capabilities?.tags ?? []}
+                marketplaceAgentCalls={agent.capabilities?.manifest?.marketplace_agent_calls ?? agent.capabilities?.agent_composition?.marketplace_agent_calls ?? []}
+                externalMcpServers={agent.capabilities?.manifest?.external_mcp_servers ?? agent.capabilities?.agent_composition?.external_mcp_servers ?? []}
+                nonMarketplaceAgentCalls={agent.capabilities?.manifest?.non_marketplace_agent_calls ?? agent.capabilities?.agent_composition?.non_marketplace_agent_calls ?? []}
               />
             ))}
           </div>
