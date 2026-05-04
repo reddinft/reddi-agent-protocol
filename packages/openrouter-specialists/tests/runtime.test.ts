@@ -35,14 +35,59 @@ const config: RuntimeConfig = {
 
 const walletManifest = JSON.parse(readFileSync(join(process.cwd(), "public/wallet-manifest.json"), "utf8")) as WalletManifest;
 
-test("profile registry has first five unique valid profiles with required marketplace metadata", () => {
+test("profile registry has all 30 unique valid profiles with required marketplace metadata", () => {
   assert.deepEqual(validateProfileRegistry(), []);
-  assert.equal(specialistProfiles.length, 5);
+  assert.equal(specialistProfiles.length, 30);
   assert.deepEqual(
-    specialistProfiles.map((profile) => profile.id),
+    specialistProfiles.slice(0, 5).map((profile) => profile.id),
     ["planning-agent", "document-intelligence-agent", "verification-validation-agent", "code-generation-agent", "conversational-agent"],
   );
-  assert.ok(getProfile("verification-validation-agent")?.roles.includes("attestor"));
+  assert.deepEqual(
+    specialistProfiles.map((profile) => profile.id).sort(),
+    [
+      "agentic-workflow-system",
+      "audio-processing-agent",
+      "autonomous-decision-agent",
+      "code-generation-agent",
+      "collective-intelligence-agent",
+      "content-creation-agent",
+      "conversational-agent",
+      "data-analysis-agent",
+      "document-intelligence-agent",
+      "domain-transforming-integration-agent",
+      "education-intelligence-agent",
+      "embodied-intelligence-agent",
+      "ethical-reasoning-agent",
+      "explainable-agent",
+      "financial-advisory-agent",
+      "general-problem-solver-agent",
+      "healthcare-intelligence-agent",
+      "knowledge-retrieval-agent",
+      "legal-intelligence-agent",
+      "memory-augmented-agent",
+      "physical-world-sensing-agent",
+      "planning-agent",
+      "recommendation-agent",
+      "scientific-discovery-agent",
+      "scientific-research-agent",
+      "security-hardened-agent",
+      "self-improving-agent",
+      "tool-using-agent",
+      "verification-validation-agent",
+      "vision-language-agent",
+    ],
+  );
+  for (const attestorId of ["verification-validation-agent", "security-hardened-agent", "ethical-reasoning-agent", "explainable-agent"]) {
+    assert.ok(getProfile(attestorId)?.roles.includes("attestor"), `${attestorId} must be attestor-capable`);
+  }
+  const profileIds = new Set(specialistProfiles.map((profile) => profile.id));
+  const attestorIds = new Set(specialistProfiles.filter((profile) => profile.roles.includes("attestor")).map((profile) => profile.id));
+  for (const profile of specialistProfiles) {
+    for (const attestorId of profile.preferredAttestors) {
+      assert.ok(profileIds.has(attestorId), `${profile.id} references unknown attestor ${attestorId}`);
+      assert.ok(attestorIds.has(attestorId), `${profile.id} references non-attestor profile ${attestorId}`);
+    }
+  }
 });
 
 test("OpenRouter mock mode is explicit opt-in only", () => {
