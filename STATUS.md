@@ -1,20 +1,20 @@
 # Reddi Agent Protocol Code — STATUS
 
 **Last updated:** 2026-05-05 AEST
-**State:** 🟢 PR #207 merged — Phase 1 disclosure-ledger evidence summary live on `main`; post-merge Anchor CI green.
+**State:** 🟢 Phase 2 `/economic-demo` disclosure-ledger UI implemented locally; ready for PR.
 
 ## RESUME FROM HERE
 
-1. Start Phase 2: `/economic-demo` should consume/display `disclosureLedgerSummary` rather than re-parsing raw edge ledgers.
-2. Validate with targeted helper/UI tests, targeted ESLint, and `npm run build`; complete Phase 2 retrospective before expanding scope.
+1. Open/merge Phase 2 branch `feature/economic-demo-disclosure-ledger-ui-20260505`: `/economic-demo` consumes and displays `disclosureLedgerSummary`.
+2. After Phase 2 lands, choose the next safe loop: wire latest generated evidence-pack summaries into UI data, or continue Phase 3 local manifest parity.
 3. External Coolify redeploy remains explicit-operator-only.
 
 ## Current Branch / Repo State
 
-- Local branch: `main`
-- Local working tree: clean after PR #207 merge.
-- Latest merge on main: `aefe7286 feat: summarize disclosure ledgers in evidence packs (#207)`.
-- PR #207: merged 2026-05-05 AEST; post-merge Anchor run `25346911473` passed.
+- Local branch: `feature/economic-demo-disclosure-ledger-ui-20260505`
+- Local working tree: Phase 2 UI changes in progress.
+- Latest merge on main: `93d146e6 docs: update status after phase 1 merge (#208)`.
+- PR #208: merged 2026-05-05 AEST; post-merge Anchor run `25347593058` passed.
 
 
 ## Current Follow-up PR — #203
@@ -87,6 +87,13 @@ Validation for Phase 1 PR #207:
 - PR checks passed: Vercel Preview Comments, Vercel deployment, Anchor runs `25346592595` / `25346594990`.
 - Post-merge `main` Anchor run `25346911473`, job `74317799175` — PASS, 7m46s.
 
+Validation for Phase 2 disclosure-ledger UI:
+
+- `npx jest --runTestsByPath lib/__tests__/economic-demo-webpage-live-workflow-evidence.test.ts --runInBand` — PASS, 2/2.
+- Targeted ESLint for `app/economic-demo/page.tsx`, `lib/economic-demo/webpage-live-workflow-evidence.ts`, and the focused test — PASS.
+- `npm run build` — PASS.
+- `git diff --check` — PASS.
+
 ## Retrospective — Phase 6.5 Slice A
 
 ### What worked
@@ -116,6 +123,8 @@ Do not proceed as a waterfall into research/picture live workflows until the dis
 - 2026-05-05: BDD iterative plan for the agentic marketplace work must use explicit phase retrospectives before expanding scope: plan/BDD lock → artifact ledger summary → UI ledger display → manifest parity → hosted redeploy smoke → research → picture.
 
 - 2026-05-05: Evidence packs should expose a compact disclosure-ledger summary for judges/UI consumers instead of requiring raw edge JSON archaeology.
+
+- 2026-05-05: `/economic-demo` must render the normalized `disclosureLedgerSummary` and visibly mark historical pre-ledger artifacts as not evidence-complete.
 
 ## Blockers / Watch Items
 

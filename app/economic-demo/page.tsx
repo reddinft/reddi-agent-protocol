@@ -12,7 +12,10 @@ import type { EconomicDemoBalanceReport } from "@/lib/economic-demo/balances";
 import type { DryRunEconomicPlan } from "@/lib/economic-demo/dry-run";
 import type { SurfpoolRehearsalReport } from "@/lib/economic-demo/surfpool-rehearsal";
 import type { EconomicDemoPaymentReadiness } from "@/lib/economic-demo/payment-readiness";
-import type { WebpageLiveWorkflowEvidence } from "@/lib/economic-demo/webpage-live-workflow-evidence";
+import {
+  getDisclosureLedgerEvidenceStatus,
+  type WebpageLiveWorkflowEvidence,
+} from "@/lib/economic-demo/webpage-live-workflow-evidence";
 import type { EconomicDemoLedgerReconciliation } from "@/lib/economic-demo/ledger-reconciliation";
 import type { ResearchWorkflowDesign } from "@/lib/economic-demo/research-workflow-design";
 
@@ -51,6 +54,9 @@ export default function EconomicDemoPage() {
   const activeDryRunPlan = dryRunPlan?.scenarioId === scenario.id ? dryRunPlan : null;
   const activeBalanceReport = balanceReport?.scenarioId === scenario.id ? balanceReport : null;
   const activeSurfpoolReport = surfpoolReport?.scenarioId === scenario.id ? surfpoolReport : null;
+  const webpageDisclosureStatus = webpageLiveEvidence
+    ? getDisclosureLedgerEvidenceStatus(webpageLiveEvidence.disclosureLedgerSummary)
+    : null;
 
   async function loadDryRunPlan() {
     setDryRunStatus("loading");
@@ -555,7 +561,7 @@ export default function EconomicDemoPage() {
                 </div>
               )}
 
-              {webpageLiveEvidence && (
+              {webpageLiveEvidence && webpageDisclosureStatus && (
                 <div className="mt-6 rounded-xl border border-[#14F195]/30 bg-[#14F195]/10 p-4">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
@@ -578,6 +584,45 @@ export default function EconomicDemoPage() {
                     <div className="rounded-lg border border-white/10 bg-black/20 p-3">
                       <p className="text-xs text-gray-500">receipt mode</p>
                       <p className="mt-1 text-sm text-yellow-100">controlled demo receipts</p>
+                    </div>
+                  </div>
+                  <div className={webpageDisclosureStatus.isComplete ? "mt-4 rounded-lg border border-[#14F195]/30 bg-black/20 p-3" : "mt-4 rounded-lg border border-yellow-400/40 bg-yellow-400/10 p-3"}>
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className={webpageDisclosureStatus.isComplete ? "text-xs uppercase tracking-wide text-[#14F195]" : "text-xs uppercase tracking-wide text-yellow-100"}>
+                          Downstream disclosure ledger
+                        </p>
+                        <p className="mt-1 text-sm leading-6 text-gray-200">{webpageDisclosureStatus.detail}</p>
+                      </div>
+                      <span className={webpageDisclosureStatus.isComplete ? "rounded-full border border-[#14F195]/30 px-2 py-0.5 text-xs text-[#14F195]" : "rounded-full border border-yellow-400/40 px-2 py-0.5 text-xs text-yellow-100"}>
+                        {webpageDisclosureStatus.label}
+                      </span>
+                    </div>
+                    <div className="mt-3 grid gap-3 md:grid-cols-2">
+                      {webpageLiveEvidence.disclosureLedgerSummary.edges.map((edge) => (
+                        <div key={edge.profileId} className="rounded-lg border border-white/10 bg-black/20 p-3">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <p className="font-mono text-sm text-white">{edge.step}. {edge.profileId}</p>
+                            <span className="rounded-full border border-white/10 px-2 py-0.5 text-xs text-gray-300">{edge.disclosureScope}</span>
+                          </div>
+                          <p className="mt-1 text-xs text-gray-400">ledger entries: {edge.entryCount}</p>
+                          {edge.entries.length === 0 ? (
+                            <p className="mt-2 text-xs leading-5 text-yellow-100/90">No downstream disclosure entries available for this edge in the current evidence summary.</p>
+                          ) : (
+                            <div className="mt-2 space-y-2">
+                              {edge.entries.map((entry) => (
+                                <div key={`${edge.profileId}-${entry.calledProfileId}-${entry.endpoint ?? "none"}`} className="rounded border border-white/10 bg-black/30 p-2 text-xs text-gray-300">
+                                  <p className="font-mono text-white">called: {entry.calledProfileId}</p>
+                                  <p className="mt-1">wallet: {entry.walletAddress ? shortWallet(entry.walletAddress) : "not disclosed"}</p>
+                                  <p className="mt-1">endpoint: {entry.endpoint ?? "not disclosed"}</p>
+                                  <p className="mt-1">payload: {entry.payloadSummary || (entry.payloadHashPresent ? "hash present" : "not disclosed")}</p>
+                                  <p className="mt-1 text-yellow-100">x402: {entry.x402.state} · challenge={String(entry.x402.challengePresent)} · receipt={String(entry.x402.receiptPresent)}</p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   </div>
                   <div className="mt-4 space-y-3">
