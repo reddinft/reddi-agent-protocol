@@ -462,3 +462,34 @@ Proceed to Phase 7C: ledger reconciliation. It should total the x402 challenge a
 - Evidence packs are generated artifacts, not committed source truth.
 - Secret scan is mandatory for every public evidence pack.
 - Next UI work should reconcile challenge amounts and receipt mode before expanding to research/picture workflows.
+
+## Phase 7C implementation reflection — ledger reconciliation
+
+**Date:** 2026-05-04 AEST
+**Scope shipped:** Added ledger reconciliation helper, API route, unit test, and `/economic-demo` panel that bridges controlled x402 receipts to Surfpool/local transfer semantics.
+**BDD scenarios touched:** Judge can distinguish x402 challenge/payment evidence, controlled demo receipt completion, local transfer-semantics proof, and not-yet-implemented real devnet receipt verification.
+**Validation:** `npx jest --runTestsByPath lib/__tests__/economic-demo-ledger-reconciliation.test.ts lib/__tests__/economic-demo-webpage-live-workflow-evidence.test.ts`; targeted lint; `npm run build`.
+**Result:** PASS.
+**Evidence artifacts:** `lib/economic-demo/ledger-reconciliation.ts`, `app/api/economic-demo/ledger-reconciliation/route.ts`, `lib/__tests__/economic-demo-ledger-reconciliation.test.ts`, `/economic-demo` ledger reconciliation panel.
+
+### What worked
+
+The UI now states the money-flow story honestly: x402 challenges total `0.13 USDC`, controlled demo receipts satisfied 4/4 completions, real settlements verified remain 0, and Surfpool/local proof covers 3,500,000 lamports of transfer semantics. This makes the difference between challenge/payment gating and production settlement explicit instead of hand-wavy.
+
+### What failed or surprised us
+
+The live x402 challenge amounts are denominated as USDC while Surfpool local rehearsal uses SOL lamports for transfer semantics. The reconciliation has to show them as separate proof layers rather than pretending they are the same unit.
+
+### Drift check
+
+This improves money-flow honesty and judge clarity without live calls, signing, or devnet transfer from the UI. It still does not implement real devnet receipt verification.
+
+### Next phase adjustment
+
+Now that webpage proof is judge-readable and financially reconciled, choose between: (A) research workflow expansion using the same controlled-demo pattern, or (B) real devnet receipt verifier design. Recommendation: do Phase 8A research workflow design next for breadth, unless judging feedback demands production settlement semantics first.
+
+### Decision log additions
+
+- Never equate Surfpool SOL transfer semantics with live USDC challenge settlement; show them as separate proof layers.
+- Controlled demo receipt count and real settlement verified count must both be visible.
+- Phase 8A should reuse the reconciliation pattern for research if we expand breadth.
