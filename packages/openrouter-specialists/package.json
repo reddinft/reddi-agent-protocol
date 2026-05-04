@@ -21,7 +21,8 @@
     "wallet:airdrop-devnet": "npm run build && node scripts/airdrop-devnet-wallets.mjs",
     "wallet:register-devnet": "npm run build && node scripts/register-devnet-specialists.mjs",
     "check:devnet-balances": "node scripts/check-devnet-balances.mjs",
-    "deployment:readiness": "npm run build && node scripts/deployment-readiness.mjs"
+    "deployment:readiness": "npm run build && node scripts/deployment-readiness.mjs",
+    "delegation:noop-smoke": "npm run build && node scripts/live-noop-smoke.mjs"
   },
   "engines": {
     "node": ">=20"
