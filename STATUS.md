@@ -1,14 +1,12 @@
 # Reddi Agent Protocol Code — STATUS
 
 **Last updated:** 2026-05-05 AEST
-**State:** 🟢 PR #202 merged — agentic workflow disclosure contract on `main`; post-merge Anchor CI still in progress at last check.
+**State:** 🟢 PR #202 merged and post-merge Anchor CI green; PR #203 opened for disclosure-ledger evidence tooling.
 
 ## RESUME FROM HERE
 
-1. Check post-merge `main` run `25343819366` until complete:
-   - `cd /Users/loki/.openclaw/workspace/projects/reddi-agent-protocol-code`
-   - `gh run view 25343819366 --json status,conclusion,jobs`
-2. If green, continue the next safe Phase 6.5 follow-up slice:
+1. Watch PR #203 checks and merge if green: https://github.com/nissan/reddi-agent-protocol/pull/203
+2. Continue the next Phase 6.5 follow-up slice:
    - Preferred safe/local slice: update the live workflow smoke/evidence pack to assert and display `reddi.downstream-disclosure-ledger.v1` entries.
    - External-infra slice, only with explicit operator intent: redeploy/smoke all 30 hosted Coolify specialists so public `/.well-known/reddi-agent.json` endpoints expose `agenticWorkflowDisclosure`.
 3. Keep the agile loop active: BDD expectation → scoped implementation → validation → evidence artifact → retrospective → plan refinement → STATUS update.
@@ -19,6 +17,24 @@
 - Local working tree: clean at last check after PR #202 merge.
 - Latest merge: `95ab928b feat: add agentic workflow disclosure contract (#202)`.
 - PR #202: merged 2026-05-05 AEST.
+
+
+## Current Follow-up PR — #203
+
+**Disclosure-ledger evidence tooling**
+
+PR #203 makes the retrospective requirement executable in future evidence:
+
+- Guarded webpage live x402 workflow smoke now requires `reddi.downstream-disclosure-ledger.v1` in every paid response.
+- Future live workflow artifacts include `disclosureContract` and per-edge ledger summaries.
+- Judge evidence pack generation rejects source artifacts missing all-edge disclosure-ledger evidence.
+- Historical 2026-05-04 artifacts are intentionally no longer sufficient as post-PR #202 judge evidence.
+
+Validation before PR:
+
+- `node --check` on both scripts — PASS
+- targeted ESLint for both scripts — PASS
+- `git diff --check` — PASS
 
 ## Latest Shipped Slice — PR #202
 
@@ -76,6 +92,6 @@ Do not proceed as a waterfall into research/picture live workflows until the dis
 
 ## Blockers / Watch Items
 
-- Post-merge Anchor CI run `25343819366` still in progress at last check.
+- PR #203 checks pending at last update.
 - Hosted specialist manifests need redeploy/smoke before public endpoints expose `agenticWorkflowDisclosure`.
 - External Coolify redeploy is an infra mutation; avoid doing it silently unless the current instruction clearly authorizes it.
