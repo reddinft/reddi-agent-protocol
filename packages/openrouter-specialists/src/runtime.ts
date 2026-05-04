@@ -11,7 +11,7 @@ import {
 import { buildAttestationPromptEnvelope, evaluateAttestation, normalizeAttestationRequest } from "./attestation.js";
 import { buildLiveDelegationAuditEnvelope } from "./delegation-audit.js";
 import { evaluateDelegationBudget } from "./delegation-budget.js";
-import { NoopLiveDelegationExecutor } from "./delegation-executor.js";
+import { buildDisabledLiveDelegationExecutorEvidence, NoopLiveDelegationExecutor, type LiveDelegationExecutor } from "./delegation-executor.js";
 import { buildLiveDelegationIntentPlan } from "./delegation-intent.js";
 import { buildDryRunDelegationPlan, inferRequiredCapabilities } from "./marketplace-client.js";
 import { getProfile, specialistProfiles, validateProfileRegistry } from "./profiles/index.js";
@@ -31,6 +31,7 @@ export function createRuntimeConfig(env: NodeJS.ProcessEnv = process.env): Runti
     requirePayment: env.REQUIRE_X402_PAYMENT !== "false",
     allowDemoPayment: env.ALLOW_DEMO_X402_PAYMENT === "1" || env.ALLOW_DEMO_X402_PAYMENT === "true",
     enableAgentToAgentCalls: env.ENABLE_AGENT_TO_AGENT_CALLS === "1" || env.ENABLE_AGENT_TO_AGENT_CALLS === "true",
+    enableLiveDelegationExecutor: env.ENABLE_LIVE_DELEGATION_EXECUTOR === "1" || env.ENABLE_LIVE_DELEGATION_EXECUTOR === "true",
     maxDownstreamCalls: env.MAX_DOWNSTREAM_CALLS ? Number.parseInt(env.MAX_DOWNSTREAM_CALLS, 10) : 0,
     maxDownstreamLamports: env.MAX_DOWNSTREAM_LAMPORTS ? Number.parseInt(env.MAX_DOWNSTREAM_LAMPORTS, 10) : 0,
   };
@@ -171,6 +172,7 @@ export async function handleDelegationPlanning(input: {
   body: ChatCompletionRequest;
   config: RuntimeConfig;
   replayStore?: NonceReplayStore;
+  liveDelegationExecutor?: LiveDelegationExecutor;
 }): Promise<RuntimeResponse> {
   const profile = getProfile(input.config.profileId);
   if (!profile) return { status: 500, headers: JSON_HEADERS, body: { error: { code: "unknown_profile" } } };
@@ -262,7 +264,9 @@ export async function handleDelegationPlanning(input: {
       maxDownstreamLamports: input.config.maxDownstreamLamports ?? 0,
     });
     const auditEnvelope = buildLiveDelegationAuditEnvelope(intentPlan);
-    const executorEvidence = await new NoopLiveDelegationExecutor().execute({ intentPlan, auditEnvelope });
+    const executorEvidence = input.config.enableLiveDelegationExecutor
+      ? await (input.liveDelegationExecutor ?? new NoopLiveDelegationExecutor()).execute({ intentPlan, auditEnvelope })
+      : buildDisabledLiveDelegationExecutorEvidence({ intentPlan, auditEnvelope });
 
     return {
       status: 501,

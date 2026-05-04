@@ -13,11 +13,14 @@ import {
   evaluateAttestation,
   handleAttestationEvaluation,
   handleChatCompletions,
+  handleDelegationPlanning,
   handleRuntimeRequest,
   marketplaceMetadata,
   ManifestMarketplaceDiscoveryClient,
   rankMarketplaceCandidates,
   type WalletManifest,
+  type LiveDelegationExecutor,
+  type LiveDelegationExecutorInput,
   type RuntimeConfig,
 } from "../src/index.js";
 
@@ -46,7 +49,9 @@ test("OpenRouter mock mode is explicit opt-in only", () => {
   assert.equal(createRuntimeConfig({}).mockOpenRouter, false);
   assert.equal(createRuntimeConfig({ OPENROUTER_MOCK: "true" }).mockOpenRouter, true);
   assert.equal(createRuntimeConfig({}).enableAgentToAgentCalls, false);
+  assert.equal(createRuntimeConfig({}).enableLiveDelegationExecutor, false);
   assert.equal(createRuntimeConfig({ ENABLE_AGENT_TO_AGENT_CALLS: "true", MAX_DOWNSTREAM_CALLS: "2", MAX_DOWNSTREAM_LAMPORTS: "5000" }).enableAgentToAgentCalls, true);
+  assert.equal(createRuntimeConfig({ ENABLE_LIVE_DELEGATION_EXECUTOR: "true" }).enableLiveDelegationExecutor, true);
   assert.equal(createRuntimeConfig({ ENABLE_AGENT_TO_AGENT_CALLS: "true", MAX_DOWNSTREAM_CALLS: "2", MAX_DOWNSTREAM_LAMPORTS: "5000" }).maxDownstreamCalls, 2);
 });
 
@@ -484,7 +489,7 @@ test("live delegation mode fails closed before any downstream paid call executor
   assert.equal(auditEnvelope.canonicalJson, canonicalJson(JSON.parse(auditEnvelope.canonicalJson)));
   const executorEvidence = (response.body.reddi as { executorEvidence: { schemaVersion: string; executorId: string; executionStatus: string; auditEnvelopeHash: string; downstreamCallsExecuted: number; guardrails: { noNetworkCallAttempted: boolean; noSignerMaterialUsed: boolean; noSignatureAttempted: boolean; noExternalPersistence: boolean; noDevnetTransferExecuted: boolean; noDownstreamX402Executed: boolean } } }).executorEvidence;
   assert.equal(executorEvidence.schemaVersion, "reddi.live-delegation-executor-evidence.v1");
-  assert.equal(executorEvidence.executorId, "noop-live-delegation-executor");
+  assert.equal(executorEvidence.executorId, "disabled-live-delegation-executor-gate");
   assert.equal(executorEvidence.executionStatus, "not_executed");
   assert.equal(executorEvidence.auditEnvelopeHash, auditEnvelope.envelopeHash);
   assert.equal(executorEvidence.downstreamCallsExecuted, 0);
@@ -539,6 +544,87 @@ test("live delegation mode fails closed before any downstream paid call executor
   assert.equal(client.callCount, 0);
   assert.equal((liveOverBudget.body.error as { code: string }).code, "request_budget_exceeded");
   assert.equal((liveOverBudget.body.reddi as { downstreamCallsExecuted: number }).downstreamCallsExecuted, 0);
+});
+
+test("live delegation executor gate controls invocation and remains fail-closed", async () => {
+  const budgetPolicy = {
+    maxLamportsPerRequest: 1_000,
+    maxLamportsPerSession: 5_000,
+    maxLamportsPerAgent: 10_000,
+    maxDownstreamCallsPerSession: 2,
+  };
+  let executorCalls = 0;
+  const trackingExecutor: LiveDelegationExecutor = {
+    async execute(input: LiveDelegationExecutorInput) {
+      executorCalls += 1;
+      return {
+        schemaVersion: "reddi.live-delegation-executor-evidence.v1",
+        executorId: "noop-live-delegation-executor",
+        executionStatus: "not_executed",
+        reason: "executor_not_implemented",
+        message: "tracking no-op executor was invoked",
+        intentId: input.intentPlan.intentId,
+        auditEnvelopeHash: input.auditEnvelope.envelopeHash,
+        downstreamCallsExecuted: 0,
+        guardrails: {
+          noNetworkCallAttempted: true,
+          noSignerMaterialUsed: true,
+          noSignatureAttempted: true,
+          noExternalPersistence: true,
+          noDevnetTransferExecuted: true,
+          noDownstreamX402Executed: true,
+        },
+      };
+    },
+  };
+
+  const disabledGate = await handleDelegationPlanning({
+    headers: new Headers({ "x402-payment": "demo:delegation-executor-gate-disabled" }),
+    body: {
+      messages: [{ role: "user", content: "Hire a code agent for this task." }],
+      metadata: { mode: "delegation_live", delegation: { dryRun: false, requiredCapabilities: ["code-generation"], estimatedLamports: 500, budgetPolicy } },
+    },
+    config: { ...config, allowDemoPayment: true, enableAgentToAgentCalls: true, enableLiveDelegationExecutor: false, maxDownstreamCalls: 1, maxDownstreamLamports: 1000 },
+    liveDelegationExecutor: trackingExecutor,
+  });
+  assert.equal(disabledGate.status, 501);
+  assert.equal(executorCalls, 0);
+  const disabledEvidence = (disabledGate.body.reddi as { executorEvidence: { executorId: string; reason: string; downstreamCallsExecuted: number } }).executorEvidence;
+  assert.equal(disabledEvidence.executorId, "disabled-live-delegation-executor-gate");
+  assert.equal(disabledEvidence.reason, "executor_disabled");
+  assert.equal(disabledEvidence.downstreamCallsExecuted, 0);
+
+  const enabledNoop = await handleDelegationPlanning({
+    headers: new Headers({ "x402-payment": "demo:delegation-executor-gate-enabled" }),
+    body: {
+      messages: [{ role: "user", content: "Hire a code agent for this task." }],
+      metadata: { mode: "delegation_live", delegation: { dryRun: false, requiredCapabilities: ["code-generation"], estimatedLamports: 500, budgetPolicy } },
+    },
+    config: { ...config, allowDemoPayment: true, enableAgentToAgentCalls: true, enableLiveDelegationExecutor: true, maxDownstreamCalls: 1, maxDownstreamLamports: 1000 },
+    liveDelegationExecutor: trackingExecutor,
+  });
+  assert.equal(enabledNoop.status, 501);
+  assert.equal(executorCalls, 1);
+  const enabledEvidence = (enabledNoop.body.reddi as { executorEvidence: { executorId: string; reason: string; executionStatus: string; downstreamCallsExecuted: number } }).executorEvidence;
+  assert.equal(enabledEvidence.executorId, "noop-live-delegation-executor");
+  assert.equal(enabledEvidence.reason, "executor_not_implemented");
+  assert.equal(enabledEvidence.executionStatus, "not_executed");
+  assert.equal(enabledEvidence.downstreamCallsExecuted, 0);
+
+  const denied = await handleDelegationPlanning({
+    headers: new Headers({ "x402-payment": "demo:delegation-executor-gate-denied" }),
+    body: {
+      messages: [{ role: "user", content: "Hire a code agent for this task." }],
+      metadata: { mode: "delegation_live", delegation: { dryRun: false, requiredCapabilities: ["code-generation"], estimatedLamports: 2_000, budgetPolicy } },
+    },
+    config: { ...config, allowDemoPayment: true, enableAgentToAgentCalls: true, enableLiveDelegationExecutor: true, maxDownstreamCalls: 1, maxDownstreamLamports: 1000 },
+    liveDelegationExecutor: trackingExecutor,
+  });
+  assert.equal(denied.status, 403);
+  assert.equal(executorCalls, 1);
+  assert.equal((denied.body.reddi as { intentPlan?: unknown; auditEnvelope?: unknown; executorEvidence?: unknown }).intentPlan, undefined);
+  assert.equal((denied.body.reddi as { auditEnvelope?: unknown }).auditEnvelope, undefined);
+  assert.equal((denied.body.reddi as { executorEvidence?: unknown }).executorEvidence, undefined);
 });
 
 test("HTTP core routes expose health, models, tags, metadata, attestation, and chat", async () => {

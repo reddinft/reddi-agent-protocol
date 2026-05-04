@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { buildLiveDelegationAuditEnvelope } from "../src/delegation-audit.js";
-import { buildNoopLiveDelegationExecutorEvidence, NoopLiveDelegationExecutor } from "../src/delegation-executor.js";
+import { buildDisabledLiveDelegationExecutorEvidence, buildNoopLiveDelegationExecutorEvidence, NoopLiveDelegationExecutor } from "../src/delegation-executor.js";
 import type { LiveDelegationIntentPlan } from "../src/delegation-intent.js";
 
 const intentPlan: LiveDelegationIntentPlan = {
@@ -47,6 +47,24 @@ const intentPlan: LiveDelegationIntentPlan = {
 };
 
 const auditEnvelope = buildLiveDelegationAuditEnvelope(intentPlan);
+
+test("disabled live delegation executor evidence is non-executing and local-only", () => {
+  const evidence = buildDisabledLiveDelegationExecutorEvidence({ intentPlan, auditEnvelope });
+
+  assert.equal(evidence.schemaVersion, "reddi.live-delegation-executor-evidence.v1");
+  assert.equal(evidence.executorId, "disabled-live-delegation-executor-gate");
+  assert.equal(evidence.executionStatus, "not_executed");
+  assert.equal(evidence.reason, "executor_disabled");
+  assert.equal(evidence.intentId, intentPlan.intentId);
+  assert.equal(evidence.auditEnvelopeHash, auditEnvelope.envelopeHash);
+  assert.equal(evidence.downstreamCallsExecuted, 0);
+  assert.equal(evidence.guardrails.noNetworkCallAttempted, true);
+  assert.equal(evidence.guardrails.noSignerMaterialUsed, true);
+  assert.equal(evidence.guardrails.noSignatureAttempted, true);
+  assert.equal(evidence.guardrails.noExternalPersistence, true);
+  assert.equal(evidence.guardrails.noDevnetTransferExecuted, true);
+  assert.equal(evidence.guardrails.noDownstreamX402Executed, true);
+});
 
 test("no-op live delegation executor evidence is non-executing and local-only", () => {
   const evidence = buildNoopLiveDelegationExecutorEvidence({ intentPlan, auditEnvelope });
