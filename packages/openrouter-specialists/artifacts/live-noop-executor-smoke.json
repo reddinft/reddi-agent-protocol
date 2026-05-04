@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "reddi.live-noop-executor-smoke.v1",
+  "generatedAt": "2026-05-04T00:00:00.000Z",
+  "status": "pass",
+  "scope": "local controlled smoke for enabled no-op live delegation executor path",
+  "guardrails": {
+    "localRuntimeFixturesOnly": true,
+    "noRealExecutorImplementation": true,
+    "noNetworkCallsIntroduced": true,
+    "noSignerMaterialAccessed": true,
+    "noSignatureOperation": true,
+    "noExternalPersistenceExceptLocalArtifact": true,
+    "noCoolifyChanges": true,
+    "noDevnetTransferOrRegistration": true,
+    "noLiveDownstreamX402OrOpenRouterCall": true
+  },
+  "configProof": {
+    "enableAgentToAgentCalls": true,
+    "enableLiveDelegationExecutor": true,
+    "mockOpenRouter": true,
+    "maxDownstreamCalls": 1,
+    "maxDownstreamLamports": 1000
+  },
+  "cases": {
+    "validBudgetEnabledNoop": {
+      "status": 501,
+      "errorCode": "live_delegation_not_implemented",
+      "profileId": "planning-agent",
+      "liveCallsEnabled": true,
+      "downstreamCallsExecuted": 0,
+      "budgetAllowed": true,
+      "intent": {
+        "schemaVersion": "reddi.live-delegation-intent.v1",
+        "intentId": "intent_f7e1cb143f459640ce8ce017",
+        "executionStatus": "not_executed",
+        "selectedCandidateProfileId": "code-generation-agent",
+        "downstreamCallsExecuted": 0,
+        "noDevnetTransferExecuted": true,
+        "noDownstreamX402Executed": true
+      },
+      "auditEnvelope": {
+        "schemaVersion": "reddi.live-delegation-audit-envelope.v1",
+        "hashAlgorithm": "sha256",
+        "envelopeHash": "sha256:1af0ba9fd0ba716ef55d3e66f9ee8326600adb28ca5c9804e4796e4d5c0f09f7",
+        "signatureStatus": "unsigned",
+        "persistenceStatus": "not_persisted",
+        "executionStatus": "not_executed"
+      },
+      "executorEvidence": {
+        "schemaVersion": "reddi.live-delegation-executor-evidence.v1",
+        "executorId": "noop-live-delegation-executor",
+        "executionStatus": "not_executed",
+        "reason": "executor_not_implemented",
+        "downstreamCallsExecuted": 0,
+        "guardrails": {
+          "noNetworkCallAttempted": true,
+          "noSignerMaterialUsed": true,
+          "noSignatureAttempted": true,
+          "noExternalPersistence": true,
+          "noDevnetTransferExecuted": true,
+          "noDownstreamX402Executed": true
+        }
+      }
+    },
+    "budgetDenied": {
+      "status": 403,
+      "errorCode": "request_budget_exceeded",
+      "profileId": "planning-agent",
+      "liveCallsEnabled": true,
+      "downstreamCallsExecuted": 0
+    }
+  }
+}
