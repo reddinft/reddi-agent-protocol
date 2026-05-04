@@ -10,3 +10,4 @@ export * from "./delegation-audit.js";
 export * from "./delegation-executor.js";
 export * from "./runtime.js";
 export * from "./wallet-readiness.js";
+export * from "./wallet-rotation-plan.js";
