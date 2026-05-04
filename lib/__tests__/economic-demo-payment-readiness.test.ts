@@ -1,11 +1,11 @@
 import { getEconomicDemoPaymentReadiness } from "@/lib/economic-demo/payment-readiness";
 
 describe("economic demo payment readiness", () => {
-  it("records the current paid-completion blocker without triggering live retries", () => {
+  it("records the controlled paid-completion success without triggering live retries", () => {
     const readiness = getEconomicDemoPaymentReadiness();
 
-    expect(readiness.status).toBe("blocked");
-    expect(readiness.blocker).toBe("demo_payment_disabled");
+    expect(readiness.status).toBe("ready");
+    expect(readiness.blocker).toBeUndefined();
     expect(readiness.liveChallenge).toMatchObject({
       reachable: true,
       network: "solana-devnet",
@@ -15,9 +15,9 @@ describe("economic demo payment readiness", () => {
       nonceObserved: true,
     });
     expect(readiness.paidCompletion).toMatchObject({
-      reached: false,
-      lastAttemptStatus: 402,
-      lastAttemptErrorCode: "demo_payment_disabled",
+      reached: true,
+      lastAttemptStatus: 200,
+      paymentSatisfied: true,
     });
     expect(readiness.guardrails).toMatchObject({
       noAutomaticLiveRetry: true,
@@ -25,5 +25,6 @@ describe("economic demo payment readiness", () => {
       noDevnetTransferFromProbe: true,
       maxProbeCalls: 2,
     });
+    expect(readiness.evidence.localArtifactPath).toContain("20260504T085951Z");
   });
 });
