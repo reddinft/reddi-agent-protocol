@@ -585,3 +585,32 @@ Next slice should either redeploy/smoke all 30 hosted manifests for public discl
 - `reddi.downstream-disclosure-ledger.v1` is the response contract for downstream delegation disclosure.
 - Ordinary completions and attestations return an explicit `no_downstream_calls` ledger.
 - Live-delegation responses must include disclosure ledger evidence alongside intent, audit, and executor evidence.
+
+## Phase 6.5 implementation reflection — disclosure-ledger evidence tooling slice B
+
+**Date:** 2026-05-05 AEST
+**Scope shipped:** Updated the guarded webpage live x402 workflow smoke so future reruns require `reddi.downstream-disclosure-ledger.v1` in each paid response, summarize the ledgers in the artifact, and mark `disclosureLedgerRequired` in guardrails. Updated the judge evidence pack generator to reject source artifacts that lack all-edge disclosure-ledger evidence.
+**BDD scenarios touched:** Downstream calls return transparent disclosure without exposing proprietary value-add; multi-edge demo returns output and economic impact.
+**Validation:** `node --check` for both scripts; targeted ESLint; `git diff --check`.
+**Result:** PASS for local/static validation. Live smoke intentionally not rerun because hosted specialists must be redeployed before their public runtime exposes the new disclosure fields.
+
+### What worked
+
+The plan adjustment is now enforced in tooling: future live workflow artifacts cannot silently pass while missing downstream-disclosure ledgers. This preserves the value of the interactive retrospective by making the new disclosure requirement an executable gate.
+
+### What failed or surprised us
+
+The historical 2026-05-04 live evidence artifact predates PR #202, so the updated evidence pack generator will reject it. That is correct; the next valid pack must be generated from a post-redeploy smoke where hosted specialists return disclosure ledgers.
+
+### Drift check
+
+This prevents drift back into a central-orchestrator demo. The next live evidence must prove autonomous-agent transparency, not only x402 challenge/payment success.
+
+### Next phase adjustment
+
+After post-merge CI is green, choose the external-infra slice: redeploy/smoke the 30 hosted specialists, then rerun `npm run smoke:economic-demo:webpage-live-x402-workflow` with the existing explicit confirmation env so the new artifact includes disclosure-ledger evidence.
+
+### Decision log additions
+
+- Evidence packs must reject multi-edge source artifacts that lack all-edge downstream disclosure ledgers.
+- Historical controlled-demo artifacts remain useful context but are no longer sufficient for judge evidence after PR #202.

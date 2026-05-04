@@ -97,6 +97,31 @@ async function summarizeResponse(response) {
       choiceContentPreview: redactText(content),
       rawPreview: content ? undefined : redactText(body?.raw ?? JSON.stringify(body).slice(0, 900)),
     },
+    downstreamDisclosureLedger: body?.reddi?.downstreamDisclosureLedger,
+  };
+}
+
+function validateDownstreamDisclosureLedger(edge, paid) {
+  const ledger = paid.downstreamDisclosureLedger;
+  assert(ledger?.schemaVersion === "reddi.downstream-disclosure-ledger.v1", `${edge.profileId}: expected reddi.downstream-disclosure-ledger.v1 in paid response`);
+  assert(["no_downstream_calls", "planned_downstream_calls", "attempted_downstream_calls"].includes(ledger.disclosureScope), `${edge.profileId}: invalid disclosure scope`);
+  assert(Array.isArray(ledger.entries), `${edge.profileId}: disclosure ledger entries must be an array`);
+  assert(Array.isArray(ledger.transparencyGuarantees) && ledger.transparencyGuarantees.length > 0, `${edge.profileId}: expected transparency guarantees`);
+  return {
+    schemaVersion: ledger.schemaVersion,
+    disclosureScope: ledger.disclosureScope,
+    entryCount: ledger.entries.length,
+    entries: ledger.entries.map((entry) => ({
+      calledProfileId: entry.calledProfileId,
+      endpoint: entry.endpoint,
+      walletAddress: entry.walletAddress,
+      payloadSummary: redactText(entry.payloadSummary, 240),
+      payloadHashPresent: typeof entry.payloadHash === "string" && entry.payloadHash.length > 0,
+      x402: entry.x402,
+      attestorLinks: Array.isArray(entry.attestorLinks) ? entry.attestorLinks : [],
+      obfuscation: entry.obfuscation,
+    })),
+    transparencyGuarantees: ledger.transparencyGuarantees,
   };
 }
 
@@ -122,6 +147,7 @@ for (const edge of edges) {
   const unpaid = await summarizeResponse(await post(edge, prompt));
   const challenge = parseChallenge(edge, unpaid);
   const paid = await summarizeResponse(await post(edge, prompt, { "x402-payment": `demo:${challenge.nonce}` }));
+  const downstreamDisclosureLedger = validateDownstreamDisclosureLedger(edge, paid);
   outputs[edge.profileId] = paid.bodySummary.choiceContentPreview ?? paid.bodySummary.rawPreview ?? "";
   results.push({
     ...edge,
@@ -149,10 +175,12 @@ for (const edge of edges) {
       model: paid.bodySummary.model,
       outputPreview: paid.bodySummary.choiceContentPreview ?? paid.bodySummary.rawPreview,
     },
+    downstreamDisclosureLedger,
   });
 }
 
 const allPaidCompletionsReached = results.every((edge) => edge.paidCompletion.ok === true);
+const allDisclosureLedgersPresent = results.every((edge) => edge.downstreamDisclosureLedger?.schemaVersion === "reddi.downstream-disclosure-ledger.v1");
 const blockers = results
   .filter((edge) => !edge.paidCompletion.ok)
   .map((edge) => ({ profileId: edge.profileId, status: edge.paidCompletion.status, errorCode: edge.paidCompletion.errorCode }));
@@ -167,7 +195,13 @@ const report = {
   orchestratorProfileId: "agentic-workflow-system",
   downstreamCallsExecuted: results.length * 2,
   edges: results,
-  conclusion: allPaidCompletionsReached ? "multi_edge_paid_workflow_reached" : "multi_edge_paid_workflow_blocked",
+  disclosureContract: {
+    schemaVersion: "reddi.economic-demo.disclosure-contract-check.v1",
+    allEdgesHaveDisclosureLedger: allDisclosureLedgersPresent,
+    requiredLedgerSchemaVersion: "reddi.downstream-disclosure-ledger.v1",
+    manifestDisclosureRequired: true,
+  },
+  conclusion: allPaidCompletionsReached && allDisclosureLedgersPresent ? "multi_edge_paid_workflow_reached" : "multi_edge_paid_workflow_blocked",
   blockers,
   guardrails: {
     exactEndpoints: true,
@@ -175,6 +209,7 @@ const report = {
     noSignatureAttemptedByHarness: true,
     noDevnetTransferFromHarness: true,
     controlledDemoReceiptsOnly: true,
+    disclosureLedgerRequired: true,
     boundedMaxDownstreamCalls: edges.length * 2,
   },
 };
