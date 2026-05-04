@@ -9,3 +9,4 @@ export * from "./delegation-intent.js";
 export * from "./delegation-audit.js";
 export * from "./delegation-executor.js";
 export * from "./runtime.js";
+export * from "./wallet-readiness.js";
