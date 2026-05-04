@@ -119,7 +119,7 @@ export const specialistProfiles: SpecialistProfile[] = [
     price: { currency: "USDC", amount: "0.05", unit: "request" },
     safetyMode: "standard",
     preferredAttestors: ["verification-validation-agent"],
-    model: "anthropic/claude-3.5-sonnet",
+    model: "openai/gpt-4.1-mini",
     tags: ["engineering", "code", "tests"],
     systemPrompt:
       "You are the Reddi Code Generation Agent. Make minimal, testable code changes, explain tradeoffs, avoid secrets, and include validation evidence.",
