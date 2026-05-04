@@ -1,20 +1,20 @@
 # Reddi Agent Protocol Code — STATUS
 
 **Last updated:** 2026-05-05 AEST
-**State:** 🟢 Phase 1 disclosure-ledger evidence summary implemented locally; ready for PR.
+**State:** 🟢 PR #207 merged — Phase 1 disclosure-ledger evidence summary live on `main`; post-merge Anchor CI green.
 
 ## RESUME FROM HERE
 
-1. Open/merge Phase 1 branch `feature/disclosure-ledger-evidence-summary-20260505`: evidence packs now expose compact `reddi.economic-demo.disclosure-ledger-summary.v1` plus markdown ledger section.
-2. After Phase 1 lands, continue Phase 2: `/economic-demo` should consume/display `disclosureLedgerSummary` rather than re-parsing raw edge ledgers.
+1. Start Phase 2: `/economic-demo` should consume/display `disclosureLedgerSummary` rather than re-parsing raw edge ledgers.
+2. Validate with targeted helper/UI tests, targeted ESLint, and `npm run build`; complete Phase 2 retrospective before expanding scope.
 3. External Coolify redeploy remains explicit-operator-only.
 
 ## Current Branch / Repo State
 
-- Local branch: `feature/disclosure-ledger-evidence-summary-20260505`
-- Local working tree: Phase 1 evidence summary changes in progress.
-- Latest merge on main: `345f6af4 feat: expose agent manifests in marketplace (#205)`.
-- PR #205: merged 2026-05-05 AEST; post-merge Anchor run `25345416486` passed.
+- Local branch: `main`
+- Local working tree: clean after PR #207 merge.
+- Latest merge on main: `aefe7286 feat: summarize disclosure ledgers in evidence packs (#207)`.
+- PR #207: merged 2026-05-05 AEST; post-merge Anchor run `25346911473` passed.
 
 
 ## Current Follow-up PR — #203
@@ -79,6 +79,13 @@ Validation for Phase 1 disclosure-ledger evidence summary:
 - `node --check scripts/generate-economic-demo-evidence-pack.mjs` — PASS.
 - Targeted ESLint for `scripts/generate-economic-demo-evidence-pack.mjs` — PASS.
 - `git diff --check` — PASS.
+
+Validation for Phase 1 PR #207:
+
+- PR: https://github.com/nissan/reddi-agent-protocol/pull/207
+- Merge commit: `aefe728628f832f5acf167c209a5eea08f596d53`
+- PR checks passed: Vercel Preview Comments, Vercel deployment, Anchor runs `25346592595` / `25346594990`.
+- Post-merge `main` Anchor run `25346911473`, job `74317799175` — PASS, 7m46s.
 
 ## Retrospective — Phase 6.5 Slice A
 
