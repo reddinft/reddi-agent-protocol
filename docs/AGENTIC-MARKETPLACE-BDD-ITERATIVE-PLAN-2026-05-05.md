@@ -268,6 +268,16 @@ Still pending:
 
 ## Running retrospective log
 
+### Phase 1 retrospective
+
+_Status:_ Complete locally; ready for PR.
+
+- **What worked:** Evidence pack generation now creates a compact `reddi.economic-demo.disclosure-ledger-summary.v1` block and repeats the ledger in human-readable markdown, so reviewers do not need to inspect raw edge JSON to understand downstream disclosure.
+- **What failed or surprised us:** The existing markdown renderer assumed raw source-edge shape; once the pack switched to normalized edge summaries, the smoke caught a shape mismatch before commit.
+- **Safety/spend review:** Used a synthetic local source artifact only. No live endpoints, wallet mutation, external infra mutation, provider calls, or hidden retries. Secret scan still runs over generated pack output.
+- **Judge clarity:** Improved: the evidence pack now states total disclosure entries and includes a dedicated compact downstream disclosure ledger section.
+- **Plan adjustment:** Phase 2 should consume `disclosureLedgerSummary` from evidence packs/UI helpers rather than re-parsing raw source edge ledgers.
+
 ### Phase 0 retrospective
 
 _Status:_ Complete locally; ready for PR.

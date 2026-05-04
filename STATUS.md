@@ -1,18 +1,18 @@
 # Reddi Agent Protocol Code — STATUS
 
 **Last updated:** 2026-05-05 AEST
-**State:** 🟢 PR #205 merged; Phase 0 BDD iterative plan for manifest/disclosure-ledger loop in progress on docs branch.
+**State:** 🟢 Phase 1 disclosure-ledger evidence summary implemented locally; ready for PR.
 
 ## RESUME FROM HERE
 
-1. Finish Phase 0 docs branch `docs/bdd-agentic-marketplace-plan-20260505`: plan doc + BDD lock for public manifest/dependency disclosure and disclosure-ledger evidence display.
-2. Validate with `npm run test:bdd:index` and `git diff --check`, complete Phase 0 retrospective, then open PR.
-3. After Phase 0 lands, continue Phase 1: update live workflow smoke/evidence pack artifacts to display `reddi.downstream-disclosure-ledger.v1` entries. External Coolify redeploy remains explicit-operator-only.
+1. Open/merge Phase 1 branch `feature/disclosure-ledger-evidence-summary-20260505`: evidence packs now expose compact `reddi.economic-demo.disclosure-ledger-summary.v1` plus markdown ledger section.
+2. After Phase 1 lands, continue Phase 2: `/economic-demo` should consume/display `disclosureLedgerSummary` rather than re-parsing raw edge ledgers.
+3. External Coolify redeploy remains explicit-operator-only.
 
 ## Current Branch / Repo State
 
-- Local branch: `docs/bdd-agentic-marketplace-plan-20260505`
-- Local working tree: Phase 0 plan/BDD docs in progress.
+- Local branch: `feature/disclosure-ledger-evidence-summary-20260505`
+- Local working tree: Phase 1 evidence summary changes in progress.
 - Latest merge on main: `345f6af4 feat: expose agent manifests in marketplace (#205)`.
 - PR #205: merged 2026-05-05 AEST; post-merge Anchor run `25345416486` passed.
 
@@ -72,6 +72,14 @@ Validation for public manifest marketplace slice / PR #205:
 - PR #205 checks before merge — PASS: two Anchor runs + Vercel.
 - PR #205 post-merge `main` Anchor run `25345416486` — PASS, 7m11s.
 
+Validation for Phase 1 disclosure-ledger evidence summary:
+
+- Synthetic evidence-pack smoke via `ECONOMIC_DEMO_EVIDENCE_SOURCE=/tmp/reddi-ledger-source.json ECONOMIC_DEMO_EVIDENCE_OUT=artifacts/tmp-phase1-ledger-smoke node scripts/generate-economic-demo-evidence-pack.mjs` — PASS.
+- JSON assertions for `reddi.economic-demo.disclosure-ledger-summary.v1`, total ledger entries, and payload hash presence — PASS.
+- `node --check scripts/generate-economic-demo-evidence-pack.mjs` — PASS.
+- Targeted ESLint for `scripts/generate-economic-demo-evidence-pack.mjs` — PASS.
+- `git diff --check` — PASS.
+
 ## Retrospective — Phase 6.5 Slice A
 
 ### What worked
@@ -99,6 +107,8 @@ Do not proceed as a waterfall into research/picture live workflows until the dis
 - 2026-05-05: Public marketplace pages must expose agent manifest fields: tools, skills, marketplace-agent calls, external MCP servers, and non-marketplace agent/service calls, not just task capability tags.
 
 - 2026-05-05: BDD iterative plan for the agentic marketplace work must use explicit phase retrospectives before expanding scope: plan/BDD lock → artifact ledger summary → UI ledger display → manifest parity → hosted redeploy smoke → research → picture.
+
+- 2026-05-05: Evidence packs should expose a compact disclosure-ledger summary for judges/UI consumers instead of requiring raw edge JSON archaeology.
 
 ## Blockers / Watch Items
 
