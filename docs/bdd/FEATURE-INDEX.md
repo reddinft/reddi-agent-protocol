@@ -68,7 +68,7 @@ Purpose: single lookup from BDD feature file -> bucket -> executable verificatio
 - Verify:
   - `npm run lint -- app/economic-demo/page.tsx lib/economic-demo/fixture.ts lib/economic-demo/image-adapter.ts app/api/economic-demo/image/route.ts`
   - `npm run build`
-  - Future targeted route tests for dry-run graph, image disabled gate, balance snapshots, Surfpool local transfer rehearsal, and one-live-edge guardrails
+  - Future targeted route tests for dry-run graph, image disabled gate, balance snapshots, Surfpool local transfer rehearsal, and first-live-edge guardrails
 
 ## Drift guard
 - Validate index coverage against feature files:

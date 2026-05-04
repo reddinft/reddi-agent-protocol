@@ -173,13 +173,13 @@ This is the north star. Any implementation phase that does not improve proof of 
 
 ---
 
-### Phase 6 — One live x402 specialist edge
+### Phase 6 — First controlled live x402 edge against the deployed 30-agent network
 
 **Status:** pending; requires explicit go decision before execution.
 
-**Goal:** execute exactly one paid devnet specialist edge and show the resulting economic delta.
+**Goal:** execute exactly one paid devnet orchestrator-to-specialist edge against the already deployed 30-agent network, then show the resulting economic delta. This is a safety ramp for live consumer-agent payment execution, not a statement that only one specialist is deployed.
 
-**Recommended first edge:** `agentic-workflow-system` → `code-generation-agent` for the webpage case.
+**Recommended first edge:** `agentic-workflow-system` → `code-generation-agent` for the webpage case, selected from the deployed 30-agent catalog.
 
 **Acceptance criteria:**
 
