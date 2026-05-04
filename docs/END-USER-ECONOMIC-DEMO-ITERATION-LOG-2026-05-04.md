@@ -169,3 +169,33 @@ Add UI rendering for the read-only balance snapshot and optionally run one live 
 
 - Balance snapshot failures are per-wallet soft failures, not whole-demo failures.
 - Balance snapshot mode must always report zero downstream calls and no transfer attempts.
+
+### Phase 4 implementation reflection — balance snapshot UI slice B
+
+**Date:** 2026-05-04 AEST  
+**Scope shipped:** Added `/economic-demo` UI control and render panel for read-only balance snapshots.  
+**BDD scenarios touched:** Real devnet balance snapshots, no spend.  
+**Validation:** focused Jest for balances + dry-run; targeted lint; `npm run build`.  
+**Result:** PASS.
+**Evidence artifacts:** `/economic-demo` now has `Read devnet balances` action and a read-only snapshot panel.
+
+#### What worked
+
+The UI now distinguishes fixture ledger economics from live read-only balance reads. Snapshot rendering explicitly says no transfers were attempted and shows `downstreamCallsExecuted: 0`.
+
+#### What failed or surprised us
+
+The balance UI can expose RPC availability issues. That is useful, but we should avoid treating RPC read failures as economic failures; the route already marks them per-wallet.
+
+#### Drift check
+
+Improves wallet-impact visibility without spend. Still not transfer proof; Surfpool remains the transfer-semantics gate.
+
+#### Next phase adjustment
+
+Run/record an optional live read-only devnet balance smoke or proceed directly into Surfpool rehearsal implementation if CI is green and the preview page is enough for review.
+
+#### Decision log additions
+
+- Fixture ledger and read-only live balance panel are separate proof layers.
+- Read-only devnet balance reads are allowed; they are not payment execution.

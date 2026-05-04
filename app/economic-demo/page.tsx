@@ -8,6 +8,7 @@ import {
   lamportsDelta,
   type EconomicDemoScenario,
 } from "@/lib/economic-demo/fixture";
+import type { EconomicDemoBalanceReport } from "@/lib/economic-demo/balances";
 import type { DryRunEconomicPlan } from "@/lib/economic-demo/dry-run";
 
 function shortWallet(wallet: string) {
@@ -25,12 +26,15 @@ export default function EconomicDemoPage() {
   const [scenarioId, setScenarioId] = useState(economicDemoScenarios[0].id);
   const [dryRunPlan, setDryRunPlan] = useState<DryRunEconomicPlan | null>(null);
   const [dryRunStatus, setDryRunStatus] = useState<"idle" | "loading" | "loaded" | "error">("idle");
+  const [balanceReport, setBalanceReport] = useState<EconomicDemoBalanceReport | null>(null);
+  const [balanceStatus, setBalanceStatus] = useState<"idle" | "loading" | "loaded" | "error">("idle");
   const scenario = useMemo(
     () => economicDemoScenarios.find((candidate) => candidate.id === scenarioId) ?? economicDemoScenarios[0],
     [scenarioId],
   );
   const totalPlanned = scenario.edges.reduce((sum, edge) => sum + edge.amountLamports, 0);
   const activeDryRunPlan = dryRunPlan?.scenarioId === scenario.id ? dryRunPlan : null;
+  const activeBalanceReport = balanceReport?.scenarioId === scenario.id ? balanceReport : null;
 
   async function loadDryRunPlan() {
     setDryRunStatus("loading");
@@ -39,9 +43,24 @@ export default function EconomicDemoPage() {
       const payload = (await res.json()) as { ok?: boolean; plan?: DryRunEconomicPlan };
       if (!res.ok || !payload.ok || !payload.plan) throw new Error("dry_run_plan_failed");
       setDryRunPlan(payload.plan);
+      setBalanceReport(null);
+      setBalanceStatus("idle");
       setDryRunStatus("loaded");
     } catch {
       setDryRunStatus("error");
+    }
+  }
+
+  async function loadBalanceSnapshot() {
+    setBalanceStatus("loading");
+    try {
+      const res = await fetch(`/api/economic-demo/balances?scenario=${scenario.id}`);
+      const payload = (await res.json()) as { ok?: boolean; report?: EconomicDemoBalanceReport };
+      if (!res.ok || !payload.ok || !payload.report) throw new Error("balance_snapshot_failed");
+      setBalanceReport(payload.report);
+      setBalanceStatus("loaded");
+    } catch {
+      setBalanceStatus("error");
     }
   }
 
@@ -94,6 +113,13 @@ export default function EconomicDemoPage() {
                 >
                   {dryRunStatus === "loading" ? "Building dry-run plan…" : "Build dry-run economic graph"}
                 </button>
+                <button
+                  onClick={loadBalanceSnapshot}
+                  disabled={balanceStatus === "loading"}
+                  className="rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-gray-200 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {balanceStatus === "loading" ? "Reading balances…" : "Read devnet balances"}
+                </button>
                 <span className="text-xs text-gray-500">
                   Uses deployed 30-agent profile metadata · zero downstream calls
                 </span>
@@ -101,6 +127,11 @@ export default function EconomicDemoPage() {
               {dryRunStatus === "error" && (
                 <p className="mt-3 rounded-lg border border-red-400/30 bg-red-400/10 p-3 text-sm text-red-200">
                   Dry-run plan failed. Fixture view is still available.
+                </p>
+              )}
+              {balanceStatus === "error" && (
+                <p className="mt-3 rounded-lg border border-yellow-400/30 bg-yellow-400/10 p-3 text-sm text-yellow-100">
+                  Balance snapshot failed. No transfer was attempted.
                 </p>
               )}
               <dl className="mt-5 grid grid-cols-2 gap-3 text-sm">
@@ -235,6 +266,35 @@ export default function EconomicDemoPage() {
                 ))}
               </div>
             </div>
+
+
+              {activeBalanceReport && (
+                <div className="mt-6 rounded-xl border border-white/10 bg-black/20 p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-gray-500">Read-only balance snapshot</p>
+                      <p className="mt-1 text-sm text-gray-300">No transfers attempted · downstream calls executed: {activeBalanceReport.downstreamCallsExecuted}</p>
+                    </div>
+                    <span className="rounded-full border border-white/15 bg-white/5 px-2 py-0.5 text-xs text-gray-300">{activeBalanceReport.mode}</span>
+                  </div>
+                  <div className="mt-4 space-y-2">
+                    {activeBalanceReport.snapshots.map((snapshot) => (
+                      <div key={`${snapshot.profileId}-${snapshot.walletAddress}`} className="grid gap-2 rounded-lg border border-white/10 bg-white/5 p-3 text-sm sm:grid-cols-[1fr_auto]">
+                        <div>
+                          <p className="font-mono text-white">{snapshot.profileId}</p>
+                          <p className="mt-1 font-mono text-xs text-gray-500">{shortWallet(snapshot.walletAddress)}</p>
+                        </div>
+                        <div className="text-left sm:text-right">
+                          <p className={snapshot.status === "available" ? "font-mono text-[#14F195]" : "font-mono text-yellow-200"}>
+                            {snapshot.status === "available" && snapshot.lamports !== null ? formatLamports(snapshot.lamports).replace(/^\+/, "") : "balance unavailable"}
+                          </p>
+                          <p className="mt-1 text-xs text-gray-500">{snapshot.status}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
             <div className="rounded-2xl border border-white/10 bg-card/70 p-6 shadow-card">
               <p className="section-label">Wallet balance ledger</p>
