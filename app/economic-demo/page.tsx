@@ -8,6 +8,7 @@ import {
   lamportsDelta,
   type EconomicDemoScenario,
 } from "@/lib/economic-demo/fixture";
+import type { DryRunEconomicPlan } from "@/lib/economic-demo/dry-run";
 
 function shortWallet(wallet: string) {
   return `${wallet.slice(0, 8)}…${wallet.slice(-6)}`;
@@ -22,11 +23,27 @@ function statusClass(status: EconomicDemoScenario["edges"][number]["status"]) {
 
 export default function EconomicDemoPage() {
   const [scenarioId, setScenarioId] = useState(economicDemoScenarios[0].id);
+  const [dryRunPlan, setDryRunPlan] = useState<DryRunEconomicPlan | null>(null);
+  const [dryRunStatus, setDryRunStatus] = useState<"idle" | "loading" | "loaded" | "error">("idle");
   const scenario = useMemo(
     () => economicDemoScenarios.find((candidate) => candidate.id === scenarioId) ?? economicDemoScenarios[0],
     [scenarioId],
   );
   const totalPlanned = scenario.edges.reduce((sum, edge) => sum + edge.amountLamports, 0);
+  const activeDryRunPlan = dryRunPlan?.scenarioId === scenario.id ? dryRunPlan : null;
+
+  async function loadDryRunPlan() {
+    setDryRunStatus("loading");
+    try {
+      const res = await fetch(`/api/economic-demo/dry-run?scenario=${scenario.id}`);
+      const payload = (await res.json()) as { ok?: boolean; plan?: DryRunEconomicPlan };
+      if (!res.ok || !payload.ok || !payload.plan) throw new Error("dry_run_plan_failed");
+      setDryRunPlan(payload.plan);
+      setDryRunStatus("loaded");
+    } catch {
+      setDryRunStatus("error");
+    }
+  }
 
   return (
     <main className="min-h-screen bg-page">
@@ -69,6 +86,23 @@ export default function EconomicDemoPage() {
               <p className="mt-3 rounded-xl border border-white/10 bg-black/20 p-4 text-sm leading-6 text-gray-200">
                 “{scenario.prompt}”
               </p>
+              <div className="mt-5 flex flex-wrap items-center gap-3">
+                <button
+                  onClick={loadDryRunPlan}
+                  disabled={dryRunStatus === "loading"}
+                  className="rounded-lg border border-[#14F195]/30 bg-[#14F195]/10 px-4 py-2 text-sm font-semibold text-[#14F195] transition hover:bg-[#14F195]/15 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {dryRunStatus === "loading" ? "Building dry-run plan…" : "Build dry-run economic graph"}
+                </button>
+                <span className="text-xs text-gray-500">
+                  Uses deployed 30-agent profile metadata · zero downstream calls
+                </span>
+              </div>
+              {dryRunStatus === "error" && (
+                <p className="mt-3 rounded-lg border border-red-400/30 bg-red-400/10 p-3 text-sm text-red-200">
+                  Dry-run plan failed. Fixture view is still available.
+                </p>
+              )}
               <dl className="mt-5 grid grid-cols-2 gap-3 text-sm">
                 <div className="rounded-xl border border-white/10 bg-white/5 p-3">
                   <dt className="text-gray-500">Orchestrator</dt>
@@ -147,6 +181,35 @@ export default function EconomicDemoPage() {
                   </div>
                 ))}
               </div>
+
+              {activeDryRunPlan && (
+                <div className="mt-6 rounded-xl border border-[#14F195]/25 bg-[#14F195]/10 p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-[#14F195]">Dry-run orchestration plan</p>
+                      <p className="mt-1 font-mono text-sm text-white">{activeDryRunPlan.orchestrator.id}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-gray-400">downstream calls executed</p>
+                      <p className="font-mono text-lg text-[#14F195]">{activeDryRunPlan.downstreamCallsExecuted}</p>
+                    </div>
+                  </div>
+                  <div className="mt-4 space-y-2">
+                    {activeDryRunPlan.edges.map((edge) => (
+                      <div key={`${edge.toProfileId}-${edge.capability}`} className="rounded-lg border border-white/10 bg-black/20 p-3">
+                        <div className="flex flex-wrap items-center gap-2 text-sm">
+                          <span className="font-mono text-white">{edge.fromProfileId}</span>
+                          <span className="text-gray-500">→</span>
+                          <span className="font-mono text-white">{edge.toProfileId}</span>
+                          <span className="rounded-full border border-white/15 bg-white/5 px-2 py-0.5 text-xs text-gray-300">planned</span>
+                        </div>
+                        <p className="mt-2 text-sm text-gray-300">{edge.payloadSummary}</p>
+                        <p className="mt-2 break-all font-mono text-xs text-gray-500">{edge.endpoint}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="mt-6 space-y-3">
                 {scenario.edges.map((edge, index) => (
