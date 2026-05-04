@@ -12,6 +12,7 @@ import type { EconomicDemoBalanceReport } from "@/lib/economic-demo/balances";
 import type { DryRunEconomicPlan } from "@/lib/economic-demo/dry-run";
 import type { SurfpoolRehearsalReport } from "@/lib/economic-demo/surfpool-rehearsal";
 import type { EconomicDemoPaymentReadiness } from "@/lib/economic-demo/payment-readiness";
+import type { WebpageLiveWorkflowEvidence } from "@/lib/economic-demo/webpage-live-workflow-evidence";
 
 function shortWallet(wallet: string) {
   return `${wallet.slice(0, 8)}…${wallet.slice(-6)}`;
@@ -34,6 +35,8 @@ export default function EconomicDemoPage() {
   const [surfpoolStatus, setSurfpoolStatus] = useState<"idle" | "loading" | "loaded" | "error">("idle");
   const [paymentReadiness, setPaymentReadiness] = useState<EconomicDemoPaymentReadiness | null>(null);
   const [paymentReadinessStatus, setPaymentReadinessStatus] = useState<"idle" | "loading" | "loaded" | "error">("idle");
+  const [webpageLiveEvidence, setWebpageLiveEvidence] = useState<WebpageLiveWorkflowEvidence | null>(null);
+  const [webpageLiveEvidenceStatus, setWebpageLiveEvidenceStatus] = useState<"idle" | "loading" | "loaded" | "error">("idle");
   const scenario = useMemo(
     () => economicDemoScenarios.find((candidate) => candidate.id === scenarioId) ?? economicDemoScenarios[0],
     [scenarioId],
@@ -98,6 +101,19 @@ export default function EconomicDemoPage() {
       setPaymentReadinessStatus("loaded");
     } catch {
       setPaymentReadinessStatus("error");
+    }
+  }
+
+  async function loadWebpageLiveEvidence() {
+    setWebpageLiveEvidenceStatus("loading");
+    try {
+      const res = await fetch("/api/economic-demo/webpage-live-workflow");
+      const payload = (await res.json()) as { ok?: boolean; evidence?: WebpageLiveWorkflowEvidence };
+      if (!res.ok || !payload.ok || !payload.evidence) throw new Error("webpage_live_evidence_failed");
+      setWebpageLiveEvidence(payload.evidence);
+      setWebpageLiveEvidenceStatus("loaded");
+    } catch {
+      setWebpageLiveEvidenceStatus("error");
     }
   }
 
@@ -171,6 +187,13 @@ export default function EconomicDemoPage() {
                 >
                   {paymentReadinessStatus === "loading" ? "Checking payment readiness…" : "Show payment readiness"}
                 </button>
+                <button
+                  onClick={loadWebpageLiveEvidence}
+                  disabled={webpageLiveEvidenceStatus === "loading"}
+                  className="rounded-lg border border-[#14F195]/30 bg-[#14F195]/10 px-4 py-2 text-sm font-semibold text-[#14F195] transition hover:bg-[#14F195]/15 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {webpageLiveEvidenceStatus === "loading" ? "Loading live evidence…" : "Show multi-edge evidence"}
+                </button>
                 <span className="text-xs text-gray-500">
                   Uses deployed 30-agent profile metadata · zero downstream calls
                 </span>
@@ -193,6 +216,11 @@ export default function EconomicDemoPage() {
               {paymentReadinessStatus === "error" && (
                 <p className="mt-3 rounded-lg border border-yellow-400/30 bg-yellow-400/10 p-3 text-sm text-yellow-100">
                   Payment readiness failed. No live retry was attempted from the UI.
+                </p>
+              )}
+              {webpageLiveEvidenceStatus === "error" && (
+                <p className="mt-3 rounded-lg border border-yellow-400/30 bg-yellow-400/10 p-3 text-sm text-yellow-100">
+                  Multi-edge evidence failed to load. No live specialist endpoint was called from the UI.
                 </p>
               )}
               <dl className="mt-5 grid grid-cols-2 gap-3 text-sm">
@@ -360,6 +388,51 @@ export default function EconomicDemoPage() {
                     {paymentReadiness.status === "ready"
                       ? "Controlled demo-paid completion reached HTTP 200 against the deployed code-generation specialist. The UI still will not auto-retry live payment; the next demo loop can promote this from one paid edge to a multi-edge workflow."
                       : "Paid completion is blocked because the deployed specialist rejects demo receipts. The UI will not auto-retry live payment; choose controlled demo receipts or real devnet receipt verification next."}
+                  </p>
+                </div>
+              )}
+
+              {webpageLiveEvidence && (
+                <div className="mt-6 rounded-xl border border-[#14F195]/30 bg-[#14F195]/10 p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-[#14F195]">Multi-edge live x402 evidence</p>
+                      <p className="mt-1 text-sm leading-6 text-gray-200">{webpageLiveEvidence.userRequest}</p>
+                    </div>
+                    <span className="rounded-full border border-[#14F195]/40 bg-[#14F195]/10 px-2 py-0.5 text-xs text-[#14F195]">
+                      {webpageLiveEvidence.conclusion}
+                    </span>
+                  </div>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                    <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+                      <p className="text-xs text-gray-500">bounded calls</p>
+                      <p className="mt-1 font-mono text-lg text-white">{webpageLiveEvidence.downstreamCallsExecuted}</p>
+                    </div>
+                    <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+                      <p className="text-xs text-gray-500">paid completions</p>
+                      <p className="mt-1 font-mono text-lg text-[#14F195]">{webpageLiveEvidence.edges.length}/4</p>
+                    </div>
+                    <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+                      <p className="text-xs text-gray-500">receipt mode</p>
+                      <p className="mt-1 text-sm text-yellow-100">controlled demo receipts</p>
+                    </div>
+                  </div>
+                  <div className="mt-4 space-y-3">
+                    {webpageLiveEvidence.edges.map((edge) => (
+                      <div key={edge.profileId} className="rounded-lg border border-white/10 bg-black/20 p-3">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <div>
+                            <p className="font-mono text-sm text-white">{edge.step}. {edge.profileId}</p>
+                            <p className="mt-1 text-xs text-gray-400">{edge.capability} · {edge.unpaidChallenge.amount} {edge.unpaidChallenge.currency} → {shortWallet(edge.unpaidChallenge.payTo)}</p>
+                          </div>
+                          <p className="text-xs text-[#14F195]">402 challenge → 200 paid</p>
+                        </div>
+                        <p className="mt-2 text-sm leading-6 text-gray-300">{edge.paidCompletion.outputPreview}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="mt-4 text-sm leading-6 text-yellow-50/90">
+                    This panel reads a sanitized evidence summary only. Loading it does not call live specialist endpoints, sign receipts, or transfer devnet funds. Real devnet receipt verification remains a later phase.
                   </p>
                 </div>
               )}

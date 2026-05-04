@@ -347,3 +347,87 @@ Proceed by implementing one of two explicit paths: controlled demo receipt enabl
 
 - The economic demo UI must show payment-readiness blockers explicitly.
 - Live retry remains operator-script-only; the webpage must not trigger live x402 probes automatically.
+
+## Phase 6/7 transition reflection — controlled paid completion and multi-edge webpage proof
+
+**Date:** 2026-05-04 AEST
+**Scope shipped:** Enabled controlled demo receipt mode for the webpage path, fixed the unavailable OpenRouter model slug for `code-generation-agent`, and reached controlled demo-paid completions across planning, content, code, and verification specialists.
+**BDD scenarios touched:** Webpage demo composes specialists and attestation with bounded paid edges.
+**Validation:** PR #195, #196, and #197 checks green; `npm run smoke:economic-demo:live-x402-readiness`; `npm run smoke:economic-demo:webpage-live-x402-workflow`.
+**Result:** PASS.
+**Evidence artifacts:** `artifacts/economic-demo-live-x402-readiness/20260504T085951Z/summary.json`; `artifacts/economic-demo-webpage-live-x402-workflow/20260504T093552Z/summary.json`.
+
+### What worked
+
+The economic workflow is now real enough to prove the core judge thesis: one user request can become multiple x402-gated specialist calls, each with an unpaid challenge and a controlled demo-paid completion. Passing prior outputs into the verification edge made the attestor response meaningfully inspect the workflow instead of asking for missing context.
+
+### What failed or surprised us
+
+The first paid retry after enabling demo receipts hit HTTP 502 because OpenRouter rejected the stale `anthropic/claude-3.5-sonnet` slug. Fixing the slug to `openai/gpt-4.1-mini` unblocked the path. This means model availability is now part of payment-readiness, not just a model-quality concern.
+
+### Drift check
+
+This improves payload flow, payment/challenge flow, final output, and attestation. It does **not** prove production USDC settlement; receipts are controlled demo receipts and must remain labeled as such.
+
+### Next phase adjustment
+
+Before expanding to research or picture workflows, surface the latest multi-edge evidence directly in `/economic-demo` and then generate a judge-facing evidence pack. The UI must not trigger live retries.
+
+### Decision log additions
+
+- Controlled demo receipts are acceptable for judge demo proof only when clearly labeled.
+- Model endpoint availability belongs in readiness gates.
+- Multi-edge evidence should be UI-visible before adding more live workflow categories.
+
+## Phase 7A implementation plan — surface multi-edge live evidence
+
+**Status:** in progress.
+**Roadmap:** `docs/ECONOMIC-DEMO-BDD-ITERATIVE-ROADMAP-2026-05-04.md`
+
+### Scope slice
+
+Add a sanitized evidence summary helper, API route, and `/economic-demo` panel for the latest controlled multi-edge webpage run.
+
+### BDD check
+
+A judge can click one button and see: 4 specialist edges, 4 unpaid HTTP 402 challenges, 4 controlled demo-paid HTTP 200 completions, total bounded calls, guardrails, and the controlled-demo limitation.
+
+### Validation target
+
+- focused Jest for evidence summary;
+- targeted lint;
+- `npm run build`.
+
+### Retrospective gate
+
+After validation, decide whether the next loop should be evidence-pack generation or more UI clarity work.
+
+### Phase 7A implementation reflection — multi-edge evidence UI/API
+
+**Date:** 2026-05-04 AEST
+**Scope shipped:** Added typed sanitized evidence summary, `/api/economic-demo/webpage-live-workflow`, and `/economic-demo` panel for the latest controlled multi-edge webpage run.
+**BDD scenarios touched:** Webpage multi-edge workflow with visible x402 challenge/payment evidence and attestation summary.
+**Validation:** `npx jest --runTestsByPath lib/__tests__/economic-demo-webpage-live-workflow-evidence.test.ts lib/__tests__/economic-demo-payment-readiness.test.ts`; targeted lint; `npm run build`.
+**Result:** PASS.
+**Evidence artifacts:** `lib/economic-demo/webpage-live-workflow-evidence.ts`, `app/api/economic-demo/webpage-live-workflow/route.ts`, `/economic-demo` multi-edge evidence panel.
+
+#### What worked
+
+The judge-facing page can now show the latest multi-edge proof without sending live requests. It summarizes the four specialist edges, their HTTP 402 x402 challenges, HTTP 200 controlled demo-paid completions, outputs, and guardrails in one place.
+
+#### What failed or surprised us
+
+The evidence is intentionally a sanitized static summary, not a raw artifact loader. That keeps the UI safe and stable, but the next evidence-pack phase should make the source artifact and derived summary relationship more formal.
+
+#### Drift check
+
+This improves judge clarity and keeps live-spend safety intact: loading the panel performs no specialist calls, no signing, and no devnet transfers. It still does not prove production settlement verification.
+
+#### Next phase adjustment
+
+Proceed to Phase 7B: generate a judge-facing evidence pack from the latest multi-edge smoke artifact, with a human-readable markdown summary and secret scan. Include the controlled-demo receipt limitation prominently.
+
+#### Decision log additions
+
+- UI evidence panels should consume sanitized summaries, not raw live artifact blobs.
+- Evidence-pack generation is now the next loop before research/picture expansion.
