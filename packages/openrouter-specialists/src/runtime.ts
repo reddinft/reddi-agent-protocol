@@ -9,6 +9,7 @@ import {
   type X402Challenge,
 } from "@reddi/x402-solana";
 import { buildAttestationPromptEnvelope, evaluateAttestation, normalizeAttestationRequest } from "./attestation.js";
+import { buildLiveDelegationAuditEnvelope } from "./delegation-audit.js";
 import { evaluateDelegationBudget } from "./delegation-budget.js";
 import { buildLiveDelegationIntentPlan } from "./delegation-intent.js";
 import { buildDryRunDelegationPlan, inferRequiredCapabilities } from "./marketplace-client.js";
@@ -259,6 +260,7 @@ export async function handleDelegationPlanning(input: {
       maxDownstreamCalls: input.config.maxDownstreamCalls ?? 0,
       maxDownstreamLamports: input.config.maxDownstreamLamports ?? 0,
     });
+    const auditEnvelope = buildLiveDelegationAuditEnvelope(intentPlan);
 
     return {
       status: 501,
@@ -276,6 +278,7 @@ export async function handleDelegationPlanning(input: {
           maxDownstreamLamports: input.config.maxDownstreamLamports ?? 0,
           budget: budgetDecision,
           intentPlan,
+          auditEnvelope,
         },
       },
     };

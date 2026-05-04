@@ -6,4 +6,5 @@ export * from "./marketplace-client.js";
 export * from "./deployment-readiness.js";
 export * from "./delegation-budget.js";
 export * from "./delegation-intent.js";
+export * from "./delegation-audit.js";
 export * from "./runtime.js";
