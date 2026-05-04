@@ -153,7 +153,11 @@ test("paid completion invokes OpenRouter mock with explicit demo flag, profile g
     paymentSatisfied: true,
     safetyMode: "standard",
     mockOpenRouter: true,
+    downstreamDisclosureLedger: (response.body.reddi as { downstreamDisclosureLedger: unknown }).downstreamDisclosureLedger,
   });
+  const noDownstreamLedger = (response.body.reddi as { downstreamDisclosureLedger: { disclosureScope: string; entries: unknown[] } }).downstreamDisclosureLedger;
+  assert.equal(noDownstreamLedger.disclosureScope, "no_downstream_calls");
+  assert.deepEqual(noDownstreamLedger.entries, []);
   assert.match((response.body.reddi as { requestId: string }).requestId, /^[0-9a-f-]{36}$/);
 });
 
@@ -238,6 +242,26 @@ test("well-known metadata includes Reddi marketplace fields", async () => {
   }
   assert.equal(metadata.profileId, "planning-agent");
   assert.equal(metadata.endpoint, "https://planning.example.test/v1/chat/completions");
+  const disclosure = metadata.agenticWorkflowDisclosure as {
+    schemaVersion: string;
+    mayCallMarketplaceAgents: boolean;
+    disclosureRequiredBeforePurchase: boolean;
+    expectedDownstreamCapabilities: string[];
+    budgetPolicy: { spendGuardRequired: boolean; liveCallsEnabled: boolean };
+    payloadDisclosurePolicy: { mustDiscloseCalledAgentIdentity: boolean; mustDisclosePayloadSummaryOrHash: boolean; mustDisclosePaymentEvidence: boolean; mustDiscloseAttestationLinks: boolean; returnedValueAddMayBeObfuscatedForMoatProtection: boolean; obfuscationReasonRequired: boolean };
+  };
+  assert.equal(disclosure.schemaVersion, "reddi.agentic-workflow-disclosure.v1");
+  assert.equal(disclosure.mayCallMarketplaceAgents, true);
+  assert.equal(disclosure.disclosureRequiredBeforePurchase, true);
+  assert.ok(disclosure.expectedDownstreamCapabilities.includes("marketplace-discovery"));
+  assert.equal(disclosure.budgetPolicy.spendGuardRequired, true);
+  assert.equal(disclosure.budgetPolicy.liveCallsEnabled, false);
+  assert.equal(disclosure.payloadDisclosurePolicy.mustDiscloseCalledAgentIdentity, true);
+  assert.equal(disclosure.payloadDisclosurePolicy.mustDisclosePayloadSummaryOrHash, true);
+  assert.equal(disclosure.payloadDisclosurePolicy.mustDisclosePaymentEvidence, true);
+  assert.equal(disclosure.payloadDisclosurePolicy.mustDiscloseAttestationLinks, true);
+  assert.equal(disclosure.payloadDisclosurePolicy.returnedValueAddMayBeObfuscatedForMoatProtection, true);
+  assert.equal(disclosure.payloadDisclosurePolicy.obfuscationReasonRequired, true);
 });
 
 test("attestor route returns structured release verdict for sample specialist output and receipt chain", async () => {
@@ -543,6 +567,18 @@ test("live delegation mode fails closed before any downstream paid call executor
   assert.equal(executorEvidence.guardrails.noExternalPersistence, true);
   assert.equal(executorEvidence.guardrails.noDevnetTransferExecuted, true);
   assert.equal(executorEvidence.guardrails.noDownstreamX402Executed, true);
+  const disclosureLedger = (response.body.reddi as { downstreamDisclosureLedger: { schemaVersion: string; disclosureScope: string; entries: Array<{ calledProfileId: string; payloadSummary: string; x402: { amount: string; currency: string; challengeOrReceiptState: string; evidenceRef: string }; attestorLinks: string[]; obfuscation?: { returnedDetailsObfuscated: boolean; reason?: string } }>; transparencyGuarantees: string[] } }).downstreamDisclosureLedger;
+  assert.equal(disclosureLedger.schemaVersion, "reddi.downstream-disclosure-ledger.v1");
+  assert.equal(disclosureLedger.disclosureScope, "planned_downstream_calls");
+  assert.equal(disclosureLedger.entries[0]?.calledProfileId, "code-generation-agent");
+  assert.match(disclosureLedger.entries[0]?.payloadSummary ?? "", /Hire a code agent/);
+  assert.equal(disclosureLedger.entries[0]?.x402.amount, "0.05");
+  assert.equal(disclosureLedger.entries[0]?.x402.currency, "USDC");
+  assert.equal(disclosureLedger.entries[0]?.x402.challengeOrReceiptState, "not_attempted");
+  assert.equal(disclosureLedger.entries[0]?.x402.evidenceRef, auditEnvelope.envelopeHash);
+  assert.ok(disclosureLedger.entries[0]?.attestorLinks.includes("verification-validation-agent"));
+  assert.equal(disclosureLedger.entries[0]?.obfuscation?.returnedDetailsObfuscated, false);
+  assert.ok(disclosureLedger.transparencyGuarantees.some((item) => item.includes("called-agent identity")));
 
   const liveWithoutBudgetPolicy = await handleChatCompletions({
     headers: new Headers({ "x402-payment": "demo:delegation-live-fail-closed-2" }),
@@ -654,6 +690,10 @@ test("live delegation executor gate controls invocation and remains fail-closed"
   assert.equal(enabledEvidence.reason, "executor_not_implemented");
   assert.equal(enabledEvidence.executionStatus, "not_executed");
   assert.equal(enabledEvidence.downstreamCallsExecuted, 0);
+  const enabledDisclosureLedger = (enabledNoop.body.reddi as { downstreamDisclosureLedger: { disclosureScope: string; entries: Array<{ calledProfileId: string; x402: { challengeOrReceiptState: string } }> } }).downstreamDisclosureLedger;
+  assert.equal(enabledDisclosureLedger.disclosureScope, "planned_downstream_calls");
+  assert.equal(enabledDisclosureLedger.entries[0]?.calledProfileId, "code-generation-agent");
+  assert.equal(enabledDisclosureLedger.entries[0]?.x402.challengeOrReceiptState, "not_attempted");
 
   const denied = await handleDelegationPlanning({
     headers: new Headers({ "x402-payment": "demo:delegation-executor-gate-denied" }),
@@ -719,8 +759,10 @@ test("HTTP core routes expose health, models, tags, metadata, attestation, and c
     client,
   );
   assert.equal(attestation.status, 200);
-  const attestationBody = (await attestation.json()) as { object: string; verdictSource: string; verdict: { recommendedAction: string } };
+  const attestationBody = (await attestation.json()) as { object: string; verdictSource: string; verdict: { recommendedAction: string }; reddi: { downstreamDisclosureLedger: { disclosureScope: string; entries: unknown[] } } };
   assert.equal(attestationBody.object, "reddi.attestation.verdict");
   assert.equal(attestationBody.verdictSource, "deterministic_local_evaluator");
   assert.equal(attestationBody.verdict.recommendedAction, "release");
+  assert.equal(attestationBody.reddi.downstreamDisclosureLedger.disclosureScope, "no_downstream_calls");
+  assert.deepEqual(attestationBody.reddi.downstreamDisclosureLedger.entries, []);
 });

@@ -12,7 +12,10 @@ A judge can open one page, submit or select an end-user request, and watch Reddi
 1. request payload moves from user → orchestrator → specialists → attestors;
 2. x402 challenge/payment/receipt evidence moves with each paid edge;
 3. the final output is returned to the user;
-4. the page shows starting balance, ending balance, and net delta for every participating wallet.
+4. the page shows starting balance, ending balance, and net delta for every participating wallet;
+5. every autonomous specialist/attestor that may call other marketplace agents discloses that in its manifest, and every response returns a downstream-disclosure ledger showing which agents were called, what payload summaries were sent, receipt/payment evidence, and which returned details were intentionally obfuscated to protect the agent's competitive value-add.
+
+This is an agentic workflow proof, not just orchestration UI: specialists and attestors are autonomous wallet-bearing agents that may become consumer agents while fulfilling their role. The protocol must make that autonomy transparent to the original consumer agent before and after execution.
 
 This is the north star. Any implementation phase that does not improve proof of payload flow, money flow, attestation, final output, or wallet impact should be treated as drift.
 
@@ -26,6 +29,8 @@ This is the north star. Any implementation phase that does not improve proof of 
 - Live downstream specialist calls require exact endpoint allowlist, max call count, lamport cap, and bounded evidence artifact.
 - No automatic spend retries.
 - Each phase ends with reflection before expanding scope.
+- Agent manifests must disclose whether the agent may call downstream marketplace agents during execution, including expected call categories, budget policy, attestor expectations, and payload-disclosure policy.
+- Return payloads must include a downstream-disclosure ledger for any agent-to-agent calls: called agent/profile, wallet/endpoint, payload summary or hash, amount/receipt/challenge status, attestor links, and any obfuscation reason. Agents may obfuscate returned implementation details to preserve their moat, but may not hide that a downstream call happened or what class of payload was sent.
 
 ## Phase map
 
@@ -197,6 +202,32 @@ This is the north star. Any implementation phase that does not improve proof of 
 - reflection before any second live edge.
 
 **Reflection prompt:** Did the run produce real economic evidence, or just reach a protected endpoint?
+
+---
+
+### Phase 6.5 — Agentic workflow manifest and disclosure contract
+
+**Status:** inserted from interactive retrospective on 2026-05-05; must be completed before expanding beyond controlled webpage proof.
+
+**Goal:** make autonomous agent-to-agent execution explicit in marketplace discovery and response payloads.
+
+**Acceptance criteria:**
+
+- `/.well-known/reddi-agent.json` for every hosted specialist/attestor declares whether it may call downstream marketplace agents while fulfilling its role.
+- Manifest includes expected downstream call categories/capabilities, budget policy, attestor expectations, and payload-disclosure policy.
+- Consumer agents can inspect the manifest before purchase and decide whether downstream delegation is acceptable.
+- Any response that used downstream calls includes a downstream-disclosure ledger with called profile, endpoint/wallet, payload summary or payload hash, x402 challenge/receipt state, amount, attestor links, and obfuscation markers.
+- Competitive moat protection is allowed only for returned value-add details; payload class/summary, called-agent identity, payment evidence, and attestation chain remain transparent.
+- Tests cover manifest fields and disclosure-ledger shape.
+
+**Validation:**
+
+- runtime manifest tests;
+- response schema/unit tests for downstream-disclosure ledger;
+- BDD index check;
+- build.
+
+**Reflection prompt:** Would a consumer agent know, before paying, that this specialist may hire other agents, and after completion exactly what was delegated without forcing the specialist to reveal its proprietary method?
 
 ---
 
