@@ -288,3 +288,32 @@ Before Phase 7 multi-edge webpage workflow, add or configure a valid devnet paym
 
 - Phase 6 acceptance splits into two states: live x402 challenge reached (done) vs paid specialist completion (blocked until valid devnet payment provider/signing path exists).
 - Do not retry live edges repeatedly while payment provider is unavailable; the one-call proof is enough until the payment path is configured.
+
+## Phase 6 implementation reflection — paid-retry readiness probe
+
+**Date:** 2026-05-04 AEST
+**Scope executed:** Added and ran a bounded live x402 readiness probe that captures the unpaid challenge and makes one demo-paid retry using the challenge nonce.
+**Command:** `ECONOMIC_DEMO_LIVE_X402_CONFIRM=RUN_ECONOMIC_DEMO_LIVE_X402_READINESS ECONOMIC_DEMO_LIVE_X402_PAID_RETRY=1 npm run smoke:economic-demo:live-x402-readiness`
+**Result:** PASS for blocker identification; paid completion remains blocked by deployed config.
+**Evidence artifact:** `artifacts/economic-demo-live-x402-readiness/20260504T081222Z/summary.json` (git-ignored local artifact).
+
+### What worked
+
+The deployed `code-generation-agent` returned a canonical x402 challenge with network `solana-devnet`, payee wallet `8qSuegJzQ9QGWnXZve5fKahq4rDm6K3o9wEnKLkXp3To`, amount `0.05`, currency `USDC`, exact endpoint match, and nonce present. The readiness harness then made exactly one paid retry with `demo:<challengeNonce>`.
+
+### What failed or surprised us
+
+The paid retry returned HTTP 402 with `demo_payment_disabled`. This is a better blocker than the prior generic payment-provider gap: the deployed specialist intentionally does not accept demo receipts. Real receipt verification is not implemented in the runtime yet, so the next safe path is either enable demo payment only for the controlled demo deployment or implement a real devnet receipt verifier.
+
+### Drift check
+
+The probe made two bounded downstream calls total, used no signer material, attempted no signature, executed no devnet transfer from the harness, and made no Coolify changes.
+
+### Next phase adjustment
+
+Do not keep probing the live endpoint. The next implementation loop should add a fail-closed payment-mode readiness surface that tells the UI/operator exactly why paid completion is blocked (`demo_payment_disabled` vs real verifier unavailable), then choose one deliberate route: controlled demo receipts for the judge demo, or real devnet receipt verification.
+
+### Decision log additions
+
+- Current paid-completion blocker is `demo_payment_disabled` on the deployed specialist runtime.
+- A valid challenge is already emitted for USDC-on-devnet; the missing piece is accepted receipt verification, not endpoint discovery.
