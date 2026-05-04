@@ -69,6 +69,8 @@ assert(Array.isArray(source.edges) && source.edges.length === 4, "expected four 
 assert(source.edges.every((edge) => edge.unpaidChallenge?.status === 402), "every edge must include unpaid 402 challenge proof");
 assert(source.edges.every((edge) => edge.paidCompletion?.status === 200 && edge.paidCompletion?.paymentSatisfied === true), "every edge must include controlled paid 200 proof");
 assert(source.guardrails?.controlledDemoReceiptsOnly === true, "source must be controlled-demo-receipt evidence");
+assert(source.disclosureContract?.allEdgesHaveDisclosureLedger === true, "source must include downstream disclosure ledger evidence for every edge");
+assert(source.guardrails?.disclosureLedgerRequired === true, "source guardrails must require downstream disclosure ledgers");
 
 mkdirSync(outDir, { recursive: true });
 
@@ -82,6 +84,7 @@ const pack = {
   edgeCount: source.edges.length,
   downstreamCallsExecuted: source.downstreamCallsExecuted,
   receiptMode: "controlled_demo_receipts",
+  disclosureContract: source.disclosureContract,
   limitation: "Controlled demo receipts prove x402 challenge/receipt-gated specialist execution for the judge demo, not production USDC settlement verification.",
   edges: source.edges.map((edge) => ({
     step: edge.step,
@@ -95,6 +98,7 @@ const pack = {
       model: edge.paidCompletion.model,
       outputPreview: preview(edge.paidCompletion.outputPreview),
     },
+    downstreamDisclosureLedger: edge.downstreamDisclosureLedger,
   })),
   guardrails: source.guardrails,
   nextRecommendedPhase: "Phase 7C ledger reconciliation, then research workflow planning.",
@@ -120,6 +124,7 @@ writeFileSync(
     `- Specialist edges: **${pack.edgeCount}**`,
     `- Bounded downstream calls: **${pack.downstreamCallsExecuted}** (4 unpaid challenges + 4 controlled demo-paid completions)`,
     "- Receipt mode: **controlled demo receipts**",
+    `- Disclosure ledger contract: **${pack.disclosureContract.requiredLedgerSchemaVersion}** on all edges = **${pack.disclosureContract.allEdgesHaveDisclosureLedger}**`,
     "",
     "## User request",
     "",
@@ -131,6 +136,7 @@ writeFileSync(
     "- Each specialist endpoint enforced x402 first by returning HTTP 402 and a challenge.",
     "- Each controlled demo receipt unlocked an HTTP 200 specialist completion.",
     "- The final verification edge received prior workflow outputs and returned an assessment/release recommendation.",
+    "- Every edge returned a downstream-disclosure ledger, making downstream agent identity, payload/payment state, and attestor linkage transparent to the consumer agent.",
     "- The harness used exact hosted HTTPS endpoints and bounded call counts.",
     "",
     "## Important limitation",
