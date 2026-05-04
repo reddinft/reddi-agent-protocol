@@ -26,7 +26,7 @@ const minBalanceLamports = Number(process.env.MIN_DEVNET_BALANCE_LAMPORTS ?? 500
 assertDevnetRpcEndpoint(endpoint, 'registration');
 if (!Number.isFinite(minBalanceLamports) || minBalanceLamports < 0) throw new Error('MIN_DEVNET_BALANCE_LAMPORTS must be non-negative');
 
-const signerLoad = loadSignerKeypairsFromEnv({ profiles: specialistProfiles.slice(0, 5), requireAll: true });
+const signerLoad = loadSignerKeypairsFromEnv({ profiles: specialistProfiles, requireAll: true });
 const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
 if (manifest.network !== 'solana-devnet') throw new Error('registration script is devnet-only; wallet manifest must be solana-devnet');
 const expectedWalletsByProfile = new Map(manifest.profiles.map((profile) => [profile.profileId, profile.publicKey]));

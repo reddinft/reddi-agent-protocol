@@ -10,6 +10,6 @@ const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
 
 const errors = validateSignerBackedManifest(manifest, { requireSignerProvenance });
 assert.deepEqual(errors, [], `wallet manifest failed validation:\n- ${errors.join('\n- ')}`);
-assert.equal(manifest.profiles.length, 5, 'manifest must publish first five specialist wallets');
+assert.equal(manifest.profiles.length, 30, 'manifest must publish all 30 specialist wallets');
 
 console.log(`wallet manifest valid: ${manifest.profiles.length} ${manifest.network} public keys, no secrets${requireSignerProvenance ? ', signer provenance present' : ''}`);

@@ -2,32 +2,277 @@
   "schemaVersion": "1.0.0",
   "network": "solana-devnet",
   "minimumBalanceLamports": 1000000,
-  "generatedAt": "2026-05-03T21:54:00.706Z",
+  "generatedAt": "2026-05-04T03:46:08.744Z",
   "profiles": [
     {
       "profileId": "planning-agent",
       "displayName": "Planning Agent",
-      "publicKey": "2wYpzbExNi2vHSdK48jBusfEx3WNVjzPFEVNcbCA5cAs"
+      "publicKey": "2wYpzbExNi2vHSdK48jBusfEx3WNVjzPFEVNcbCA5cAs",
+      "signerProvenance": {
+        "sourceEnv": "OPENROUTER_SPECIALIST_SIGNER_KEYPAIRS_JSON",
+        "derivedFromSigner": true
+      }
     },
     {
       "profileId": "document-intelligence-agent",
       "displayName": "Document Intelligence Agent",
-      "publicKey": "13CgDqa8K3Mw8iaoUVahbJUmKyQRrUmCRM259NC8Dmy"
+      "publicKey": "13CgDqa8K3Mw8iaoUVahbJUmKyQRrUmCRM259NC8Dmy",
+      "signerProvenance": {
+        "sourceEnv": "OPENROUTER_SPECIALIST_SIGNER_KEYPAIRS_JSON",
+        "derivedFromSigner": true
+      }
     },
     {
       "profileId": "verification-validation-agent",
       "displayName": "Verification & Validation Agent",
-      "publicKey": "2EmtCTzhoSSorg2rRSnTbngGJqkqNufgtFUZRGU4iFWq"
+      "publicKey": "2EmtCTzhoSSorg2rRSnTbngGJqkqNufgtFUZRGU4iFWq",
+      "signerProvenance": {
+        "sourceEnv": "OPENROUTER_SPECIALIST_SIGNER_KEYPAIRS_JSON",
+        "derivedFromSigner": true
+      }
     },
     {
       "profileId": "code-generation-agent",
       "displayName": "Code Generation Agent",
-      "publicKey": "8qSuegJzQ9QGWnXZve5fKahq4rDm6K3o9wEnKLkXp3To"
+      "publicKey": "8qSuegJzQ9QGWnXZve5fKahq4rDm6K3o9wEnKLkXp3To",
+      "signerProvenance": {
+        "sourceEnv": "OPENROUTER_SPECIALIST_SIGNER_KEYPAIRS_JSON",
+        "derivedFromSigner": true
+      }
     },
     {
       "profileId": "conversational-agent",
       "displayName": "Conversational Agent",
-      "publicKey": "H8U9JjaeFiyHZrPEyFF2Ku7wmk62S24GAaJMVrwNrZUn"
+      "publicKey": "H8U9JjaeFiyHZrPEyFF2Ku7wmk62S24GAaJMVrwNrZUn",
+      "signerProvenance": {
+        "sourceEnv": "OPENROUTER_SPECIALIST_SIGNER_KEYPAIRS_JSON",
+        "derivedFromSigner": true
+      }
+    },
+    {
+      "profileId": "autonomous-decision-agent",
+      "displayName": "Autonomous Decision-Making Agent",
+      "publicKey": "61SdRxMi23cHfQpMDs9fvyjKaiFKoYfgXBZzAqxx6Vb5",
+      "signerProvenance": {
+        "sourceEnv": "OPENROUTER_SPECIALIST_SIGNER_KEYPAIRS_JSON",
+        "derivedFromSigner": true
+      }
+    },
+    {
+      "profileId": "memory-augmented-agent",
+      "displayName": "Memory-Augmented Agent",
+      "publicKey": "Hdnghqbm8jva9N8L4e5NjpKj9chbxDp8jD2qqCGCujEu",
+      "signerProvenance": {
+        "sourceEnv": "OPENROUTER_SPECIALIST_SIGNER_KEYPAIRS_JSON",
+        "derivedFromSigner": true
+      }
+    },
+    {
+      "profileId": "knowledge-retrieval-agent",
+      "displayName": "Knowledge Retrieval Agent",
+      "publicKey": "8U6cFDvibNtaFFkNGC3gPTUbcjETLg1gxHiDeefar39v",
+      "signerProvenance": {
+        "sourceEnv": "OPENROUTER_SPECIALIST_SIGNER_KEYPAIRS_JSON",
+        "derivedFromSigner": true
+      }
+    },
+    {
+      "profileId": "scientific-research-agent",
+      "displayName": "Scientific Research Agent",
+      "publicKey": "EtKBLuMftRiSnax5eQQyFsu7QTruujmHxspQBX5FDbSL",
+      "signerProvenance": {
+        "sourceEnv": "OPENROUTER_SPECIALIST_SIGNER_KEYPAIRS_JSON",
+        "derivedFromSigner": true
+      }
+    },
+    {
+      "profileId": "tool-using-agent",
+      "displayName": "Tool-Using Agent",
+      "publicKey": "GFkP1kmrCG4JAt4miD5zHHaUDNZpUx1N5dK6g3NK9Y2",
+      "signerProvenance": {
+        "sourceEnv": "OPENROUTER_SPECIALIST_SIGNER_KEYPAIRS_JSON",
+        "derivedFromSigner": true
+      }
+    },
+    {
+      "profileId": "agentic-workflow-system",
+      "displayName": "Agentic Workflow System",
+      "publicKey": "9qbchEAHxg2iTMJTQNV5KrLUxXgqFT7HJMUGKMGUt17G",
+      "signerProvenance": {
+        "sourceEnv": "OPENROUTER_SPECIALIST_SIGNER_KEYPAIRS_JSON",
+        "derivedFromSigner": true
+      }
+    },
+    {
+      "profileId": "data-analysis-agent",
+      "displayName": "Data Analysis Agent",
+      "publicKey": "CischZ2HZBazNPJJLdc5yYr9u8ith1vn5V2pQZUPQqEF",
+      "signerProvenance": {
+        "sourceEnv": "OPENROUTER_SPECIALIST_SIGNER_KEYPAIRS_JSON",
+        "derivedFromSigner": true
+      }
+    },
+    {
+      "profileId": "general-problem-solver-agent",
+      "displayName": "General Problem Solver Agent",
+      "publicKey": "4WzsVzdmCDjqZ5Ab63hCntNHoz6L2ziQ9Jmat3satHzD",
+      "signerProvenance": {
+        "sourceEnv": "OPENROUTER_SPECIALIST_SIGNER_KEYPAIRS_JSON",
+        "derivedFromSigner": true
+      }
+    },
+    {
+      "profileId": "security-hardened-agent",
+      "displayName": "Security-Hardened Agent",
+      "publicKey": "CkAE6suBXoLamDJcZkhmTkS3c3VNkfecuCFd1yKRpc4b",
+      "signerProvenance": {
+        "sourceEnv": "OPENROUTER_SPECIALIST_SIGNER_KEYPAIRS_JSON",
+        "derivedFromSigner": true
+      }
+    },
+    {
+      "profileId": "self-improving-agent",
+      "displayName": "Self-Improving Agent",
+      "publicKey": "4PTbsovCzDrNPc44p2LUsu6GbuEwwNZKkFy9335djv8b",
+      "signerProvenance": {
+        "sourceEnv": "OPENROUTER_SPECIALIST_SIGNER_KEYPAIRS_JSON",
+        "derivedFromSigner": true
+      }
+    },
+    {
+      "profileId": "content-creation-agent",
+      "displayName": "Content Creation Agent",
+      "publicKey": "4RfVeJp8si1KunYbvf41i5cDjr2SEjNEHEknUMXSEvEE",
+      "signerProvenance": {
+        "sourceEnv": "OPENROUTER_SPECIALIST_SIGNER_KEYPAIRS_JSON",
+        "derivedFromSigner": true
+      }
+    },
+    {
+      "profileId": "recommendation-agent",
+      "displayName": "Recommendation Agent",
+      "publicKey": "51okYwLPbbGGpsDXsG4SDU4EZhCfk1USQLtyJUp7Wd9e",
+      "signerProvenance": {
+        "sourceEnv": "OPENROUTER_SPECIALIST_SIGNER_KEYPAIRS_JSON",
+        "derivedFromSigner": true
+      }
+    },
+    {
+      "profileId": "vision-language-agent",
+      "displayName": "Vision Language Agent",
+      "publicKey": "HsuJYNDcNFi9SzyG73TG3fwvAbPpkKho8UooTb4BHYnq",
+      "signerProvenance": {
+        "sourceEnv": "OPENROUTER_SPECIALIST_SIGNER_KEYPAIRS_JSON",
+        "derivedFromSigner": true
+      }
+    },
+    {
+      "profileId": "audio-processing-agent",
+      "displayName": "Audio Processing Agent",
+      "publicKey": "Fo6iQZNuHPgXMHQntnZouyqGdjoQDvNktwPeNMc7bZMp",
+      "signerProvenance": {
+        "sourceEnv": "OPENROUTER_SPECIALIST_SIGNER_KEYPAIRS_JSON",
+        "derivedFromSigner": true
+      }
+    },
+    {
+      "profileId": "physical-world-sensing-agent",
+      "displayName": "Physical World Sensing Agent",
+      "publicKey": "5xFsPLvyapAzFJBEw1SaztfEV8xvwfw8w9wooA5AJXAw",
+      "signerProvenance": {
+        "sourceEnv": "OPENROUTER_SPECIALIST_SIGNER_KEYPAIRS_JSON",
+        "derivedFromSigner": true
+      }
+    },
+    {
+      "profileId": "ethical-reasoning-agent",
+      "displayName": "Ethical Reasoning Agent",
+      "publicKey": "CyY7MVqCYEtkq4R6dntpp4AfYetH2Hjjr5bLx5vJNbMG",
+      "signerProvenance": {
+        "sourceEnv": "OPENROUTER_SPECIALIST_SIGNER_KEYPAIRS_JSON",
+        "derivedFromSigner": true
+      }
+    },
+    {
+      "profileId": "explainable-agent",
+      "displayName": "Explainable Agent",
+      "publicKey": "5Hrogoh4rwfp3UdQ1HZKHfUFcfQ4cYojzTqLswt7i4vG",
+      "signerProvenance": {
+        "sourceEnv": "OPENROUTER_SPECIALIST_SIGNER_KEYPAIRS_JSON",
+        "derivedFromSigner": true
+      }
+    },
+    {
+      "profileId": "healthcare-intelligence-agent",
+      "displayName": "Healthcare Intelligence Agent",
+      "publicKey": "9qisw2PSPcwYT789d8BsR8F8TZK1i4M7zbAECYotvLBG",
+      "signerProvenance": {
+        "sourceEnv": "OPENROUTER_SPECIALIST_SIGNER_KEYPAIRS_JSON",
+        "derivedFromSigner": true
+      }
+    },
+    {
+      "profileId": "scientific-discovery-agent",
+      "displayName": "Scientific Discovery Agent",
+      "publicKey": "GsY5rLp3Ry2CuQddWFB7iPUTHXYiAqMWCPh5ZEEznFhC",
+      "signerProvenance": {
+        "sourceEnv": "OPENROUTER_SPECIALIST_SIGNER_KEYPAIRS_JSON",
+        "derivedFromSigner": true
+      }
+    },
+    {
+      "profileId": "financial-advisory-agent",
+      "displayName": "Financial Advisory Agent",
+      "publicKey": "GpEERKh7TEyaRSQ4c5gsD7ZKFufrdcG5n3KrXVdNbYJd",
+      "signerProvenance": {
+        "sourceEnv": "OPENROUTER_SPECIALIST_SIGNER_KEYPAIRS_JSON",
+        "derivedFromSigner": true
+      }
+    },
+    {
+      "profileId": "legal-intelligence-agent",
+      "displayName": "Legal Intelligence Agent",
+      "publicKey": "9f4g632hwzSE8Zpu5vs4k5WiLVxv48ZMmvnLekdY6NS",
+      "signerProvenance": {
+        "sourceEnv": "OPENROUTER_SPECIALIST_SIGNER_KEYPAIRS_JSON",
+        "derivedFromSigner": true
+      }
+    },
+    {
+      "profileId": "education-intelligence-agent",
+      "displayName": "Education Intelligence Agent",
+      "publicKey": "9cNPPapLEUucKnw8kx7ZmcZF1xxW2nb5yatYJ77HJGcs",
+      "signerProvenance": {
+        "sourceEnv": "OPENROUTER_SPECIALIST_SIGNER_KEYPAIRS_JSON",
+        "derivedFromSigner": true
+      }
+    },
+    {
+      "profileId": "collective-intelligence-agent",
+      "displayName": "Collective Intelligence Agent",
+      "publicKey": "5R7snV8st2mi3wnRx8eVMvxLHW91VtZznzNe1xh9Q69y",
+      "signerProvenance": {
+        "sourceEnv": "OPENROUTER_SPECIALIST_SIGNER_KEYPAIRS_JSON",
+        "derivedFromSigner": true
+      }
+    },
+    {
+      "profileId": "embodied-intelligence-agent",
+      "displayName": "Embodied Intelligence Agent",
+      "publicKey": "J4QXByEJs2VKiAqisDwxTi6kEp8pipET7zGr4bqBkPfv",
+      "signerProvenance": {
+        "sourceEnv": "OPENROUTER_SPECIALIST_SIGNER_KEYPAIRS_JSON",
+        "derivedFromSigner": true
+      }
+    },
+    {
+      "profileId": "domain-transforming-integration-agent",
+      "displayName": "Domain-Transforming Integration Agent",
+      "publicKey": "C7SyDdJnUMtJ9YRQyvsFqjYTLibuDB3vQevjpoQsTNZr",
+      "signerProvenance": {
+        "sourceEnv": "OPENROUTER_SPECIALIST_SIGNER_KEYPAIRS_JSON",
+        "derivedFromSigner": true
+      }
     }
   ]
 }

@@ -426,7 +426,7 @@ test("dry-run marketplace ranking is deterministic for sample candidates", async
   );
 });
 
-test("manifest marketplace discovery matches deterministic first-five ranking", async () => {
+test("manifest marketplace discovery matches deterministic all-profile ranking", async () => {
   const discoveryClient = new ManifestMarketplaceDiscoveryClient(walletManifest);
   const plan = await buildDryRunDelegationPlan({
     request: {
@@ -439,13 +439,10 @@ test("manifest marketplace discovery matches deterministic first-five ranking", 
   });
 
   assert.deepEqual(plan.discoveryDiagnostics?.excluded, []);
-  assert.deepEqual(plan.discoveryDiagnostics?.includedProfileIds, [
-    "code-generation-agent",
-    "conversational-agent",
-    "document-intelligence-agent",
-    "planning-agent",
-    "verification-validation-agent",
-  ]);
+  assert.deepEqual(
+    plan.discoveryDiagnostics?.includedProfileIds,
+    walletManifest.profiles.map((profile) => profile.profileId).sort(),
+  );
   assert.deepEqual(
     plan.candidates.map((candidate) => candidate.profileId),
     ["code-generation-agent", "document-intelligence-agent"],
@@ -482,7 +479,7 @@ test("deployment readiness report is public-data-only and blocks missing funding
 
   assert.equal(report.schemaVersion, "reddi.openrouter.deployment-readiness.v1");
   assert.equal(report.status, "blocked");
-  assert.equal(report.entries.length, 5);
+  assert.equal(report.entries.length, 30);
   assert.ok(report.guardrails.includes("no private keys or signer material inspected"));
   assert.ok(report.guardrails.includes("no devnet SOL spent"));
   assert.ok(report.nextApprovalRequired.some((item) => item.includes("fund")));
