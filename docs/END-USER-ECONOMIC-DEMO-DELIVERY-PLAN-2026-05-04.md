@@ -144,7 +144,36 @@ This is the north star. Any implementation phase that does not improve proof of 
 
 ---
 
-### Phase 5 — One live x402 specialist edge
+### Phase 5 — Full Surfpool dress rehearsal with local validator wallets
+
+**Status:** pending.
+
+**Goal:** run the complete economic workflow against a Surfpool local validator using local test wallets, so we can prove real SOL transfers, balance deltas, receipt capture, and rollback behavior before touching devnet live edges.
+
+**Acceptance criteria:**
+
+- Surfpool/local validator starts from a deterministic funded wallet fixture.
+- End-user, orchestrator, specialist, and attestor wallets are created or loaded as local-only test wallets.
+- Marketplace registration/identity data is seeded or replayed locally enough for the demo graph.
+- At least one full workflow executes local SOL transfers for specialist consumption.
+- Before/after balances prove lamports moved exactly as expected.
+- Transfer ledger matches the UI edge ledger.
+- Failure path proves non-allowlisted or over-budget calls produce zero balance delta.
+- Evidence artifact includes validator mode, wallet public keys, tx signatures, edge receipts, balance deltas, and final output summary.
+- No devnet/mainnet spend, no Coolify mutation, no external provider spend unless separately enabled for the image adapter.
+
+**Validation:**
+
+- local Surfpool rehearsal script/test;
+- artifact inspection;
+- UI import/render of the rehearsal artifact;
+- reflection before devnet live edge.
+
+**Reflection prompt:** Did the local rehearsal prove real money movement semantics, or only simulate them in UI?
+
+---
+
+### Phase 6 — One live x402 specialist edge
 
 **Status:** pending; requires explicit go decision before execution.
 
@@ -171,7 +200,7 @@ This is the north star. Any implementation phase that does not improve proof of 
 
 ---
 
-### Phase 6 — Multi-edge webpage workflow with attestation
+### Phase 7 — Multi-edge webpage workflow with attestation
 
 **Status:** pending.
 
@@ -191,7 +220,7 @@ This is the north star. Any implementation phase that does not improve proof of 
 
 ---
 
-### Phase 7 — Research article workflow with evidence/attestation
+### Phase 8 — Research article workflow with evidence/attestation
 
 **Status:** pending.
 
@@ -210,7 +239,7 @@ This is the north star. Any implementation phase that does not improve proof of 
 
 ---
 
-### Phase 8 — Picture workflow with OpenAI/Fal adapter + vision validation
+### Phase 9 — Picture workflow with OpenAI/Fal adapter + vision validation
 
 **Status:** pending; requires image-generation env enablement and cost approval.
 
@@ -231,7 +260,7 @@ This is the north star. Any implementation phase that does not improve proof of 
 
 ---
 
-### Phase 9 — Evidence pack, judge script, and regression sweep
+### Phase 10 — Evidence pack, judge script, and regression sweep
 
 **Status:** pending.
 
@@ -278,7 +307,7 @@ Did this phase improve at least one intended outcome: payload flow, money flow, 
 
 ## Current next action
 
-Proceed to **Phase 3 — Dry-run orchestrator integration** after PR #188 review/merge or continue in the same PR if speed is more important than PR size.
+Proceed to **Phase 3 — Dry-run orchestrator integration** after PR #188 review/merge or continue in the same PR if speed is more important than PR size. Before devnet live edges, insert **Phase 5 — Surfpool dress rehearsal** as the mandatory proof gate for real local SOL transfers.
 
 ## Phase 0/1/2 reflection — initial plan, fixture UI, gated image adapter
 

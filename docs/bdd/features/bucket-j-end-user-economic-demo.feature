@@ -39,6 +39,16 @@ Feature: End-user economic workflow demo
     And downstreamCallsExecuted is 0
     And the ledger is marked planned rather than paid
 
+  Scenario: Surfpool dress rehearsal proves local SOL transfer semantics
+    Given a Surfpool local validator is running with deterministic funded test wallets
+    And end-user, orchestrator, specialist, and attestor wallets are available locally
+    When the economic demo workflow runs against the local validator
+    Then SOL transfers occur for approved specialist consumption edges
+    And the before and after balances match the expected edge ledger
+    And transaction signatures or local validator receipts are recorded
+    And a non-allowlisted or over-budget edge produces zero balance delta
+    And no devnet or mainnet wallet is mutated
+
   Scenario: One live specialist edge is bounded and reviewable
     Given live demo mode is explicitly approved for one devnet edge
     And the endpoint allowlist contains exactly one specialist endpoint
