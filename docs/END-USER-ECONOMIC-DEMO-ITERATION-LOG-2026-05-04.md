@@ -199,3 +199,33 @@ Run/record an optional live read-only devnet balance smoke or proceed directly i
 
 - Fixture ledger and read-only live balance panel are separate proof layers.
 - Read-only devnet balance reads are allowed; they are not payment execution.
+
+## Phase 5 implementation reflection — Surfpool/local rehearsal plan slice A
+
+**Date:** 2026-05-04 AEST  
+**Scope shipped:** Added deterministic Surfpool/local rehearsal planning layer, API route, UI panel, and unit tests.  
+**BDD scenarios touched:** Surfpool/local-validator rehearsal with local wallets and positive/negative balance-delta proof.  
+**Validation:** `npx jest lib/__tests__/economic-demo-surfpool-rehearsal.test.ts lib/__tests__/economic-demo-balances.test.ts lib/__tests__/economic-demo-dry-run.test.ts --runInBand`; targeted lint; `npm run build`.  
+**Result:** PASS.
+**Evidence artifacts:** `lib/economic-demo/surfpool-rehearsal.ts`, `app/api/economic-demo/surfpool-rehearsal/route.ts`, `lib/__tests__/economic-demo-surfpool-rehearsal.test.ts`, `/economic-demo` Surfpool rehearsal panel.
+
+### What worked
+
+The demo now has a third proof layer after fixture ledger and read-only devnet balances: deterministic local-wallet transfer semantics for Surfpool rehearsal. The report proves planned paid edges debit the orchestrator and credit specialists by equal totals, while blocked not-allowlisted/over-budget transfers produce zero delta.
+
+### What failed or surprised us
+
+This is still an expected-ledger rehearsal plan, not a live Surfpool transaction artifact. That is intentional for slice A, but the next slice needs an executable smoke harness or artifact adapter so judges can see actual local transaction signatures.
+
+### Drift check
+
+Still zero devnet spend and zero downstream specialist calls. Phase 5 has started safely without jumping to live x402.
+
+### Next phase adjustment
+
+Slice B should bind this rehearsal plan to an executable Surfpool/local transaction smoke and capture a bounded artifact with local tx signatures, before/after balances, and blocked-transfer no-delta proof. If existing escrow smoke can be reused, prefer adapting it rather than creating parallel settlement logic.
+
+### Decision log additions
+
+- Surfpool rehearsal has two sub-slices: expected-ledger plan first, executable local transaction artifact second.
+- Negative proof remains mandatory before any live specialist edge: non-allowlisted and over-budget attempts must show zero local-wallet delta.
