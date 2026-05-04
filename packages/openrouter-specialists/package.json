@@ -14,7 +14,7 @@
   "scripts": {
     "clean": "rm -rf dist",
     "build": "tsc -p tsconfig.json",
-    "test": "npm run build && node --test dist/tests/*.test.js",
+    "test": "npm run build && NODE_PATH=$PWD/node_modules node --test dist/tests/*.test.js",
     "validate:wallet-manifest": "npm run build && node scripts/validate-wallet-manifest.mjs",
     "wallet:render-signer-manifest": "npm run build && node scripts/render-signer-wallet-manifest.mjs",
     "wallet:verify-signer-provenance": "npm run build && node scripts/validate-wallet-manifest.mjs --require-signer-provenance",
@@ -23,7 +23,8 @@
     "check:devnet-balances": "node scripts/check-devnet-balances.mjs",
     "deployment:readiness": "npm run build && node scripts/deployment-readiness.mjs",
     "delegation:noop-smoke": "npm run build && node scripts/live-noop-smoke.mjs",
-    "delegation:private-smoke": "npm run build && node scripts/private-live-executor-smoke.mjs"
+    "delegation:private-smoke": "npm run build && node scripts/private-live-executor-smoke.mjs",
+    "wallet:readiness": "npm run build && NODE_PATH=$PWD/node_modules node scripts/wallet-readiness.mjs"
   },
   "engines": {
     "node": ">=20"
