@@ -229,3 +229,33 @@ Slice B should bind this rehearsal plan to an executable Surfpool/local transact
 
 - Surfpool rehearsal has two sub-slices: expected-ledger plan first, executable local transaction artifact second.
 - Negative proof remains mandatory before any live specialist edge: non-allowlisted and over-budget attempts must show zero local-wallet delta.
+
+## Phase 5 implementation reflection — Surfpool/local transaction smoke slice B
+
+**Date:** 2026-05-04 AEST  
+**Scope shipped:** Added executable Surfpool/offline local-validator smoke for the webpage rehearsal path.  
+**BDD scenarios touched:** Surfpool/local-validator rehearsal with real local SOL transfers and negative no-delta proof.  
+**Validation:** `npm run smoke:economic-demo:surfpool`; targeted script lint; `npm run build`.  
+**Result:** PASS.
+**Evidence artifact:** `artifacts/economic-demo-surfpool-rehearsal/20260504T074918Z/summary.json` (git-ignored local artifact).
+
+### What worked
+
+The smoke starts Surfpool offline, derives deterministic in-memory local wallets, airdrops local SOL to the orchestrator, executes four local SOL transfers from `agentic-workflow-system` to webpage specialists, and captures real local transaction signatures. The positive proof shows credited lamports exactly match transfer amount; orchestrator debit is larger by local fees, as expected. Negative proof records not-allowlisted and over-budget attempts as not executed with zero blocked delta.
+
+### What failed or surprised us
+
+The first smoke run produced the artifact but hung during Surfpool child cleanup. The script was fixed to wait for process exit and escalate to SIGKILL after a short grace period. The second run exited cleanly.
+
+### Drift check
+
+Still no devnet mutation and no downstream specialist HTTP calls. This satisfies the local transfer-semantics gate before any live x402 edge.
+
+### Next phase adjustment
+
+Phase 6 can now be scoped as one controlled live x402 specialist edge, but it should consume the same proof structure: pre-balance snapshot, exact allowlisted endpoint, one payment attempt, receipt/402-or-success artifact, post-balance snapshot, and rollback/no-second-call proof. If a valid payment provider is not configured, capture challenge semantics and stop rather than retrying.
+
+### Decision log additions
+
+- Local Surfpool transaction proof may include expected fee delta; positive proof should require specialist credits equal planned transfers and orchestrator debit covering transfers plus fees.
+- Child process cleanup is part of the smoke acceptance gate; hung cleanup is a failed harness even if transfers succeeded.
