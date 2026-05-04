@@ -1,5 +1,6 @@
 import { specialistProfiles } from "../../packages/openrouter-specialists/src/profiles/index";
 import type { EconomicDemoScenarioId } from "@/lib/economic-demo/fixture";
+import { openRouterEndpointByProfileId } from "@/lib/economic-demo/openrouter-endpoints";
 
 type Profile = (typeof specialistProfiles)[number];
 
@@ -52,14 +53,6 @@ const SCENARIO_EDGE_PROFILES: Record<EconomicDemoScenarioId, Array<{ id: string;
   ],
 };
 
-const EXACT_ENDPOINTS: Record<string, string> = {
-  "planning-agent": "https://reddi-planning-agent.preview.reddi.tech/v1/chat/completions",
-  "document-intelligence-agent": "https://reddi-document-intelligence.preview.reddi.tech/v1/chat/completions",
-  "verification-validation-agent": "https://reddi-verification-agent.preview.reddi.tech/v1/chat/completions",
-  "code-generation-agent": "https://reddi-code-generation.preview.reddi.tech/v1/chat/completions",
-  "conversational-agent": "https://reddi-conversational.preview.reddi.tech/v1/chat/completions",
-};
-
 function profileById(id: string): Profile {
   const profile = specialistProfiles.find((candidate) => candidate.id === id);
   if (!profile) throw new Error(`unknown_profile:${id}`);
@@ -67,7 +60,9 @@ function profileById(id: string): Profile {
 }
 
 export function endpointForProfile(profileId: string): string {
-  return EXACT_ENDPOINTS[profileId] ?? `https://reddi-${profileId.replace(/-agent$/, "")}.preview.reddi.tech/v1/chat/completions`;
+  const endpoint = openRouterEndpointByProfileId[profileId];
+  if (!endpoint) throw new Error(`missing_hosted_endpoint_evidence:${profileId}`);
+  return endpoint;
 }
 
 function priceUsd(profile: Profile): number {
