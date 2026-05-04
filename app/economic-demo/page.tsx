@@ -13,6 +13,7 @@ import type { DryRunEconomicPlan } from "@/lib/economic-demo/dry-run";
 import type { SurfpoolRehearsalReport } from "@/lib/economic-demo/surfpool-rehearsal";
 import type { EconomicDemoPaymentReadiness } from "@/lib/economic-demo/payment-readiness";
 import type { WebpageLiveWorkflowEvidence } from "@/lib/economic-demo/webpage-live-workflow-evidence";
+import type { EconomicDemoLedgerReconciliation } from "@/lib/economic-demo/ledger-reconciliation";
 
 function shortWallet(wallet: string) {
   return `${wallet.slice(0, 8)}…${wallet.slice(-6)}`;
@@ -37,6 +38,8 @@ export default function EconomicDemoPage() {
   const [paymentReadinessStatus, setPaymentReadinessStatus] = useState<"idle" | "loading" | "loaded" | "error">("idle");
   const [webpageLiveEvidence, setWebpageLiveEvidence] = useState<WebpageLiveWorkflowEvidence | null>(null);
   const [webpageLiveEvidenceStatus, setWebpageLiveEvidenceStatus] = useState<"idle" | "loading" | "loaded" | "error">("idle");
+  const [ledgerReconciliation, setLedgerReconciliation] = useState<EconomicDemoLedgerReconciliation | null>(null);
+  const [ledgerReconciliationStatus, setLedgerReconciliationStatus] = useState<"idle" | "loading" | "loaded" | "error">("idle");
   const scenario = useMemo(
     () => economicDemoScenarios.find((candidate) => candidate.id === scenarioId) ?? economicDemoScenarios[0],
     [scenarioId],
@@ -117,6 +120,19 @@ export default function EconomicDemoPage() {
     }
   }
 
+  async function loadLedgerReconciliation() {
+    setLedgerReconciliationStatus("loading");
+    try {
+      const res = await fetch("/api/economic-demo/ledger-reconciliation");
+      const payload = (await res.json()) as { ok?: boolean; reconciliation?: EconomicDemoLedgerReconciliation };
+      if (!res.ok || !payload.ok || !payload.reconciliation) throw new Error("ledger_reconciliation_failed");
+      setLedgerReconciliation(payload.reconciliation);
+      setLedgerReconciliationStatus("loaded");
+    } catch {
+      setLedgerReconciliationStatus("error");
+    }
+  }
+
   return (
     <main className="min-h-screen bg-page">
       <section className="relative overflow-hidden border-b border-white/5">
@@ -194,6 +210,13 @@ export default function EconomicDemoPage() {
                 >
                   {webpageLiveEvidenceStatus === "loading" ? "Loading live evidence…" : "Show multi-edge evidence"}
                 </button>
+                <button
+                  onClick={loadLedgerReconciliation}
+                  disabled={ledgerReconciliationStatus === "loading"}
+                  className="rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-gray-200 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {ledgerReconciliationStatus === "loading" ? "Reconciling ledger…" : "Reconcile ledger"}
+                </button>
                 <span className="text-xs text-gray-500">
                   Uses deployed 30-agent profile metadata · zero downstream calls
                 </span>
@@ -221,6 +244,11 @@ export default function EconomicDemoPage() {
               {webpageLiveEvidenceStatus === "error" && (
                 <p className="mt-3 rounded-lg border border-yellow-400/30 bg-yellow-400/10 p-3 text-sm text-yellow-100">
                   Multi-edge evidence failed to load. No live specialist endpoint was called from the UI.
+                </p>
+              )}
+              {ledgerReconciliationStatus === "error" && (
+                <p className="mt-3 rounded-lg border border-yellow-400/30 bg-yellow-400/10 p-3 text-sm text-yellow-100">
+                  Ledger reconciliation failed. No live call or transfer was attempted.
                 </p>
               )}
               <dl className="mt-5 grid grid-cols-2 gap-3 text-sm">
@@ -389,6 +417,59 @@ export default function EconomicDemoPage() {
                       ? "Controlled demo-paid completion reached HTTP 200 against the deployed code-generation specialist. The UI still will not auto-retry live payment; the next demo loop can promote this from one paid edge to a multi-edge workflow."
                       : "Paid completion is blocked because the deployed specialist rejects demo receipts. The UI will not auto-retry live payment; choose controlled demo receipts or real devnet receipt verification next."}
                   </p>
+                </div>
+              )}
+
+              {ledgerReconciliation && (
+                <div className="mt-6 rounded-xl border border-white/10 bg-white/5 p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-gray-300">Ledger reconciliation</p>
+                      <p className="mt-1 text-sm leading-6 text-gray-200">
+                        Controlled receipt totals are reconciled against x402 challenge amounts and Surfpool/local transfer semantics.
+                      </p>
+                    </div>
+                    <span className="rounded-full border border-yellow-400/40 bg-yellow-400/10 px-2 py-0.5 text-xs text-yellow-100">
+                      no production settlement claim
+                    </span>
+                  </div>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-4">
+                    <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+                      <p className="text-xs text-gray-500">x402 total</p>
+                      <p className="mt-1 font-mono text-lg text-white">{ledgerReconciliation.totals.challengeAmountUsdc} USDC</p>
+                    </div>
+                    <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+                      <p className="text-xs text-gray-500">demo completions</p>
+                      <p className="mt-1 font-mono text-lg text-[#14F195]">{ledgerReconciliation.totals.controlledPaidCompletions}/4</p>
+                    </div>
+                    <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+                      <p className="text-xs text-gray-500">real settlements</p>
+                      <p className="mt-1 font-mono text-lg text-yellow-100">{ledgerReconciliation.totals.realSettlementsVerified}</p>
+                    </div>
+                    <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+                      <p className="text-xs text-gray-500">Surfpool local proof</p>
+                      <p className="mt-1 font-mono text-lg text-white">{ledgerReconciliation.totals.surfpoolLocalTransferSol} SOL</p>
+                    </div>
+                  </div>
+                  <div className="mt-4 grid gap-3 md:grid-cols-2">
+                    {ledgerReconciliation.edges.map((edge) => (
+                      <div key={edge.profileId} className="rounded-lg border border-white/10 bg-black/20 p-3">
+                        <p className="font-mono text-sm text-white">{edge.profileId}</p>
+                        <p className="mt-1 text-xs text-gray-400">{edge.challengeAmountUsdc} USDC challenge → {shortWallet(edge.payeeWallet)}</p>
+                        <p className="mt-2 text-xs text-[#14F195]">controlled receipt: {edge.controlledReceiptStatus}</p>
+                        <p className="mt-1 text-xs text-yellow-100">real settlement: {edge.realSettlementStatus}</p>
+                        <p className="mt-1 text-xs text-gray-400">Surfpool local transfer: {formatLamports(edge.surfpoolLocalTransferLamports)}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-4 grid gap-2 md:grid-cols-2">
+                    {ledgerReconciliation.proofLayers.map((layer) => (
+                      <div key={layer.id} className="rounded-lg border border-white/10 bg-black/20 p-3">
+                        <p className="text-xs uppercase tracking-wide text-gray-400">{layer.id}: {layer.status}</p>
+                        <p className="mt-1 text-sm leading-6 text-gray-300">{layer.summary}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 
