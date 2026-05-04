@@ -268,6 +268,16 @@ Still pending:
 
 ## Running retrospective log
 
+### Phase 2 retrospective
+
+_Status:_ Complete locally; ready for PR.
+
+- **What worked:** `/economic-demo` now consumes the normalized `disclosureLedgerSummary` shape and renders a dedicated downstream disclosure-ledger panel next to the multi-edge proof. The UI does not inspect raw source artifact edge JSON.
+- **What failed or surprised us:** The currently committed 2026-05-04 live webpage artifact predates `reddi.downstream-disclosure-ledger.v1`, so the truthful UI state is **not evidence-complete** rather than a green ledger. This is useful judge-facing honesty, not a failure.
+- **Safety/spend review:** UI/API summary only. No live endpoint calls from page load, no wallet mutation, no signing, no external infra mutation, no paid model calls.
+- **Judge clarity:** Improved: the panel names the missing ledger contract and lists each edge with `missing_pre_ledger_artifact`, so a judge can distinguish historical x402 proof from complete downstream-disclosure proof.
+- **Plan adjustment:** Next phase should either (a) wire latest generated evidence-pack summaries into the UI when available, or (b) move to local manifest parity. Do not claim hosted endpoints are ledger-complete until Coolify redeploy/smoke is explicitly approved and new artifacts are generated.
+
 ### Phase 1 retrospective
 
 _Status:_ Complete locally; ready for PR.

@@ -19,6 +19,41 @@ export type WebpageLiveWorkflowEvidenceEdge = {
   };
 };
 
+export type WebpageLiveWorkflowDisclosureLedgerEntry = {
+  calledProfileId: string;
+  walletAddress: string | null;
+  endpoint: string | null;
+  payloadSummary: string;
+  payloadHashPresent: boolean;
+  x402: {
+    state: string;
+    amount: string | null;
+    currency: "USDC" | null;
+    receiptPresent: boolean;
+    challengePresent: boolean;
+  };
+  attestorLinks: string[];
+  obfuscation: string | Record<string, unknown> | null;
+};
+
+export type WebpageLiveWorkflowDisclosureLedgerSummary = {
+  schemaVersion: "reddi.economic-demo.disclosure-ledger-summary.v1";
+  requiredLedgerSchemaVersion: "reddi.downstream-disclosure-ledger.v1";
+  allEdgesHaveDisclosureLedger: boolean;
+  evidenceComplete: boolean;
+  incompleteReason: string | null;
+  edgeCount: number;
+  totalLedgerEntries: number;
+  scopes: string[];
+  edges: Array<{
+    step: number;
+    profileId: string;
+    disclosureScope: string;
+    entryCount: number;
+    entries: WebpageLiveWorkflowDisclosureLedgerEntry[];
+  }>;
+};
+
 export type WebpageLiveWorkflowEvidence = {
   schemaVersion: "reddi.economic-demo.webpage.live-x402-workflow.summary.v1";
   generatedAt: string;
@@ -28,6 +63,7 @@ export type WebpageLiveWorkflowEvidence = {
   userRequest: string;
   conclusion: "multi_edge_paid_workflow_reached";
   downstreamCallsExecuted: 8;
+  disclosureLedgerSummary: WebpageLiveWorkflowDisclosureLedgerSummary;
   edges: WebpageLiveWorkflowEvidenceEdge[];
   blockers: [];
   guardrails: {
@@ -43,7 +79,41 @@ export type WebpageLiveWorkflowEvidence = {
   nextStep: string;
 };
 
+export function getDisclosureLedgerEvidenceStatus(summary: WebpageLiveWorkflowDisclosureLedgerSummary) {
+  return {
+    label: summary.evidenceComplete ? "disclosure ledger complete" : "disclosure ledger not evidence-complete",
+    isComplete: summary.evidenceComplete,
+    detail: summary.evidenceComplete
+      ? `${summary.totalLedgerEntries} downstream ledger entries across ${summary.edgeCount} edges.`
+      : (summary.incompleteReason ?? "Missing downstream disclosure ledger evidence."),
+  };
+}
+
 export function getWebpageLiveWorkflowEvidence(): WebpageLiveWorkflowEvidence {
+  const disclosureLedgerSummary: WebpageLiveWorkflowDisclosureLedgerSummary = {
+    schemaVersion: "reddi.economic-demo.disclosure-ledger-summary.v1",
+    requiredLedgerSchemaVersion: "reddi.downstream-disclosure-ledger.v1",
+    allEdgesHaveDisclosureLedger: false,
+    evidenceComplete: false,
+    incompleteReason:
+      "The committed 2026-05-04 live webpage artifact predates reddi.downstream-disclosure-ledger.v1; future evidence packs must include this ledger before the proof is considered complete.",
+    edgeCount: 4,
+    totalLedgerEntries: 0,
+    scopes: ["missing_pre_ledger_artifact"],
+    edges: [
+      "planning-agent",
+      "content-creation-agent",
+      "code-generation-agent",
+      "verification-validation-agent",
+    ].map((profileId, index) => ({
+      step: index + 1,
+      profileId,
+      disclosureScope: "missing_pre_ledger_artifact",
+      entryCount: 0,
+      entries: [],
+    })),
+  };
+
   return {
     schemaVersion: "reddi.economic-demo.webpage.live-x402-workflow.summary.v1",
     generatedAt: "2026-05-04T09:35:08.940Z",
@@ -54,6 +124,7 @@ export function getWebpageLiveWorkflowEvidence(): WebpageLiveWorkflowEvidence {
       "Design me a webpage for a trustless AI agent marketplace where users pay specialist agents via x402 and receive attested outputs.",
     conclusion: "multi_edge_paid_workflow_reached",
     downstreamCallsExecuted: 8,
+    disclosureLedgerSummary,
     edges: [
       {
         step: 1,
