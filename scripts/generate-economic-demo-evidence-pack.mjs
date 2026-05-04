@@ -24,14 +24,69 @@ function preview(text, max = 520) {
   return text.replace(/```/g, "~~~").replace(/\s+$/g, "").slice(0, max);
 }
 
+function summarizeDisclosureLedger(edge) {
+  const ledger = edge.downstreamDisclosureLedger;
+  assert(ledger?.schemaVersion === "reddi.downstream-disclosure-ledger.v1", `${edge.profileId}: missing downstream disclosure ledger`);
+  assert(Array.isArray(ledger.entries), `${edge.profileId}: disclosure ledger entries must be an array`);
+  return {
+    schemaVersion: ledger.schemaVersion,
+    disclosureScope: ledger.disclosureScope,
+    entryCount: ledger.entries.length,
+    transparencyGuarantees: Array.isArray(ledger.transparencyGuarantees) ? ledger.transparencyGuarantees : [],
+    entries: ledger.entries.map((entry) => ({
+      calledProfileId: entry.calledProfileId ?? "none",
+      walletAddress: entry.walletAddress ?? null,
+      endpoint: entry.endpoint ?? null,
+      payloadSummary: preview(entry.payloadSummary, 240),
+      payloadHashPresent: Boolean(entry.payloadHashPresent || (typeof entry.payloadHash === "string" && entry.payloadHash.length > 0)),
+      x402: {
+        state: entry.x402?.state ?? entry.x402?.status ?? "not_applicable",
+        amount: entry.x402?.amount ?? null,
+        currency: entry.x402?.currency ?? null,
+        receiptPresent: Boolean(entry.x402?.receiptPresent || entry.x402?.receipt),
+        challengePresent: Boolean(entry.x402?.challengePresent || entry.x402?.challenge),
+      },
+      attestorLinks: Array.isArray(entry.attestorLinks) ? entry.attestorLinks : [],
+      obfuscation: entry.obfuscation ?? null,
+    })),
+  };
+}
+
+function disclosureMarkdown(edge) {
+  const ledger = edge.downstreamDisclosureLedgerSummary;
+  const lines = [
+    `- Disclosure ledger: \`${ledger.schemaVersion}\` · scope=${ledger.disclosureScope} · entries=${ledger.entryCount}`,
+  ];
+
+  if (ledger.entries.length === 0) {
+    lines.push("  - No downstream calls were disclosed for this edge.");
+  } else {
+    for (const entry of ledger.entries) {
+      lines.push(`  - Called: \`${entry.calledProfileId}\``);
+      lines.push(`    - Wallet: \`${entry.walletAddress ?? "not_disclosed"}\``);
+      lines.push(`    - Endpoint: \`${entry.endpoint ?? "not_disclosed"}\``);
+      lines.push(`    - Payload: ${entry.payloadSummary || (entry.payloadHashPresent ? "hash present" : "not disclosed")}`);
+      lines.push(`    - x402: ${entry.x402.state}${entry.x402.amount ? ` · ${entry.x402.amount} ${entry.x402.currency ?? ""}` : ""} · challenge=${entry.x402.challengePresent} · receipt=${entry.x402.receiptPresent}`);
+      if (entry.attestorLinks.length > 0) lines.push(`    - Attestors: ${entry.attestorLinks.map((link) => `\`${link}\``).join(", ")}`);
+      if (entry.obfuscation) lines.push(`    - Obfuscation: ${typeof entry.obfuscation === "string" ? entry.obfuscation : JSON.stringify(entry.obfuscation)}`);
+    }
+  }
+
+  if (ledger.transparencyGuarantees.length > 0) {
+    lines.push(`  - Guarantees: ${ledger.transparencyGuarantees.join(", ")}`);
+  }
+
+  return lines.join("\n");
+}
+
 function edgeMarkdown(edge) {
   return [
     `### ${edge.step}. ${edge.profileId}`,
     "",
     `- Capability: \`${edge.capability}\``,
     `- Endpoint: \`${edge.endpoint}\``,
-    `- x402 challenge: HTTP ${edge.unpaidChallenge.status} · ${edge.unpaidChallenge.challenge.amount} ${edge.unpaidChallenge.challenge.currency} · ${edge.unpaidChallenge.challenge.network}`,
-    `- Payee wallet: \`${edge.unpaidChallenge.challenge.payTo}\``,
+    `- x402 challenge: HTTP 402 · ${edge.challenge.amount} ${edge.challenge.currency} · ${edge.challenge.network}`,
+    `- Payee wallet: \`${edge.challenge.payTo}\``,
     `- Controlled demo-paid completion: HTTP ${edge.paidCompletion.status} · paymentSatisfied=${edge.paidCompletion.paymentSatisfied}`,
     `- Model: \`${edge.paidCompletion.model ?? "unknown"}\``,
     "",
@@ -41,6 +96,8 @@ function edgeMarkdown(edge) {
       .split("\n")
       .map((line) => `> ${line}`)
       .join("\n"),
+    "",
+    disclosureMarkdown(edge),
     "",
   ].join("\n");
 }
@@ -74,6 +131,37 @@ assert(source.guardrails?.disclosureLedgerRequired === true, "source guardrails 
 
 mkdirSync(outDir, { recursive: true });
 
+const edgeSummaries = source.edges.map((edge) => ({
+  step: edge.step,
+  profileId: edge.profileId,
+  capability: edge.capability,
+  endpoint: edge.endpoint,
+  challenge: edge.unpaidChallenge.challenge,
+  paidCompletion: {
+    status: edge.paidCompletion.status,
+    paymentSatisfied: edge.paidCompletion.paymentSatisfied,
+    model: edge.paidCompletion.model,
+    outputPreview: preview(edge.paidCompletion.outputPreview),
+  },
+  downstreamDisclosureLedgerSummary: summarizeDisclosureLedger(edge),
+}));
+
+const disclosureLedgerSummary = {
+  schemaVersion: "reddi.economic-demo.disclosure-ledger-summary.v1",
+  requiredLedgerSchemaVersion: source.disclosureContract.requiredLedgerSchemaVersion,
+  allEdgesHaveDisclosureLedger: source.disclosureContract.allEdgesHaveDisclosureLedger,
+  edgeCount: edgeSummaries.length,
+  totalLedgerEntries: edgeSummaries.reduce((sum, edge) => sum + edge.downstreamDisclosureLedgerSummary.entryCount, 0),
+  scopes: [...new Set(edgeSummaries.map((edge) => edge.downstreamDisclosureLedgerSummary.disclosureScope))].sort(),
+  edges: edgeSummaries.map((edge) => ({
+    step: edge.step,
+    profileId: edge.profileId,
+    disclosureScope: edge.downstreamDisclosureLedgerSummary.disclosureScope,
+    entryCount: edge.downstreamDisclosureLedgerSummary.entryCount,
+    entries: edge.downstreamDisclosureLedgerSummary.entries,
+  })),
+};
+
 const pack = {
   schemaVersion: "reddi.economic-demo.judge-evidence-pack.v1",
   generatedAt: new Date().toISOString(),
@@ -85,21 +173,9 @@ const pack = {
   downstreamCallsExecuted: source.downstreamCallsExecuted,
   receiptMode: "controlled_demo_receipts",
   disclosureContract: source.disclosureContract,
+  disclosureLedgerSummary,
   limitation: "Controlled demo receipts prove x402 challenge/receipt-gated specialist execution for the judge demo, not production USDC settlement verification.",
-  edges: source.edges.map((edge) => ({
-    step: edge.step,
-    profileId: edge.profileId,
-    capability: edge.capability,
-    endpoint: edge.endpoint,
-    challenge: edge.unpaidChallenge.challenge,
-    paidCompletion: {
-      status: edge.paidCompletion.status,
-      paymentSatisfied: edge.paidCompletion.paymentSatisfied,
-      model: edge.paidCompletion.model,
-      outputPreview: preview(edge.paidCompletion.outputPreview),
-    },
-    downstreamDisclosureLedger: edge.downstreamDisclosureLedger,
-  })),
+  edges: edgeSummaries,
   guardrails: source.guardrails,
   nextRecommendedPhase: "Phase 7C ledger reconciliation, then research workflow planning.",
 };
@@ -125,6 +201,7 @@ writeFileSync(
     `- Bounded downstream calls: **${pack.downstreamCallsExecuted}** (4 unpaid challenges + 4 controlled demo-paid completions)`,
     "- Receipt mode: **controlled demo receipts**",
     `- Disclosure ledger contract: **${pack.disclosureContract.requiredLedgerSchemaVersion}** on all edges = **${pack.disclosureContract.allEdgesHaveDisclosureLedger}**`,
+    `- Disclosure ledger entries summarized: **${pack.disclosureLedgerSummary.totalLedgerEntries}** across ${pack.disclosureLedgerSummary.edgeCount} edges`,
     "",
     "## User request",
     "",
@@ -145,7 +222,23 @@ writeFileSync(
     "",
     "## Specialist edges",
     "",
-    ...source.edges.map(edgeMarkdown),
+    ...pack.edges.map(edgeMarkdown),
+    "## Compact downstream disclosure ledger",
+    "",
+    ...pack.disclosureLedgerSummary.edges.flatMap((edge) => [
+      `### ${edge.step}. ${edge.profileId}`,
+      "",
+      `- Scope: ${edge.disclosureScope}`,
+      `- Entries: ${edge.entryCount}`,
+      ...edge.entries.flatMap((entry) => [
+        `  - Called: \`${entry.calledProfileId}\``,
+        `    - Wallet: \`${entry.walletAddress ?? "not_disclosed"}\``,
+        `    - Endpoint: \`${entry.endpoint ?? "not_disclosed"}\``,
+        `    - Payload: ${entry.payloadSummary || (entry.payloadHashPresent ? "hash present" : "not disclosed")}`,
+        `    - x402: ${entry.x402.state}${entry.x402.amount ? ` · ${entry.x402.amount} ${entry.x402.currency ?? ""}` : ""} · challenge=${entry.x402.challengePresent} · receipt=${entry.x402.receiptPresent}`,
+      ]),
+      "",
+    ]),
     "## Guardrails",
     "",
     ...Object.entries(source.guardrails).map(([key, value]) => `- ${key}: ${value}`),
