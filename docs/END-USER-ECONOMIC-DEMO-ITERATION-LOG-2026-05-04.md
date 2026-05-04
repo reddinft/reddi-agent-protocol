@@ -431,3 +431,34 @@ Proceed to Phase 7B: generate a judge-facing evidence pack from the latest multi
 
 - UI evidence panels should consume sanitized summaries, not raw live artifact blobs.
 - Evidence-pack generation is now the next loop before research/picture expansion.
+
+## Phase 7B implementation reflection — judge-facing evidence pack generator
+
+**Date:** 2026-05-04 AEST
+**Scope shipped:** Added a local evidence-pack generator for the latest multi-edge webpage live x402 workflow artifact.
+**BDD scenarios touched:** Judge can inspect one bounded public evidence packet for request → specialist payload flow → x402 challenge/payment status → attestation summary → guardrails.
+**Validation:** `npm run evidence:economic-demo:webpage`; generated secret scan PASS; targeted script lint PASS with package.json ignored warning only; `npm run build` PASS.
+**Result:** PASS.
+**Evidence artifacts:** `artifacts/economic-demo-evidence-pack/20260504T103840Z/evidence-pack.json`, `artifacts/economic-demo-evidence-pack/20260504T103840Z/EVIDENCE.md`, `artifacts/economic-demo-evidence-pack/20260504T103840Z/SECRET-SCAN.json`.
+
+### What worked
+
+The pack turns raw smoke JSON into judge-readable proof: 4 specialist edges, 4 HTTP 402 x402 challenges, 4 controlled demo-paid HTTP 200 completions, payee wallets, USDC challenge amounts, output previews, and guardrails. The script also runs a local secret scan before declaring success.
+
+### What failed or surprised us
+
+The pack is intentionally generated under git-ignored `artifacts/`, so it is not committed by default. That is good for avoiding stale or oversized evidence blobs, but the UI still needs a stable way to reference or regenerate the latest pack for judges.
+
+### Drift check
+
+This improves judge clarity and evidence portability without adding live calls or spend. It still clearly states controlled demo receipts are not production USDC settlement verification.
+
+### Next phase adjustment
+
+Proceed to Phase 7C: ledger reconciliation. It should total the x402 challenge amounts, distinguish controlled-demo receipts from real settlement, and link the money-flow story back to Surfpool/local transfer proof.
+
+### Decision log additions
+
+- Evidence packs are generated artifacts, not committed source truth.
+- Secret scan is mandatory for every public evidence pack.
+- Next UI work should reconcile challenge amounts and receipt mode before expanding to research/picture workflows.
