@@ -60,8 +60,8 @@ export function buildDeploymentReadinessReport(input: {
     };
   });
   const nextApprovalRequired = [
-    "Approve/configure Coolify deployments for first five specialist profiles.",
-    "Approve/fund public devnet wallets to the minimum balance threshold if live registration is next.",
+    "Approve/configure Coolify deployments for all 30 specialist profiles.",
+    "Use the approved funder-only devnet wallet to fund each agent-specific wallet to the minimum balance threshold if live registration is next.",
     "Approve production secret configuration for OPENROUTER_API_KEY outside the repository.",
     "Approve any live downstream x402 execution separately; Iteration 4.5 does not enable it.",
   ];

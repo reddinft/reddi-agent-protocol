@@ -482,7 +482,9 @@ test("deployment readiness report is public-data-only and blocks missing funding
   assert.equal(report.entries.length, 30);
   assert.ok(report.guardrails.includes("no private keys or signer material inspected"));
   assert.ok(report.guardrails.includes("no devnet SOL spent"));
-  assert.ok(report.nextApprovalRequired.some((item) => item.includes("fund")));
+  assert.ok(report.nextApprovalRequired.some((item) => item.includes("all 30 specialist profiles")));
+  assert.ok(report.nextApprovalRequired.some((item) => item.includes("funder-only devnet wallet")));
+  assert.ok(!report.nextApprovalRequired.some((item) => item.includes("first five specialist profiles")));
   assert.ok(report.entries.every((entry) => entry.endpoint?.startsWith("https://planning.example.test/")));
   assert.ok(report.entries.every((entry) => entry.blockers.includes("funding not confirmed; approval/funding required")));
   assert.ok(report.entries.every((entry) => entry.blockers.includes("Coolify deployment not confirmed")));
