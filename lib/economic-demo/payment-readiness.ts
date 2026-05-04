@@ -14,8 +14,9 @@ export type EconomicDemoPaymentReadiness = {
   };
   paidCompletion: {
     reached: boolean;
-    lastAttemptStatus: 402;
-    lastAttemptErrorCode: "demo_payment_disabled";
+    lastAttemptStatus: number;
+    lastAttemptErrorCode?: "demo_payment_disabled" | "http_502" | "unknown";
+    paymentSatisfied: boolean;
   };
   guardrails: {
     noAutomaticLiveRetry: true;
@@ -27,9 +28,10 @@ export type EconomicDemoPaymentReadiness = {
     generatedAt: string;
     localArtifactPath: string;
     pr?: string;
+    operationalChange?: string;
   };
   nextOptions: Array<{
-    id: "controlled_demo_receipts" | "real_devnet_receipt_verifier";
+    id: "multi_edge_webpage_workflow" | "real_devnet_receipt_verifier";
     label: string;
     tradeoff: string;
   }>;
@@ -40,8 +42,7 @@ export function getEconomicDemoPaymentReadiness(): EconomicDemoPaymentReadiness 
     mode: "live_x402_payment_readiness",
     profileId: "code-generation-agent",
     endpoint: "https://reddi-code-generation.preview.reddi.tech/v1/chat/completions",
-    status: "blocked",
-    blocker: "demo_payment_disabled",
+    status: "ready",
     liveChallenge: {
       reachable: true,
       network: "solana-devnet",
@@ -51,9 +52,9 @@ export function getEconomicDemoPaymentReadiness(): EconomicDemoPaymentReadiness 
       nonceObserved: true,
     },
     paidCompletion: {
-      reached: false,
-      lastAttemptStatus: 402,
-      lastAttemptErrorCode: "demo_payment_disabled",
+      reached: true,
+      lastAttemptStatus: 200,
+      paymentSatisfied: true,
     },
     guardrails: {
       noAutomaticLiveRetry: true,
@@ -62,15 +63,16 @@ export function getEconomicDemoPaymentReadiness(): EconomicDemoPaymentReadiness 
       maxProbeCalls: 2,
     },
     evidence: {
-      generatedAt: "2026-05-04T08:12:23.130Z",
-      localArtifactPath: "artifacts/economic-demo-live-x402-readiness/20260504T081222Z/summary.json",
-      pr: "https://github.com/nissan/reddi-agent-protocol/pull/193",
+      generatedAt: "2026-05-04T09:00:02.570Z",
+      localArtifactPath: "artifacts/economic-demo-live-x402-readiness/20260504T085951Z/summary.json",
+      pr: "https://github.com/nissan/reddi-agent-protocol/pull/195",
+      operationalChange: "Controlled demo receipts enabled for the hosted code-generation specialist in Coolify; code-generation model slug corrected from unavailable anthropic/claude-3.5-sonnet to openai/gpt-4.1-mini.",
     },
     nextOptions: [
       {
-        id: "controlled_demo_receipts",
-        label: "Enable controlled demo receipts for the judge deployment",
-        tradeoff: "Fastest judge-facing path; must be visibly labeled as demo receipt verification, not production settlement.",
+        id: "multi_edge_webpage_workflow",
+        label: "Promote the webpage path from single paid edge to multi-edge economic workflow",
+        tradeoff: "Fastest judge-facing proof now that the first controlled paid completion reaches HTTP 200; still label receipts as controlled demo receipts until real settlement verification lands.",
       },
       {
         id: "real_devnet_receipt_verifier",

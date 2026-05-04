@@ -332,14 +332,14 @@ export default function EconomicDemoPage() {
 
 
               {paymentReadiness && (
-                <div className="mt-6 rounded-xl border border-yellow-400/30 bg-yellow-400/10 p-4">
+                <div className={paymentReadiness.status === "ready" ? "mt-6 rounded-xl border border-[#14F195]/30 bg-[#14F195]/10 p-4" : "mt-6 rounded-xl border border-yellow-400/30 bg-yellow-400/10 p-4"}>
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <p className="text-xs uppercase tracking-wide text-yellow-100">Live x402 payment readiness</p>
+                      <p className={paymentReadiness.status === "ready" ? "text-xs uppercase tracking-wide text-[#14F195]" : "text-xs uppercase tracking-wide text-yellow-100"}>Live x402 payment readiness</p>
                       <p className="mt-1 break-all font-mono text-sm text-white">{paymentReadiness.endpoint}</p>
                     </div>
-                    <span className="rounded-full border border-yellow-400/40 bg-yellow-400/10 px-2 py-0.5 text-xs text-yellow-100">
-                      {paymentReadiness.status}: {paymentReadiness.blocker}
+                    <span className={paymentReadiness.status === "ready" ? "rounded-full border border-[#14F195]/40 bg-[#14F195]/10 px-2 py-0.5 text-xs text-[#14F195]" : "rounded-full border border-yellow-400/40 bg-yellow-400/10 px-2 py-0.5 text-xs text-yellow-100"}>
+                      {paymentReadiness.status}{paymentReadiness.blocker ? `: ${paymentReadiness.blocker}` : ""}
                     </span>
                   </div>
                   <div className="mt-4 grid gap-3 sm:grid-cols-3">
@@ -353,11 +353,13 @@ export default function EconomicDemoPage() {
                     </div>
                     <div className="rounded-lg border border-white/10 bg-black/20 p-3">
                       <p className="text-xs text-gray-500">paid retry</p>
-                      <p className="mt-1 font-mono text-sm text-yellow-100">HTTP {paymentReadiness.paidCompletion.lastAttemptStatus}</p>
+                      <p className={paymentReadiness.paidCompletion.reached ? "mt-1 font-mono text-sm text-[#14F195]" : "mt-1 font-mono text-sm text-yellow-100"}>HTTP {paymentReadiness.paidCompletion.lastAttemptStatus}</p>
                     </div>
                   </div>
-                  <p className="mt-4 text-sm leading-6 text-yellow-50/90">
-                    Paid completion is blocked because the deployed specialist rejects demo receipts. The UI will not auto-retry live payment; choose controlled demo receipts or real devnet receipt verification next.
+                  <p className={paymentReadiness.status === "ready" ? "mt-4 text-sm leading-6 text-[#14F195]/90" : "mt-4 text-sm leading-6 text-yellow-50/90"}>
+                    {paymentReadiness.status === "ready"
+                      ? "Controlled demo-paid completion reached HTTP 200 against the deployed code-generation specialist. The UI still will not auto-retry live payment; the next demo loop can promote this from one paid edge to a multi-edge workflow."
+                      : "Paid completion is blocked because the deployed specialist rejects demo receipts. The UI will not auto-retry live payment; choose controlled demo receipts or real devnet receipt verification next."}
                   </p>
                 </div>
               )}
