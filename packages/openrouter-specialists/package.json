@@ -24,7 +24,8 @@
     "deployment:readiness": "npm run build && node scripts/deployment-readiness.mjs",
     "delegation:noop-smoke": "npm run build && node scripts/live-noop-smoke.mjs",
     "delegation:private-smoke": "npm run build && node scripts/private-live-executor-smoke.mjs",
-    "wallet:readiness": "npm run build && NODE_PATH=$PWD/node_modules node scripts/wallet-readiness.mjs"
+    "wallet:readiness": "npm run build && NODE_PATH=$PWD/node_modules node scripts/wallet-readiness.mjs",
+    "wallet:rotation-plan": "npm run build && NODE_PATH=$PWD/node_modules node scripts/wallet-rotation-plan.mjs"
   },
   "engines": {
     "node": ">=20"
