@@ -8,6 +8,7 @@ export * from "./delegation-budget.js";
 export * from "./delegation-intent.js";
 export * from "./delegation-audit.js";
 export * from "./delegation-executor.js";
+export * from "./agentic-workflow-disclosure.js";
 export * from "./runtime.js";
 export * from "./wallet-readiness.js";
 export * from "./wallet-rotation-plan.js";

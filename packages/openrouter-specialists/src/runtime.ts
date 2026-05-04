@@ -8,6 +8,7 @@ import {
   type ReceiptVerificationResult,
   type X402Challenge,
 } from "@reddi/x402-solana";
+import { buildAgenticWorkflowManifestDisclosure, buildDownstreamDisclosureLedger, buildNoDownstreamDisclosureLedger } from "./agentic-workflow-disclosure.js";
 import { buildAttestationPromptEnvelope, evaluateAttestation, normalizeAttestationRequest } from "./attestation.js";
 import { buildLiveDelegationAuditEnvelope } from "./delegation-audit.js";
 import { evaluateDelegationBudget } from "./delegation-budget.js";
@@ -115,6 +116,7 @@ export function marketplaceMetadata(profile: SpecialistProfile, config: RuntimeC
     safetyMode: profile.safetyMode,
     preferredAttestors: profile.preferredAttestors,
     model: profile.model,
+    agenticWorkflowDisclosure: buildAgenticWorkflowManifestDisclosure(profile, config),
   };
 }
 
@@ -267,6 +269,7 @@ export async function handleDelegationPlanning(input: {
     const executorEvidence = input.config.enableLiveDelegationExecutor
       ? await (input.liveDelegationExecutor ?? new NoopLiveDelegationExecutor()).execute({ intentPlan, auditEnvelope })
       : buildDisabledLiveDelegationExecutorEvidence({ intentPlan, auditEnvelope });
+    const downstreamDisclosureLedger = buildDownstreamDisclosureLedger({ intentPlan, executorEvidence });
 
     return {
       status: 501,
@@ -286,6 +289,7 @@ export async function handleDelegationPlanning(input: {
           intentPlan,
           auditEnvelope,
           executorEvidence,
+          downstreamDisclosureLedger,
         },
       },
     };
@@ -315,6 +319,7 @@ export async function handleDelegationPlanning(input: {
         liveCallsEnabled: false,
         downstreamCallsExecuted: 0,
         requiredAttestor: plan.requiredAttestor,
+        downstreamDisclosureLedger: buildNoDownstreamDisclosureLedger(),
       },
     },
   };
@@ -349,6 +354,7 @@ export async function handleAttestationEvaluation(input: {
     mockOpenRouter: input.config.mockOpenRouter,
     mode: "attestation",
     schemaVersion: promptEnvelope.schemaVersion,
+    downstreamDisclosureLedger: buildNoDownstreamDisclosureLedger(),
   };
   const upstream = await input.client.createChatCompletion({
     model: profile.model,
@@ -397,6 +403,7 @@ export async function handleChatCompletions(input: {
     paymentSatisfied: input.config.requirePayment,
     safetyMode: profile.safetyMode,
     mockOpenRouter: input.config.mockOpenRouter,
+    downstreamDisclosureLedger: buildNoDownstreamDisclosureLedger(),
   };
   const upstream = await input.client.createChatCompletion({
     model: profile.model,

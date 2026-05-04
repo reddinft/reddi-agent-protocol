@@ -554,3 +554,34 @@ Before expanding beyond the controlled webpage proof, implement the agentic work
 - Downstream delegation must be disclosed in `/.well-known/reddi-agent.json` before purchase.
 - Return payloads must include downstream-disclosure ledger entries for called agents, payload summaries/hashes, payment/receipt state, and attestor links.
 - Competitive moat protection may obfuscate returned value-add details, but not called-agent identity, payload class, payment evidence, or attestation chain.
+
+## Phase 6.5 implementation reflection — manifest disclosure + downstream ledger slice A
+
+**Date:** 2026-05-05 AEST
+**Scope shipped:** Added runtime-level agentic workflow manifest disclosure, downstream-disclosure ledger schema/builders, live-delegation response ledger wiring, no-downstream ledger for ordinary completions/attestations, tests, and `/economic-demo` explanatory panel.
+**BDD scenarios touched:** Agent manifests disclose downstream marketplace delegation; downstream calls return transparent disclosure without exposing proprietary value-add.
+**Validation:** `npm test --prefix packages/openrouter-specialists`; targeted ESLint; `npm run build`.
+**Result:** PASS.
+
+### What worked
+
+The manifest now gives consumer agents a pre-purchase signal that a specialist/attestor may call other marketplace agents, including expected capabilities, budget guard requirements, attestor expectations, and payload-disclosure policy. Runtime live-delegation responses now include a downstream-disclosure ledger tied to the intent/audit/executor evidence, so a consumer can see the called profile, wallet/endpoint, payload summary, x402 state, and attestor link.
+
+### What failed or surprised us
+
+The first slice exposes the contract and runtime ledger shape, but hosted Coolify apps will need redeploy/smoke before the public `/.well-known/reddi-agent.json` endpoints show the new fields. Also, controlled multi-edge smoke artifacts still predate the ledger schema; future smokes should require disclosure-ledger evidence in the captured artifact.
+
+### Drift check
+
+This directly implements the retrospective outcome and keeps the loop agile: we paused workflow expansion to add autonomy/disclosure semantics before continuing research/picture live paths.
+
+### Next phase adjustment
+
+Next slice should either redeploy/smoke all 30 hosted manifests for public disclosure evidence or update the live workflow smoke/evidence pack to assert and display downstream-disclosure ledger entries for every delegated edge.
+
+### Decision log additions
+
+- `agenticWorkflowDisclosure` is part of the Reddi agent manifest contract.
+- `reddi.downstream-disclosure-ledger.v1` is the response contract for downstream delegation disclosure.
+- Ordinary completions and attestations return an explicit `no_downstream_calls` ledger.
+- Live-delegation responses must include disclosure ledger evidence alongside intent, audit, and executor evidence.

@@ -308,6 +308,27 @@ export default function EconomicDemoPage() {
               </div>
             </div>
 
+            <div className="rounded-2xl border border-accent-purple/25 bg-accent-purple/10 p-6 shadow-card">
+              <p className="section-label">Agentic workflow disclosure</p>
+              <h3 className="mt-2 text-xl font-semibold text-white">Autonomous agents can become consumers</h3>
+              <p className="mt-3 text-sm leading-6 text-gray-300">
+                Specialists and attestors are wallet-bearing autonomous agents. If they may hire other marketplace agents while fulfilling their role, their manifest must disclose that before purchase and their response must return a downstream-disclosure ledger.
+              </p>
+              <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+                <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                  <p className="text-xs uppercase tracking-wide text-gray-500">Manifest disclosure</p>
+                  <p className="mt-2 text-gray-300">may call agents · expected capabilities · budget policy · attestor expectations · payload-disclosure policy</p>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                  <p className="text-xs uppercase tracking-wide text-gray-500">Return disclosure</p>
+                  <p className="mt-2 text-gray-300">called agent · wallet/endpoint · payload summary/hash · x402 state · attestor links · moat-protection marker</p>
+                </div>
+              </div>
+              <p className="mt-4 text-xs leading-5 text-yellow-100">
+                Moat protection can obfuscate proprietary returned value-add details, but not called-agent identity, payload class, payment evidence, or attestation chain.
+              </p>
+            </div>
+
             <div className="rounded-2xl border border-white/10 bg-card/70 p-6 shadow-card">
               <p className="section-label">Guardrails</p>
               <ul className="mt-3 space-y-2 text-sm text-gray-300">
