@@ -10,6 +10,7 @@ import {
 } from "@/lib/economic-demo/fixture";
 import type { EconomicDemoBalanceReport } from "@/lib/economic-demo/balances";
 import type { DryRunEconomicPlan } from "@/lib/economic-demo/dry-run";
+import type { SurfpoolRehearsalReport } from "@/lib/economic-demo/surfpool-rehearsal";
 
 function shortWallet(wallet: string) {
   return `${wallet.slice(0, 8)}…${wallet.slice(-6)}`;
@@ -28,6 +29,8 @@ export default function EconomicDemoPage() {
   const [dryRunStatus, setDryRunStatus] = useState<"idle" | "loading" | "loaded" | "error">("idle");
   const [balanceReport, setBalanceReport] = useState<EconomicDemoBalanceReport | null>(null);
   const [balanceStatus, setBalanceStatus] = useState<"idle" | "loading" | "loaded" | "error">("idle");
+  const [surfpoolReport, setSurfpoolReport] = useState<SurfpoolRehearsalReport | null>(null);
+  const [surfpoolStatus, setSurfpoolStatus] = useState<"idle" | "loading" | "loaded" | "error">("idle");
   const scenario = useMemo(
     () => economicDemoScenarios.find((candidate) => candidate.id === scenarioId) ?? economicDemoScenarios[0],
     [scenarioId],
@@ -35,6 +38,7 @@ export default function EconomicDemoPage() {
   const totalPlanned = scenario.edges.reduce((sum, edge) => sum + edge.amountLamports, 0);
   const activeDryRunPlan = dryRunPlan?.scenarioId === scenario.id ? dryRunPlan : null;
   const activeBalanceReport = balanceReport?.scenarioId === scenario.id ? balanceReport : null;
+  const activeSurfpoolReport = surfpoolReport?.scenarioId === scenario.id ? surfpoolReport : null;
 
   async function loadDryRunPlan() {
     setDryRunStatus("loading");
@@ -45,6 +49,8 @@ export default function EconomicDemoPage() {
       setDryRunPlan(payload.plan);
       setBalanceReport(null);
       setBalanceStatus("idle");
+      setSurfpoolReport(null);
+      setSurfpoolStatus("idle");
       setDryRunStatus("loaded");
     } catch {
       setDryRunStatus("error");
@@ -61,6 +67,19 @@ export default function EconomicDemoPage() {
       setBalanceStatus("loaded");
     } catch {
       setBalanceStatus("error");
+    }
+  }
+
+  async function loadSurfpoolRehearsal() {
+    setSurfpoolStatus("loading");
+    try {
+      const res = await fetch(`/api/economic-demo/surfpool-rehearsal?scenario=${scenario.id}`);
+      const payload = (await res.json()) as { ok?: boolean; report?: SurfpoolRehearsalReport };
+      if (!res.ok || !payload.ok || !payload.report) throw new Error("surfpool_rehearsal_failed");
+      setSurfpoolReport(payload.report);
+      setSurfpoolStatus("loaded");
+    } catch {
+      setSurfpoolStatus("error");
     }
   }
 
@@ -120,6 +139,13 @@ export default function EconomicDemoPage() {
                 >
                   {balanceStatus === "loading" ? "Reading balances…" : "Read devnet balances"}
                 </button>
+                <button
+                  onClick={loadSurfpoolRehearsal}
+                  disabled={surfpoolStatus === "loading"}
+                  className="rounded-lg border border-accent-purple/30 bg-accent-purple/10 px-4 py-2 text-sm font-semibold text-accent-purple transition hover:bg-accent-purple/15 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {surfpoolStatus === "loading" ? "Planning rehearsal…" : "Plan Surfpool rehearsal"}
+                </button>
                 <span className="text-xs text-gray-500">
                   Uses deployed 30-agent profile metadata · zero downstream calls
                 </span>
@@ -132,6 +158,11 @@ export default function EconomicDemoPage() {
               {balanceStatus === "error" && (
                 <p className="mt-3 rounded-lg border border-yellow-400/30 bg-yellow-400/10 p-3 text-sm text-yellow-100">
                   Balance snapshot failed. No transfer was attempted.
+                </p>
+              )}
+              {surfpoolStatus === "error" && (
+                <p className="mt-3 rounded-lg border border-yellow-400/30 bg-yellow-400/10 p-3 text-sm text-yellow-100">
+                  Surfpool rehearsal plan failed. No local transfer was attempted.
                 </p>
               )}
               <dl className="mt-5 grid grid-cols-2 gap-3 text-sm">
@@ -267,6 +298,51 @@ export default function EconomicDemoPage() {
               </div>
             </div>
 
+
+
+              {activeSurfpoolReport && (
+                <div className="mt-6 rounded-xl border border-accent-purple/25 bg-accent-purple/10 p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-accent-purple">Surfpool/local rehearsal plan</p>
+                      <p className="mt-1 text-sm text-gray-200">
+                        {activeSurfpoolReport.networkProfile} · {activeSurfpoolReport.transferSemantics} · downstream calls executed: {activeSurfpoolReport.downstreamCallsExecuted}
+                      </p>
+                    </div>
+                    <span className={activeSurfpoolReport.positiveProof.balanced ? "rounded-full border border-[#14F195]/30 bg-[#14F195]/10 px-2 py-0.5 text-xs text-[#14F195]" : "rounded-full border border-red-400/30 bg-red-400/10 px-2 py-0.5 text-xs text-red-200"}>
+                      balanced: {String(activeSurfpoolReport.positiveProof.balanced)}
+                    </span>
+                  </div>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                    <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+                      <p className="text-xs text-gray-500">planned transfers</p>
+                      <p className="mt-1 font-mono text-lg text-white">{activeSurfpoolReport.transfers.length}</p>
+                    </div>
+                    <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+                      <p className="text-xs text-gray-500">debited / credited</p>
+                      <p className="mt-1 font-mono text-sm text-[#14F195]">{formatLamports(activeSurfpoolReport.positiveProof.totalDebitedLamports).replace(/^\+/, "")} / {formatLamports(activeSurfpoolReport.positiveProof.totalCreditedLamports).replace(/^\+/, "")}</p>
+                    </div>
+                    <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+                      <p className="text-xs text-gray-500">blocked delta</p>
+                      <p className="mt-1 font-mono text-lg text-white">{formatLamports(activeSurfpoolReport.negativeProof.totalBlockedDeltaLamports).replace(/^\+/, "")}</p>
+                    </div>
+                  </div>
+                  <div className="mt-4 space-y-2">
+                    {activeSurfpoolReport.participants.map((participant) => {
+                      const delta = participant.endingLamports - participant.startingLamports;
+                      return (
+                        <div key={participant.profileId} className="grid gap-2 rounded-lg border border-white/10 bg-black/20 p-3 text-sm sm:grid-cols-[1fr_auto]">
+                          <div>
+                            <p className="font-mono text-white">{participant.profileId}</p>
+                            <p className="mt-1 font-mono text-xs text-gray-500">local {shortWallet(participant.localWalletAddress)}</p>
+                          </div>
+                          <p className={`font-mono ${delta > 0 ? "text-[#14F195]" : delta < 0 ? "text-red-300" : "text-gray-300"}`}>{formatLamports(delta)}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {activeBalanceReport && (
                 <div className="mt-6 rounded-xl border border-white/10 bg-black/20 p-4">
