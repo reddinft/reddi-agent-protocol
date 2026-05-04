@@ -493,3 +493,33 @@ Now that webpage proof is judge-readable and financially reconciled, choose betw
 - Never equate Surfpool SOL transfer semantics with live USDC challenge settlement; show them as separate proof layers.
 - Controlled demo receipt count and real settlement verified count must both be visible.
 - Phase 8A should reuse the reconciliation pattern for research if we expand breadth.
+
+## Phase 8A implementation reflection — research workflow design
+
+**Date:** 2026-05-04 AEST
+**Scope shipped:** Added no-live-call research workflow design helper, API route, UI panel, and unit test.
+**BDD scenarios touched:** Research article workflow design with scoped specialist payloads, citation/evidence caveat requirements, and attestation release/refund/dispute criteria before any live receipt enablement.
+**Validation:** `npx jest --runTestsByPath lib/__tests__/economic-demo-research-workflow-design.test.ts lib/__tests__/economic-demo-dry-run.test.ts`; targeted lint; `npm run build`.
+**Result:** PASS.
+**Evidence artifacts:** `lib/economic-demo/research-workflow-design.ts`, `app/api/economic-demo/research-workflow-design/route.ts`, `lib/__tests__/economic-demo-research-workflow-design.test.ts`, `/economic-demo` Phase 8A panel.
+
+### What worked
+
+The research workflow is now designed as a distinct proof category rather than a clone of the webpage path: retrieval maps evidence, scientific research synthesizes claims, content drafts with caveat retention, explainability reviews traceability, and verification returns release/refund/dispute guidance.
+
+### What failed or surprised us
+
+The existing dry-run plan uses `scientific-research-agent` as both orchestrator and a downstream specialist. That may be acceptable for self-synthesis, but Phase 8B should decide whether to keep that loop or move orchestration to `agentic-workflow-system` for clearer separation.
+
+### Drift check
+
+No live calls, no Coolify mutation, and no receipt enablement. This phase improves payload boundaries and evidence standards before spend.
+
+### Next phase adjustment
+
+Before Phase 8B live controlled receipts, choose orchestrator separation and enable controlled demo receipts only for selected research path specialists after review. If judge feedback prioritizes settlement, pause research and do real receipt verifier design first.
+
+### Decision log additions
+
+- Research acceptance requires citations or explicit evidence caveats; fluent prose alone fails.
+- Phase 8B must not start until controlled receipt readiness is deliberately enabled and exact endpoints are confirmed.
