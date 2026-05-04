@@ -33,6 +33,7 @@ export interface RuntimeConfig {
   requirePayment: boolean;
   allowDemoPayment?: boolean;
   enableAgentToAgentCalls?: boolean;
+  enableLiveDelegationExecutor?: boolean;
   maxDownstreamCalls?: number;
   maxDownstreamLamports?: number;
   safetyMode?: SafetyMode;
