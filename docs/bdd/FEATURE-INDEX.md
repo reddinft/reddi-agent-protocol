@@ -1,6 +1,6 @@
 # BDD Feature Index
 
-_Last updated: 2026-04-22 AEST_
+_Last updated: 2026-05-04 AEST_
 
 Purpose: single lookup from BDD feature file -> bucket -> executable verification command(s).
 
@@ -61,6 +61,14 @@ Purpose: single lookup from BDD feature file -> bucket -> executable verificatio
   - `npx jest lib/__tests__/manager-readiness-route.test.ts lib/__tests__/manager-evidence-pack.test.ts lib/__tests__/manager-evidence-route.test.ts --runInBand`
   - `npm run test:bdd:index`
   - E2E target: manager launchpad Playwright smoke once added to representative sweep
+
+
+### Bucket J — End-User Economic Demo
+- Feature: `docs/bdd/features/bucket-j-end-user-economic-demo.feature`
+- Verify:
+  - `npm run lint -- app/economic-demo/page.tsx lib/economic-demo/fixture.ts lib/economic-demo/image-adapter.ts app/api/economic-demo/image/route.ts`
+  - `npm run build`
+  - Future targeted route tests for dry-run graph, image disabled gate, balance snapshots, Surfpool local transfer rehearsal, and first-live-edge guardrails
 
 ## Drift guard
 - Validate index coverage against feature files:
