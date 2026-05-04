@@ -11,6 +11,7 @@ import {
 import { buildAttestationPromptEnvelope, evaluateAttestation, normalizeAttestationRequest } from "./attestation.js";
 import { buildLiveDelegationAuditEnvelope } from "./delegation-audit.js";
 import { evaluateDelegationBudget } from "./delegation-budget.js";
+import { NoopLiveDelegationExecutor } from "./delegation-executor.js";
 import { buildLiveDelegationIntentPlan } from "./delegation-intent.js";
 import { buildDryRunDelegationPlan, inferRequiredCapabilities } from "./marketplace-client.js";
 import { getProfile, specialistProfiles, validateProfileRegistry } from "./profiles/index.js";
@@ -261,6 +262,7 @@ export async function handleDelegationPlanning(input: {
       maxDownstreamLamports: input.config.maxDownstreamLamports ?? 0,
     });
     const auditEnvelope = buildLiveDelegationAuditEnvelope(intentPlan);
+    const executorEvidence = await new NoopLiveDelegationExecutor().execute({ intentPlan, auditEnvelope });
 
     return {
       status: 501,
@@ -279,6 +281,7 @@ export async function handleDelegationPlanning(input: {
           budget: budgetDecision,
           intentPlan,
           auditEnvelope,
+          executorEvidence,
         },
       },
     };

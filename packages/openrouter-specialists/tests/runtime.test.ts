@@ -482,6 +482,18 @@ test("live delegation mode fails closed before any downstream paid call executor
   assert.equal(auditEnvelope.guardrails.noExternalPersistence, true);
   assert.equal(auditEnvelope.guardrails.noDownstreamX402Executed, true);
   assert.equal(auditEnvelope.canonicalJson, canonicalJson(JSON.parse(auditEnvelope.canonicalJson)));
+  const executorEvidence = (response.body.reddi as { executorEvidence: { schemaVersion: string; executorId: string; executionStatus: string; auditEnvelopeHash: string; downstreamCallsExecuted: number; guardrails: { noNetworkCallAttempted: boolean; noSignerMaterialUsed: boolean; noSignatureAttempted: boolean; noExternalPersistence: boolean; noDevnetTransferExecuted: boolean; noDownstreamX402Executed: boolean } } }).executorEvidence;
+  assert.equal(executorEvidence.schemaVersion, "reddi.live-delegation-executor-evidence.v1");
+  assert.equal(executorEvidence.executorId, "noop-live-delegation-executor");
+  assert.equal(executorEvidence.executionStatus, "not_executed");
+  assert.equal(executorEvidence.auditEnvelopeHash, auditEnvelope.envelopeHash);
+  assert.equal(executorEvidence.downstreamCallsExecuted, 0);
+  assert.equal(executorEvidence.guardrails.noNetworkCallAttempted, true);
+  assert.equal(executorEvidence.guardrails.noSignerMaterialUsed, true);
+  assert.equal(executorEvidence.guardrails.noSignatureAttempted, true);
+  assert.equal(executorEvidence.guardrails.noExternalPersistence, true);
+  assert.equal(executorEvidence.guardrails.noDevnetTransferExecuted, true);
+  assert.equal(executorEvidence.guardrails.noDownstreamX402Executed, true);
 
   const liveWithoutBudgetPolicy = await handleChatCompletions({
     headers: new Headers({ "x402-payment": "demo:delegation-live-fail-closed-2" }),
@@ -495,9 +507,10 @@ test("live delegation mode fails closed before any downstream paid call executor
   assert.equal(liveWithoutBudgetPolicy.status, 403);
   assert.equal(client.callCount, 0);
   assert.equal((liveWithoutBudgetPolicy.body.error as { code: string }).code, "budget_policy_required");
-  assert.equal((liveWithoutBudgetPolicy.body.reddi as { downstreamCallsExecuted: number; intentPlan?: unknown; auditEnvelope?: unknown }).downstreamCallsExecuted, 0);
+  assert.equal((liveWithoutBudgetPolicy.body.reddi as { downstreamCallsExecuted: number; intentPlan?: unknown; auditEnvelope?: unknown; executorEvidence?: unknown }).downstreamCallsExecuted, 0);
   assert.equal((liveWithoutBudgetPolicy.body.reddi as { intentPlan?: unknown }).intentPlan, undefined);
   assert.equal((liveWithoutBudgetPolicy.body.reddi as { auditEnvelope?: unknown }).auditEnvelope, undefined);
+  assert.equal((liveWithoutBudgetPolicy.body.reddi as { executorEvidence?: unknown }).executorEvidence, undefined);
 
   const liveWithCallsDisabled = await handleChatCompletions({
     headers: new Headers({ "x402-payment": "demo:delegation-live-fail-closed-3" }),
