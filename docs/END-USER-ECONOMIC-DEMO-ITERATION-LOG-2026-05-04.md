@@ -1,9 +1,9 @@
 # End-User Economic Workflow Demo — BDD Iteration Log
 
-_Date started:_ 2026-05-04 AEST  
-_Plan:_ `docs/END-USER-ECONOMIC-DEMO-DELIVERY-PLAN-2026-05-04.md`  
-_Feature:_ `docs/bdd/features/bucket-j-end-user-economic-demo.feature`  
-_Issue:_ #187  
+_Date started:_ 2026-05-04 AEST
+_Plan:_ `docs/END-USER-ECONOMIC-DEMO-DELIVERY-PLAN-2026-05-04.md`
+_Feature:_ `docs/bdd/features/bucket-j-end-user-economic-demo.feature`
+_Issue:_ #187
 _PR:_ #188
 
 ## Loop rules
@@ -18,11 +18,11 @@ Do not expand from fixture/dry-run to live spend without a completed retrospecti
 
 ## Phase 0/1/2 — Plan, fixture UI, gated image adapter
 
-**Date:** 2026-05-04 AEST  
-**Scope shipped:** Static `/economic-demo` page, OpenAI/Fal image adapter route disabled by default, delivery plan and Bucket J BDD feature.  
-**BDD scenarios touched:** static fixture, image disabled gate, OpenAI/Fal adapter readiness.  
-**Validation:** `npm run test:bdd:index`; targeted lint; `npm run build`.  
-**Result:** PASS  
+**Date:** 2026-05-04 AEST
+**Scope shipped:** Static `/economic-demo` page, OpenAI/Fal image adapter route disabled by default, delivery plan and Bucket J BDD feature.
+**BDD scenarios touched:** static fixture, image disabled gate, OpenAI/Fal adapter readiness.
+**Validation:** `npm run test:bdd:index`; targeted lint; `npm run build`.
+**Result:** PASS
 **Evidence artifacts:** commits `7a442cba`, `e54e8d4c`, `9a568adf`.
 
 ### What worked
@@ -49,10 +49,10 @@ Before live devnet edges, add Surfpool/local-validator rehearsal to prove real S
 
 ## Phase 5 planning addendum — Surfpool rehearsal gate
 
-**Date:** 2026-05-04 AEST  
-**Scope shipped:** Phase 5 inserted into plan and Bucket J scenario.  
-**Validation:** `npm run test:bdd:index`; `git diff --check`.  
-**Result:** PASS  
+**Date:** 2026-05-04 AEST
+**Scope shipped:** Phase 5 inserted into plan and Bucket J scenario.
+**Validation:** `npm run test:bdd:index`; `git diff --check`.
+**Result:** PASS
 **Evidence artifacts:** commit `6c1147ac`.
 
 ### What worked
@@ -82,10 +82,10 @@ Proceed to Phase 3 dry-run orchestrator integration, then Phase 4 balance snapsh
 
 ### Phase 3 implementation reflection — dry-run orchestrator integration slice A
 
-**Date:** 2026-05-04 AEST  
-**Scope shipped:** Added dry-run economic planner, API route, UI button/render path, and unit coverage.  
-**BDD scenarios touched:** Dry-run orchestration builds a real planned economic graph.  
-**Validation:** `npx jest lib/__tests__/economic-demo-dry-run.test.ts --runInBand`; targeted lint; `npm run build`.  
+**Date:** 2026-05-04 AEST
+**Scope shipped:** Added dry-run economic planner, API route, UI button/render path, and unit coverage.
+**BDD scenarios touched:** Dry-run orchestration builds a real planned economic graph.
+**Validation:** `npx jest lib/__tests__/economic-demo-dry-run.test.ts --runInBand`; targeted lint; `npm run build`.
 **Result:** PASS for slice A.
 **Evidence artifacts:** `lib/economic-demo/dry-run.ts`, `app/api/economic-demo/dry-run/route.ts`, `lib/__tests__/economic-demo-dry-run.test.ts`, `/economic-demo` dry-run graph button.
 
@@ -112,10 +112,10 @@ Before Phase 4 balance snapshots, add Phase 3 slice B: exact all-30 endpoint evi
 
 ### Phase 3 implementation reflection — dry-run endpoint evidence slice B
 
-**Date:** 2026-05-04 AEST  
-**Scope shipped:** Promoted all-30 hosted smoke endpoint evidence into committed public-data helper and removed naming-convention fallback from dry-run planning.  
-**BDD scenarios touched:** Dry-run orchestration builds a real planned economic graph.  
-**Validation:** `npx jest lib/__tests__/economic-demo-dry-run.test.ts --runInBand`; targeted lint; `npm run build`.  
+**Date:** 2026-05-04 AEST
+**Scope shipped:** Promoted all-30 hosted smoke endpoint evidence into committed public-data helper and removed naming-convention fallback from dry-run planning.
+**BDD scenarios touched:** Dry-run orchestration builds a real planned economic graph.
+**Validation:** `npx jest lib/__tests__/economic-demo-dry-run.test.ts --runInBand`; targeted lint; `npm run build`.
 **Result:** PASS.
 **Evidence artifacts:** `lib/economic-demo/openrouter-endpoints.ts` generated from local public smoke artifact `artifacts/openrouter-specialists-all30-hosted-smoke-20260504.json`.
 
@@ -142,10 +142,10 @@ Phase 4 can now fetch balances against wallet addresses from the smoke-proven pr
 
 ## Phase 4 implementation reflection — read-only balance snapshot slice A
 
-**Date:** 2026-05-04 AEST  
-**Scope shipped:** Added read-only balance snapshot builder, API route, and mocked-RPC unit tests.  
-**BDD scenarios touched:** Real devnet balance snapshots, no spend.  
-**Validation:** `npx jest lib/__tests__/economic-demo-balances.test.ts lib/__tests__/economic-demo-dry-run.test.ts --runInBand`; targeted lint; `npm run build`.  
+**Date:** 2026-05-04 AEST
+**Scope shipped:** Added read-only balance snapshot builder, API route, and mocked-RPC unit tests.
+**BDD scenarios touched:** Real devnet balance snapshots, no spend.
+**Validation:** `npx jest lib/__tests__/economic-demo-balances.test.ts lib/__tests__/economic-demo-dry-run.test.ts --runInBand`; targeted lint; `npm run build`.
 **Result:** PASS for mocked-RPC slice A.
 **Evidence artifacts:** `lib/economic-demo/balances.ts`, `app/api/economic-demo/balances/route.ts`, `lib/__tests__/economic-demo-balances.test.ts`.
 
@@ -172,10 +172,10 @@ Add UI rendering for the read-only balance snapshot and optionally run one live 
 
 ### Phase 4 implementation reflection — balance snapshot UI slice B
 
-**Date:** 2026-05-04 AEST  
-**Scope shipped:** Added `/economic-demo` UI control and render panel for read-only balance snapshots.  
-**BDD scenarios touched:** Real devnet balance snapshots, no spend.  
-**Validation:** focused Jest for balances + dry-run; targeted lint; `npm run build`.  
+**Date:** 2026-05-04 AEST
+**Scope shipped:** Added `/economic-demo` UI control and render panel for read-only balance snapshots.
+**BDD scenarios touched:** Real devnet balance snapshots, no spend.
+**Validation:** focused Jest for balances + dry-run; targeted lint; `npm run build`.
 **Result:** PASS.
 **Evidence artifacts:** `/economic-demo` now has `Read devnet balances` action and a read-only snapshot panel.
 
@@ -202,10 +202,10 @@ Run/record an optional live read-only devnet balance smoke or proceed directly i
 
 ## Phase 5 implementation reflection — Surfpool/local rehearsal plan slice A
 
-**Date:** 2026-05-04 AEST  
-**Scope shipped:** Added deterministic Surfpool/local rehearsal planning layer, API route, UI panel, and unit tests.  
-**BDD scenarios touched:** Surfpool/local-validator rehearsal with local wallets and positive/negative balance-delta proof.  
-**Validation:** `npx jest lib/__tests__/economic-demo-surfpool-rehearsal.test.ts lib/__tests__/economic-demo-balances.test.ts lib/__tests__/economic-demo-dry-run.test.ts --runInBand`; targeted lint; `npm run build`.  
+**Date:** 2026-05-04 AEST
+**Scope shipped:** Added deterministic Surfpool/local rehearsal planning layer, API route, UI panel, and unit tests.
+**BDD scenarios touched:** Surfpool/local-validator rehearsal with local wallets and positive/negative balance-delta proof.
+**Validation:** `npx jest lib/__tests__/economic-demo-surfpool-rehearsal.test.ts lib/__tests__/economic-demo-balances.test.ts lib/__tests__/economic-demo-dry-run.test.ts --runInBand`; targeted lint; `npm run build`.
 **Result:** PASS.
 **Evidence artifacts:** `lib/economic-demo/surfpool-rehearsal.ts`, `app/api/economic-demo/surfpool-rehearsal/route.ts`, `lib/__tests__/economic-demo-surfpool-rehearsal.test.ts`, `/economic-demo` Surfpool rehearsal panel.
 
@@ -232,10 +232,10 @@ Slice B should bind this rehearsal plan to an executable Surfpool/local transact
 
 ## Phase 5 implementation reflection — Surfpool/local transaction smoke slice B
 
-**Date:** 2026-05-04 AEST  
-**Scope shipped:** Added executable Surfpool/offline local-validator smoke for the webpage rehearsal path.  
-**BDD scenarios touched:** Surfpool/local-validator rehearsal with real local SOL transfers and negative no-delta proof.  
-**Validation:** `npm run smoke:economic-demo:surfpool`; targeted script lint; `npm run build`.  
+**Date:** 2026-05-04 AEST
+**Scope shipped:** Added executable Surfpool/offline local-validator smoke for the webpage rehearsal path.
+**BDD scenarios touched:** Surfpool/local-validator rehearsal with real local SOL transfers and negative no-delta proof.
+**Validation:** `npm run smoke:economic-demo:surfpool`; targeted script lint; `npm run build`.
 **Result:** PASS.
 **Evidence artifact:** `artifacts/economic-demo-surfpool-rehearsal/20260504T074918Z/summary.json` (git-ignored local artifact).
 
@@ -259,3 +259,32 @@ Phase 6 can now be scoped as one controlled live x402 specialist edge, but it sh
 
 - Local Surfpool transaction proof may include expected fee delta; positive proof should require specialist credits equal planned transfers and orchestrator debit covering transfers plus fees.
 - Child process cleanup is part of the smoke acceptance gate; hung cleanup is a failed harness even if transfers succeeded.
+
+## Phase 6 implementation reflection — first controlled live x402 edge smoke
+
+**Date:** 2026-05-04 AEST
+**Scope executed:** Ran the existing gated private live executor smoke against the exact allowlisted deployed `code-generation-agent` endpoint.
+**Command:** `LIVE_DELEGATION_SMOKE_MODE=live LIVE_DELEGATION_SMOKE_CONFIRM=RUN_PRIVATE_DEVNET_SMOKE LIVE_DELEGATION_SMOKE_OUT=artifacts/economic-demo-phase6-live-edge-20260504.json npm run delegation:private-smoke --prefix packages/openrouter-specialists`
+**Result:** PASS for controlled one-call live edge attempt; downstream returned expected x402 HTTP 402 rather than a paid completion.
+**Evidence artifact:** `artifacts/economic-demo-phase6-live-edge-20260504.json` (git-ignored local artifact).
+
+### What worked
+
+The smoke executed exactly one downstream HTTPS call to `https://reddi-code-generation.preview.reddi.tech/v1/chat/completions`, selected `code-generation-agent`, preserved the exact endpoint allowlist, and recorded `downstreamCallsExecuted: 1`. Rollback proof also passed: missing payment provider produced `payment_provider_missing` with zero downstream calls.
+
+### What failed or surprised us
+
+This is a live x402 challenge/edge attempt, not a paid successful completion. The downstream response was `402 application/json; charset=utf-8`, which means the deployed x402 gate is reachable and enforcing payment, but a valid devnet payment provider/signing path is still needed before we can claim a paid specialist response.
+
+### Drift check
+
+No signer material was used, no signature was attempted, no devnet transfer executed, no Coolify changes occurred, and no second downstream call was made. This remains inside the controlled live-edge boundary.
+
+### Next phase adjustment
+
+Before Phase 7 multi-edge webpage workflow, add or configure a valid devnet payment-provider path for exactly one specialist edge. If payment provider remains unavailable, keep the demo honest: show live x402 challenge enforcement plus Surfpool transfer semantics, and mark paid completion as blocked on signer/payment-provider wiring.
+
+### Decision log additions
+
+- Phase 6 acceptance splits into two states: live x402 challenge reached (done) vs paid specialist completion (blocked until valid devnet payment provider/signing path exists).
+- Do not retry live edges repeatedly while payment provider is unavailable; the one-call proof is enough until the payment path is configured.
