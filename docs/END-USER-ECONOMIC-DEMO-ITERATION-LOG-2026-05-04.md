@@ -317,3 +317,33 @@ Do not keep probing the live endpoint. The next implementation loop should add a
 
 - Current paid-completion blocker is `demo_payment_disabled` on the deployed specialist runtime.
 - A valid challenge is already emitted for USDC-on-devnet; the missing piece is accepted receipt verification, not endpoint discovery.
+
+## Phase 6 implementation reflection — payment readiness UI/API
+
+**Date:** 2026-05-04 AEST
+**Scope shipped:** Added a fail-closed payment-readiness API and UI panel for the economic demo.
+**BDD scenarios touched:** Judge-facing evidence must show why paid completion is blocked instead of hiding it behind a generic failure.
+**Validation:** focused Jest 9/9 PASS; targeted lint PASS; `npm run build` PASS.
+**Result:** PASS.
+**Evidence artifacts:** `lib/economic-demo/payment-readiness.ts`, `app/api/economic-demo/payment-readiness/route.ts`, `lib/__tests__/economic-demo-payment-readiness.test.ts`, `/economic-demo` payment readiness panel.
+
+### What worked
+
+The UI now clearly separates three states: live x402 challenge is reachable, paid retry was attempted once, and paid completion is blocked because deployed runtime rejects demo receipts with `demo_payment_disabled`. This avoids the judge seeing a silent broken button or ambiguous payment failure.
+
+### What failed or surprised us
+
+The proof is evidence-backed but static until the operator intentionally reruns the readiness smoke. That is deliberate to avoid accidental live retries from the webpage.
+
+### Drift check
+
+No live request is triggered by loading the page. The panel only exposes the latest recorded readiness state and the next two implementation options.
+
+### Next phase adjustment
+
+Proceed by implementing one of two explicit paths: controlled demo receipt enablement for judge demo, or real devnet receipt verification. Recommendation for speed: controlled demo receipts on demo deployment only, with visible labeling and fail-closed production default.
+
+### Decision log additions
+
+- The economic demo UI must show payment-readiness blockers explicitly.
+- Live retry remains operator-script-only; the webpage must not trigger live x402 probes automatically.

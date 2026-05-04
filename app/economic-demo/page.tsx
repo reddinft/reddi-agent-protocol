@@ -11,6 +11,7 @@ import {
 import type { EconomicDemoBalanceReport } from "@/lib/economic-demo/balances";
 import type { DryRunEconomicPlan } from "@/lib/economic-demo/dry-run";
 import type { SurfpoolRehearsalReport } from "@/lib/economic-demo/surfpool-rehearsal";
+import type { EconomicDemoPaymentReadiness } from "@/lib/economic-demo/payment-readiness";
 
 function shortWallet(wallet: string) {
   return `${wallet.slice(0, 8)}…${wallet.slice(-6)}`;
@@ -31,6 +32,8 @@ export default function EconomicDemoPage() {
   const [balanceStatus, setBalanceStatus] = useState<"idle" | "loading" | "loaded" | "error">("idle");
   const [surfpoolReport, setSurfpoolReport] = useState<SurfpoolRehearsalReport | null>(null);
   const [surfpoolStatus, setSurfpoolStatus] = useState<"idle" | "loading" | "loaded" | "error">("idle");
+  const [paymentReadiness, setPaymentReadiness] = useState<EconomicDemoPaymentReadiness | null>(null);
+  const [paymentReadinessStatus, setPaymentReadinessStatus] = useState<"idle" | "loading" | "loaded" | "error">("idle");
   const scenario = useMemo(
     () => economicDemoScenarios.find((candidate) => candidate.id === scenarioId) ?? economicDemoScenarios[0],
     [scenarioId],
@@ -51,6 +54,8 @@ export default function EconomicDemoPage() {
       setBalanceStatus("idle");
       setSurfpoolReport(null);
       setSurfpoolStatus("idle");
+      setPaymentReadiness(null);
+      setPaymentReadinessStatus("idle");
       setDryRunStatus("loaded");
     } catch {
       setDryRunStatus("error");
@@ -80,6 +85,19 @@ export default function EconomicDemoPage() {
       setSurfpoolStatus("loaded");
     } catch {
       setSurfpoolStatus("error");
+    }
+  }
+
+  async function loadPaymentReadiness() {
+    setPaymentReadinessStatus("loading");
+    try {
+      const res = await fetch("/api/economic-demo/payment-readiness");
+      const payload = (await res.json()) as { ok?: boolean; readiness?: EconomicDemoPaymentReadiness };
+      if (!res.ok || !payload.ok || !payload.readiness) throw new Error("payment_readiness_failed");
+      setPaymentReadiness(payload.readiness);
+      setPaymentReadinessStatus("loaded");
+    } catch {
+      setPaymentReadinessStatus("error");
     }
   }
 
@@ -146,6 +164,13 @@ export default function EconomicDemoPage() {
                 >
                   {surfpoolStatus === "loading" ? "Planning rehearsal…" : "Plan Surfpool rehearsal"}
                 </button>
+                <button
+                  onClick={loadPaymentReadiness}
+                  disabled={paymentReadinessStatus === "loading"}
+                  className="rounded-lg border border-yellow-400/30 bg-yellow-400/10 px-4 py-2 text-sm font-semibold text-yellow-100 transition hover:bg-yellow-400/15 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {paymentReadinessStatus === "loading" ? "Checking payment readiness…" : "Show payment readiness"}
+                </button>
                 <span className="text-xs text-gray-500">
                   Uses deployed 30-agent profile metadata · zero downstream calls
                 </span>
@@ -163,6 +188,11 @@ export default function EconomicDemoPage() {
               {surfpoolStatus === "error" && (
                 <p className="mt-3 rounded-lg border border-yellow-400/30 bg-yellow-400/10 p-3 text-sm text-yellow-100">
                   Surfpool rehearsal plan failed. No local transfer was attempted.
+                </p>
+              )}
+              {paymentReadinessStatus === "error" && (
+                <p className="mt-3 rounded-lg border border-yellow-400/30 bg-yellow-400/10 p-3 text-sm text-yellow-100">
+                  Payment readiness failed. No live retry was attempted from the UI.
                 </p>
               )}
               <dl className="mt-5 grid grid-cols-2 gap-3 text-sm">
@@ -299,6 +329,38 @@ export default function EconomicDemoPage() {
             </div>
 
 
+
+
+              {paymentReadiness && (
+                <div className="mt-6 rounded-xl border border-yellow-400/30 bg-yellow-400/10 p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-yellow-100">Live x402 payment readiness</p>
+                      <p className="mt-1 break-all font-mono text-sm text-white">{paymentReadiness.endpoint}</p>
+                    </div>
+                    <span className="rounded-full border border-yellow-400/40 bg-yellow-400/10 px-2 py-0.5 text-xs text-yellow-100">
+                      {paymentReadiness.status}: {paymentReadiness.blocker}
+                    </span>
+                  </div>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                    <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+                      <p className="text-xs text-gray-500">challenge</p>
+                      <p className="mt-1 text-sm text-[#14F195]">reachable · {paymentReadiness.liveChallenge.network}</p>
+                    </div>
+                    <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+                      <p className="text-xs text-gray-500">price</p>
+                      <p className="mt-1 font-mono text-sm text-white">{paymentReadiness.liveChallenge.amount} {paymentReadiness.liveChallenge.currency}</p>
+                    </div>
+                    <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+                      <p className="text-xs text-gray-500">paid retry</p>
+                      <p className="mt-1 font-mono text-sm text-yellow-100">HTTP {paymentReadiness.paidCompletion.lastAttemptStatus}</p>
+                    </div>
+                  </div>
+                  <p className="mt-4 text-sm leading-6 text-yellow-50/90">
+                    Paid completion is blocked because the deployed specialist rejects demo receipts. The UI will not auto-retry live payment; choose controlled demo receipts or real devnet receipt verification next.
+                  </p>
+                </div>
+              )}
 
               {activeSurfpoolReport && (
                 <div className="mt-6 rounded-xl border border-accent-purple/25 bg-accent-purple/10 p-4">
