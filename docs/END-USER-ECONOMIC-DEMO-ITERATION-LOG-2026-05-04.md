@@ -139,3 +139,33 @@ Phase 4 can now fetch balances against wallet addresses from the smoke-proven pr
 
 - Dry-run endpoint resolution must fail closed if a profile lacks committed hosted endpoint evidence.
 - Do not use naming-convention-derived endpoints for live or rehearsal planning.
+
+## Phase 4 implementation reflection — read-only balance snapshot slice A
+
+**Date:** 2026-05-04 AEST  
+**Scope shipped:** Added read-only balance snapshot builder, API route, and mocked-RPC unit tests.  
+**BDD scenarios touched:** Real devnet balance snapshots, no spend.  
+**Validation:** `npx jest lib/__tests__/economic-demo-balances.test.ts lib/__tests__/economic-demo-dry-run.test.ts --runInBand`; targeted lint; `npm run build`.  
+**Result:** PASS for mocked-RPC slice A.
+**Evidence artifacts:** `lib/economic-demo/balances.ts`, `app/api/economic-demo/balances/route.ts`, `lib/__tests__/economic-demo-balances.test.ts`.
+
+### What worked
+
+The balance report is read-only, deduplicates orchestrator/specialist wallets, preserves `downstreamCallsExecuted: 0`, and fails soft per wallet with `balance_unavailable` instead of breaking the whole report.
+
+### What failed or surprised us
+
+The picture workflow currently includes `tool-using-agent` as both orchestrator and planned adapter orchestrator edge, so wallet deduplication matters. The report correctly snapshots the wallet once.
+
+### Drift check
+
+This improves wallet-impact proof while remaining no-spend. It does not yet compare before/after deltas because no local transfers occur until the Surfpool phase.
+
+### Next phase adjustment
+
+Add UI rendering for the read-only balance snapshot and optionally run one live devnet read-only smoke. Then proceed to Surfpool rehearsal design with deterministic local wallets.
+
+### Decision log additions
+
+- Balance snapshot failures are per-wallet soft failures, not whole-demo failures.
+- Balance snapshot mode must always report zero downstream calls and no transfer attempts.
