@@ -24,6 +24,25 @@ function shortWallet(wallet: string) {
   return `${wallet.slice(0, 8)}…${wallet.slice(-6)}`;
 }
 
+
+const localEvidenceArtifacts = [
+  {
+    label: "Picture storyboard dry-run",
+    path: "artifacts/economic-demo-picture-storyboard/20260505T034749Z/SUMMARY.md",
+    detail: "Storyboard-only artifact: no OpenAI/Fal image calls, no paid provider requests, no signing, no transfer.",
+  },
+  {
+    label: "Research workflow dry-run",
+    path: "artifacts/economic-demo-research-dry-run/20260505T025224Z/research-dry-run.json",
+    detail: "Phase 6 design artifact: planned specialist graph only; live research remains approval-gated.",
+  },
+  {
+    label: "Surfpool local rehearsal",
+    path: "artifacts/economic-demo-surfpool-rehearsal/20260505T021309Z/SUMMARY.md",
+    detail: "Local/offline SOL rehearsal evidence; no hosted/devnet mutation claim.",
+  },
+] as const;
+
 function statusClass(status: EconomicDemoScenario["edges"][number]["status"]) {
   if (status === "blocked") return "border-red-400/40 bg-red-400/10 text-red-200";
   if (status === "attested") return "border-[#14F195]/40 bg-[#14F195]/10 text-[#14F195]";
@@ -269,6 +288,12 @@ export default function EconomicDemoPage() {
                 >
                   {pictureStoryboardStatus === "loading" ? "Building storyboard…" : "Design picture storyboard"}
                 </button>
+                <a
+                  href="#local-evidence-artifacts"
+                  className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-gray-200 transition hover:border-[#14F195]/30 hover:text-[#14F195]"
+                >
+                  Latest local evidence paths →
+                </a>
                 <span className="text-xs text-gray-500">
                   Uses deployed 30-agent profile metadata · zero downstream calls
                 </span>
@@ -340,6 +365,26 @@ export default function EconomicDemoPage() {
               <div className="mt-5 rounded-xl border border-[#14F195]/20 bg-[#14F195]/10 p-4 text-sm text-[#14F195]">
                 Next live loop: replace fixture receipts with exact allowlisted devnet x402 receipts and balance snapshots.
               </div>
+            </div>
+
+            <div id="local-evidence-artifacts" className="rounded-2xl border border-[#14F195]/20 bg-card/70 p-6 shadow-card">
+              <p className="section-label">Latest local evidence</p>
+              <h3 className="mt-2 text-xl font-semibold text-white">Dry-run artifact paths</h3>
+              <p className="mt-3 text-sm leading-6 text-gray-300">
+                These are repo-local, ignored artifacts for demo prep. The UI links the operator to exact paths without publishing private logs or triggering live calls.
+              </p>
+              <div className="mt-4 space-y-3">
+                {localEvidenceArtifacts.map((artifact) => (
+                  <div key={artifact.path} className="rounded-xl border border-white/10 bg-black/20 p-3">
+                    <p className="text-sm font-medium text-white">{artifact.label}</p>
+                    <p className="mt-1 text-xs leading-5 text-gray-400">{artifact.detail}</p>
+                    <p className="mt-2 break-all font-mono text-xs text-[#14F195]">{artifact.path}</p>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-4 rounded-lg border border-yellow-400/30 bg-yellow-400/10 p-3 text-xs leading-5 text-yellow-50/90">
+                Approval gates still apply: no Phase 6 live research, real OpenAI/Fal image generation, signing, wallet mutation, or devnet transfer from this panel.
+              </p>
             </div>
 
             <div className="rounded-2xl border border-accent-purple/25 bg-accent-purple/10 p-6 shadow-card">
