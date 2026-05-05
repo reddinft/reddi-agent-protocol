@@ -172,287 +172,233 @@ Append this block under the relevant phase before proceeding:
 
 ## Upcoming phased plan
 
-### Phase 4 — Quasar compatibility audit and builder boundary
+This is the staged plan from the current PR onward. Each phase remains a separate BDD loop unless the slice is explicitly marked as a sub-slice inside the same PR. After every phase/slice, append the retrospective block above, then refine the next phase before implementation continues.
+
+### Phase 4 — Quasar compatibility audit and builder boundary ✅ complete
 
 **Expectation:** The repo identifies which runtime paths are safe to run against Quasar and which still assume Anchor discriminators/account layouts.
 
-**BDD scenarios:**
+**Delivered:** `config/quasar/runtime-compatibility.json` plus `npm run check:quasar:runtime-compatibility`.
 
-- Given the demo target is Quasar, when a transaction builder is selected, then it must either use a verified Quasar-compatible builder or fail with a clear compatibility blocker.
-- Given an account decoder reads Quasar-targeted accounts, then it must not apply Anchor account layout unless compatibility is documented.
+**Current result:** Guard audits 14 demo-critical paths and blocks submission readiness while Quasar-incompatible paths remain.
 
-**Implementation:** `config/quasar/runtime-compatibility.json` plus `npm run check:quasar:runtime-compatibility`.
+**Retrospective status:** Written above.
 
-**Acceptance:**
-
-- Demo-critical transaction/decode paths are listed with compatibility status.
-- `submissionReady=true` is impossible while any path is `anchor-layout-only` or `blocked-pending-quasar-port`.
-- BDD scenario documents the builder boundary.
-
-**Validation:**
-
-- `npm run check:quasar:runtime-compatibility`
-- `npm run check:quasar:deployments`
-- `npm run check:quasar:demo-readiness`
-- `npm run test:bdd:index`
-- `git diff --check`
-
-### Retrospective — Phase 4
-
-- **Expected:** Identify Anchor-only runtime paths before porting builders.
-- **Observed:** Nine demo-critical paths still depend on Anchor-style discriminators, account layouts, or inline Anchor-era transaction construction.
-- **Validation:** Runtime compatibility guard passes while clearly reporting blockers.
-- **What worked:** Static boundary gives us a safe failing-forward contract without needing signing or live devnet execution.
-- **What failed / surprised us:** The demo-agent path is the densest blocker because it builds escrow, reputation, attestation, and PER instructions inline.
-- **Safety / approval review:** Static repo audit only; no signing, deployment, wallet/env mutation, paid calls, or live execution.
-- **Decision:** continue with builder porting; do not request live validation yet.
-- **Plan changes for next phase:** Phase 5 should start with extracting/porting shared Quasar instruction builders before touching the PER-heavy demo-agent flow.
-
-### Phase 5 — Quasar transaction builder port
+### Phase 5 — Quasar transaction builder port 🟡 active in PR #244
 
 **Expectation:** Demo-critical transactions have Quasar-compatible instruction data/account metadata or are deliberately disabled with a blocker.
 
-**Implementation:** First slice adds `lib/quasar/instruction-builders.ts` with shared Quasar instruction-data builders for registry, reputation, and attestation. PER remains blocked.
+**Delivered in slices so far:**
+
+1. Shared instruction-data builders for registry, reputation, and attestation.
+2. Registry + attestation `TransactionInstruction` wrappers.
+3. `/register` target-aware Quasar construction.
+4. Demo-agent registration target-aware Quasar construction.
+5. Onboarding `attest_quality` target-aware Quasar construction.
+
+**Current result:** Runtime blockers reduced from 9 to 6. Remaining blockers are:
+
+- `lib/program.ts` — shared builders/decoders still document Anchor account assumptions.
+- `app/onboarding/page.tsx` — confirm/dispute transaction paths still use shared Anchor builders.
+- `lib/onboarding/reputation-signal.ts` — commit/reveal reputation builders remain Anchor-layout-only.
+- `lib/registry/bridge.ts` — registry read/decode path filters Anchor account discriminators.
+- `lib/useOnchainAgents.ts` — client agent fetch/decode path filters Anchor account discriminators.
+- `packages/demo-agents/src/demo.ts` — escrow/reputation/attestation/PER flow still has inline Anchor-era construction and PER uncertainty.
+
+**Validation for current PR:**
+
+- `npm run build`
+- targeted Quasar/register/onboarding/demo-agent Jest suites
+- `npm run check:quasar:runtime-compatibility`
+- `npm run check:quasar:deployments`
+- `npm run check:quasar:demo-readiness`
+- `npm run test:bdd:index`
+- `git diff --check`
+- GitHub checks on PR #244 — green as of this checkpoint
+
+**Retrospective status:** Slice retrospectives are written above through Phase 6 Slice 1. After PR #244 merge, add one merge retrospective recording check status, blocker count, and whether the plan should prioritize read/decode paths or reputation builders.
+
+### Phase 6 — Quasar demo honesty surfaces
+
+**Expectation:** Operator-facing demo surfaces show Quasar target, deployment status, submission readiness, and known gaps before anyone records or triggers a wallet path.
+
+#### Slice 6.1 — Register page honesty ✅ active in PR #244
+
+**Delivered:** `/register` shows Quasar target, compatibility, submission readiness, and known gaps.
+
+**Retrospective status:** Written above.
+
+#### Slice 6.2 — Economic demo status card 🔜 next after PR #244
+
+**BDD expectation:** `/economic-demo` must distinguish economic workflow evidence from Quasar on-chain proof.
+
+**Implementation plan:**
+
+- Add a Quasar status card to `/economic-demo` using centralized program/readiness metadata.
+- Explicitly separate:
+  - controlled x402/OpenRouter workflow evidence,
+  - local Surfpool proof,
+  - Quasar program target/readiness,
+  - approval-gated gaps.
+- Add/adjust a focused test if practical; otherwise rely on build plus direct component inspection.
 
 **Acceptance:**
 
-- Builders use one-byte Quasar discriminators, not Anchor 8-byte SHA256 discriminators.
-- Builders use fixed-size Quasar argument layouts from parity source/tests.
-- Invalid fixed-size inputs fail before transaction construction.
-- Runtime compatibility inventory records the new shared builder module as `quasar-compatible` while existing Anchor-layout runtime paths remain blocked.
-
-**Validation:**
-
-- `npx jest --runTestsByPath lib/quasar/__tests__/instruction-builders.test.ts --runInBand`
-- `npm run check:quasar:runtime-compatibility`
-- `npm run check:quasar:deployments`
-- `npm run check:quasar:demo-readiness`
-- `npm run test:bdd:index`
-- `git diff --check`
-
-### Retrospective — Phase 5 / Slice 1
-
-- **Expected:** Extract a safe shared Quasar instruction-data boundary before touching live transaction surfaces.
-- **Observed:** Registry/reputation/attestation data builders can be ported locally from Quasar parity source/tests without signing or devnet execution.
-- **Validation:** Builder tests assert one-byte discriminators, fixed-size layouts, u128 job-id bytes, and invalid input guards.
-- **What worked:** Keeping builders in `lib/quasar/*` avoids contaminating existing Anchor builders and makes compatibility explicit.
-- **What failed / surprised us:** PER cannot ride this slice; it still needs separate semantic validation because the TEE path is not proven by the QuasarSVM parity tests.
-- **Safety / approval review:** Local source/tests only; no signing, deployment, wallet/env mutation, paid calls, or live execution.
-- **Decision:** continue with account-meta/transaction wrapper port next.
-- **Plan changes for next phase:** Phase 5 Slice 2 should wrap these data builders in transaction-instruction helpers for registry first, then update blocked runtime paths one at a time.
-
-### Phase 5 — Slice 2: Registry transaction-instruction wrappers
-
-**Expectation:** The shared Quasar registry data builders can be wrapped into Solana `TransactionInstruction`s with Quasar account metas/order, without sending or signing.
-
-**Implementation:** `lib/quasar/instructions.ts` adds registry helpers for register/update/deregister plus PDA derivation.
-
-**Validation:**
-
-- `npx jest --runTestsByPath lib/quasar/__tests__/instructions.test.ts lib/quasar/__tests__/instruction-builders.test.ts --runInBand`
-- `npm run check:quasar:runtime-compatibility`
-- `npm run check:quasar:deployments`
-- `npm run check:quasar:demo-readiness`
-- `npm run test:bdd:index`
-- `git diff --check`
-
-### Retrospective — Phase 5 / Slice 2
-
-- **Expected:** Registry helpers can be made Quasar-compatible without touching live app flows.
-- **Observed:** Register/update/deregister wrappers now produce Quasar program IDs, PDA derivation, account metas, and one-byte discriminator data locally.
-- **Validation:** Jest verified account order/signers/writability/data for registry wrappers.
-- **What worked:** Registry was the right first wrapper because Quasar parity source has simple account metas and no PER dependency.
-- **What failed / surprised us:** This does not reduce the 9 existing blocked runtime paths yet because app/demo surfaces still import Anchor-era builders; the next loop must swap one runtime surface deliberately.
-- **Safety / approval review:** Local construction tests only; no signing, send, deployment, wallet/env mutation, paid calls, or live execution.
-- **Decision:** continue.
-- **Plan changes for next phase:** Port one low-risk runtime surface to use registry wrappers under explicit Quasar mode, or keep it disabled with a visible blocker if transaction sending would be required.
-
-### Phase 5 — Slice 3: Register page target-aware construction
-
-**Expectation:** A low-risk runtime surface can construct Quasar registry instructions under explicit Quasar mode without changing signing/deployment behavior.
-
-**Implementation:** `/register` now delegates transaction construction to `buildAgentRegistrationInstruction`, which selects Quasar registry wrappers when `PROGRAM_TARGET=quasar` and keeps Anchor construction only for legacy mode.
-
-**Validation:**
-
-- `npx jest --runTestsByPath lib/register/__tests__/registration-instruction.test.ts lib/quasar/__tests__/instructions.test.ts lib/quasar/__tests__/instruction-builders.test.ts --runInBand`
-- `npm run check:quasar:runtime-compatibility`
-- `npm run check:quasar:deployments`
-- `npm run check:quasar:demo-readiness`
-- `npm run test:bdd:index`
-- `git diff --check`
-
-### Retrospective — Phase 5 / Slice 3
-
-- **Expected:** Move one runtime path from Anchor-layout-only to target-aware Quasar-compatible construction.
-- **Observed:** `/register` no longer manually builds Anchor registration instruction data; construction is isolated and tested by target.
-- **Validation:** Tests prove legacy target still uses Anchor discriminator and Quasar target uses one-byte Quasar discriminator.
-- **What worked:** A selector helper avoided mixing target logic directly into the page component.
-- **What failed / surprised us:** Existing account checks still use PDA lookup only; actual wallet send remains user/external action and is not validated here.
-- **Safety / approval review:** Construction tests only; no signing, send, deployment, wallet/env mutation, paid calls, or live execution.
-- **Decision:** continue.
-- **Plan changes for next phase:** Port read/decode surfaces next or add UI status so operators can see Quasar mode before any wallet action.
-
-### Phase 5 — Slice 4: Demo-agent registration script construction
-
-**Expectation:** Demo-agent registration construction can be target-aware without executing registration.
-
-**Implementation:** `packages/demo-agents/src/register-agents.ts` now delegates instruction construction to `packages/demo-agents/src/registration-instruction.ts`, which chooses Quasar register data in explicit Quasar mode and preserves Anchor data in legacy mode.
-
-**Validation:**
-
-- `npx jest --runTestsByPath packages/demo-agents/src/__tests__/registration-instruction.test.ts lib/register/__tests__/registration-instruction.test.ts lib/quasar/__tests__/instructions.test.ts lib/quasar/__tests__/instruction-builders.test.ts --runInBand`
-- `npm run build`
-- `npm run check:quasar:runtime-compatibility`
-- `npm run check:quasar:deployments`
-- `npm run check:quasar:demo-readiness`
-- `npm run test:bdd:index`
-- `git diff --check`
-
-### Retrospective — Phase 5 / Slice 4
-
-- **Expected:** Move demo-agent registration off inline Anchor-only encoding while avoiding live registration.
-- **Observed:** Registration script now logs target and constructs either Anchor or Quasar register data based on resolved demo target.
-- **Validation:** Tests prove legacy mode remains Anchor-discriminator encoded and Quasar mode uses one-byte Quasar register layout.
-- **What worked:** Extracting a package-local helper avoided running the side-effectful registration script during tests.
-- **What failed / surprised us:** The script is still live-send capable when manually executed; this slice intentionally changed construction only and did not execute it.
-- **Safety / approval review:** Local construction/build/tests only; no signing, send, deployment, wallet/env mutation, paid calls, or live execution.
-- **Decision:** continue.
-- **Plan changes for next phase:** Next best blocker is read/decode surfaces (`lib/registry/bridge.ts` / `lib/useOnchainAgents.ts`) or a UI status banner before any wallet action.
-
-### Phase 5 — Slice 5: Onboarding attestation construction
-
-**Expectation:** The onboarding attestation operator path can construct `attest_quality` with Quasar instruction data in explicit Quasar mode without executing the operator send path.
-
-**Implementation:** `lib/onboarding/onchain-attestation.ts` now delegates construction to `lib/onboarding/attestation-instruction.ts`, which selects Quasar one-byte/fixed-size `attest_quality` data in Quasar mode and preserves Anchor encoding in legacy mode.
-
-**Validation:**
-
-- `npx jest --runTestsByPath lib/onboarding/__tests__/attestation-instruction.test.ts lib/quasar/__tests__/instructions.test.ts lib/quasar/__tests__/instruction-builders.test.ts --runInBand`
-- `npm run build`
-- `npm run check:quasar:runtime-compatibility`
-- `npm run check:quasar:deployments`
-- `npm run check:quasar:demo-readiness`
-- `npm run test:bdd:index`
-- `git diff --check`
-
-### Retrospective — Phase 5 / Slice 5
-
-- **Expected:** Reduce one more Anchor-layout runtime blocker by isolating construction behind a target-aware helper.
-- **Observed:** Onboarding attestation now constructs Quasar `attest_quality` data in Quasar mode while keeping the live send path unchanged and operator-triggered.
-- **Validation:** Tests prove legacy mode remains Anchor-discriminator encoded and Quasar mode uses one-byte Quasar attestation layout.
-- **What worked:** Reusing the Quasar data builder and account-meta wrapper avoided duplicating layouts in the operator path.
-- **What failed / surprised us:** The operator path is still live-send capable if manually/API triggered; this slice intentionally did not execute it.
-- **Safety / approval review:** Local construction/build/tests only; no signing, send, deployment, wallet/env mutation, paid calls, or live execution.
-- **Decision:** continue.
-- **Plan changes for next phase:** Reputation commit/reveal or read/decode surfaces are the next blocker-reduction candidates; PER remains separate.
-
-### Phase 6 — Quasar demo UI honesty
-
-**Expectation:** Any operator-facing wallet path clearly distinguishes Quasar construction progress from full submission readiness.
-
-**Implementation:** `/register` now renders a Quasar-mode status card when the active program target is Quasar, including target, compatibility, submission readiness, and known gaps.
-
-**Validation:**
-
-- `npm run build`
-- `npm run check:quasar:runtime-compatibility`
-- `npm run check:quasar:deployments`
-- `npm run check:quasar:demo-readiness`
-- `npm run test:bdd:index`
-- `git diff --check`
-
-### Retrospective — Phase 6 / Slice 1
-
-- **Expected:** UI should not imply Quasar registration is fully submission-ready just because instruction construction is now target-aware.
-- **Observed:** The register page now surfaces Quasar mode and known gaps before the wallet action.
-- **Validation:** Build/readiness guards pass locally; readiness still blocks as expected.
-- **What worked:** Existing program metadata (`PROGRAM_TARGET`, compatibility, submission readiness, known gaps) was already centralized, so the UI could stay declarative.
-- **What failed / surprised us:** No surprise; this was an honesty/safety slice rather than a compatibility blocker reducer.
-- **Safety / approval review:** UI/build checks only; no signing, send, deployment, wallet/env mutation, paid calls, or live execution.
-- **Decision:** continue.
-- **Plan changes for next phase:** Resume blocker reduction with read/decode surfaces or reputation/attestation transaction wrappers.
-
-
-
-**Expectation:** `/economic-demo` visibly shows Quasar program target, deployment status, submission readiness, and known gaps.
-
-**Implementation plan:**
-
-- Add visible Quasar status card to `/economic-demo`.
-- Separate controlled x402/local evidence from Quasar on-chain proof.
-- Update payment readiness API/types if useful.
+- The page names the Quasar program ID in explicit Quasar mode.
+- The page says `submissionReady=false` while blockers remain.
+- The page does not imply Anchor-era evidence is final Quasar proof.
+- No hosted call, signing, wallet mutation, devnet transfer, env mutation, or paid call is introduced.
 
 **Validation candidates:**
 
-- targeted UI/Jest tests,
-- `npm run build`,
-- readiness scripts.
+- targeted Jest/UI test if the component boundary supports it
+- `npm run build`
+- `npm run check:quasar:runtime-compatibility`
+- `npm run check:quasar:demo-readiness`
+- `npm run test:bdd:index`
+- `git diff --check`
 
-**Retrospective requirement:** Decide whether judge packet can be refreshed or if more proof is needed.
+**Retrospective requirement:** Decide whether demo status clarity is sufficient for judge recording, or whether the judge packet must wait for more Quasar runtime compatibility.
 
-### Phase 7 — CI cutover from Anchor proof to Quasar proof
+### Phase 7 — Read/decode Quasar compatibility
 
-**Expectation:** CI no longer presents Anchor as final hackathon proof.
+**Expectation:** Marketplace and app read paths either decode Quasar accounts correctly or fail closed with explicit status.
 
-**Implementation plan:**
+**BDD scenarios:**
 
-- Rename legacy Anchor workflow/check to `Legacy Anchor Reference` or equivalent.
-- Add Quasar readiness check workflow.
-- Add QuasarSVM/build checks if available without unsafe external mutation.
-
-**Validation candidates:**
-
-- GitHub Actions checks,
-- source-conformance and BDD gates.
-
-**Retrospective requirement:** Decide whether Anchor CI remains as reference or is removed from required checks.
-
-### Phase 8 — Judge packet refresh
-
-**Expectation:** Public packet describes the Quasar-deployed demo path and no longer leans on Anchor-era evidence.
+- Given the demo target is Quasar, when registry data is read for marketplace or `/agents`, then the path must not use Anchor account discriminator filtering unless marked legacy-only.
+- Given Quasar account layout is not fully verified, when a reader would produce a misleading agent list, then it must surface a blocker instead of silently showing Anchor data.
 
 **Implementation plan:**
 
-- Refresh judge packet, operator checklist, and submission wording.
-- Include Quasar program ID, evidence, compatibility status, known gaps, and approval-gated boundaries.
-- Keep any unproven PER/privacy claims out of final copy.
+1. Inspect Quasar registry account layout from parity source/reports.
+2. Add a target-aware decode boundary for registry agent accounts.
+3. Port `lib/registry/bridge.ts` or mark it non-demo-critical with explicit rationale.
+4. Port `lib/useOnchainAgents.ts` or add UI/readiness blocking where required.
+5. Update `runtime-compatibility.json` and retrospective.
 
-**Validation candidates:**
+**Acceptance:**
 
-- `check:quasar:demo-readiness`,
-- docs grep/guard for Anchor-as-final-proof language,
-- PR checks.
+- Read/decode blockers are reduced or transformed into explicit non-demo-critical blockers.
+- Any Quasar decoder has fixture tests covering discriminator/layout assumptions.
+- Anchor decode remains available only in legacy mode.
+
+**Validation candidates:** targeted decoder tests, `npm run build`, runtime/readiness guards, BDD index, `git diff --check`.
+
+**Retrospective requirement:** Decide whether read/decode proof is enough for a judge packet screenshot, or whether transaction flows must be completed first.
+
+### Phase 8 — Reputation and onboarding remaining transaction paths
+
+**Expectation:** Reputation commit/reveal and onboarding confirmation/dispute paths are Quasar-compatible or explicitly blocked.
+
+**Implementation plan:**
+
+1. Add Quasar reputation `TransactionInstruction` wrappers for commit/reveal/expire using parity layouts.
+2. Route `lib/onboarding/reputation-signal.ts` through target-aware helpers.
+3. Inspect `app/onboarding/page.tsx` for remaining Anchor-only confirm/dispute builders and route/disable them by target.
+4. Update runtime compatibility and BDD scenario text.
+
+**Acceptance:**
+
+- Reputation signal path no longer uses Anchor 8-byte discriminators in Quasar mode.
+- Onboarding UI does not expose unsupported Quasar wallet actions as ready.
+- Remaining blockers are limited to escrow/PER/demo-agent full-flow if those are not yet ported.
+
+**Validation candidates:** targeted reputation/onboarding Jest, build, runtime/readiness guards, BDD index, `git diff --check`.
+
+**Retrospective requirement:** Decide whether to tackle escrow/PER or pivot to judge packet with scoped claims.
+
+### Phase 9 — Demo-agent full flow and PER decision gate
+
+**Expectation:** The submission demo has an honest Quasar-compatible path for the flows it shows, and PER is either proven under Quasar or explicitly scoped as fallback/future work.
+
+**Implementation plan:**
+
+1. Decompose `packages/demo-agents/src/demo.ts` into target-aware instruction helpers.
+2. Port non-PER escrow/reputation/attestation construction where parity evidence exists.
+3. Investigate PER parity report and current MagicBlock/TEE dependency assumptions.
+4. Choose one of:
+   - Quasar PER-compatible proof path,
+   - non-PER Quasar demo path plus explicit PER limitation,
+   - approval-gated live/local validation request if local evidence is insufficient.
+
+**Acceptance:**
+
+- Demo script does not silently run Anchor constructions when target is Quasar.
+- PER claims in demo/judge packet match evidence.
+- Any required signing/deployment/devnet/live action is stopped behind explicit Nissan approval.
+
+**Validation candidates:** targeted demo-agent tests, package build/test, readiness guards, BDD index, optional approved Surfpool/local-only smoke if needed.
+
+**Retrospective requirement:** Decide final proof boundary: Quasar full-flow proof, Quasar scoped proof, or blocked pending approval.
+
+### Phase 10 — CI cutover from Anchor proof to Quasar proof
+
+**Expectation:** CI and PR checks no longer present legacy Anchor as final hackathon proof, while preserving Anchor as reference if still useful.
+
+**Implementation plan:**
+
+- Rename legacy Anchor workflow/check wording to `Legacy Anchor Reference` or equivalent.
+- Add Quasar readiness check to CI.
+- Add QuasarSVM/build checks only if they run without unsafe external mutation.
+- Ensure source-conformance and BDD gates still pass.
+
+**Acceptance:**
+
+- CI status names make the proof boundary obvious to judges/reviewers.
+- Quasar readiness check runs in PRs and fails/blocks honestly when readiness is false.
+- Anchor proof cannot be mistaken for Quasar proof.
+
+**Validation candidates:** workflow syntax validation, PR checks, readiness scripts, BDD index.
+
+**Retrospective requirement:** Decide whether Anchor CI remains required as reference or is removed from the hackathon proof chain.
+
+### Phase 11 — Judge packet and submission refresh
+
+**Expectation:** Public submission materials describe the Quasar-deployed demo path and do not lean on stale Anchor-era evidence.
+
+**Implementation plan:**
+
+- Refresh judge packet, operator checklist, form copy, and recording script.
+- Include Quasar program ID, deployment evidence, compatibility status, known gaps, and approval-gated boundaries.
+- Include current PR/CI proof chain.
+- Keep unproven PER/privacy/live-settlement claims out of final copy.
+
+**Acceptance:**
+
+- A reviewer can see what is proven, what is local/simulated, and what is not claimed.
+- The packet names the correct Quasar program target.
+- All local ignored artifacts are referenced only as operator pointers, not published raw.
+
+**Validation candidates:** `check:quasar:demo-readiness`, docs grep for Anchor-as-final-proof language, build/BDD, PR checks.
 
 **Retrospective requirement:** Decide if `submissionReady` can become true or remains blocked.
 
-### Phase 9 — Approval-gated live validation, only if needed
+### Phase 12 — Approval-gated final validation, only if needed
 
-**Expectation:** If the previous phases show local proof is insufficient, request exactly the missing approval.
+**Expectation:** If local/code/CI proof is insufficient, request exactly the missing approval and perform only the approved action.
 
 **Possible approvals:**
 
 - devnet signing,
 - wallet funding/transfer,
 - program deployment/redeployment,
-- environment mutation,
-- live hosted demo run.
+- environment/Coolify/Vercel mutation,
+- live hosted demo run,
+- paid provider/specialist execution.
 
-**Validation candidates:**
+**Acceptance:**
 
-- explicit approved runbook,
-- captured public-safe evidence,
-- no extra live actions beyond approval scope.
+- Approval request names scope, max calls/transactions, spend cap, rollback, and artifact output.
+- Runbook performs no extra live actions beyond the approval scope.
+- Public-safe evidence is captured and secret-scanned.
 
-**Retrospective requirement:** Decide final submission readiness.
+**Validation candidates:** approved runbook, captured evidence artifact, secret scan, readiness guards.
+
+**Retrospective requirement:** Decide final submission readiness and final form/demo-video steps.
 
 ## Active next step
 
-Start **Phase 4: Quasar compatibility audit and builder boundary**.
-
-First implementation slice:
-
-1. Add BDD scenario for Quasar builder compatibility boundary.
-2. Add local guard/test that blocks known Anchor-only transaction builders in Quasar mode unless they declare compatibility status.
-3. Run targeted tests.
-4. Write Phase 4 retrospective and refine Phase 5 based on findings.
+1. Merge or update **PR #244** with this refined staged plan.
+2. After PR #244 is merged, begin **Phase 6 Slice 2: Economic demo Quasar status card**.
+3. If Nissan prioritizes blocker reduction over UI clarity, skip Slice 6.2 and start **Phase 7: Read/decode Quasar compatibility** instead; record that decision in the retrospective before coding.

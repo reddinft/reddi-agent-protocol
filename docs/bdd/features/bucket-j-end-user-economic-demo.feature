@@ -159,3 +159,11 @@ Feature: End-user economic workflow demo
     Then the path must declare whether it is Quasar-compatible, Anchor-layout-only, or blocked pending verification
     And Quasar demo readiness must fail if a demo-critical path uses an Anchor-layout-only builder without an explicit blocker
     And the retrospective for the phase must decide whether the next loop ports builders or requests approval-gated live validation
+
+  Scenario: Quasar cutover advances through retrospective-gated phases
+    Given the Quasar hackathon cutover is active
+    When a phase or slice completes
+    Then the playbook must record expectation, implementation scope, acceptance criteria, validation commands, and safety guardrails
+    And the retrospective must record observed behavior, blocker count, surprises, safety review, and next-plan adjustment
+    And the next phase must not expand into signing, wallet mutation, devnet transfer, deployment, environment mutation, paid calls, or live execution without explicit approval
+    And submission readiness must remain false while any demo-critical Quasar blocker remains
