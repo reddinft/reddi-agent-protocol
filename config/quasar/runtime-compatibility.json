@@ -6,6 +6,36 @@
   "summary": "Static compatibility boundary for Quasar demo mode. Paths listed as anchor-layout-only or blocked must not be treated as Quasar submission-ready until ported/verified.",
   "demoCriticalPaths": [
     {
+      "path": "lib/quasar/instruction-builders.ts",
+      "surface": "shared Quasar instruction-data builders for registry/reputation/attestation",
+      "status": "quasar-compatible",
+      "reason": "Uses one-byte Quasar discriminators and fixed-size argument layouts from Quasar parity source/tests. Does not claim PER compatibility."
+    },
+    {
+      "path": "lib/quasar/instructions.ts",
+      "surface": "Quasar registry transaction-instruction helpers",
+      "status": "quasar-compatible",
+      "reason": "Wraps shared Quasar registry instruction data with account metas/order from Quasar parity source/tests. Covers registry only; reputation/attestation wrappers remain future work."
+    },
+    {
+      "path": "lib/register/registration-instruction.ts",
+      "surface": "target-aware registration instruction selector",
+      "status": "quasar-compatible",
+      "reason": "Selects Quasar registry wrapper when PROGRAM_TARGET is quasar; preserves Anchor builder only for legacy-anchor mode."
+    },
+    {
+      "path": "packages/demo-agents/src/registration-instruction.ts",
+      "surface": "demo-agent target-aware registration instruction helper",
+      "status": "quasar-compatible",
+      "reason": "Constructs demo-agent register instructions with Quasar register data when PROGRAM_TARGET is quasar and preserves Anchor encoding for legacy mode."
+    },
+    {
+      "path": "lib/onboarding/attestation-instruction.ts",
+      "surface": "target-aware onboarding attest_quality instruction selector",
+      "status": "quasar-compatible",
+      "reason": "Selects Quasar attest_quality wrapper/data when PROGRAM_TARGET is quasar; preserves Anchor builder only for legacy mode."
+    },
+    {
       "path": "lib/program.ts",
       "surface": "shared instruction builders and account decoders",
       "status": "anchor-layout-only",
@@ -14,8 +44,8 @@
     {
       "path": "app/register/page.tsx",
       "surface": "registration transaction builder",
-      "status": "anchor-layout-only",
-      "reason": "Builds register_agent transaction with shared Anchor-layout builder."
+      "status": "quasar-compatible",
+      "reason": "Registration transaction construction now routes through target-aware `buildAgentRegistrationInstruction`, using Quasar registry wrapper/data in explicit Quasar mode and Anchor data only in legacy mode."
     },
     {
       "path": "app/onboarding/page.tsx",
@@ -26,8 +56,8 @@
     {
       "path": "lib/onboarding/onchain-attestation.ts",
       "surface": "attest_quality transaction builder",
-      "status": "anchor-layout-only",
-      "reason": "Uses buildAttestQualityData from lib/program.ts and Anchor-style account metas."
+      "status": "quasar-compatible",
+      "reason": "Onboarding attest_quality construction now routes through target-aware helper and uses Quasar one-byte/fixed-size attestation data in explicit Quasar mode; send remains operator-triggered only."
     },
     {
       "path": "lib/onboarding/reputation-signal.ts",
@@ -50,8 +80,8 @@
     {
       "path": "packages/demo-agents/src/register-agents.ts",
       "surface": "demo-agent registration builder",
-      "status": "anchor-layout-only",
-      "reason": "Constructs Anchor-layout registration instruction."
+      "status": "quasar-compatible",
+      "reason": "Demo-agent registration now routes through target-aware helper using Quasar fixed-size one-byte register data in explicit Quasar mode; send remains operator-triggered only."
     },
     {
       "path": "packages/demo-agents/src/demo.ts",

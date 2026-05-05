@@ -11,45 +11,17 @@ import {
   Connection,
   Keypair,
   PublicKey,
-  SystemProgram,
   Transaction,
-  TransactionInstruction,
 } from "@solana/web3.js";
-import crypto from "crypto";
 import { AGENT_A_KEYPAIR, AGENT_B_KEYPAIR, AGENT_C_KEYPAIR } from "./wallets";
-import { AGENT_SEED, DEVNET_RPC, ESCROW_PROGRAM_ID, explorerTxUrl } from "./config";
+import { DEVNET_RPC, ESCROW_PROGRAM_ID, PROGRAM_TARGET, explorerTxUrl } from "./config";
+import { buildDemoRegisterAgentInstruction, demoAgentPda } from "./registration-instruction";
 
 const PROGRAM_ID = new PublicKey(ESCROW_PROGRAM_ID);
 const connection = new Connection(DEVNET_RPC, "confirmed");
 
-// IDL-derived discriminator
-function disc(ixName: string): Buffer {
-  return crypto.createHash("sha256").update(`global:${ixName}`).digest().subarray(0, 8);
-}
-
-// Hardcoded incinerator (matches on-chain AGENT_FEE_BURN_ADDRESS)
-const INCINERATOR = new PublicKey("1nc1nerator11111111111111111111111111111111");
-
-function agentPda(owner: PublicKey): PublicKey {
-  return PublicKey.findProgramAddressSync([AGENT_SEED, owner.toBytes()], PROGRAM_ID)[0];
-}
-
-/** AgentType enum variants (Anchor borsh encoding) */
+/** AgentType enum variants (Anchor borsh encoding in legacy mode; one-byte numeric in Quasar mode) */
 const AgentType = { Primary: 0, Attestation: 1, Both: 2 };
-
-function encodeRegisterAgent(agentType: number, model: string, rateLamports: bigint, minReputation: number): Buffer {
-  // Discriminator (8) + agentType enum (1) + model string (4 len + bytes) + rate (8) + minRep (1)
-  const modelBytes = Buffer.from(model, "utf8");
-  const buf = Buffer.alloc(8 + 1 + 4 + modelBytes.length + 8 + 1);
-  let offset = 0;
-  disc("register_agent").copy(buf, offset); offset += 8;
-  buf.writeUInt8(agentType, offset); offset += 1;
-  buf.writeUInt32LE(modelBytes.length, offset); offset += 4;
-  modelBytes.copy(buf, offset); offset += modelBytes.length;
-  buf.writeBigUInt64LE(rateLamports, offset); offset += 8;
-  buf.writeUInt8(minReputation, offset);
-  return buf;
-}
 
 async function registerAgent(
   owner: Keypair,
@@ -59,23 +31,20 @@ async function registerAgent(
   minReputation: number,
   label: string,
 ) {
-  const agentPk = agentPda(owner.publicKey);
+  const agentPk = demoAgentPda(owner.publicKey, PROGRAM_ID);
   console.log(`\n📝 Registering ${label}...`);
   console.log(`   Owner: ${owner.publicKey.toBase58()}`);
   console.log(`   Agent PDA: ${agentPk.toBase58()}`);
   console.log(`   Type: ${Object.keys(AgentType)[agentType]}, Model: ${model}, Rate: ${rateLamports} lamports`);
 
-  const data = encodeRegisterAgent(agentType, model, rateLamports, minReputation);
-
-  const ix = new TransactionInstruction({
+  const ix = buildDemoRegisterAgentInstruction({
+    target: PROGRAM_TARGET,
     programId: PROGRAM_ID,
-    keys: [
-      { pubkey: agentPk, isSigner: false, isWritable: true },
-      { pubkey: owner.publicKey, isSigner: true, isWritable: true },
-      { pubkey: INCINERATOR, isSigner: false, isWritable: true },
-      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
-    ],
-    data,
+    owner: owner.publicKey,
+    agentType,
+    model,
+    rateLamports,
+    minReputation,
   });
 
   const { blockhash } = await connection.getLatestBlockhash();
@@ -102,6 +71,7 @@ async function registerAgent(
 async function main() {
   console.log("🚀 Registering agents on devnet...\n");
   console.log(`Program: ${ESCROW_PROGRAM_ID}`);
+  console.log(`Target: ${PROGRAM_TARGET}`);
 
   // Agent A — Orchestrator (Primary)
   await registerAgent(

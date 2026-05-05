@@ -5,17 +5,14 @@ import {
   Connection,
   Keypair,
   PublicKey,
-  SystemProgram,
   Transaction,
-  TransactionInstruction,
 } from "@solana/web3.js";
 import {
   DEVNET_RPC,
   ESCROW_PROGRAM_ID,
-  agentPda,
-  attestationPda,
-  buildAttestQualityData,
+  PROGRAM_TARGET,
 } from "@/lib/program";
+import { buildOnboardingAttestQualityInstruction, onboardingAttestationPda } from "@/lib/onboarding/attestation-instruction";
 
 export type SubmitOnchainAttestationInput = {
   walletAddress: string;
@@ -95,18 +92,15 @@ export async function submitOnchainOnboardingAttestation(
 
   const scores: [number, number, number, number, number] = input.scores || [8, 8, 8, 8, 8];
   const jobId = randomBytes(16);
-  const attestPda = attestationPda(jobId);
-  const judgeAgentPda = agentPda(operator.publicKey);
+  const attestPda = onboardingAttestationPda(jobId, ESCROW_PROGRAM_ID);
 
-  const ix = new TransactionInstruction({
+  const ix = buildOnboardingAttestQualityInstruction({
+    target: PROGRAM_TARGET,
     programId: ESCROW_PROGRAM_ID,
-    keys: [
-      { pubkey: attestPda, isSigner: false, isWritable: true },
-      { pubkey: judgeAgentPda, isSigner: false, isWritable: false },
-      { pubkey: operator.publicKey, isSigner: true, isWritable: true },
-      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
-    ],
-    data: buildAttestQualityData(jobId, scores, consumerWallet),
+    jobId,
+    scores,
+    consumer: consumerWallet,
+    judge: operator.publicKey,
   });
 
   const conn = new Connection(input.rpcUrl || DEVNET_RPC, "confirmed");

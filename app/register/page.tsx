@@ -6,18 +6,19 @@ import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import {
   Connection,
   Transaction,
-  TransactionInstruction,
-  SystemProgram,
 } from "@solana/web3.js";
 import {
   ESCROW_PROGRAM_ID,
   DEVNET_RPC,
   AGENT_TYPE_ENUM,
-  buildRegisterAgentData,
+  PROGRAM_TARGET,
+  PROGRAM_COMPATIBILITY,
+  PROGRAM_SUBMISSION_READY,
+  PROGRAM_KNOWN_GAPS,
   agentPda,
-  INCINERATOR,
 } from "@/lib/program";
 import { toExplorerTxUrl } from "@/lib/config/explorer";
+import { buildAgentRegistrationInstruction } from "@/lib/register/registration-instruction";
 import {
   INITIAL_EXISTING_AGENT_STATE,
   agentDetailHref,
@@ -375,18 +376,14 @@ function RegisterInner() {
       const modelName = form.model || "unknown";
       const minRep = form.minConsumerRep ?? 0;
 
-      const pda = agentPda(publicKey);
-      const data = buildRegisterAgentData(agentTypeByte, modelName, rateLamports, minRep);
-
-      const ix = new TransactionInstruction({
+      const ix = buildAgentRegistrationInstruction({
+        target: PROGRAM_TARGET,
         programId: ESCROW_PROGRAM_ID,
-        keys: [
-          { pubkey: pda, isSigner: false, isWritable: true },
-          { pubkey: publicKey, isSigner: true, isWritable: true },
-          { pubkey: INCINERATOR, isSigner: false, isWritable: true },
-          { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
-        ],
-        data,
+        owner: publicKey,
+        agentType: agentTypeByte,
+        model: modelName,
+        rateLamports,
+        minReputation: minRep,
       });
 
       const { blockhash } = await conn.getLatestBlockhash();
@@ -534,6 +531,21 @@ function RegisterInner() {
         title={alreadyRegistered ? "Your wallet already has an agent" : "Register Your Agent"}
         subtitle={alreadyRegistered ? "Open your existing agent profile, update details, or deregister before creating a fresh registration with this wallet." : "One-time 0.01 SOL registration. No subscription. You control your rate."}
       />
+      {PROGRAM_TARGET === "quasar" && (
+        <Card className={`space-y-2 p-4 text-sm ${PROGRAM_SUBMISSION_READY ? "border-emerald-400/25 bg-emerald-500/10 text-emerald-50" : "border-amber-400/25 bg-amber-500/10 text-amber-50"}`}>
+          <p className="font-semibold">
+            Quasar mode is active{PROGRAM_SUBMISSION_READY ? " and marked submission-ready." : ", but submission readiness is still blocked."}
+          </p>
+          <p className="text-xs opacity-85">
+            Target: <span className="font-mono">{PROGRAM_TARGET}</span> · Compatibility: <span className="font-mono">{PROGRAM_COMPATIBILITY}</span>. Registration instruction construction uses the Quasar registry layout, but wallet submission should wait for the full proof chain unless you are deliberately testing this path.
+          </p>
+          {!PROGRAM_SUBMISSION_READY && PROGRAM_KNOWN_GAPS.length > 0 && (
+            <ul className="list-disc space-y-1 pl-4 text-xs opacity-85">
+              {PROGRAM_KNOWN_GAPS.slice(0, 3).map((gap) => <li key={gap}>{gap}</li>)}
+            </ul>
+          )}
+        </Card>
+      )}
       {existingAgent.status === "checking" && (
         <Card className="border-blue-400/20 bg-blue-500/10 p-4 text-sm text-blue-100">
           Checking whether this wallet already has an on-chain agent registration…

@@ -212,23 +212,168 @@ Append this block under the relevant phase before proceeding:
 
 **Expectation:** Demo-critical transactions have Quasar-compatible instruction data/account metadata or are deliberately disabled with a blocker.
 
-**Implementation plan:**
+**Implementation:** First slice adds `lib/quasar/instruction-builders.ts` with shared Quasar instruction-data builders for registry, reputation, and attestation. PER remains blocked.
 
-- Start with shared builder extraction/port in `lib/program.ts` or a new Quasar-specific module.
-- Port/verify registry first, then escrow, reputation, attestation.
-- Leave PER/demo-agent inline flow blocked until shared builders are verified.
-- Do not port PER unless Quasar PER semantics are verified; keep as blocker if needed.
-- Add tests comparing expected instruction data and account metas to Quasar parity docs/source.
+**Acceptance:**
 
-**Validation candidates:**
+- Builders use one-byte Quasar discriminators, not Anchor 8-byte SHA256 discriminators.
+- Builders use fixed-size Quasar argument layouts from parity source/tests.
+- Invalid fixed-size inputs fail before transaction construction.
+- Runtime compatibility inventory records the new shared builder module as `quasar-compatible` while existing Anchor-layout runtime paths remain blocked.
 
-- unit tests for each builder,
-- dry-run/local-only transaction construction tests,
-- no signing or send unless separately approved.
+**Validation:**
 
-**Retrospective requirement:** Decide whether local QuasarSVM tests are enough or if devnet signing/deployment validation is required.
+- `npx jest --runTestsByPath lib/quasar/__tests__/instruction-builders.test.ts --runInBand`
+- `npm run check:quasar:runtime-compatibility`
+- `npm run check:quasar:deployments`
+- `npm run check:quasar:demo-readiness`
+- `npm run test:bdd:index`
+- `git diff --check`
+
+### Retrospective — Phase 5 / Slice 1
+
+- **Expected:** Extract a safe shared Quasar instruction-data boundary before touching live transaction surfaces.
+- **Observed:** Registry/reputation/attestation data builders can be ported locally from Quasar parity source/tests without signing or devnet execution.
+- **Validation:** Builder tests assert one-byte discriminators, fixed-size layouts, u128 job-id bytes, and invalid input guards.
+- **What worked:** Keeping builders in `lib/quasar/*` avoids contaminating existing Anchor builders and makes compatibility explicit.
+- **What failed / surprised us:** PER cannot ride this slice; it still needs separate semantic validation because the TEE path is not proven by the QuasarSVM parity tests.
+- **Safety / approval review:** Local source/tests only; no signing, deployment, wallet/env mutation, paid calls, or live execution.
+- **Decision:** continue with account-meta/transaction wrapper port next.
+- **Plan changes for next phase:** Phase 5 Slice 2 should wrap these data builders in transaction-instruction helpers for registry first, then update blocked runtime paths one at a time.
+
+### Phase 5 — Slice 2: Registry transaction-instruction wrappers
+
+**Expectation:** The shared Quasar registry data builders can be wrapped into Solana `TransactionInstruction`s with Quasar account metas/order, without sending or signing.
+
+**Implementation:** `lib/quasar/instructions.ts` adds registry helpers for register/update/deregister plus PDA derivation.
+
+**Validation:**
+
+- `npx jest --runTestsByPath lib/quasar/__tests__/instructions.test.ts lib/quasar/__tests__/instruction-builders.test.ts --runInBand`
+- `npm run check:quasar:runtime-compatibility`
+- `npm run check:quasar:deployments`
+- `npm run check:quasar:demo-readiness`
+- `npm run test:bdd:index`
+- `git diff --check`
+
+### Retrospective — Phase 5 / Slice 2
+
+- **Expected:** Registry helpers can be made Quasar-compatible without touching live app flows.
+- **Observed:** Register/update/deregister wrappers now produce Quasar program IDs, PDA derivation, account metas, and one-byte discriminator data locally.
+- **Validation:** Jest verified account order/signers/writability/data for registry wrappers.
+- **What worked:** Registry was the right first wrapper because Quasar parity source has simple account metas and no PER dependency.
+- **What failed / surprised us:** This does not reduce the 9 existing blocked runtime paths yet because app/demo surfaces still import Anchor-era builders; the next loop must swap one runtime surface deliberately.
+- **Safety / approval review:** Local construction tests only; no signing, send, deployment, wallet/env mutation, paid calls, or live execution.
+- **Decision:** continue.
+- **Plan changes for next phase:** Port one low-risk runtime surface to use registry wrappers under explicit Quasar mode, or keep it disabled with a visible blocker if transaction sending would be required.
+
+### Phase 5 — Slice 3: Register page target-aware construction
+
+**Expectation:** A low-risk runtime surface can construct Quasar registry instructions under explicit Quasar mode without changing signing/deployment behavior.
+
+**Implementation:** `/register` now delegates transaction construction to `buildAgentRegistrationInstruction`, which selects Quasar registry wrappers when `PROGRAM_TARGET=quasar` and keeps Anchor construction only for legacy mode.
+
+**Validation:**
+
+- `npx jest --runTestsByPath lib/register/__tests__/registration-instruction.test.ts lib/quasar/__tests__/instructions.test.ts lib/quasar/__tests__/instruction-builders.test.ts --runInBand`
+- `npm run check:quasar:runtime-compatibility`
+- `npm run check:quasar:deployments`
+- `npm run check:quasar:demo-readiness`
+- `npm run test:bdd:index`
+- `git diff --check`
+
+### Retrospective — Phase 5 / Slice 3
+
+- **Expected:** Move one runtime path from Anchor-layout-only to target-aware Quasar-compatible construction.
+- **Observed:** `/register` no longer manually builds Anchor registration instruction data; construction is isolated and tested by target.
+- **Validation:** Tests prove legacy target still uses Anchor discriminator and Quasar target uses one-byte Quasar discriminator.
+- **What worked:** A selector helper avoided mixing target logic directly into the page component.
+- **What failed / surprised us:** Existing account checks still use PDA lookup only; actual wallet send remains user/external action and is not validated here.
+- **Safety / approval review:** Construction tests only; no signing, send, deployment, wallet/env mutation, paid calls, or live execution.
+- **Decision:** continue.
+- **Plan changes for next phase:** Port read/decode surfaces next or add UI status so operators can see Quasar mode before any wallet action.
+
+### Phase 5 — Slice 4: Demo-agent registration script construction
+
+**Expectation:** Demo-agent registration construction can be target-aware without executing registration.
+
+**Implementation:** `packages/demo-agents/src/register-agents.ts` now delegates instruction construction to `packages/demo-agents/src/registration-instruction.ts`, which chooses Quasar register data in explicit Quasar mode and preserves Anchor data in legacy mode.
+
+**Validation:**
+
+- `npx jest --runTestsByPath packages/demo-agents/src/__tests__/registration-instruction.test.ts lib/register/__tests__/registration-instruction.test.ts lib/quasar/__tests__/instructions.test.ts lib/quasar/__tests__/instruction-builders.test.ts --runInBand`
+- `npm run build`
+- `npm run check:quasar:runtime-compatibility`
+- `npm run check:quasar:deployments`
+- `npm run check:quasar:demo-readiness`
+- `npm run test:bdd:index`
+- `git diff --check`
+
+### Retrospective — Phase 5 / Slice 4
+
+- **Expected:** Move demo-agent registration off inline Anchor-only encoding while avoiding live registration.
+- **Observed:** Registration script now logs target and constructs either Anchor or Quasar register data based on resolved demo target.
+- **Validation:** Tests prove legacy mode remains Anchor-discriminator encoded and Quasar mode uses one-byte Quasar register layout.
+- **What worked:** Extracting a package-local helper avoided running the side-effectful registration script during tests.
+- **What failed / surprised us:** The script is still live-send capable when manually executed; this slice intentionally changed construction only and did not execute it.
+- **Safety / approval review:** Local construction/build/tests only; no signing, send, deployment, wallet/env mutation, paid calls, or live execution.
+- **Decision:** continue.
+- **Plan changes for next phase:** Next best blocker is read/decode surfaces (`lib/registry/bridge.ts` / `lib/useOnchainAgents.ts`) or a UI status banner before any wallet action.
+
+### Phase 5 — Slice 5: Onboarding attestation construction
+
+**Expectation:** The onboarding attestation operator path can construct `attest_quality` with Quasar instruction data in explicit Quasar mode without executing the operator send path.
+
+**Implementation:** `lib/onboarding/onchain-attestation.ts` now delegates construction to `lib/onboarding/attestation-instruction.ts`, which selects Quasar one-byte/fixed-size `attest_quality` data in Quasar mode and preserves Anchor encoding in legacy mode.
+
+**Validation:**
+
+- `npx jest --runTestsByPath lib/onboarding/__tests__/attestation-instruction.test.ts lib/quasar/__tests__/instructions.test.ts lib/quasar/__tests__/instruction-builders.test.ts --runInBand`
+- `npm run build`
+- `npm run check:quasar:runtime-compatibility`
+- `npm run check:quasar:deployments`
+- `npm run check:quasar:demo-readiness`
+- `npm run test:bdd:index`
+- `git diff --check`
+
+### Retrospective — Phase 5 / Slice 5
+
+- **Expected:** Reduce one more Anchor-layout runtime blocker by isolating construction behind a target-aware helper.
+- **Observed:** Onboarding attestation now constructs Quasar `attest_quality` data in Quasar mode while keeping the live send path unchanged and operator-triggered.
+- **Validation:** Tests prove legacy mode remains Anchor-discriminator encoded and Quasar mode uses one-byte Quasar attestation layout.
+- **What worked:** Reusing the Quasar data builder and account-meta wrapper avoided duplicating layouts in the operator path.
+- **What failed / surprised us:** The operator path is still live-send capable if manually/API triggered; this slice intentionally did not execute it.
+- **Safety / approval review:** Local construction/build/tests only; no signing, send, deployment, wallet/env mutation, paid calls, or live execution.
+- **Decision:** continue.
+- **Plan changes for next phase:** Reputation commit/reveal or read/decode surfaces are the next blocker-reduction candidates; PER remains separate.
 
 ### Phase 6 — Quasar demo UI honesty
+
+**Expectation:** Any operator-facing wallet path clearly distinguishes Quasar construction progress from full submission readiness.
+
+**Implementation:** `/register` now renders a Quasar-mode status card when the active program target is Quasar, including target, compatibility, submission readiness, and known gaps.
+
+**Validation:**
+
+- `npm run build`
+- `npm run check:quasar:runtime-compatibility`
+- `npm run check:quasar:deployments`
+- `npm run check:quasar:demo-readiness`
+- `npm run test:bdd:index`
+- `git diff --check`
+
+### Retrospective — Phase 6 / Slice 1
+
+- **Expected:** UI should not imply Quasar registration is fully submission-ready just because instruction construction is now target-aware.
+- **Observed:** The register page now surfaces Quasar mode and known gaps before the wallet action.
+- **Validation:** Build/readiness guards pass locally; readiness still blocks as expected.
+- **What worked:** Existing program metadata (`PROGRAM_TARGET`, compatibility, submission readiness, known gaps) was already centralized, so the UI could stay declarative.
+- **What failed / surprised us:** No surprise; this was an honesty/safety slice rather than a compatibility blocker reducer.
+- **Safety / approval review:** UI/build checks only; no signing, send, deployment, wallet/env mutation, paid calls, or live execution.
+- **Decision:** continue.
+- **Plan changes for next phase:** Resume blocker reduction with read/decode surfaces or reputation/attestation transaction wrappers.
+
+
 
 **Expectation:** `/economic-demo` visibly shows Quasar program target, deployment status, submission readiness, and known gaps.
 
