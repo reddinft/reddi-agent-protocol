@@ -144,3 +144,11 @@ Feature: End-user economic workflow demo
     And it cites the public PR and CI proof chain by identifier
     And it separates approval-gated future proof categories from current evidence
     And it does not publish raw ignored artifacts, secrets, provider outputs, private logs, or unsupported production settlement claims
+
+  Scenario: Hackathon demos target Quasar deployed programs
+    Given Nissan has selected Quasar as the hackathon Solana program target
+    When demo or submission readiness is evaluated
+    Then the demo evidence must identify the Quasar program IDs used by the demo
+    And the readiness gate must reject silent fallback to legacy Anchor program IDs
+    And Anchor CI alone must not be presented as final hackathon submission proof
+    And any missing Quasar deployment, signing, wallet, devnet, or environment action must be surfaced as an approval-gated blocker
