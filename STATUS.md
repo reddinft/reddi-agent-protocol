@@ -1,20 +1,20 @@
 # Reddi Agent Protocol Code — STATUS
 
 **Last updated:** 2026-05-05 AEST
-**State:** 🟢 Phase 3 local manifest parity implemented locally; ready for PR.
+**State:** 🟢 Phase 3 local manifest parity merged; Phase 4 hosted redeploy/smoke is blocked on explicit operator approval.
 
 ## RESUME FROM HERE
 
-1. Open/merge Phase 3 branch `feature/local-manifest-parity-20260505`: `/.well-known/reddi-agent.json` now exposes tools/skills, marketplace-agent calls, external MCP servers, non-marketplace services, and disclosure policy.
-2. After Phase 3 merge, request explicit operator approval before any hosted Coolify redeploy/smoke.
-3. External Coolify redeploy remains explicit-operator-only.
+1. Phase 4 hosted redeploy + public smoke is next, but requires explicit operator approval before touching Coolify/hosted infrastructure.
+2. If approval is granted: redeploy hosted OpenRouter specialist apps, smoke `/.well-known/reddi-agent.json`, save sanitized manifest evidence, then update status.
+3. If approval is not granted: continue safe local planning for Phase 5 research workflow BDD/dry-run design only.
 
 ## Current Branch / Repo State
 
-- Local branch: `feature/local-manifest-parity-20260505`
-- Local working tree: Phase 3 local manifest parity changes in progress.
-- Latest merge on main: `0a6999a1 feat: load latest evidence pack in economic demo (#211)`.
-- PR #211: merged 2026-05-05 AEST; post-merge Anchor run `25351170348` in progress at start of Phase 3.
+- Local branch: `docs/status-after-phase3-20260505`
+- Local working tree: status-only post-Phase 3 update.
+- Latest merge on main: `fee12f3a feat: expose manifest dependency parity (#212)`.
+- PR #212: merged 2026-05-05 AEST; post-merge Anchor run `25351648417`, job `74332350244` passed in 7m23s.
 
 
 ## Current Follow-up PR — #203
@@ -116,7 +116,7 @@ Validation for Phase 2.5 PR #211:
 - PR: https://github.com/nissan/reddi-agent-protocol/pull/211
 - Merge commit: `0a6999a1e16b6a036e4dd31796533d5d3a092bc4`
 - PR checks passed: Vercel Preview Comments, Vercel deployment, Anchor runs `25350902818` / `25350904030`.
-- Post-merge `main` Anchor run `25351170348`, job `74330869241` — in progress when Phase 3 began.
+- Post-merge `main` Anchor run `25351170348`, job `74330869241` — PASS.
 
 Validation for Phase 3 local manifest parity:
 
@@ -126,6 +126,15 @@ Validation for Phase 3 local manifest parity:
 - `npm run test:bdd:index` — PASS.
 - `npm run build` — PASS (existing multiple-lockfile workspace-root warning; existing Turbopack NFT trace warning from server-side evidence-pack fs loader).
 - `git diff --check` — PASS.
+
+
+Validation for Phase 3 PR #212:
+
+- PR: https://github.com/nissan/reddi-agent-protocol/pull/212
+- Merge commit: `fee12f3ab42d99a29c90dcb68c9daa8ca5bf1ae4`
+- PR checks passed: Vercel Preview Comments, Vercel deployment, Anchor runs `25351399981` / `25351401488`.
+- Post-merge `main` Anchor run `25351648417`, job `74332350244` — PASS, 7m23s.
+- GitHub Actions warning persists: Node.js 20 actions deprecation for `actions/cache@v4` and `actions/checkout@v4`.
 
 ## Retrospective — Phase 6.5 Slice A
 
