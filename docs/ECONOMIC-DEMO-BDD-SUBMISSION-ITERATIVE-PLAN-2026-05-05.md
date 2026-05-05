@@ -1,7 +1,7 @@
 # Economic Demo Submission Readiness — BDD Iterative Plan
 
 _Date:_ 2026-05-05 AEST
-_Status:_ Phase 3 complete locally; PR pending
+_Status:_ Phase 4 complete locally; PR pending
 _Related:_ Issue #228, PR #225, PR #226, PR #227, `/economic-demo`, `artifacts/economic-demo-submission-prep/latest`
 
 ## North star
@@ -213,3 +213,13 @@ _Status:_ Complete locally; ready for PR.
 - **Plan adjustment:** Phase 4 should produce the final judge/submission packet as a committed public-safe doc. It must include what is proven, what is local/simulated, exact PR/CI proof chain, and explicit not-claimed boundaries. Do not add live proof categories without separate approval.
 
 _Phase 3 local artifact:_ `artifacts/economic-demo-rehearsal/20260505T091725Z/REHEARSAL-REPORT.md` (ignored, local-only).
+
+### Phase 4 retrospective
+
+_Status:_ Complete locally; ready for PR.
+
+- **What worked:** Added `docs/ECONOMIC-DEMO-JUDGE-PACKET-2026-05-05.md` as a concise public-safe packet that separates proven evidence, local/simulated evidence, explicit non-claims, PR/CI proof chain, and approval-gated future proof categories.
+- **What failed or surprised us:** PR #233 post-merge CI was still in progress when the packet draft began, so the packet names that state honestly instead of pretending the run had completed. Future status-only updates can refresh the line once CI completes.
+- **Safety/spend review:** Docs/BDD/status only. No hosted specialist calls, provider requests, image generation, signing, wallet mutation, devnet transfer, Coolify/env mutation, or paid spend.
+- **Judge clarity:** Stronger. A reviewer can now read one committed packet and understand exactly what is demonstrated today and which stronger claims require explicit approval.
+- **Plan adjustment:** If #233 and this packet PR both pass post-merge CI, stop the autonomous loop unless Nissan requests Phase 5 polish or explicitly approves a stronger live/image proof category.

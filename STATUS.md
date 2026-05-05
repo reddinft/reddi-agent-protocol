@@ -1,19 +1,19 @@
 # Reddi Agent Protocol Code — STATUS
 
 **Last updated:** 2026-05-05 AEST
-**State:** 🟢 Demo/submission readiness BDD iterative loop active via Issue #228; Phases 0–2 merged, Phase 3 local dry-run rehearsal complete locally; Phase 4 final judge packet is next; Phase 6 live research and real image generation remain approval-gated.
+**State:** 🟢 Demo/submission readiness BDD iterative loop active via Issue #228; Phases 0–3 merged/complete, Phase 4 final judge packet in progress; Phase 6 live research and real image generation remain approval-gated.
 
 ## RESUME FROM HERE
 
 1. Phase 7 picture storyboard artifact generator is complete through PR #221. Do not run real OpenAI/Fal image generation without explicit approval, provider choice, and budget cap.
 2. GitHub Actions Node.js 20 deprecation cleanup is complete through PR #223; post-merge `main` Anchor CI has no Node.js 20 deprecation annotation.
-3. Demo/submission readiness follows Issue #228 and `docs/ECONOMIC-DEMO-BDD-SUBMISSION-ITERATIVE-PLAN-2026-05-05.md`: Phase 0 merged through PR #229; Phase 1 checker merged through PR #230; Phase 2 checklist merged through PR #231; Phase 3 local dry-run rehearsal report exists at ignored `artifacts/economic-demo-rehearsal/20260505T091725Z/REHEARSAL-REPORT.md`. Next loop is Phase 4 final public-safe judge/submission packet. Do not run Phase 6 controlled live research or real image generation without explicit approval gates.
+3. Demo/submission readiness follows Issue #228 and `docs/ECONOMIC-DEMO-BDD-SUBMISSION-ITERATIVE-PLAN-2026-05-05.md`: Phase 0 merged through PR #229; Phase 1 checker merged through PR #230; Phase 2 checklist merged through PR #231; Phase 3 retrospective merged through PR #233; Phase 4 final public-safe judge packet is in progress at `docs/ECONOMIC-DEMO-JUDGE-PACKET-2026-05-05.md`. Do not run Phase 6 controlled live research or real image generation without explicit approval gates.
 
 ## Current Branch / Repo State
 
-- Local branch: `docs/phase3-local-rehearsal-retro-20260505` (Phase 3 retrospective/status).
+- Local branch: `docs/economic-demo-final-judge-packet-20260505` (Phase 4 final judge packet).
 - Local working tree: status update after PR #226 post-merge CI. Local evidence artifacts are under `artifacts/manifest-parity-phase4/`, `artifacts/economic-demo-surfpool-rehearsal/20260505T021309Z/`, `artifacts/surfpool-smoke/20260505-121331/`, `artifacts/economic-demo-research-dry-run/20260505T025224Z/`, and generated/ignored `artifacts/economic-demo-picture-storyboard/`.
-- Latest merge on main: `58c4684d docs: update status after operator checklist (#232)`.
+- Latest merge on main: `fc818240 docs: record phase 3 local rehearsal retrospective (#233)`.
 - PR #204: closed as superseded after Nissan accepted recommendation.
 - PR #214: merged 2026-05-05 AEST as `a290db7093458f45ca1b3dbc2a047b404c856a29`; post-merge Anchor run `25353582949`, job `74338163008` passed in 7m26s.
 - PR #215: merged 2026-05-05 AEST as `cd202ebd6360d29f0a896e852fe9f63c339fc4dc`; post-merge Anchor run `25353973718`, job `74339305929` passed in 7m23s.
