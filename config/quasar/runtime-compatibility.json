@@ -3,7 +3,7 @@
   "updatedAt": "2026-05-05",
   "phase": 4,
   "target": "quasar-builder-compatibility-boundary",
-  "summary": "Static compatibility boundary for Quasar demo mode. Paths listed as anchor-layout-only or blocked must not be treated as Quasar submission-ready until ported/verified.",
+  "summary": "Static compatibility boundary for Quasar demo mode. Final Colosseum success requires every demo-critical on-chain path to be Quasar-native; scoped proof is not sufficient.",
   "demoCriticalPaths": [
     {
       "path": "lib/quasar/instruction-builders.ts",
@@ -85,9 +85,9 @@
     },
     {
       "path": "packages/demo-agents/src/demo.ts",
-      "surface": "legacy demo-agent escrow/reputation/attestation/PER transaction flow",
-      "status": "not-demo-critical",
-      "reason": "Phase 9 decision: this script is explicitly legacy Anchor/PER proof material and now fails closed when DEMO/HACKATHON target is quasar. Quasar submission proof must use scoped web/onboarding/judge-packet paths until full escrow/PER live TEE semantics are separately verified."
+      "surface": "full demo-agent A\u2192B\u2192C escrow/reputation/attestation/MagicBlock PER transaction flow",
+      "status": "blocked-pending-quasar-port",
+      "reason": "Critical success factor: final demo cannot exclude this path as legacy-only. It must be ported to Quasar-native program IDs/instruction layouts or replaced with an equivalent Quasar-native full-flow demo before submissionReady can be true."
     }
   ],
   "allowedStatuses": [
@@ -96,5 +96,5 @@
     "blocked-pending-quasar-port",
     "not-demo-critical"
   ],
-  "submissionReadyRule": "submissionReady may not be true while any demoCriticalPaths entry is anchor-layout-only or blocked-pending-quasar-port."
+  "submissionReadyRule": "submissionReady may not be true until every demo-critical on-chain path is Quasar-native and the full A\u2192B\u2192C escrow/settlement/MagicBlock PER claim is either validated on Quasar or removed from final claims."
 }

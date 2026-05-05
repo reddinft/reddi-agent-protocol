@@ -340,7 +340,7 @@ function RegisterInner() {
 
   const isJudge = form.agentType === "attestation" || form.agentType === "both";
   const activeRpc = DEVNET_RPC;
-  const activeProgramId = ESCROW_PROGRAM_ID.toBase58();
+  const activeProgramId = REGISTRY_PROGRAM_ID.toBase58();
   const myAgentHref = publicKey ? agentDetailHref(publicKey) : "/agents";
   const alreadyRegistered = existingAgent.status === "registered";
 

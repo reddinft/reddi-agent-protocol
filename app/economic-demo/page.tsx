@@ -21,6 +21,9 @@ import type { ResearchWorkflowDesign } from "@/lib/economic-demo/research-workfl
 import type { PictureStoryboardDesign } from "@/lib/economic-demo/picture-storyboard-design";
 import {
   ESCROW_PROGRAM_ID,
+  REGISTRY_PROGRAM_ID,
+  REPUTATION_PROGRAM_ID,
+  ATTESTATION_PROGRAM_ID,
   PROGRAM_COMPATIBILITY,
   PROGRAM_FRAMEWORK,
   PROGRAM_KNOWN_GAPS,
@@ -376,8 +379,20 @@ export default function EconomicDemoPage() {
               </p>
               <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
                 <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                  <dt className="text-gray-500">Program ID</dt>
+                  <dt className="text-gray-500">Quasar Escrow program</dt>
                   <dd className="mt-1 break-all font-mono text-[#14F195]">{ESCROW_PROGRAM_ID.toBase58()}</dd>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                  <dt className="text-gray-500">Quasar Registry program</dt>
+                  <dd className="mt-1 break-all font-mono text-[#14F195]">{REGISTRY_PROGRAM_ID.toBase58()}</dd>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                  <dt className="text-gray-500">Quasar Reputation program</dt>
+                  <dd className="mt-1 break-all font-mono text-[#14F195]">{REPUTATION_PROGRAM_ID.toBase58()}</dd>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                  <dt className="text-gray-500">Quasar Attestation program</dt>
+                  <dd className="mt-1 break-all font-mono text-[#14F195]">{ATTESTATION_PROGRAM_ID.toBase58()}</dd>
                 </div>
                 <div className="rounded-xl border border-white/10 bg-black/20 p-3">
                   <dt className="text-gray-500">Target / framework</dt>

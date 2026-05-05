@@ -3,7 +3,7 @@
   "updatedAt": "2026-05-06",
   "decisionIssue": 236,
   "target": "hackathon-demo-quasar-cutover",
-  "submissionReady": true,
+  "submissionReady": false,
   "legacyAnchorReference": {
     "cluster": "devnet",
     "programId": "794nTFNyJknzDrR13ApSfVyNCRvcvnCN3BVDfic8dcZD",
@@ -14,7 +14,7 @@
       "cluster": "devnet",
       "rpcHttp": "https://api.devnet.solana.com",
       "programId": "VYCbMszux9seLK2aXFZMECMBFURvfuJLXsXPmJS5igW",
-      "status": "devnet-registry-registered",
+      "status": "blocked-full-quasar-critical-success",
       "scope": [
         "scoped-quasar-proof-ready",
         "registry-runtime-compatible",
@@ -22,7 +22,11 @@
         "attestation-runtime-compatible",
         "per-parity-documented-live-tee-not-claimed"
       ],
-      "knownGaps": [],
+      "knownGaps": [
+        "Full demo-agent A\u2192B\u2192C escrow/settlement flow must be ported from legacy Anchor script to Quasar-native program IDs/instruction layouts or replaced with an equivalent Quasar-native demo path.",
+        "MagicBlock PER/TEE final-demo claim must be validated against the Quasar-native escrow/settlement path, or removed from final on-chain claims instead of treated as future work.",
+        "All operator/judge surfaces must show Quasar multi-program IDs and must not use legacy Anchor registration/escrow state as primary demo state."
+      ],
       "evidence": [
         {
           "type": "read-only-rpc-account-check",
@@ -52,9 +56,8 @@
         }
       ],
       "knownLimitations": [
-        "Devnet registry mutations are now complete for demo agents A/B/C; live PER/TEE execution is still not claimed.",
-        "Live PER/TEE execution is not claimed and remains explicitly approval-gated",
-        "Legacy demo-agent full-flow/PER script is excluded from Quasar proof and fails closed under Quasar target selection"
+        "Quasar Registry devnet mutations are complete for demo agents A/B/C.",
+        "Legacy Anchor artifacts may remain only as historical comparison; they are not acceptable final-demo proof."
       ],
       "programIds": {
         "escrow": "VYCbMszux9seLK2aXFZMECMBFURvfuJLXsXPmJS5igW",
@@ -64,5 +67,11 @@
       }
     }
   },
-  "submissionReadyReason": "Scoped Quasar proof packet is ready; live PER/TEE execution and live actions are explicit limitations, not claimed proof."
+  "submissionReadyReason": "Blocked by critical success factor: final Colosseum demo is not done until every demo-critical on-chain path is Quasar-native. Registry A/B/C is live on Quasar, but the full A\u2192B\u2192C escrow/settlement/MagicBlock PER path is not yet ported/validated as Quasar-native.",
+  "criticalSuccessFactors": [
+    "no-demo-critical-anchor-paths",
+    "quasar-native-registry-reputation-attestation",
+    "quasar-native-escrow-settlement-demo",
+    "magicblock-per-quasar-validation-or-explicitly-not-in-final-claim"
+  ]
 }

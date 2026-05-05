@@ -614,3 +614,42 @@ Before recording, verify:
 6. Final judge packet has a one-page proof map: Quasar proof, MagicBlock proof, x402 proof, Jupiter proof, OpenRouter proof, Surfpool proof.
 
 **Plan adjustment:** Phase 13’s “scoped proof is enough” posture is now superseded for recording readiness. Scoped proof remains a safe fallback, but the active plan is Quasar-first demo readiness with explicit ecosystem-product proof mapping.
+
+## Critical Success Factor Reset — Full Quasar or not done
+
+Nissan corrected the goal on 2026-05-06: the final Colosseum Frontier goal is **not** satisfied by scoped Quasar proof, Quasar-compatible builders, or legacy Anchor evidence with honest caveats. The goal is achieved only when the final demo is fully using Quasar-compiled Solana programs for every demo-critical on-chain path.
+
+### Non-negotiable success factors
+
+1. **No demo-critical Anchor path.** Legacy Anchor code, tests, and artifacts may remain as historical/reference material only. They must not power the final demo, screenshots, judge packet, operator flow, or readiness claim.
+2. **Quasar-native multi-program target.** Final demo surfaces must use the Quasar devnet program inventory:
+   - Escrow: `VYCbMszux9seLK2aXFZMECMBFURvfuJLXsXPmJS5igW`
+   - Registry: `Xk7jczJZ1HHJZuE1ZUWDqFmowxYhnom7mWzrNSGf9FU`
+   - Reputation: `nb9rLVjoHMibsgfRGgKuPqm6M8GVcH9r6bYNfg7Yiy6`
+   - Attestation: `CRGsWWkptdxsH6N6aWAyahLbuMsT58yM624EopEsv1Ex`
+3. **Full A→B→C demo path is Quasar-native.** The demo-agent full flow cannot be excluded as “legacy/reference only” if it is part of the final story. It must be ported to Quasar or replaced with an equivalent Quasar-native full-flow demo.
+4. **MagicBlock/PER is not punted.** If MagicBlock PER is claimed in the final demo, it must be validated against the Quasar-native path. If it cannot be validated, it must be removed from final on-chain claims rather than described as future work.
+5. **CI blocks premature readiness.** `submissionReady=true` is forbidden while any of the above are incomplete.
+
+### Immediate plan adjustment
+
+Phase 14’s scoped-proof fallback is superseded as a final readiness strategy. Keep the Quasar Registry registration evidence, but mark the final submission blocked until Phase 15 ports/replaces the full demo-critical flow and validates or removes the MagicBlock PER final claim.
+
+## Phase 15 — Full Quasar critical-success closure 🟡 active
+
+**Expectation:** The final demo achieves the actual goal: no demo-critical Anchor path remains.
+
+**BDD scenarios:**
+
+- Given the final demo uses on-chain registration, discovery, escrow, settlement, reputation, or attestation, when the demo is run, then each transaction/read must target the matching Quasar program ID, not the legacy Anchor program.
+- Given the A→B→C demo flow is part of the submission story, when `DEMO_PROGRAM_TARGET=quasar`, then the flow must run or fail only on a real Quasar blocker, not because it is intentionally excluded.
+- Given MagicBlock PER is a bounty/ecosystem product, when it appears in the final demo claim, then the evidence must show Quasar-native PER/TEE validation or the claim must be removed.
+- Given `submissionReady=true`, when CI runs, then the critical success guard must pass and find no scoped-proof/future-work punt.
+
+**Active blockers:**
+
+1. `packages/demo-agents/src/demo.ts` is still a legacy Anchor full-flow/PER script and is now a blocker, not an acceptable exclusion.
+2. Quasar-native escrow/settlement/MagicBlock PER validation is not complete.
+3. Some public surfaces still need copy/ID cleanup so they cannot visually imply the legacy Anchor program is the active demo state.
+
+**Validation gate:** `npm run check:quasar:critical-success` must pass before final readiness can be restored.

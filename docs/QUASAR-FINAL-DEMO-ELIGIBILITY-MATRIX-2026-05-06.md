@@ -62,3 +62,22 @@ Status: complete after Nissan approval.
   - Attestation: `CRGsWWkptdxsH6N6aWAyahLbuMsT58yM624EopEsv1Ex`
 - Scoped proof fallback remains available, but final-demo registry proof is now live Quasar devnet proof.
 - Live MagicBlock PER/TEE execution is still not claimed by this update.
+
+## Critical Success Factor Reset — 2026-05-06
+
+Nissan clarified that scoped Quasar proof is not enough. The final demo is blocked until it is fully Quasar-native.
+
+Changes to eligibility:
+
+- `legacy-reference-only` is allowed only for historical comparison, never as final demo proof.
+- The full A→B→C demo-agent flow is no longer allowed to be excluded as “not demo-critical” if it remains part of the submission story.
+- MagicBlock PER cannot be kicked down the line if it is claimed in the final demo. It must be validated on the Quasar-native path, or removed from final on-chain claims.
+- `submissionReady=true` is disabled until the critical success gate passes.
+
+New hard gate:
+
+```bash
+npm run check:quasar:critical-success
+```
+
+Current blocker: `packages/demo-agents/src/demo.ts` must be ported/replaced with a Quasar-native full-flow demo, including escrow/settlement/MagicBlock PER decision evidence.
