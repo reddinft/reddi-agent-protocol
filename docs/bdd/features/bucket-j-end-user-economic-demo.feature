@@ -112,3 +112,12 @@ Feature: End-user economic workflow demo
     And each planned edge has a downstream-disclosure ledger expectation with x402 state planned
     And downstreamCallsExecuted is 0
     And no paid provider request, signing operation, wallet mutation, or devnet transfer occurs
+
+  Scenario: Submission readiness follows retrospective-driven BDD loops
+    Given the economic demo is being prepared for judge or submission review
+    And live research, paid image generation, signing, wallet mutation, devnet transfer, and Coolify mutation are not approved
+    When the submission readiness plan advances a phase
+    Then the phase declares BDD expectation, scope, acceptance criteria, validation, evidence artifact, and retrospective prompt
+    And the retrospective must record what worked, what failed or surprised us, safety and spend review, judge clarity, and plan adjustment
+    And the next phase cannot expand scope until the retrospective updates the plan
+    And local ignored evidence paths may be referenced but raw private artifact contents are not published

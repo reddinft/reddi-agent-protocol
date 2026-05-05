@@ -1,19 +1,19 @@
 # Reddi Agent Protocol Code — STATUS
 
 **Last updated:** 2026-05-05 AEST
-**State:** 🟢 Phase 7 picture storyboard dry-run + deterministic artifact generator merged; GitHub Actions Node 24 migration and compact local-evidence UI link merged; Phase 6 live research and real image generation remain approval-gated.
+**State:** 🟢 Demo/submission readiness BDD iterative planning started via Issue #228; Phase 7 storyboard, Node 24 CI, and compact local-evidence UI are merged; Phase 6 live research and real image generation remain approval-gated.
 
 ## RESUME FROM HERE
 
 1. Phase 7 picture storyboard artifact generator is complete through PR #221. Do not run real OpenAI/Fal image generation without explicit approval, provider choice, and budget cap.
 2. GitHub Actions Node.js 20 deprecation cleanup is complete through PR #223; post-merge `main` Anchor CI has no Node.js 20 deprecation annotation.
-3. Compact `/economic-demo` local-evidence artifact links are complete through PR #225. Do not run Phase 6 controlled live research without explicit approval for hosted/devnet calls and spend. Next safe local work: pause for demo/submission prep, or only make polish/docs changes that do not call hosted/devnet services.
+3. Compact `/economic-demo` local-evidence artifact links are complete through PR #225. Demo/submission readiness now follows Issue #228 and `docs/ECONOMIC-DEMO-BDD-SUBMISSION-ITERATIVE-PLAN-2026-05-05.md`: complete Phase 0 docs/BDD validation, write the Phase 0 retrospective, then refine Phase 1 before implementation. Do not run Phase 6 controlled live research or real image generation without explicit approval gates.
 
 ## Current Branch / Repo State
 
 - Local branch: `docs/status-after-pr226-ci-20260505` (status-only follow-up after PR #226 merge).
 - Local working tree: status update after PR #226 post-merge CI. Local evidence artifacts are under `artifacts/manifest-parity-phase4/`, `artifacts/economic-demo-surfpool-rehearsal/20260505T021309Z/`, `artifacts/surfpool-smoke/20260505-121331/`, `artifacts/economic-demo-research-dry-run/20260505T025224Z/`, and generated/ignored `artifacts/economic-demo-picture-storyboard/`.
-- Latest merge on main: `7a17cc75 docs: update status after local evidence UI link (#226)`.
+- Latest merge on main: `c3e50d3c docs: record pr226 post-merge ci (#227)`.
 - PR #204: closed as superseded after Nissan accepted recommendation.
 - PR #214: merged 2026-05-05 AEST as `a290db7093458f45ca1b3dbc2a047b404c856a29`; post-merge Anchor run `25353582949`, job `74338163008` passed in 7m26s.
 - PR #215: merged 2026-05-05 AEST as `cd202ebd6360d29f0a896e852fe9f63c339fc4dc`; post-merge Anchor run `25353973718`, job `74339305929` passed in 7m23s.
