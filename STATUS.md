@@ -1,19 +1,19 @@
 # Reddi Agent Protocol Code — STATUS
 
 **Last updated:** 2026-05-05 AEST
-**State:** 🟢 Phase 7 picture storyboard dry-run + deterministic artifact generator merged; Phase 6 live research and real image generation remain approval-gated.
+**State:** 🟢 Phase 7 picture storyboard dry-run + deterministic artifact generator merged; GitHub Actions Node 24 migration merged; Phase 6 live research and real image generation remain approval-gated.
 
 ## RESUME FROM HERE
 
 1. Phase 7 picture storyboard artifact generator is complete through PR #221. Do not run real OpenAI/Fal image generation without explicit approval, provider choice, and budget cap.
-2. Do not run Phase 6 controlled live research without explicit approval for hosted/devnet calls and spend.
-3. Next safe local work: fix the GitHub Actions Node.js 20 deprecation warning, or add a compact UI link to latest local evidence artifacts.
+2. GitHub Actions Node.js 20 deprecation cleanup is complete through PR #223; post-merge `main` Anchor CI has no Node.js 20 deprecation annotation.
+3. Do not run Phase 6 controlled live research without explicit approval for hosted/devnet calls and spend. Next safe local work: add a compact UI link to latest local evidence artifacts, or pause for demo/submission prep.
 
 ## Current Branch / Repo State
 
-- Local branch: `feat/picture-storyboard-artifact-20260505`.
-- Local working tree: Phase 7 deterministic picture storyboard artifact generator in progress. Local evidence artifacts are under `artifacts/manifest-parity-phase4/`, `artifacts/economic-demo-surfpool-rehearsal/20260505T021309Z/`, `artifacts/surfpool-smoke/20260505-121331/`, and `artifacts/economic-demo-research-dry-run/20260505T025224Z/`.
-- Latest merge on main: `6d99b339 docs: update status after picture storyboard dry run (#220)`.
+- Local branch: `docs/status-after-node24-ci-20260505` (status-only follow-up after PR #223 merge).
+- Local working tree: status update after PR #223 merge. Local evidence artifacts are under `artifacts/manifest-parity-phase4/`, `artifacts/economic-demo-surfpool-rehearsal/20260505T021309Z/`, `artifacts/surfpool-smoke/20260505-121331/`, `artifacts/economic-demo-research-dry-run/20260505T025224Z/`, and generated/ignored `artifacts/economic-demo-picture-storyboard/`.
+- Latest merge on main: `c9ba5835 ci: use Node 24 GitHub Actions releases (#223)`.
 - PR #204: closed as superseded after Nissan accepted recommendation.
 - PR #214: merged 2026-05-05 AEST as `a290db7093458f45ca1b3dbc2a047b404c856a29`; post-merge Anchor run `25353582949`, job `74338163008` passed in 7m26s.
 - PR #215: merged 2026-05-05 AEST as `cd202ebd6360d29f0a896e852fe9f63c339fc4dc`; post-merge Anchor run `25353973718`, job `74339305929` passed in 7m23s.
@@ -225,6 +225,22 @@ Validation for Phase 7 picture storyboard artifact generator slice:
 - PR checks passed before merge: Vercel Preview Comments, Vercel deployment, `bdd-index-guard`, `source-conformance-matrix`, Anchor run `25356793595`, job `74347616865` — PASS, 7m43s.
 - Post-merge `main` Anchor run `25357010731`, job `74348248057` — PASS, 7m29s.
 
+Validation for Phase 7 picture storyboard artifact generator + Node 24 CI cleanup:
+
+- PR #221: https://github.com/nissan/reddi-agent-protocol/pull/221
+- PR #221 merge commit: `a48478cb69416a039ad4b9851cb328751b5e47d4`
+- PR #221 validation: `npm run evidence:economic-demo:picture-storyboard`, targeted Jest, `node --check`, targeted ESLint, `npm run test:bdd:index`, `npm run build`, `git diff --check` — PASS.
+- PR #221 post-merge `main` Anchor run `25357010731`, job `74348248057` — PASS, 7m29s.
+- PR #222: https://github.com/nissan/reddi-agent-protocol/pull/222
+- PR #222 merge commit: `b3db8b1e87472f6ecc26e8409be89009e4cb98bb`
+- PR #222 post-merge `main` Anchor run `25357441743`, job `74349566708` — PASS, 7m13s.
+- PR #223: https://github.com/nissan/reddi-agent-protocol/pull/223
+- PR #223 merge commit: `c9ba5835844733f8096d5b580d3191addf53fa47`
+- PR #223 validation: Ruby YAML parse over `.github/workflows/*.yml`, `git diff --check`, PR checks — PASS.
+- PR #223 changed `actions/checkout@v4` → `actions/checkout@v5` across workflows and `actions/cache@v4` → `actions/cache@v5` in Anchor CI.
+- PR #223 post-merge `main` Anchor run `25358109765`, job `74351504389` — PASS, 7m30s.
+- Post-merge log grep for `Node.js 20`, forced runtime warnings, and old `actions/*@v4` usage produced no matches.
+
 ## Retrospective — Phase 6.5 Slice A
 
 ### What worked
@@ -265,6 +281,7 @@ Do not proceed as a waterfall into research/picture live workflows until the dis
 - 2026-05-05: Phase 6 controlled live research remains approval-gated; next safe progress is Phase 7 storyboard dry-run with image generation disabled.
 - 2026-05-05: Phase 7 storyboard dry-run is merged; real image generation needs a separate approval with provider and budget cap.
 - 2026-05-05: Picture storyboard artifact generation should remain local/ignored and assert the disabled adapter as evidence, not omit it.
+- 2026-05-05: GitHub Actions Node.js 20 deprecation cleanup uses Node 24-capable action major versions (`actions/checkout@v5`, `actions/cache@v5`) rather than the temporary forced-runtime env workaround.
 
 ## Blockers / Watch Items
 
