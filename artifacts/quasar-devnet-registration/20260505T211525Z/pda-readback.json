@@ -1,0 +1,66 @@
+{
+  "rpc": "https://api.devnet.solana.com",
+  "checkedAt": "2026-05-05T21:15:26.179Z",
+  "programs": [
+    {
+      "label": "legacy-anchor",
+      "programId": "794nTFNyJknzDrR13ApSfVyNCRvcvnCN3BVDfic8dcZD",
+      "agents": [
+        {
+          "label": "A",
+          "owner": "AjAPTMjZbsJbeXmdBGzMADWkFixRvVw3mKt8sp99mVCe",
+          "pda": "7wYS7G2L9VQMuSmPVvB3c8qwLKmABmnEwvE7pUDgMVkH",
+          "exists": true,
+          "lamports": 1934880,
+          "dataLength": 150
+        },
+        {
+          "label": "B",
+          "owner": "78DhERomBE36WYyd5YcKKDvNpptD5WhEfUmar3LqPeVj",
+          "pda": "ET155YLD2UFcSd56pQZWbR9zMfgqhrAegCho3UnniLZ7",
+          "exists": true,
+          "lamports": 1934880,
+          "dataLength": 150
+        },
+        {
+          "label": "C",
+          "owner": "7XW2SbWWp2R38WFRrhZJDS9A991kTSjcoYNSK2nX3zoq",
+          "pda": "CSZ4nza8P17S4S8YqG1t4rwvwRqhiSPWstXgaBDzT5ch",
+          "exists": true,
+          "lamports": 1934880,
+          "dataLength": 150
+        }
+      ]
+    },
+    {
+      "label": "quasar-registry",
+      "programId": "Xk7jczJZ1HHJZuE1ZUWDqFmowxYhnom7mWzrNSGf9FU",
+      "agents": [
+        {
+          "label": "A",
+          "owner": "AjAPTMjZbsJbeXmdBGzMADWkFixRvVw3mKt8sp99mVCe",
+          "pda": "5qv8QxRvDuH7iZEtazj7zXxdsU4iBmMDbn1GSVc9k7h2",
+          "exists": true,
+          "lamports": 1955760,
+          "dataLength": 153
+        },
+        {
+          "label": "B",
+          "owner": "78DhERomBE36WYyd5YcKKDvNpptD5WhEfUmar3LqPeVj",
+          "pda": "Him7dJUmmYxxvmdPGoNazd8ir5JoK1hV7pavGmNgcREn",
+          "exists": true,
+          "lamports": 1955760,
+          "dataLength": 153
+        },
+        {
+          "label": "C",
+          "owner": "7XW2SbWWp2R38WFRrhZJDS9A991kTSjcoYNSK2nX3zoq",
+          "pda": "9bLTtHs12QFLnxyvYcRk2dsVvQojfEqLP2mrqYVFq5zD",
+          "exists": true,
+          "lamports": 1955760,
+          "dataLength": 153
+        }
+      ]
+    }
+  ]
+}

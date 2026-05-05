@@ -14,10 +14,10 @@ import {
   Transaction,
 } from "@solana/web3.js";
 import { AGENT_A_KEYPAIR, AGENT_B_KEYPAIR, AGENT_C_KEYPAIR } from "./wallets";
-import { DEVNET_RPC, ESCROW_PROGRAM_ID, PROGRAM_TARGET, explorerTxUrl } from "./config";
+import { DEVNET_RPC, REGISTRY_PROGRAM_ID, PROGRAM_TARGET, explorerTxUrl } from "./config";
 import { buildDemoRegisterAgentInstruction, demoAgentPda } from "./registration-instruction";
 
-const PROGRAM_ID = new PublicKey(ESCROW_PROGRAM_ID);
+const PROGRAM_ID = new PublicKey(REGISTRY_PROGRAM_ID);
 const connection = new Connection(DEVNET_RPC, "confirmed");
 
 /** AgentType enum variants (Anchor borsh encoding in legacy mode; one-byte numeric in Quasar mode) */
@@ -60,7 +60,13 @@ async function registerAgent(
     console.log(`   ✅ Registered! sig: ${sig}`);
     console.log(`   🔍 Explorer: ${explorerTxUrl(sig)}`);
   } catch (e: any) {
-    if (e.message?.includes("already in use") || e.message?.includes("AlreadyInUse") || e.message?.includes("0x0")) {
+    if (
+      e.message?.includes("already in use") ||
+      e.message?.includes("AlreadyInUse") ||
+      e.message?.includes("0x0") ||
+      e.message?.includes("requires an uninitialized account") ||
+      e.transactionMessage?.includes("requires an uninitialized account")
+    ) {
       console.log(`   ℹ️  Already registered — skipping`);
     } else {
       throw e;
@@ -70,7 +76,7 @@ async function registerAgent(
 
 async function main() {
   console.log("🚀 Registering agents on devnet...\n");
-  console.log(`Program: ${ESCROW_PROGRAM_ID}`);
+  console.log(`Program: ${REGISTRY_PROGRAM_ID}`);
   console.log(`Target: ${PROGRAM_TARGET}`);
 
   // Agent A — Orchestrator (Primary)

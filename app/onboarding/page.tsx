@@ -22,6 +22,8 @@ import {
   buildRegisterAgentData,
   DEVNET_RPC,
   ESCROW_PROGRAM_ID,
+  REGISTRY_PROGRAM_ID,
+  ATTESTATION_PROGRAM_ID,
   INCINERATOR,
   PROGRAM_TARGET,
 } from "@/lib/program";
@@ -370,10 +372,10 @@ export default function OnboardingPage() {
     const modelName = "ollama-local";
     const minRep = 0;
     const rateLamports = BigInt(Math.round(0.001 * 1_000_000_000));
-    const pda = PROGRAM_TARGET === "quasar" ? quasarAgentPda(publicKey, ESCROW_PROGRAM_ID) : agentPda(publicKey);
+    const pda = PROGRAM_TARGET === "quasar" ? quasarAgentPda(publicKey, REGISTRY_PROGRAM_ID) : agentPda(publicKey);
     const ix = PROGRAM_TARGET === "quasar"
       ? buildQuasarRegisterAgentInstruction({
-          programId: ESCROW_PROGRAM_ID,
+          programId: REGISTRY_PROGRAM_ID,
           owner: publicKey,
           agentType: agentTypeByte,
           model: modelName,
@@ -450,7 +452,7 @@ export default function OnboardingPage() {
         ok: false,
         error: error instanceof Error ? error.message : "Preflight simulation failed",
         rateLamports: BigInt(Math.round(0.001 * 1_000_000_000)),
-        agentPda: publicKey ? (PROGRAM_TARGET === "quasar" ? quasarAgentPda(publicKey, ESCROW_PROGRAM_ID) : agentPda(publicKey)).toBase58() : "",
+        agentPda: publicKey ? (PROGRAM_TARGET === "quasar" ? quasarAgentPda(publicKey, REGISTRY_PROGRAM_ID) : agentPda(publicKey)).toBase58() : "",
         estimatedCostSol: 0.01157,
       });
     } finally {
@@ -1740,12 +1742,12 @@ export default function OnboardingPage() {
                     const operatorPubkey = new PublicKey(state.attestationOperator);
                     const ix = PROGRAM_TARGET === "quasar"
                       ? buildQuasarConfirmAttestationInstruction({
-                          programId: ESCROW_PROGRAM_ID,
+                          programId: ATTESTATION_PROGRAM_ID,
                           consumer: publicKey,
                           judge: operatorPubkey,
                           jobId,
-                          attestationPda: state.attestationPda ? new PublicKey(state.attestationPda) : quasarAttestationPda(jobId, ESCROW_PROGRAM_ID),
-                          judgeAgentPda: quasarAgentPda(operatorPubkey, ESCROW_PROGRAM_ID),
+                          attestationPda: state.attestationPda ? new PublicKey(state.attestationPda) : quasarAttestationPda(jobId, ATTESTATION_PROGRAM_ID),
+                          judgeAgentPda: quasarAgentPda(operatorPubkey, REGISTRY_PROGRAM_ID),
                         })
                       : new TransactionInstruction({
                           programId: ESCROW_PROGRAM_ID,
@@ -1811,12 +1813,12 @@ export default function OnboardingPage() {
                     const operatorPubkey = new PublicKey(state.attestationOperator);
                     const ix = PROGRAM_TARGET === "quasar"
                       ? buildQuasarDisputeAttestationInstruction({
-                          programId: ESCROW_PROGRAM_ID,
+                          programId: ATTESTATION_PROGRAM_ID,
                           consumer: publicKey,
                           judge: operatorPubkey,
                           jobId,
-                          attestationPda: state.attestationPda ? new PublicKey(state.attestationPda) : quasarAttestationPda(jobId, ESCROW_PROGRAM_ID),
-                          judgeAgentPda: quasarAgentPda(operatorPubkey, ESCROW_PROGRAM_ID),
+                          attestationPda: state.attestationPda ? new PublicKey(state.attestationPda) : quasarAttestationPda(jobId, ATTESTATION_PROGRAM_ID),
+                          judgeAgentPda: quasarAgentPda(operatorPubkey, REGISTRY_PROGRAM_ID),
                         })
                       : new TransactionInstruction({
                           programId: ESCROW_PROGRAM_ID,

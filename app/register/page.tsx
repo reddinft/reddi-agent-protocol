@@ -9,6 +9,7 @@ import {
 } from "@solana/web3.js";
 import {
   ESCROW_PROGRAM_ID,
+  REGISTRY_PROGRAM_ID,
   DEVNET_RPC,
   AGENT_TYPE_ENUM,
   PROGRAM_TARGET,
@@ -378,7 +379,7 @@ function RegisterInner() {
 
       const ix = buildAgentRegistrationInstruction({
         target: PROGRAM_TARGET,
-        programId: ESCROW_PROGRAM_ID,
+        programId: REGISTRY_PROGRAM_ID,
         owner: publicKey,
         agentType: agentTypeByte,
         model: modelName,

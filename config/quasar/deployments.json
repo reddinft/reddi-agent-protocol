@@ -1,6 +1,6 @@
 {
   "$schema": "./deployments.schema.json",
-  "updatedAt": "2026-05-05",
+  "updatedAt": "2026-05-06",
   "decisionIssue": 236,
   "target": "hackathon-demo-quasar-cutover",
   "submissionReady": true,
@@ -14,7 +14,7 @@
       "cluster": "devnet",
       "rpcHttp": "https://api.devnet.solana.com",
       "programId": "VYCbMszux9seLK2aXFZMECMBFURvfuJLXsXPmJS5igW",
-      "status": "scoped-proof-ready",
+      "status": "devnet-registry-registered",
       "scope": [
         "scoped-quasar-proof-ready",
         "registry-runtime-compatible",
@@ -45,13 +45,23 @@
         {
           "type": "repo-artifact",
           "path": "docs/verifiable-agent-protocol/colosseum-frontier-2026-04/QUASAR-PER-PARITY-REPORT.md"
+        },
+        {
+          "type": "devnet-registration-artifact",
+          "path": "artifacts/quasar-devnet-registration/20260505T211525Z/SUMMARY.md"
         }
       ],
       "knownLimitations": [
+        "Devnet registry mutations are now complete for demo agents A/B/C; live PER/TEE execution is still not claimed.",
         "Live PER/TEE execution is not claimed and remains explicitly approval-gated",
-        "No signing, deployment, wallet mutation, devnet transfer, env mutation, or paid/live provider calls were performed for this packet",
         "Legacy demo-agent full-flow/PER script is excluded from Quasar proof and fails closed under Quasar target selection"
-      ]
+      ],
+      "programIds": {
+        "escrow": "VYCbMszux9seLK2aXFZMECMBFURvfuJLXsXPmJS5igW",
+        "registry": "Xk7jczJZ1HHJZuE1ZUWDqFmowxYhnom7mWzrNSGf9FU",
+        "reputation": "nb9rLVjoHMibsgfRGgKuPqm6M8GVcH9r6bYNfg7Yiy6",
+        "attestation": "CRGsWWkptdxsH6N6aWAyahLbuMsT58yM624EopEsv1Ex"
+      }
     }
   },
   "submissionReadyReason": "Scoped Quasar proof packet is ready; live PER/TEE execution and live actions are explicit limitations, not claimed proof."

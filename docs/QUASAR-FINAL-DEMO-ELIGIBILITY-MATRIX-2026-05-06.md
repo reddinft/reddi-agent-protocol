@@ -48,3 +48,17 @@ The plan should now be Quasar-first, not scoped-proof-first:
 2. Get explicit approval for Quasar devnet A/B/C registration.
 3. Make the web app and judge packet show Quasar live readback as the primary on-chain proof.
 4. Use MagicBlock/x402/Jupiter/OpenRouter/Surfpool as clearly labeled supporting ecosystem proofs unless a stronger approval-gated live validation lane is executed.
+
+## Phase 14 update — Quasar Registry devnet proof promoted from planned to complete
+
+Status: complete after Nissan approval.
+
+- Demo agents A/B/C are registered under the Quasar Registry program `Xk7jczJZ1HHJZuE1ZUWDqFmowxYhnom7mWzrNSGf9FU`.
+- Evidence artifact: `artifacts/quasar-devnet-registration/20260505T211525Z/SUMMARY.md`.
+- The final demo plan must present Quasar as a multi-program deployment, not as a single `VYCb...` program:
+  - Escrow: `VYCbMszux9seLK2aXFZMECMBFURvfuJLXsXPmJS5igW`
+  - Registry: `Xk7jczJZ1HHJZuE1ZUWDqFmowxYhnom7mWzrNSGf9FU`
+  - Reputation: `nb9rLVjoHMibsgfRGgKuPqm6M8GVcH9r6bYNfg7Yiy6`
+  - Attestation: `CRGsWWkptdxsH6N6aWAyahLbuMsT58yM624EopEsv1Ex`
+- Scoped proof fallback remains available, but final-demo registry proof is now live Quasar devnet proof.
+- Live MagicBlock PER/TEE execution is still not claimed by this update.

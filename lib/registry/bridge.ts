@@ -20,7 +20,7 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import {
   DEVNET_RPC,
-  ESCROW_PROGRAM_ID,
+  REGISTRY_PROGRAM_ID,
   ACTIVE_AGENT_ACCOUNT_DATA_SIZE,
   ACTIVE_AGENT_ACCOUNT_DISC,
   decodeActiveAgentAccount,
@@ -191,7 +191,7 @@ export async function fetchSpecialistListings(): Promise<{
 
   try {
     const conn = new Connection(DEVNET_RPC, "confirmed");
-    const accounts = await conn.getProgramAccounts(ESCROW_PROGRAM_ID, {
+    const accounts = await conn.getProgramAccounts(REGISTRY_PROGRAM_ID, {
       commitment: "confirmed",
       filters: [
         { memcmp: { offset: 0, bytes: toBase58(ACTIVE_AGENT_ACCOUNT_DISC) } },

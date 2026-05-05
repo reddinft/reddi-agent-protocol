@@ -11,8 +11,11 @@ import { getNetworkProfile } from "@/lib/config/network";
 
 const network = getNetworkProfile();
 
-/** Deployed program address (resolved from active network profile / env) */
+/** Deployed program addresses (resolved from active network profile / env) */
 export const ESCROW_PROGRAM_ID = new PublicKey(network.programs.escrowProgramId);
+export const REGISTRY_PROGRAM_ID = new PublicKey(network.programs.registryProgramId ?? network.programs.escrowProgramId);
+export const REPUTATION_PROGRAM_ID = new PublicKey(network.programs.reputationProgramId ?? network.programs.escrowProgramId);
+export const ATTESTATION_PROGRAM_ID = new PublicKey(network.programs.attestationProgramId ?? network.programs.escrowProgramId);
 
 /** Active on-chain implementation target. Quasar target selection does not imply Anchor layout compatibility. */
 export const PROGRAM_TARGET = network.programs.target;
@@ -214,7 +217,7 @@ export function buildRegisterAgentData(
 export function agentPda(ownerPubkey: PublicKey): PublicKey {
   return PublicKey.findProgramAddressSync(
     [AGENT_SEED, ownerPubkey.toBytes()],
-    ESCROW_PROGRAM_ID
+    REGISTRY_PROGRAM_ID
   )[0];
 }
 

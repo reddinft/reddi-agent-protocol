@@ -14,10 +14,10 @@ import {
   Transaction,
 } from "@solana/web3.js";
 import { AGENT_A_KEYPAIR, AGENT_B_KEYPAIR, AGENT_C_KEYPAIR } from "./wallets";
-import { AGENT_SEED, DEVNET_RPC, ESCROW_PROGRAM_ID, PROGRAM_TARGET, explorerTxUrl } from "./config";
+import { AGENT_SEED, DEVNET_RPC, REGISTRY_PROGRAM_ID, PROGRAM_TARGET, explorerTxUrl } from "./config";
 import { buildDemoDeregisterAgentInstruction } from "./registration-instruction";
 
-const PROGRAM_ID = new PublicKey(ESCROW_PROGRAM_ID);
+const PROGRAM_ID = new PublicKey(REGISTRY_PROGRAM_ID);
 const connection = new Connection(DEVNET_RPC, "confirmed");
 
 function agentPda(owner: PublicKey): PublicKey {
@@ -57,7 +57,7 @@ async function deregisterAgent(owner: Keypair, label: string) {
 
 async function main() {
   console.log("🚀 Deregistering demo agents...\n");
-  console.log(`Program: ${ESCROW_PROGRAM_ID}`);
+  console.log(`Program: ${REGISTRY_PROGRAM_ID}`);
   console.log(`Target: ${PROGRAM_TARGET}`);
 
   await deregisterAgent(AGENT_A_KEYPAIR, "Agent A (Orchestrator)");

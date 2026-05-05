@@ -18,7 +18,7 @@ import {
 import { createHash, randomBytes } from "crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
-import { DEVNET_RPC, ESCROW_PROGRAM_ID, RATING_SEED, AGENT_SEED, IX, PROGRAM_TARGET } from "@/lib/program";
+import { DEVNET_RPC, ESCROW_PROGRAM_ID, REGISTRY_PROGRAM_ID, REPUTATION_PROGRAM_ID, RATING_SEED, AGENT_SEED, IX, PROGRAM_TARGET } from "@/lib/program";
 import {
   buildQuasarCommitRatingInstruction,
   buildQuasarRevealRatingInstruction,
@@ -83,7 +83,7 @@ function jobIdFromRunId(runId: string): Uint8Array {
  */
 function ratingPdaFor(jobId: Uint8Array): PublicKey {
   if (PROGRAM_TARGET === "quasar") {
-    return quasarRatingPda(jobId, ESCROW_PROGRAM_ID);
+    return quasarRatingPda(jobId, REPUTATION_PROGRAM_ID);
   }
   return PublicKey.findProgramAddressSync(
     [Buffer.from(RATING_SEED), Buffer.from(jobId)],
@@ -94,7 +94,7 @@ function ratingPdaFor(jobId: Uint8Array): PublicKey {
 /** AgentAccount PDA: seeds = [b"agent", agent_pubkey(32)] */
 function agentPdaFor(agentPubkey: PublicKey): PublicKey {
   if (PROGRAM_TARGET === "quasar") {
-    return quasarAgentPda(agentPubkey, ESCROW_PROGRAM_ID);
+    return quasarAgentPda(agentPubkey, REGISTRY_PROGRAM_ID);
   }
   return PublicKey.findProgramAddressSync(
     [Buffer.from(AGENT_SEED), agentPubkey.toBytes()],
@@ -203,7 +203,7 @@ export async function commitReputationRating(
   // Role 0 = Consumer (orchestrator/operator commits as consumer side)
   const ix = PROGRAM_TARGET === "quasar"
     ? buildQuasarCommitRatingInstruction({
-        programId: ESCROW_PROGRAM_ID,
+        programId: REPUTATION_PROGRAM_ID,
         signer: operator.publicKey,
         jobId,
         commitment: commitHash,
@@ -328,7 +328,7 @@ export async function revealReputationRating(runId: string): Promise<ReputationR
 
   const ix = PROGRAM_TARGET === "quasar"
     ? buildQuasarRevealRatingInstruction({
-        programId: ESCROW_PROGRAM_ID,
+        programId: REPUTATION_PROGRAM_ID,
         signer: operator.publicKey,
         jobId,
         score,

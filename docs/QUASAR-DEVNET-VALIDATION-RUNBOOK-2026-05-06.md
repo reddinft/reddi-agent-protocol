@@ -89,3 +89,43 @@ After any approved devnet mutation:
 2. Run `npm run check:quasar:submission`.
 3. Run a web-app build or smoke for Quasar target mode.
 4. Update `STATUS.md`, this runbook, and the BDD playbook with observed result and next demo-recording step.
+
+## 2026-05-06 execution result — Quasar Registry registration complete
+
+Nissan approved devnet transactions needed for the Quasar cutover goal. Execution found and fixed one important plan/config issue: `VYCbMszux9seLK2aXFZMECMBFURvfuJLXsXPmJS5igW` is the Quasar Escrow program, not the Quasar Registry program. Sending `register_agent` there failed before Agent A registration with `insufficient account keys for instruction`.
+
+Correct Quasar devnet program inventory:
+
+- Escrow: `VYCbMszux9seLK2aXFZMECMBFURvfuJLXsXPmJS5igW`
+- Registry: `Xk7jczJZ1HHJZuE1ZUWDqFmowxYhnom7mWzrNSGf9FU`
+- Reputation: `nb9rLVjoHMibsgfRGgKuPqm6M8GVcH9r6bYNfg7Yiy6`
+- Attestation: `CRGsWWkptdxsH6N6aWAyahLbuMsT58yM624EopEsv1Ex`
+
+Registration command used after correction:
+
+```bash
+NETWORK_PROFILE=devnet \
+HACKATHON_DEMO_TARGET=quasar \
+DEMO_PROGRAM_TARGET=quasar \
+NEXT_PUBLIC_DEMO_PROGRAM_TARGET=quasar \
+npm run register
+```
+
+Successful Quasar Registry devnet txs:
+
+- Agent A / Orchestrator: `iLudQFTyJ7c7mpzDxWMZaLEptmv1H3eM7NtfmSULLi6FTQKkaKvEJeE3hFn5Tf3YQEEvvhJcX7nvJucjyE8eghX`
+- Agent B / Primary Specialist: `2KnvFgTm3ivqis5iFAxpyX4TkH1Zbyv2sfv975MtT6Be39kTy8mabRmf9jWXJekVY22NLKaR3cAb9dVsC8oFcFMi`
+- Agent C / Attestation Judge: `46H43gGDZFvWL9oLzg1iNXTdweuihmbp9DH2fKhHdpeJKdxywUKsFdTkna8XxeyKeXhsZ53ykbPjLzQ9AotGGeS9`
+
+Readback artifact:
+
+- `artifacts/quasar-devnet-registration/20260505T211525Z/SUMMARY.md`
+- `artifacts/quasar-devnet-registration/20260505T211525Z/pda-readback.json`
+
+Readback summary: all three Quasar Registry PDAs exist with data length `153`, matching the Quasar `AgentAccount` layout.
+
+Local validation after fix:
+
+- `npm run check:quasar:submission` — PASS
+- Focused Quasar/register Jest suite — PASS, 14/14
+- `npm run build` — PASS (existing workspace-root/NFT trace warnings only)

@@ -4,7 +4,7 @@
  *
  * This script does not sign or send transactions. It loads the demo-agent wallet
  * public keys from packages/demo-agents/.env.devnet and checks expected agent
- * PDAs under both the legacy Anchor program and the Quasar devnet program.
+ * PDAs under the legacy Anchor program plus the Quasar registry program.
  */
 import { Connection, PublicKey } from "@solana/web3.js";
 
@@ -14,7 +14,7 @@ import { AGENT_SEED } from "../packages/demo-agents/src/config";
 const RPC = process.env.DEMO_DEVNET_RPC ?? process.env.NEXT_PUBLIC_RPC_ENDPOINT ?? "https://api.devnet.solana.com";
 const PROGRAMS = [
   ["legacy-anchor", new PublicKey("794nTFNyJknzDrR13ApSfVyNCRvcvnCN3BVDfic8dcZD")],
-  ["quasar", new PublicKey("VYCbMszux9seLK2aXFZMECMBFURvfuJLXsXPmJS5igW")],
+  ["quasar-registry", new PublicKey("Xk7jczJZ1HHJZuE1ZUWDqFmowxYhnom7mWzrNSGf9FU")],
 ] as const;
 const AGENTS = [
   ["A", AGENT_A],

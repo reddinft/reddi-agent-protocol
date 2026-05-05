@@ -30,6 +30,11 @@ if (!devnet) {
   if (devnet.cluster !== "devnet") fail("devnet.cluster must be devnet");
   if (!isSolanaAddressLike(devnet.programId)) fail("devnet.programId must be a valid-looking Solana address");
   if (devnet.programId === legacy?.programId) fail("Quasar devnet programId must not equal legacy Anchor programId");
+  const programIds = devnet.programIds ?? { escrow: devnet.programId };
+  for (const key of ["escrow", "registry", "reputation", "attestation"]) {
+    if (!isSolanaAddressLike(programIds[key])) fail(`devnet.programIds.${key} must be a valid-looking Solana address`);
+    if (programIds[key] === legacy?.programId) fail(`Quasar ${key} program must not equal legacy Anchor programId`);
+  }
   if (!Array.isArray(devnet.evidence) || devnet.evidence.length === 0) fail("devnet.evidence must include at least one proof artifact");
   if (!Array.isArray(devnet.knownGaps)) fail("devnet.knownGaps must be explicit, even when empty");
 }
@@ -39,5 +44,6 @@ if (inventory.submissionReady === true && devnet?.knownGaps?.length) {
 }
 
 if (!process.exitCode) {
-  console.log(`[quasar-inventory] OK: devnet Quasar candidate ${devnet.programId}; submissionReady=${inventory.submissionReady}`);
+  const programIds = devnet.programIds ?? { escrow: devnet.programId };
+  console.log(`[quasar-inventory] OK: devnet Quasar programs escrow=${programIds.escrow} registry=${programIds.registry ?? "n/a"}; submissionReady=${inventory.submissionReady}`);
 }

@@ -23,6 +23,7 @@ type DemoNetworkProfile = {
 };
 
 const QUASAR_DEVNET_ESCROW_PROGRAM_ID = "VYCbMszux9seLK2aXFZMECMBFURvfuJLXsXPmJS5igW";
+const QUASAR_DEVNET_REGISTRY_PROGRAM_ID = "Xk7jczJZ1HHJZuE1ZUWDqFmowxYhnom7mWzrNSGf9FU";
 
 export type DemoProgramTarget = "legacy-anchor" | "quasar";
 
@@ -66,10 +67,15 @@ export const PROGRAM_TARGET: DemoProgramTarget =
 export const PROGRAM_FRAMEWORK = PROGRAM_TARGET === "quasar" ? "quasar" : "anchor";
 export const PROGRAM_COMPATIBILITY = PROGRAM_TARGET === "quasar" ? "quasar-layout-unverified" : "anchor-layout";
 
-/** Deployed program ID (overrideable for local Surfpool/test lanes) */
+/** Deployed escrow program ID (overrideable for local Surfpool/test lanes) */
 export const ESCROW_PROGRAM_ID =
   pickEnv("DEMO_ESCROW_PROGRAM_ID", "NEXT_PUBLIC_ESCROW_PROGRAM_ID") ??
   (PROGRAM_TARGET === "quasar" ? QUASAR_DEVNET_ESCROW_PROGRAM_ID : activeProfile.defaultEscrowProgramId);
+
+/** Registry program ID. Quasar cutover uses a separate registry program, not the escrow program. */
+export const REGISTRY_PROGRAM_ID =
+  pickEnv("DEMO_REGISTRY_PROGRAM_ID", "NEXT_PUBLIC_REGISTRY_PROGRAM_ID") ??
+  (PROGRAM_TARGET === "quasar" ? QUASAR_DEVNET_REGISTRY_PROGRAM_ID : ESCROW_PROGRAM_ID);
 
 /** Solana RPC (overrideable for local Surfpool/test lanes) */
 export const DEVNET_RPC = pickEnv("DEMO_DEVNET_RPC", "NEXT_PUBLIC_RPC_ENDPOINT") ?? activeProfile.rpcHttp;

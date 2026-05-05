@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Connection } from "@solana/web3.js";
 import {
-  ESCROW_PROGRAM_ID,
+  REGISTRY_PROGRAM_ID,
   DEVNET_RPC,
   ACTIVE_AGENT_ACCOUNT_DATA_SIZE,
   ACTIVE_AGENT_ACCOUNT_DISC,
@@ -41,7 +41,7 @@ export function useOnchainAgents(): {
       setError(null);
       try {
         const conn = new Connection(DEVNET_RPC, "confirmed");
-        const accounts = await conn.getProgramAccounts(ESCROW_PROGRAM_ID, {
+        const accounts = await conn.getProgramAccounts(REGISTRY_PROGRAM_ID, {
           commitment: "confirmed",
           filters: [
             {
