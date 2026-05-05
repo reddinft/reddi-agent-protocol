@@ -93,14 +93,22 @@ Requires explicit approval before action:
 
 **Expectation:** Demo submission checks fail if hackathon demo surfaces target Anchor-only evidence.
 
-**Implementation target:** Extend local submission/demo readiness scripts to require Quasar deployment inventory and Quasar target mode for `/economic-demo`, demo agent scripts, and judge packet references.
+**Implementation:** `npm run check:quasar:demo-readiness` plus Quasar cutover notes in the judge packet and operator checklist.
 
 **Acceptance:**
 
-- `npm run check:economic-demo:submission-prep` or a new Quasar-specific script fails without Quasar metadata.
+- `npm run check:quasar:demo-readiness` fails without Quasar metadata.
 - Judge packet/readiness docs reference Quasar deployment evidence, not Anchor-only CI.
+- `submissionReady=false` is allowed only when known gaps and approval-gated blockers are explicit.
 
-**Retrospective:** Confirm whether UI copy needs immediate changes before wiring runtime.
+**Validation:**
+
+- `npm run check:quasar:deployments`
+- `npm run check:quasar:demo-readiness`
+- `npm run test:bdd:index`
+- `git diff --check`
+
+**Retrospective:** Complete locally. The guard now prevents us from accidentally treating the Anchor-era judge packet as final Quasar proof. UI/runtime copy needs Phase 3 wiring next because `lib/program.ts` still assumes Anchor-compatible instruction/account layouts.
 
 ### Phase 3 — Runtime/demo wiring
 

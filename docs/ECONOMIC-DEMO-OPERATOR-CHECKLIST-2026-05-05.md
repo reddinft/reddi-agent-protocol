@@ -11,6 +11,11 @@ Use this checklist to record or narrate the economic demo without relying on cha
 
 This checklist is public-safe repo documentation. It references local ignored evidence paths only as operator pointers; it does not publish raw artifact contents or private logs.
 
+
+## Quasar cutover operator note
+
+Hackathon demos now target Quasar-deployed Solana programs, not the legacy Anchor deployment. Candidate devnet Quasar program: `VYCbMszux9seLK2aXFZMECMBFURvfuJLXsXPmJS5igW` (`config/quasar/deployments.json`). Treat any missing Quasar runtime wiring, PER/privacy-aware settlement proof, judge-packet refresh, signing, deployment, wallet mutation, devnet transfer, Coolify/env mutation, or paid/live provider call as an approval-gated blocker. Anchor CI can be cited only as historical/legacy implementation evidence, never as final Quasar submission proof.
+
 ## Before recording
 
 1. Confirm the repo is on the intended branch or `main`.

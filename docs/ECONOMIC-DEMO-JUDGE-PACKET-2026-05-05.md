@@ -1,8 +1,9 @@
 # Economic Demo Judge Packet
 
 _Date:_ 2026-05-05 AEST
-_Status:_ Public-safe final packet for BDD submission-readiness Phase 4
+_Status:_ Public-safe Anchor-era packet; superseded for hackathon readiness by Quasar cutover Issue #236 until refreshed
 _Demo route:_ `/economic-demo`
+_Quasar cutover target:_ Quasar-deployed Solana programs; candidate devnet program `VYCbMszux9seLK2aXFZMECMBFURvfuJLXsXPmJS5igW` from `config/quasar/deployments.json`
 _Operator checklist:_ `docs/ECONOMIC-DEMO-OPERATOR-CHECKLIST-2026-05-05.md`
 _Local-only rehearsal report:_ `artifacts/economic-demo-rehearsal/20260505T091725Z/REHEARSAL-REPORT.md` (ignored; not part of public packet)
 
@@ -15,6 +16,10 @@ Reddi Agent Protocol demonstrates an agentic workflow economy where a user reque
 - Demo page: `/economic-demo`
 - Local evidence anchor: `/economic-demo#local-evidence-artifacts`
 - Operator checklist: `docs/ECONOMIC-DEMO-OPERATOR-CHECKLIST-2026-05-05.md`
+
+## Quasar cutover status
+
+Nissan has selected Quasar-deployed Solana programs as the hackathon demo target. This packet remains useful as an Anchor-era economic-demo evidence packet, but it is **not final hackathon submission proof** until the Quasar proof chain is refreshed. The candidate Quasar devnet program is `VYCbMszux9seLK2aXFZMECMBFURvfuJLXsXPmJS5igW`; the legacy Anchor reference is recorded only for comparison in `config/quasar/deployments.json`. Current approval-gated blocker set: no signing, deployment, wallet mutation, devnet transfer, Coolify/env mutation, or paid/live provider calls without Nissan approval. Runtime wiring, PER/privacy-aware settlement proof, and final judge-packet proof chain remain known gaps.
 
 ## What is proven by the current packet
 
@@ -56,6 +61,8 @@ Reddi Agent Protocol demonstrates an agentic workflow economy where a user reque
 
 ## Public proof chain
 
+The historical rows below prove the Anchor-era/local economic-demo readiness loop. They must not be presented as Quasar final submission proof; Anchor CI alone is insufficient for the new hackathon target.
+
 | PR | Purpose | Merge commit | CI/evidence |
 | --- | --- | --- | --- |
 | #225 | Compact `/economic-demo` local evidence UI links | `f36d4bb55b7f10bbc5177b3fda189c67f17d7cd3` | PR checks passed; post-merge Anchor run `25359075289` passed |
@@ -75,6 +82,9 @@ git diff --check
 ```
 
 ## Recommended submission wording
+
+**Do not use this wording as final hackathon copy until Quasar runtime wiring and proof chain are refreshed.**
+
 
 > Reddi Agent Protocol demonstrates an agentic workflow marketplace where agents can disclose their dependencies before purchase and report downstream calls after execution using `reddi.downstream-disclosure-ledger.v1`. The current demo is deliberately evidence-bounded: it shows controlled/local economic workflow proof, public manifest disclosure, local evidence pointers, and storyboard-only image planning without hidden live calls, provider spend, signing, wallet mutation, or production settlement claims.
 
