@@ -212,21 +212,34 @@ Append this block under the relevant phase before proceeding:
 
 **Expectation:** Demo-critical transactions have Quasar-compatible instruction data/account metadata or are deliberately disabled with a blocker.
 
-**Implementation plan:**
+**Implementation:** First slice adds `lib/quasar/instruction-builders.ts` with shared Quasar instruction-data builders for registry, reputation, and attestation. PER remains blocked.
 
-- Start with shared builder extraction/port in `lib/program.ts` or a new Quasar-specific module.
-- Port/verify registry first, then escrow, reputation, attestation.
-- Leave PER/demo-agent inline flow blocked until shared builders are verified.
-- Do not port PER unless Quasar PER semantics are verified; keep as blocker if needed.
-- Add tests comparing expected instruction data and account metas to Quasar parity docs/source.
+**Acceptance:**
 
-**Validation candidates:**
+- Builders use one-byte Quasar discriminators, not Anchor 8-byte SHA256 discriminators.
+- Builders use fixed-size Quasar argument layouts from parity source/tests.
+- Invalid fixed-size inputs fail before transaction construction.
+- Runtime compatibility inventory records the new shared builder module as `quasar-compatible` while existing Anchor-layout runtime paths remain blocked.
 
-- unit tests for each builder,
-- dry-run/local-only transaction construction tests,
-- no signing or send unless separately approved.
+**Validation:**
 
-**Retrospective requirement:** Decide whether local QuasarSVM tests are enough or if devnet signing/deployment validation is required.
+- `npx jest --runTestsByPath lib/quasar/__tests__/instruction-builders.test.ts --runInBand`
+- `npm run check:quasar:runtime-compatibility`
+- `npm run check:quasar:deployments`
+- `npm run check:quasar:demo-readiness`
+- `npm run test:bdd:index`
+- `git diff --check`
+
+### Retrospective — Phase 5 / Slice 1
+
+- **Expected:** Extract a safe shared Quasar instruction-data boundary before touching live transaction surfaces.
+- **Observed:** Registry/reputation/attestation data builders can be ported locally from Quasar parity source/tests without signing or devnet execution.
+- **Validation:** Builder tests assert one-byte discriminators, fixed-size layouts, u128 job-id bytes, and invalid input guards.
+- **What worked:** Keeping builders in `lib/quasar/*` avoids contaminating existing Anchor builders and makes compatibility explicit.
+- **What failed / surprised us:** PER cannot ride this slice; it still needs separate semantic validation because the TEE path is not proven by the QuasarSVM parity tests.
+- **Safety / approval review:** Local source/tests only; no signing, deployment, wallet/env mutation, paid calls, or live execution.
+- **Decision:** continue with account-meta/transaction wrapper port next.
+- **Plan changes for next phase:** Phase 5 Slice 2 should wrap these data builders in transaction-instruction helpers for registry first, then update blocked runtime paths one at a time.
 
 ### Phase 6 — Quasar demo UI honesty
 
