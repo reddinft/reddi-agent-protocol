@@ -18,7 +18,13 @@ import {
 import { createHash, randomBytes } from "crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
-import { DEVNET_RPC, ESCROW_PROGRAM_ID, RATING_SEED, AGENT_SEED, IX } from "@/lib/program";
+import { DEVNET_RPC, ESCROW_PROGRAM_ID, RATING_SEED, AGENT_SEED, IX, PROGRAM_TARGET } from "@/lib/program";
+import {
+  buildQuasarCommitRatingInstruction,
+  buildQuasarRevealRatingInstruction,
+  quasarAgentPda,
+  quasarRatingPda,
+} from "@/lib/quasar/instructions";
 import { emitTorqueEvent } from "@/lib/torque/client";
 import { TORQUE_EVENTS } from "@/lib/torque/events";
 
@@ -76,6 +82,9 @@ function jobIdFromRunId(runId: string): Uint8Array {
  * (matches programs/escrow/src/instructions/commit_rating.rs)
  */
 function ratingPdaFor(jobId: Uint8Array): PublicKey {
+  if (PROGRAM_TARGET === "quasar") {
+    return quasarRatingPda(jobId, ESCROW_PROGRAM_ID);
+  }
   return PublicKey.findProgramAddressSync(
     [Buffer.from(RATING_SEED), Buffer.from(jobId)],
     ESCROW_PROGRAM_ID
@@ -84,6 +93,9 @@ function ratingPdaFor(jobId: Uint8Array): PublicKey {
 
 /** AgentAccount PDA: seeds = [b"agent", agent_pubkey(32)] */
 function agentPdaFor(agentPubkey: PublicKey): PublicKey {
+  if (PROGRAM_TARGET === "quasar") {
+    return quasarAgentPda(agentPubkey, ESCROW_PROGRAM_ID);
+  }
   return PublicKey.findProgramAddressSync(
     [Buffer.from(AGENT_SEED), agentPubkey.toBytes()],
     ESCROW_PROGRAM_ID
@@ -189,23 +201,32 @@ export async function commitReputationRating(
   trace.push(`reputation:rating_pda=${rPda.toBase58()}`);
 
   // Role 0 = Consumer (orchestrator/operator commits as consumer side)
-  const ixData = buildCommitRatingData(
-    jobId,
-    commitHash,
-    0,
-    operator.publicKey,
-    specialistPubkey
-  );
-
-  const ix = new TransactionInstruction({
-    programId: ESCROW_PROGRAM_ID,
-    keys: [
-      { pubkey: rPda, isSigner: false, isWritable: true },
-      { pubkey: operator.publicKey, isSigner: true, isWritable: true },
-      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
-    ],
-    data: ixData,
-  });
+  const ix = PROGRAM_TARGET === "quasar"
+    ? buildQuasarCommitRatingInstruction({
+        programId: ESCROW_PROGRAM_ID,
+        signer: operator.publicKey,
+        jobId,
+        commitment: commitHash,
+        role: 0,
+        consumer: operator.publicKey,
+        specialist: specialistPubkey,
+        ratingPda: rPda,
+      })
+    : new TransactionInstruction({
+        programId: ESCROW_PROGRAM_ID,
+        keys: [
+          { pubkey: rPda, isSigner: false, isWritable: true },
+          { pubkey: operator.publicKey, isSigner: true, isWritable: true },
+          { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+        ],
+        data: buildCommitRatingData(
+          jobId,
+          commitHash,
+          0,
+          operator.publicKey,
+          specialistPubkey
+        ),
+      });
 
   try {
     const conn = new Connection(DEVNET_RPC, "confirmed");
@@ -305,18 +326,27 @@ export async function revealReputationRating(runId: string): Promise<ReputationR
   const specialistAgentPda = agentPdaFor(specialistPubkey);
   const consumerAgentPda = agentPdaFor(consumerPubkey);
 
-  const ixData = buildRevealRatingData(jobId, score, salt);
-
-  const ix = new TransactionInstruction({
-    programId: ESCROW_PROGRAM_ID,
-    keys: [
-      { pubkey: rPda, isSigner: false, isWritable: true },
-      { pubkey: operator.publicKey, isSigner: true, isWritable: false },
-      { pubkey: specialistAgentPda, isSigner: false, isWritable: true },
-      { pubkey: consumerAgentPda, isSigner: false, isWritable: true },
-    ],
-    data: ixData,
-  });
+  const ix = PROGRAM_TARGET === "quasar"
+    ? buildQuasarRevealRatingInstruction({
+        programId: ESCROW_PROGRAM_ID,
+        signer: operator.publicKey,
+        jobId,
+        score,
+        salt,
+        specialistAgentPda,
+        consumerAgentPda,
+        ratingPda: rPda,
+      })
+    : new TransactionInstruction({
+        programId: ESCROW_PROGRAM_ID,
+        keys: [
+          { pubkey: rPda, isSigner: false, isWritable: true },
+          { pubkey: operator.publicKey, isSigner: true, isWritable: false },
+          { pubkey: specialistAgentPda, isSigner: false, isWritable: true },
+          { pubkey: consumerAgentPda, isSigner: false, isWritable: true },
+        ],
+        data: buildRevealRatingData(jobId, score, salt),
+      });
 
   try {
     const conn = new Connection(DEVNET_RPC, "confirmed");

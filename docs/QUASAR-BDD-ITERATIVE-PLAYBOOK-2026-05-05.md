@@ -301,26 +301,44 @@ This is the staged plan from the current PR onward. Each phase remains a separat
 - **Decision:** continue.
 - **Plan changes for next phase:** Phase 8 should port reputation commit/reveal and remaining onboarding transaction paths; read/decode is now good enough for screenshots only if transaction readiness remains honestly marked blocked.
 
-### Phase 8 — Reputation and onboarding remaining transaction paths
+### Phase 8 — Reputation and onboarding remaining transaction paths ✅ implemented in PR #244
 
 **Expectation:** Reputation commit/reveal and onboarding confirmation/dispute paths are Quasar-compatible or explicitly blocked.
 
-**Implementation plan:**
+**Implementation:**
 
-1. Add Quasar reputation `TransactionInstruction` wrappers for commit/reveal/expire using parity layouts.
-2. Route `lib/onboarding/reputation-signal.ts` through target-aware helpers.
-3. Inspect `app/onboarding/page.tsx` for remaining Anchor-only confirm/dispute builders and route/disable them by target.
-4. Update runtime compatibility and BDD scenario text.
+1. Added Quasar `TransactionInstruction` wrappers for reputation commit/reveal and attestation confirm/dispute in `lib/quasar/instructions.ts`, using parity account metas and one-byte discriminators.
+2. Routed `lib/onboarding/reputation-signal.ts` through target-aware Quasar helpers in explicit Quasar mode while preserving Anchor builders for legacy mode.
+3. Routed `app/onboarding/page.tsx` registration and attestation confirmation/dispute wallet transaction construction through Quasar helpers in explicit Quasar mode.
+4. Updated runtime compatibility inventory: blockers reduced from 4 to 1.
+5. Added wrapper tests covering registry, reputation commit/reveal, and attestation confirm/dispute account order/data length/discriminators.
 
 **Acceptance:**
 
 - Reputation signal path no longer uses Anchor 8-byte discriminators in Quasar mode.
-- Onboarding UI does not expose unsupported Quasar wallet actions as ready.
-- Remaining blockers are limited to escrow/PER/demo-agent full-flow if those are not yet ported.
+- Onboarding UI transaction builders no longer expose Anchor-only registration or attestation confirmation/dispute actions in Quasar mode.
+- Remaining blocker is limited to the demo-agent full-flow/PER path.
 
-**Validation candidates:** targeted reputation/onboarding Jest, build, runtime/readiness guards, BDD index, `git diff --check`.
+**Validation:**
 
-**Retrospective requirement:** Decide whether to tackle escrow/PER or pivot to judge packet with scoped claims.
+- `npm run build`
+- `npx jest --runTestsByPath lib/__tests__/quasar-instructions.test.ts lib/__tests__/quasar-agent-account-decoder.test.ts --runInBand`
+- `npm run check:quasar:runtime-compatibility`
+- `npm run check:quasar:deployments`
+- `npm run check:quasar:demo-readiness`
+- `npm run test:bdd:index`
+- `git diff --check`
+
+### Retrospective — Phase 8
+
+- **Expected:** Reputation/onboarding blockers should convert into target-aware Quasar builders without live devnet execution.
+- **Observed:** Parity tests gave exact account metas: reputation commit/reveal and attestation confirm/dispute map cleanly to Quasar one-byte instruction data. Runtime blocker count fell 4→1.
+- **Validation:** Build and focused Jest passed; readiness remains honestly blocked because the demo-agent/PER path is not cut over.
+- **What worked:** Centralizing wrappers in `lib/quasar/instructions.ts` kept app/server callers simple and preserved legacy Anchor mode.
+- **What failed / surprised us:** The remaining blocker is no longer broad runtime plumbing; it is specifically the submission demo-agent full-flow/PER decision.
+- **Safety / approval review:** Local source/tests only; no signing, send, deployment, wallet/env mutation, paid calls, or live execution.
+- **Decision:** continue to Phase 9 decision gate. Recommend splitting PER/escrow into scoped claim: demo can prove registry/reputation/attestation Quasar paths now, but cannot claim PER/escrow Quasar parity until the remaining full-flow path is either ported or explicitly excluded.
+- **Plan changes for next phase:** Phase 9 should inspect `packages/demo-agents/src/demo.ts`, identify exactly which escrow/PER instructions block submission readiness, then choose either (A) port non-PER demo-agent calls and mark PER out of scope, or (B) keep readiness blocked pending Quasar PER semantics.
 
 ### Phase 9 — Demo-agent full flow and PER decision gate
 

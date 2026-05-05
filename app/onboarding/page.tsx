@@ -23,7 +23,15 @@ import {
   DEVNET_RPC,
   ESCROW_PROGRAM_ID,
   INCINERATOR,
+  PROGRAM_TARGET,
 } from "@/lib/program";
+import {
+  buildQuasarConfirmAttestationInstruction,
+  buildQuasarDisputeAttestationInstruction,
+  buildQuasarRegisterAgentInstruction,
+  quasarAgentPda,
+  quasarAttestationPda,
+} from "@/lib/quasar/instructions";
 
 const WalletMultiButton = dynamic(
   async () =>
@@ -358,23 +366,32 @@ export default function OnboardingPage() {
       throw new Error("Connect wallet before registration.");
     }
 
-    const pda = agentPda(publicKey);
     const agentTypeByte = AGENT_TYPE_ENUM.Primary;
     const modelName = "ollama-local";
     const minRep = 0;
     const rateLamports = BigInt(Math.round(0.001 * 1_000_000_000));
-    const data = buildRegisterAgentData(agentTypeByte, modelName, rateLamports, minRep);
-
-    const ix = new TransactionInstruction({
-      programId: ESCROW_PROGRAM_ID,
-      keys: [
-        { pubkey: pda, isSigner: false, isWritable: true },
-        { pubkey: publicKey, isSigner: true, isWritable: true },
-        { pubkey: INCINERATOR, isSigner: false, isWritable: true },
-        { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
-      ],
-      data,
-    });
+    const pda = PROGRAM_TARGET === "quasar" ? quasarAgentPda(publicKey, ESCROW_PROGRAM_ID) : agentPda(publicKey);
+    const ix = PROGRAM_TARGET === "quasar"
+      ? buildQuasarRegisterAgentInstruction({
+          programId: ESCROW_PROGRAM_ID,
+          owner: publicKey,
+          agentType: agentTypeByte,
+          model: modelName,
+          rateLamports,
+          minReputation: minRep,
+          agentPda: pda,
+          feeCollector: INCINERATOR,
+        })
+      : new TransactionInstruction({
+          programId: ESCROW_PROGRAM_ID,
+          keys: [
+            { pubkey: pda, isSigner: false, isWritable: true },
+            { pubkey: publicKey, isSigner: true, isWritable: true },
+            { pubkey: INCINERATOR, isSigner: false, isWritable: true },
+            { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+          ],
+          data: buildRegisterAgentData(agentTypeByte, modelName, rateLamports, minRep),
+        });
 
     return { pda, rateLamports, ix };
   };
@@ -433,7 +450,7 @@ export default function OnboardingPage() {
         ok: false,
         error: error instanceof Error ? error.message : "Preflight simulation failed",
         rateLamports: BigInt(Math.round(0.001 * 1_000_000_000)),
-        agentPda: publicKey ? agentPda(publicKey).toBase58() : "",
+        agentPda: publicKey ? (PROGRAM_TARGET === "quasar" ? quasarAgentPda(publicKey, ESCROW_PROGRAM_ID) : agentPda(publicKey)).toBase58() : "",
         estimatedCostSol: 0.01157,
       });
     } finally {
@@ -1720,21 +1737,31 @@ export default function OnboardingPage() {
                     const conn = walletConnection ?? new Connection(DEVNET_RPC, "confirmed");
                     const jobId = hexToJobId(state.attestationJobIdHex);
 
-                    const ix = new TransactionInstruction({
-                      programId: ESCROW_PROGRAM_ID,
-                      keys: [
-                        {
-                          pubkey: state.attestationPda
-                            ? new PublicKey(state.attestationPda)
-                            : attestationPda(jobId),
-                          isSigner: false,
-                          isWritable: true,
-                        },
-                        { pubkey: agentPda(new PublicKey(state.attestationOperator)), isSigner: false, isWritable: true },
-                        { pubkey: publicKey, isSigner: true, isWritable: false },
-                      ],
-                      data: buildConfirmAttestationData(jobId),
-                    });
+                    const operatorPubkey = new PublicKey(state.attestationOperator);
+                    const ix = PROGRAM_TARGET === "quasar"
+                      ? buildQuasarConfirmAttestationInstruction({
+                          programId: ESCROW_PROGRAM_ID,
+                          consumer: publicKey,
+                          judge: operatorPubkey,
+                          jobId,
+                          attestationPda: state.attestationPda ? new PublicKey(state.attestationPda) : quasarAttestationPda(jobId, ESCROW_PROGRAM_ID),
+                          judgeAgentPda: quasarAgentPda(operatorPubkey, ESCROW_PROGRAM_ID),
+                        })
+                      : new TransactionInstruction({
+                          programId: ESCROW_PROGRAM_ID,
+                          keys: [
+                            {
+                              pubkey: state.attestationPda
+                                ? new PublicKey(state.attestationPda)
+                                : attestationPda(jobId),
+                              isSigner: false,
+                              isWritable: true,
+                            },
+                            { pubkey: agentPda(operatorPubkey), isSigner: false, isWritable: true },
+                            { pubkey: publicKey, isSigner: true, isWritable: false },
+                          ],
+                          data: buildConfirmAttestationData(jobId),
+                        });
 
                     const { blockhash } = await conn.getLatestBlockhash();
                     const tx = new Transaction();
@@ -1781,21 +1808,31 @@ export default function OnboardingPage() {
                     const conn = walletConnection ?? new Connection(DEVNET_RPC, "confirmed");
                     const jobId = hexToJobId(state.attestationJobIdHex);
 
-                    const ix = new TransactionInstruction({
-                      programId: ESCROW_PROGRAM_ID,
-                      keys: [
-                        {
-                          pubkey: state.attestationPda
-                            ? new PublicKey(state.attestationPda)
-                            : attestationPda(jobId),
-                          isSigner: false,
-                          isWritable: true,
-                        },
-                        { pubkey: agentPda(new PublicKey(state.attestationOperator)), isSigner: false, isWritable: true },
-                        { pubkey: publicKey, isSigner: true, isWritable: false },
-                      ],
-                      data: buildDisputeAttestationData(jobId),
-                    });
+                    const operatorPubkey = new PublicKey(state.attestationOperator);
+                    const ix = PROGRAM_TARGET === "quasar"
+                      ? buildQuasarDisputeAttestationInstruction({
+                          programId: ESCROW_PROGRAM_ID,
+                          consumer: publicKey,
+                          judge: operatorPubkey,
+                          jobId,
+                          attestationPda: state.attestationPda ? new PublicKey(state.attestationPda) : quasarAttestationPda(jobId, ESCROW_PROGRAM_ID),
+                          judgeAgentPda: quasarAgentPda(operatorPubkey, ESCROW_PROGRAM_ID),
+                        })
+                      : new TransactionInstruction({
+                          programId: ESCROW_PROGRAM_ID,
+                          keys: [
+                            {
+                              pubkey: state.attestationPda
+                                ? new PublicKey(state.attestationPda)
+                                : attestationPda(jobId),
+                              isSigner: false,
+                              isWritable: true,
+                            },
+                            { pubkey: agentPda(operatorPubkey), isSigner: false, isWritable: true },
+                            { pubkey: publicKey, isSigner: true, isWritable: false },
+                          ],
+                          data: buildDisputeAttestationData(jobId),
+                        });
 
                     const { blockhash } = await conn.getLatestBlockhash();
                     const tx = new Transaction();

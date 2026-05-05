@@ -13,9 +13,9 @@
     },
     {
       "path": "lib/quasar/instructions.ts",
-      "surface": "Quasar registry transaction-instruction helpers",
+      "surface": "Quasar transaction-instruction helpers for registry, reputation, and attestation",
       "status": "quasar-compatible",
-      "reason": "Wraps shared Quasar registry instruction data with account metas/order from Quasar parity source/tests. Covers registry only; reputation/attestation wrappers remain future work."
+      "reason": "Wraps shared Quasar instruction data with account metas/order from Quasar parity source/tests for registry, reputation commit/reveal, and attestation confirm/dispute."
     },
     {
       "path": "lib/register/registration-instruction.ts",
@@ -38,8 +38,8 @@
     {
       "path": "lib/program.ts",
       "surface": "shared instruction builders and account decoders",
-      "status": "anchor-layout-only",
-      "reason": "Uses Anchor SHA256 global/account discriminators and Anchor account layout comments. Quasar program ID selection is wired, but data layout compatibility is not verified."
+      "status": "quasar-compatible",
+      "reason": "Exports target-aware Quasar AgentAccount decode/filter constants for read paths; legacy Anchor builders remain available only for legacy-anchor callers while demo-critical Quasar transaction paths route through lib/quasar wrappers."
     },
     {
       "path": "app/register/page.tsx",
@@ -50,8 +50,8 @@
     {
       "path": "app/onboarding/page.tsx",
       "surface": "onboarding registration and attestation confirmation/dispute builders",
-      "status": "anchor-layout-only",
-      "reason": "Builds transactions with shared Anchor-layout builders."
+      "status": "quasar-compatible",
+      "reason": "Onboarding registration and attestation confirmation/dispute construction now select Quasar wrappers in explicit Quasar mode while preserving Anchor builders only for legacy mode."
     },
     {
       "path": "lib/onboarding/onchain-attestation.ts",
@@ -62,8 +62,8 @@
     {
       "path": "lib/onboarding/reputation-signal.ts",
       "surface": "commit/reveal reputation builders",
-      "status": "anchor-layout-only",
-      "reason": "Local commit/reveal data builders use Anchor discriminators from IX."
+      "status": "quasar-compatible",
+      "reason": "Commit/reveal reputation construction now selects Quasar wrappers/data in explicit Quasar mode while preserving Anchor IX builders only for legacy mode."
     },
     {
       "path": "lib/registry/bridge.ts",

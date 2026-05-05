@@ -2,13 +2,18 @@ import { PublicKey, SystemProgram, TransactionInstruction } from "@solana/web3.j
 
 import {
   buildQuasarAttestQualityData,
+  buildQuasarConfirmAttestationData,
+  buildQuasarCommitRatingData,
   buildQuasarDeregisterAgentData,
+  buildQuasarDisputeAttestationData,
   buildQuasarRegisterData,
+  buildQuasarRevealRatingData,
   buildQuasarUpdateAgentData,
 } from "@/lib/quasar/instruction-builders";
 
 export const QUASAR_AGENT_SEED = Buffer.from("agent");
 export const QUASAR_ATTESTATION_SEED = Buffer.from("attestation");
+export const QUASAR_RATING_SEED = Buffer.from("rating");
 export const QUASAR_INCINERATOR = new PublicKey("1nc1nerator11111111111111111111111111111111");
 
 export function quasarAgentPda(owner: PublicKey, programId: PublicKey): PublicKey {
@@ -18,6 +23,11 @@ export function quasarAgentPda(owner: PublicKey, programId: PublicKey): PublicKe
 export function quasarAttestationPda(jobId: Uint8Array, programId: PublicKey): PublicKey {
   if (jobId.length !== 16) throw new Error("job_id_must_be_16_bytes");
   return PublicKey.findProgramAddressSync([QUASAR_ATTESTATION_SEED, Buffer.from(jobId)], programId)[0];
+}
+
+export function quasarRatingPda(jobId: Uint8Array, programId: PublicKey): PublicKey {
+  if (jobId.length !== 16) throw new Error("job_id_must_be_16_bytes");
+  return PublicKey.findProgramAddressSync([QUASAR_RATING_SEED, Buffer.from(jobId)], programId)[0];
 }
 
 export function buildQuasarRegisterAgentInstruction(input: {
@@ -78,6 +88,57 @@ export function buildQuasarDeregisterAgentInstruction(input: {
   });
 }
 
+export function buildQuasarCommitRatingInstruction(input: {
+  programId: PublicKey;
+  signer: PublicKey;
+  jobId: Uint8Array;
+  commitment: Uint8Array;
+  role: 0 | 1;
+  consumer: PublicKey;
+  specialist: PublicKey;
+  ratingPda?: PublicKey;
+}): TransactionInstruction {
+  const rating = input.ratingPda ?? quasarRatingPda(input.jobId, input.programId);
+  return new TransactionInstruction({
+    programId: input.programId,
+    keys: [
+      { pubkey: rating, isSigner: false, isWritable: true },
+      { pubkey: input.signer, isSigner: true, isWritable: true },
+      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+    ],
+    data: buildQuasarCommitRatingData(
+      input.jobId,
+      input.commitment,
+      input.role,
+      input.consumer.toBytes(),
+      input.specialist.toBytes(),
+    ),
+  });
+}
+
+export function buildQuasarRevealRatingInstruction(input: {
+  programId: PublicKey;
+  signer: PublicKey;
+  jobId: Uint8Array;
+  score: number;
+  salt: Uint8Array;
+  specialistAgentPda: PublicKey;
+  consumerAgentPda: PublicKey;
+  ratingPda?: PublicKey;
+}): TransactionInstruction {
+  const rating = input.ratingPda ?? quasarRatingPda(input.jobId, input.programId);
+  return new TransactionInstruction({
+    programId: input.programId,
+    keys: [
+      { pubkey: rating, isSigner: false, isWritable: true },
+      { pubkey: input.signer, isSigner: true, isWritable: false },
+      { pubkey: input.specialistAgentPda, isSigner: false, isWritable: true },
+      { pubkey: input.consumerAgentPda, isSigner: false, isWritable: true },
+    ],
+    data: buildQuasarRevealRatingData(input.jobId, input.score, input.salt),
+  });
+}
+
 export function buildQuasarAttestQualityInstruction(input: {
   programId: PublicKey;
   judge: PublicKey;
@@ -98,5 +159,47 @@ export function buildQuasarAttestQualityInstruction(input: {
       { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
     ],
     data: buildQuasarAttestQualityData(input.jobId, input.scores, input.consumer.toBytes()),
+  });
+}
+
+export function buildQuasarConfirmAttestationInstruction(input: {
+  programId: PublicKey;
+  consumer: PublicKey;
+  judge: PublicKey;
+  jobId: Uint8Array;
+  attestationPda?: PublicKey;
+  judgeAgentPda?: PublicKey;
+}): TransactionInstruction {
+  const attestation = input.attestationPda ?? quasarAttestationPda(input.jobId, input.programId);
+  const judgeAgent = input.judgeAgentPda ?? quasarAgentPda(input.judge, input.programId);
+  return new TransactionInstruction({
+    programId: input.programId,
+    keys: [
+      { pubkey: attestation, isSigner: false, isWritable: true },
+      { pubkey: judgeAgent, isSigner: false, isWritable: true },
+      { pubkey: input.consumer, isSigner: true, isWritable: false },
+    ],
+    data: buildQuasarConfirmAttestationData(input.jobId),
+  });
+}
+
+export function buildQuasarDisputeAttestationInstruction(input: {
+  programId: PublicKey;
+  consumer: PublicKey;
+  judge: PublicKey;
+  jobId: Uint8Array;
+  attestationPda?: PublicKey;
+  judgeAgentPda?: PublicKey;
+}): TransactionInstruction {
+  const attestation = input.attestationPda ?? quasarAttestationPda(input.jobId, input.programId);
+  const judgeAgent = input.judgeAgentPda ?? quasarAgentPda(input.judge, input.programId);
+  return new TransactionInstruction({
+    programId: input.programId,
+    keys: [
+      { pubkey: attestation, isSigner: false, isWritable: true },
+      { pubkey: judgeAgent, isSigner: false, isWritable: true },
+      { pubkey: input.consumer, isSigner: true, isWritable: false },
+    ],
+    data: buildQuasarDisputeAttestationData(input.jobId),
   });
 }
