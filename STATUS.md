@@ -1,20 +1,21 @@
 # Reddi Agent Protocol Code — STATUS
 
 **Last updated:** 2026-05-05 AEST
-**State:** 🟢 Phase 3 local manifest parity merged; Phase 4 hosted redeploy/smoke is blocked on explicit operator approval.
+**State:** 🟢 Phase 4 hosted redeploy/public manifest smoke complete; 30/30 hosted specialist manifests expose dependency disclosure parity.
 
 ## RESUME FROM HERE
 
-1. Phase 4 hosted redeploy + public smoke is next, but requires explicit operator approval before touching Coolify/hosted infrastructure.
-2. If approval is granted: redeploy hosted OpenRouter specialist apps, smoke `/.well-known/reddi-agent.json`, save sanitized manifest evidence, then update status.
-3. If approval is not granted: continue safe local planning for Phase 5 research workflow BDD/dry-run design only.
+1. Continue the gated loop with safe Phase 5 research workflow BDD/dry-run planning only.
+2. Do not execute live downstream specialist calls, paid API paths, signing, wallet mutation, or devnet transfer unless explicitly approved for that specific live run.
+3. Preserve Phase 4 evidence truth: hosted manifest parity is confirmed by sanitized smoke evidence, but no live economic workflow evidence was regenerated in Phase 4.
 
 ## Current Branch / Repo State
 
-- Local branch: `docs/status-after-phase3-20260505`
-- Local working tree: status-only post-Phase 3 update.
-- Latest merge on main: `fee12f3a feat: expose manifest dependency parity (#212)`.
-- PR #212: merged 2026-05-05 AEST; post-merge Anchor run `25351648417`, job `74332350244` passed in 7m23s.
+- Local branch: `main`.
+- Local working tree: status-only post-Phase 4 update; Phase 4 evidence artifacts are local under `artifacts/manifest-parity-phase4/`.
+- Latest merge on main: `95e1489 docs: update status after phase 3 merge (#213)`.
+- PR #204: closed as superseded after Nissan accepted recommendation.
+- PR #213: merged 2026-05-05 AEST; post-merge Anchor run `25352130407`, job `74333836069` passed.
 
 
 ## Current Follow-up PR — #203
@@ -136,6 +137,22 @@ Validation for Phase 3 PR #212:
 - Post-merge `main` Anchor run `25351648417`, job `74332350244` — PASS, 7m23s.
 - GitHub Actions warning persists: Node.js 20 actions deprecation for `actions/cache@v4` and `actions/checkout@v4`.
 
+Validation for Phase 3 status PR #213:
+
+- PR: https://github.com/nissan/reddi-agent-protocol/pull/213
+- Merge commit: `95e1489e92efdc4b99de8ae49eb33e921742da82`
+- PR checks passed: Vercel Preview Comments, Vercel deployment, Anchor run `25351900034`.
+- Post-merge `main` Anchor run `25352130407`, job `74333836069` — PASS.
+
+Validation for Phase 4 hosted manifest redeploy/smoke:
+
+- Operator approval: Nissan confirmed authority to approve hosted Phase 4.
+- Baseline smoke before redeploy: `artifacts/manifest-parity-phase4/before-redeploy-smoke.json` — 0/30 hosted manifests current, proving redeploy was necessary.
+- Coolify redeploy trigger: `artifacts/manifest-parity-phase4/coolify-redeploy.json` queued 27/30; first retry `coolify-redeploy-retry.json` queued remaining 3/3 after queue backpressure; `coolify-redeploy-collective-retry.json` retried the one failed deployment.
+- Progressive public smoke: `after-redeploy-smoke-attempt-*.json`; final sanitized evidence: `artifacts/manifest-parity-phase4/final-hosted-manifest-smoke.json` — 30/30 hosted `/.well-known/reddi-agent.json` endpoints current.
+- Final manifest parity assertion: each hosted manifest exposes `agenticWorkflowDisclosure`, `dependencyDisclosure`, `tools`, `skills`, `marketplaceAgentCalls`, `externalMcpServers`, `nonMarketplaceAgentCalls`, and `disclosurePolicy` with `dependencyDisclosure.schemaVersion = reddi.agent-dependency-manifest.v1`.
+- Secret grep over Phase 4 artifact JSON for API/token/secret patterns — PASS (no matches).
+
 ## Retrospective — Phase 6.5 Slice A
 
 ### What worked
@@ -170,8 +187,9 @@ Do not proceed as a waterfall into research/picture live workflows until the dis
 
 - 2026-05-05: `/economic-demo` should prefer the latest generated judge evidence-pack `disclosureLedgerSummary` when present, with fallback to the truthful historical pre-ledger summary.
 - 2026-05-05: `/.well-known/reddi-agent.json` must expose programmatic dependency disclosure parity with public marketplace cards/details before any purchase: tools, skills, marketplace-agent calls, external MCP servers, non-marketplace service calls, and downstream ledger disclosure policy.
+- 2026-05-05: Hosted Phase 4 redeploy/smoke is approved and complete; public hosted OpenRouter specialist manifests now expose dependency disclosure parity across 30/30 endpoints.
 
 ## Blockers / Watch Items
 
-- Hosted specialist manifests need redeploy/smoke before public endpoints expose `agenticWorkflowDisclosure`.
-- External Coolify redeploy is an infra mutation; avoid doing it silently unless the current instruction clearly authorizes it.
+- Live economic workflow evidence still predates Phase 4 hosted manifest parity; regenerate only under an explicit live-run approval gate.
+- Continue Phase 5 as BDD/dry-run planning first: no paid specialist spend, signing, wallet mutation, or devnet transfer from harness without specific approval.
