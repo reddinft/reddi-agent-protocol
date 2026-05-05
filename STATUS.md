@@ -1,20 +1,20 @@
 # Reddi Agent Protocol Code — STATUS
 
 **Last updated:** 2026-05-05 AEST
-**State:** 🟢 PR #209 merged — Phase 2 `/economic-demo` disclosure-ledger UI live on `main`; post-merge Anchor CI green.
+**State:** 🟢 Phase 2.5 latest evidence-pack summary UI wiring implemented locally; ready for PR.
 
 ## RESUME FROM HERE
 
-1. Choose next safe loop: wire latest generated evidence-pack summaries into UI data, or continue Phase 3 local manifest parity for `/.well-known/reddi-agent.json`.
-2. If choosing Phase 3, confirm local runtime manifests expose tools/skills, marketplace-agent calls, external MCP servers, non-marketplace services, and disclosure policy.
+1. Open/merge Phase 2.5 branch `feature/economic-demo-latest-evidence-pack-ui-20260505`: `/economic-demo` API/UI prefers the newest generated judge evidence-pack summary when present.
+2. Continue Phase 3 local manifest parity for `/.well-known/reddi-agent.json`: confirm tools/skills, marketplace-agent calls, external MCP servers, non-marketplace services, and disclosure policy.
 3. External Coolify redeploy remains explicit-operator-only.
 
 ## Current Branch / Repo State
 
-- Local branch: `main`
-- Local working tree: clean after PR #209 merge.
-- Latest merge on main: `b12a3c87 feat: show disclosure ledger status in economic demo (#209)`.
-- PR #209: merged 2026-05-05 AEST; post-merge Anchor run `25348267647` passed.
+- Local branch: `feature/economic-demo-latest-evidence-pack-ui-20260505`
+- Local working tree: Phase 2.5 UI/API changes in progress.
+- Latest merge on main: `9a16e4ed docs: update status after phase 2 merge (#210)`.
+- PR #210: merged 2026-05-05 AEST; post-merge Anchor run `25348785645` passed.
 
 
 ## Current Follow-up PR — #203
@@ -101,6 +101,15 @@ Validation for Phase 2 PR #209:
 - PR checks passed: Vercel Preview Comments, Vercel deployment, Anchor runs `25347986266` / `25347987599`.
 - Post-merge `main` Anchor run `25348267647`, job `74322061553` — PASS, 6m15s.
 
+Validation for Phase 2.5 latest evidence-pack UI wiring:
+
+- `npx jest --runTestsByPath lib/__tests__/economic-demo-webpage-live-workflow-evidence.test.ts --runInBand` — PASS, 3/3.
+- Targeted ESLint for economic-demo page/API/evidence helper/server/test — PASS.
+- `npm run build` — PASS.
+- `npm run test:bdd:index` — PASS.
+- `git diff --check` — PASS.
+- Note: build retains existing workspace-root warning due multiple lockfiles; no build failure.
+
 ## Retrospective — Phase 6.5 Slice A
 
 ### What worked
@@ -132,6 +141,8 @@ Do not proceed as a waterfall into research/picture live workflows until the dis
 - 2026-05-05: Evidence packs should expose a compact disclosure-ledger summary for judges/UI consumers instead of requiring raw edge JSON archaeology.
 
 - 2026-05-05: `/economic-demo` must render the normalized `disclosureLedgerSummary` and visibly mark historical pre-ledger artifacts as not evidence-complete.
+
+- 2026-05-05: `/economic-demo` should prefer the latest generated judge evidence-pack `disclosureLedgerSummary` when present, with fallback to the truthful historical pre-ledger summary.
 
 ## Blockers / Watch Items
 

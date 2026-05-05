@@ -129,6 +129,36 @@ Still pending:
 
 ---
 
+## Phase 2.5 — Latest generated evidence-pack summaries in `/economic-demo`
+
+**BDD expectation:** When a generated judge evidence pack exists, `/economic-demo` uses that pack's compact summary instead of stale hardcoded ledger data.
+
+**Scope:**
+
+- Load the newest local `artifacts/economic-demo-evidence-pack/*/evidence-pack.json` from the server-side evidence API.
+- Prefer its `disclosureLedgerSummary` and evidence-pack metadata in the UI.
+- Fall back to the truthful historical pre-ledger summary when no generated pack is present.
+
+**Acceptance criteria:**
+
+- Page load still does not call live specialist endpoints, sign receipts, or mutate wallets.
+- The UI labels whether it is showing the latest generated evidence pack or fallback summary.
+- Tests prove a generated pack with complete ledger data drives the UI-facing API summary.
+
+**Validation:**
+
+- focused Jest for generated evidence-pack summary selection;
+- targeted ESLint;
+- `npm run build`;
+- `npm run test:bdd:index`;
+- `git diff --check`.
+
+**Retrospective prompt:** Does the UI now follow the newest generated artifact without hiding historical incompleteness?
+
+**Expected next refinement:** Continue Phase 3 local manifest parity; hosted redeploy remains approval-gated.
+
+---
+
 ## Phase 3 — Programmatic manifest parity for hosted agents
 
 **BDD expectation:** Programmatic consumers reading `/.well-known/reddi-agent.json` see the same tools/skills/dependency disclosure as the public marketplace.
@@ -267,6 +297,15 @@ Still pending:
 ---
 
 ## Running retrospective log
+
+### Phase 2.5 retrospective
+
+_Status:_ Complete locally; ready for PR.
+
+- **What worked:** The webpage evidence API now checks the newest generated judge evidence pack and prefers its compact `disclosureLedgerSummary` for `/economic-demo`. The client visibly labels whether it is reading a latest generated pack or the fallback summary.
+- **What failed or surprised us:** Existing committed historical artifacts still predate the downstream ledger contract, so fallback remains intentionally yellow/not evidence-complete until a new approved live/synthetic evidence pack is generated.
+- **Safety/spend review:** Server-side local file read only. No specialist endpoint calls, no signing, no wallet mutation, no external redeploy, no paid model calls.
+- **Plan adjustment:** Proceed to Phase 3 local manifest parity next. Do not run hosted Coolify redeploy/smoke without explicit operator approval.
 
 ### Phase 2 retrospective
 

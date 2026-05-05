@@ -572,7 +572,7 @@ export default function EconomicDemoPage() {
                       {webpageLiveEvidence.conclusion}
                     </span>
                   </div>
-                  <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                  <div className="mt-4 grid gap-3 sm:grid-cols-4">
                     <div className="rounded-lg border border-white/10 bg-black/20 p-3">
                       <p className="text-xs text-gray-500">bounded calls</p>
                       <p className="mt-1 font-mono text-lg text-white">{webpageLiveEvidence.downstreamCallsExecuted}</p>
@@ -585,7 +585,26 @@ export default function EconomicDemoPage() {
                       <p className="text-xs text-gray-500">receipt mode</p>
                       <p className="mt-1 text-sm text-yellow-100">controlled demo receipts</p>
                     </div>
+                    <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+                      <p className="text-xs text-gray-500">evidence pack</p>
+                      <p className="mt-1 text-sm text-gray-200">{webpageLiveEvidence.latestEvidencePack ? "latest generated" : "fallback summary"}</p>
+                    </div>
                   </div>
+                  {webpageLiveEvidence.latestEvidencePack && (
+                    <div className="mt-3 rounded-lg border border-white/10 bg-black/20 p-3 text-xs leading-5 text-gray-300">
+                      <p>
+                        Evidence pack: <span className="font-mono text-white">{webpageLiveEvidence.latestEvidencePack.artifactPath}</span>
+                      </p>
+                      <p className="mt-1">
+                        Generated: <span className="font-mono text-gray-100">{webpageLiveEvidence.latestEvidencePack.generatedAt}</span>
+                      </p>
+                      {webpageLiveEvidence.latestEvidencePack.sourceArtifactPath && (
+                        <p className="mt-1">
+                          Source: <span className="font-mono text-gray-100">{webpageLiveEvidence.latestEvidencePack.sourceArtifactPath}</span>
+                        </p>
+                      )}
+                    </div>
+                  )}
                   <div className={webpageDisclosureStatus.isComplete ? "mt-4 rounded-lg border border-[#14F195]/30 bg-black/20 p-3" : "mt-4 rounded-lg border border-yellow-400/40 bg-yellow-400/10 p-3"}>
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
