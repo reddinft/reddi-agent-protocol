@@ -1,7 +1,7 @@
 import { PublicKey, SystemProgram, TransactionInstruction } from "@solana/web3.js";
 import crypto from "crypto";
 
-import { buildQuasarRegisterData } from "../../../lib/quasar/instruction-builders";
+import { buildQuasarDeregisterAgentData, buildQuasarRegisterData } from "../../../lib/quasar/instruction-builders";
 import { AGENT_SEED, PROGRAM_TARGET, type DemoProgramTarget } from "./config";
 
 const INCINERATOR = new PublicKey("1nc1nerator11111111111111111111111111111111");
@@ -39,6 +39,14 @@ export function encodeDemoRegisterAgent(
     : encodeAnchorRegisterAgent(agentType, model, rateLamports, minReputation);
 }
 
+export function encodeAnchorDeregisterAgent(): Buffer {
+  return disc("deregister_agent");
+}
+
+export function encodeDemoDeregisterAgent(target: DemoProgramTarget): Buffer {
+  return target === "quasar" ? buildQuasarDeregisterAgentData() : encodeAnchorDeregisterAgent();
+}
+
 export function buildDemoRegisterAgentInstruction(input: {
   target?: DemoProgramTarget;
   programId: PublicKey;
@@ -64,5 +72,21 @@ export function buildDemoRegisterAgentInstruction(input: {
       input.rateLamports,
       input.minReputation,
     ),
+  });
+}
+
+export function buildDemoDeregisterAgentInstruction(input: {
+  target?: DemoProgramTarget;
+  programId: PublicKey;
+  owner: PublicKey;
+}): TransactionInstruction {
+  const agentPk = demoAgentPda(input.owner, input.programId);
+  return new TransactionInstruction({
+    programId: input.programId,
+    keys: [
+      { pubkey: agentPk, isSigner: false, isWritable: true },
+      { pubkey: input.owner, isSigner: true, isWritable: true },
+    ],
+    data: encodeDemoDeregisterAgent(input.target ?? PROGRAM_TARGET),
   });
 }

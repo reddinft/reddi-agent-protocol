@@ -1,7 +1,7 @@
 # Reddi Agent Protocol Code — STATUS
 
 **Last updated:** 2026-05-06 AEST
-**State:** 🟢 Quasar hackathon scoped-proof loop complete via Issue #236 and PR #244. Staged BDD phases are refined through Phase 12 with retrospective gates after every slice; PR #244 is CI-green and mergeable. Prior Issue #228 packet was Anchor-current-state readiness, but Nissan now requires hackathon demos to use Quasar-deployed Solana programs. Live research, real image generation, signing, deployment, wallet, and env mutations remain approval-gated.
+**State:** 🟡 Quasar hackathon scoped-proof loop complete via Issue #236 and PR #244; Phase 13 local Surfpool/devnet-prep loop active for live-demo readiness. Local Surfpool economic and critical regression gates pass; devnet mutation remains approval-gated. Prior Issue #228 packet was Anchor-current-state readiness, but Nissan now requires hackathon demos to use Quasar-deployed Solana programs. Live research, real image generation, signing, deployment, wallet, and env mutations remain approval-gated.
 
 ## RESUME FROM HERE
 
@@ -12,7 +12,7 @@
 ## Current Branch / Repo State
 
 - Local branch: `feat/quasar-shared-instruction-builders-20260505` (PR #244, shared Quasar instruction builders + register/demo/onboarding construction + register honesty UI + refined staged BDD plan).
-- Local working tree: clean after pushing the refined retrospective-gated Quasar staged plan and checkpoint status.
+- Local working tree: active Phase 13 changes pending commit: Surfpool/devnet-prep playbook updates, Quasar devnet validation runbook, read-only PDA inspector, and target-aware demo-agent deregistration fix.
 - Latest observed `origin/main`: `1f1de7d2 chore: add Quasar runtime compatibility boundary (#242)`; check `git fetch && git log origin/main -1` before merging.
 - Current PR: #244 `feat: add shared Quasar instruction builders` — open and mergeable. Latest branch state adds refined Phase 6.2–12 plan, BDD retrospective-gate scenario, Phase 6.2 `/economic-demo` Quasar status card, Phase 7 target-aware Quasar AgentAccount read/decode compatibility, Phase 8 Quasar reputation/onboarding tx wrapper routing, Phase 9 demo-agent/PER scoped-proof guard, Phase 10 Quasar CI/readiness guard, Phase 11 scoped judge packet refresh, and Phase 12 final validation boundary. Local validation passed (`npm run build`, focused Quasar Jest, `npm run check:quasar:submission` now submissionReady=true, BDD index, `git diff --check`). Latest PR #244 head `2d9ac323`; GitHub/Vercel checks are all green as of 2026-05-06 AEST.
 - PR #204: closed as superseded after Nissan accepted recommendation.

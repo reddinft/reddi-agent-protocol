@@ -483,3 +483,68 @@ This is the staged plan from the current PR onward. Each phase remains a separat
 2. If checks fail, fix only the failing gate and append a small retrospective note.
 3. If checks pass, proceed with normal PR review/merge policy.
 4. Ask Nissan before any live devnet/PER/signing validation. before coding.
+
+## Phase 13 — Local Surfpool confidence before devnet/live demo
+
+**Expectation:** Before any devnet signing, registration, deregistration, or live PER/TEE validation, run local-only Surfpool/localnet gates to catch bugs and clarify what they prove.
+
+**BDD scenarios:**
+
+- Given we are preparing a hackathon live demo, when a local Surfpool rehearsal is available, then it must run before devnet/testnet mutation is requested.
+- Given existing Surfpool scripts deploy the legacy Anchor program locally, when they pass, then they prove local economic/onboarding behavior but do not by themselves prove Quasar live devnet execution.
+- Given the scoped Quasar proof is `submissionReady=true`, when we decide to do devnet validation, then the approval request must name exact transactions, wallets, program IDs, rollback/deregister steps, and artifact outputs.
+
+**Planned loops:**
+
+### Phase 13.1 — Local-safe inventory + quick rehearsal
+
+- Inspect existing Surfpool/localnet lanes and classify each as Quasar-proof, Anchor-local-regression, or economic-demo-local-only.
+- Run quick local-only gates that do not sign devnet or call paid providers.
+- Retrospective: decide whether a heavier Anchor-local Surfpool lane adds useful confidence before devnet.
+
+### Phase 13.2 — Heavier Surfpool/localnet regression lanes
+
+- Run the relevant Surfpool program lanes locally if Phase 13.1 indicates they add value.
+- Capture artifact paths and summarize failures/successes.
+- Retrospective: separate bugs requiring code changes from scope limitations requiring explicit devnet approval.
+
+### Phase 13.3 — Devnet approval runbook, no execution without approval
+
+- Identify whether existing devnet agents are Anchor-era and whether Quasar requires deregister/re-register or fresh registration.
+- Prepare a bounded approval request for any devnet signing: exact commands, max transactions, wallets, program IDs, expected explorer links, rollback/deregister plan, and secret-scan/public artifact plan.
+- Stop until Nissan approves.
+
+**Guardrails:** No devnet signing, no devnet register/deregister, no wallet mutation, no deployment, no env/Coolify/Vercel mutation, no paid/live provider calls, and no live PER/TEE execution without explicit approval.
+
+### Retrospective — Phase 13.1
+
+- **Expected:** Quick local-only Surfpool rehearsal should confirm economic-demo transfer semantics before any devnet mutation.
+- **Observed:** `npm run smoke:economic-demo:surfpool` passed. It executed 4 local transfers on Surfpool offline local RPC, credited amount matched planned transfers, debit covered transfers/fees, and blocked-transfer delta stayed zero.
+- **Artifact:** `artifacts/economic-demo-surfpool-rehearsal/20260505T205134Z/SUMMARY.md`
+- **What worked:** This gives useful recording confidence for the economic workflow without devnet signing or provider spend.
+- **What failed / surprised us:** This lane is economic-demo/local-only and does not deploy or execute the Quasar devnet program. The heavier Surfpool program lanes in this repo currently use legacy Anchor local deployment (`--legacy-anchor-compatibility`), so they are regression confidence, not Quasar live proof.
+- **Safety / approval review:** Local Surfpool only; no devnet, no signing outside local ephemeral wallets, no wallet/env mutation, no paid/live calls.
+- **Decision:** Continue to Phase 13.2 with local Anchor-regression Surfpool lanes only if we want extra confidence in the legacy economic/onboarding behavior; keep Quasar proof claims tied to static/runtime compatibility and devnet approval-gated validation.
+- **Plan adjustment:** Before devnet, prepare a precise approval runbook for Quasar devnet registration/deregistration rather than trying to infer from local Anchor Surfpool results.
+
+### Retrospective — Phase 13.2
+
+- **Expected:** Heavier Surfpool localnet regression should catch local program/demo breakage without touching devnet.
+- **Observed:** `npm run test:surfpool:critical` passed. It built/deployed the local legacy Anchor escrow program to Surfpool offline RPC, ran public settlement, then ran PER-requested flow with unreachable PER RPC and verified L1 fallback.
+- **Artifact:** `artifacts/surfpool-smoke/20260506-065203/SUMMARY.md`
+- **What worked:** The full A→B→C local regression stayed under the 10s target after setup and exercised escrow, settlement fallback, blind ratings, reveal, and attestation on local Surfpool.
+- **What failed / surprised us:** The local program ID is the legacy Anchor reference `794nTFNyJknzDrR13ApSfVyNCRvcvnCN3BVDfic8dcZD`, so this is regression confidence only. It should not be presented as Quasar program proof.
+- **Safety / approval review:** Surfpool localnet only; no devnet mutation, no paid/live provider calls, no real PER/TEE execution. Explorer URLs printed by demo logs use devnet formatting but refer to local Surfpool transaction signatures from `http://127.0.0.1:18999`.
+- **Decision:** Local regression confidence is good. Next phase should prepare the devnet approval runbook rather than running any devnet register/deregister now.
+- **Plan adjustment:** Devnet runbook must include a preflight read-only registry check first, then approval-gated actions for deregistering any legacy Anchor registrations and registering Quasar-targeted agents if needed.
+
+### Retrospective — Phase 13.3
+
+- **Expected:** Devnet prep should be read-only first, then produce a bounded approval request before any signed state mutation.
+- **Observed:** Read-only PDA inspection found existing A/B/C agent registrations under the legacy Anchor devnet program and no A/B/C registrations under the Quasar devnet program.
+- **Artifact:** `docs/QUASAR-DEVNET-VALIDATION-RUNBOOK-2026-05-06.md`
+- **Implementation fix:** Added target-aware demo-agent deregistration encoding so cleanup can safely use legacy Anchor 8-byte discriminator in legacy mode or Quasar one-byte discriminator in Quasar mode. Added read-only `scripts/check-devnet-agent-pdas.ts` for repeatable PDA inspection.
+- **Validation:** `npx ts-node --compiler-options '{"module":"CommonJS"}' scripts/check-devnet-agent-pdas.ts`, focused Jest, `npm run build`, and `npm run check:quasar:submission` all passed.
+- **Decision:** Registering Quasar A/B/C agents on devnet is the likely next live step. Deregistering legacy Anchor agents is optional cleanup; keeping them does not block Quasar because PDAs are derived under a different program ID.
+- **Safety / approval review:** No devnet signing or mutation was performed in this loop. Next state-changing action remains Nissan-approval-gated.
+- **Plan adjustment:** Ask approval for Quasar registration first; only ask for legacy cleanup if Nissan wants a clean operator surface before recording.
