@@ -1,9 +1,9 @@
 {
   "$schema": "./runtime-compatibility.schema.json",
-  "updatedAt": "2026-05-05",
-  "phase": 4,
+  "updatedAt": "2026-05-06",
+  "phase": 15,
   "target": "quasar-builder-compatibility-boundary",
-  "summary": "Static compatibility boundary for Quasar demo mode. Final Colosseum success requires every demo-critical on-chain path to be Quasar-native; scoped proof is not sufficient.",
+  "summary": "Static compatibility boundary for Quasar demo mode. Every demo-critical on-chain path now has a Quasar-native route; MagicBlock PER/TEE is explicitly not claimed by the final Quasar demo path unless separately validated live.",
   "demoCriticalPaths": [
     {
       "path": "lib/quasar/instruction-builders.ts",
@@ -86,8 +86,8 @@
     {
       "path": "packages/demo-agents/src/demo.ts",
       "surface": "full demo-agent A\u2192B\u2192C escrow/reputation/attestation/MagicBlock PER transaction flow",
-      "status": "blocked-pending-quasar-port",
-      "reason": "Critical success factor: final demo cannot exclude this path as legacy-only. It must be ported to Quasar-native program IDs/instruction layouts or replaced with an equivalent Quasar-native full-flow demo before submissionReady can be true."
+      "status": "quasar-compatible",
+      "reason": "Full demo-agent A\u2192B\u2192C flow now targets Quasar multi-program devnet IDs in explicit Quasar mode: registry read, Quasar escrow make/take settlement, reputation commit/reveal, and attestation attest. Legacy Anchor/PER paths remain available only in legacy-anchor mode; MagicBlock PER/TEE is fail-closed/not claimed for Quasar final proof."
     }
   ],
   "allowedStatuses": [
@@ -96,5 +96,5 @@
     "blocked-pending-quasar-port",
     "not-demo-critical"
   ],
-  "submissionReadyRule": "submissionReady may not be true until every demo-critical on-chain path is Quasar-native and the full A\u2192B\u2192C escrow/settlement/MagicBlock PER claim is either validated on Quasar or removed from final claims."
+  "submissionReadyRule": "submissionReady may be true only when every demo-critical on-chain path is Quasar-native and MagicBlock PER/TEE is either live-validated on Quasar or explicitly not part of the final claim."
 }

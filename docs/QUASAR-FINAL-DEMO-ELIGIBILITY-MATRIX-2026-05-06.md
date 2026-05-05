@@ -65,7 +65,7 @@ Status: complete after Nissan approval.
 
 ## Critical Success Factor Reset — 2026-05-06
 
-Nissan clarified that scoped Quasar proof is not enough. The final demo is blocked until it is fully Quasar-native.
+Nissan clarified that scoped Quasar proof is not enough. The final demo is ready only when every demo-critical on-chain path is fully Quasar-native.
 
 Changes to eligibility:
 
@@ -80,4 +80,4 @@ New hard gate:
 npm run check:quasar:critical-success
 ```
 
-Current blocker: `packages/demo-agents/src/demo.ts` must be ported/replaced with a Quasar-native full-flow demo, including escrow/settlement/MagicBlock PER decision evidence.
+Resolved 2026-05-06: `packages/demo-agents/src/demo.ts` now runs a Quasar-native full-flow demo across Quasar escrow, reputation, and attestation, with MagicBlock PER/TEE explicitly fail-closed/not claimed unless separately live-validated.

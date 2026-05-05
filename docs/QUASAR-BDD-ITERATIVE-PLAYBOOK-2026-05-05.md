@@ -653,3 +653,11 @@ Phase 14’s scoped-proof fallback is superseded as a final readiness strategy. 
 3. Some public surfaces still need copy/ID cleanup so they cannot visually imply the legacy Anchor program is the active demo state.
 
 **Validation gate:** `npm run check:quasar:critical-success` must pass before final readiness can be restored.
+
+### Phase 15 — Full Quasar critical-success closeout (2026-05-06)
+
+- **Expectation:** The final Colosseum demo cannot rely on a scoped Quasar proof or a legacy Anchor full-flow script. `packages/demo-agents/src/demo.ts` must execute a Quasar-native A→B→C path, and MagicBlock PER/TEE must be either live-validated on Quasar or explicitly removed from final claims.
+- **Implementation:** Ported `packages/demo-agents/src/demo.ts` to explicit Quasar mode with Quasar multi-program IDs: registry `Xk7jczJZ1HHJZuE1ZUWDqFmowxYhnom7mWzrNSGf9FU`, escrow `VYCbMszux9seLK2aXFZMECMBFURvfuJLXsXPmJS5igW`, reputation `nb9rLVjoHMibsgfRGgKuPqm6M8GVcH9r6bYNfg7Yiy6`, and attestation `CRGsWWkptdxsH6N6aWAyahLbuMsT58yM624EopEsv1Ex`. Quasar mode uses escrow make/take public settlement, reputation commit/reveal, and attestation attest. MagicBlock PER/TEE now fails closed/not claimed for the Quasar final path.
+- **Validation:** `DEMO_PROGRAM_TARGET=quasar DEMO_SETTLEMENT_MODE=public npm run demo --prefix packages/demo-agents` PASS in 8106ms. Escrow lock tx `njfAs12qtYD9P1Y1FpdPpwBPPwYgaihSNpWNGVVU7xT5oJDCFbBQmk9eqPHdRoYSrq8vaiw6pXs48oiXnadu7qQ`; settlement tx `29Hp6YKgBsWHnA9SwtEky4dc6UvKQcu4e7msSTkRPd3e3j1pxibzCz5pyXhVj4L1BDCLAqZm6YBrnyCYNH6iz8JS`; rating PDA `39M7XcFaTXmEmkrBLxRZpmVHRXD79GwbpRPVWbAkftgu`; attestation PDA `9YaMF1Wd2N9o2AxQeGsvdB8Yv7RH7WqiVpMTdHvexNTK`. `npm run check:quasar:submission` PASS. `npm run build` PASS.
+- **Retrospective:** The earlier scoped-proof boundary was too weak for the user’s actual goal. The hard gate caught the issue and prevented a premature “ready” claim. The honest final boundary is now: Quasar-native registry/escrow/reputation/attestation demo is ready; MagicBlock PER/TEE is not claimed in the final Quasar path without a separate live validation loop.
+- **Plan changes for next phase:** PR #244 can be reviewed as final Quasar critical-success work once GitHub checks are green. Do not reintroduce Anchor as a final-demo proof path; preserve legacy Anchor only as historical comparison.
