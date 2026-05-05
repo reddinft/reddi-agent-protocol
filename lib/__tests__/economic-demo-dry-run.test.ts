@@ -22,6 +22,21 @@ describe("economic demo dry-run planning", () => {
     expect(plan.plannedTotalUsd).toBeGreaterThan(0);
   });
 
+  it("keeps research orchestration separate from synthesis", () => {
+    const plan = buildEconomicDemoDryRunPlan("research");
+
+    expect(plan.orchestrator.id).toBe("agentic-workflow-system");
+    expect(plan.edges.map((edge) => edge.toProfileId)).toEqual([
+      "knowledge-retrieval-agent",
+      "scientific-research-agent",
+      "content-creation-agent",
+      "explainable-agent",
+      "verification-validation-agent",
+    ]);
+    expect(plan.edges.every((edge) => edge.status === "planned")).toBe(true);
+    expect(plan.downstreamCallsExecuted).toBe(0);
+  });
+
   it("keeps the picture path inside the tool-using adapter and validation chain", () => {
     const plan = buildEconomicDemoDryRunPlan("picture");
 
