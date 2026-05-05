@@ -11,10 +11,10 @@
 
 ## Current Branch / Repo State
 
-- Local branch: `chore/quasar-demo-readiness-guard-20260505` (PR #238, Phase 2 Quasar demo-readiness guard).
-- Local working tree: clean; local ignored evidence artifacts remain under `artifacts/manifest-parity-phase4/`, `artifacts/economic-demo-surfpool-rehearsal/20260505T021309Z/`, `artifacts/surfpool-smoke/20260505-121331/`, `artifacts/economic-demo-research-dry-run/20260505T025224Z/`, `artifacts/economic-demo-picture-storyboard/`, `artifacts/economic-demo-submission-prep/20260505T055411Z/`, and `artifacts/economic-demo-rehearsal/20260505T091725Z/`.
-- Latest merge on main: `3b04fd14 docs: plan Quasar hackathon cutover (#237)`.
-- Current PR: #238 `chore: guard Quasar demo readiness` — open, mergeable, all checks green (Anchor, BDD index, source conformance, Vercel).
+- Local branch: `feat/quasar-demo-program-target-20260505` (PR #239, Phase 3 explicit Quasar demo target wiring).
+- Local working tree: clean after PR #239 push; local ignored evidence artifacts remain under `artifacts/manifest-parity-phase4/`, `artifacts/economic-demo-surfpool-rehearsal/20260505T021309Z/`, `artifacts/surfpool-smoke/20260505-121331/`, `artifacts/economic-demo-research-dry-run/20260505T025224Z/`, `artifacts/economic-demo-picture-storyboard/`, `artifacts/economic-demo-submission-prep/20260505T055411Z/`, and `artifacts/economic-demo-rehearsal/20260505T091725Z/`.
+- Latest merge on main: `f7a1ec09 chore: guard Quasar demo readiness (#238)`.
+- Current PR: #239 `feat: wire explicit Quasar demo program target` — open; Vercel green; Anchor CI pending at last check.
 - PR #204: closed as superseded after Nissan accepted recommendation.
 - PR #214: merged 2026-05-05 AEST as `a290db7093458f45ca1b3dbc2a047b404c856a29`; post-merge Anchor run `25353582949`, job `74338163008` passed in 7m26s.
 - PR #215: merged 2026-05-05 AEST as `cd202ebd6360d29f0a896e852fe9f63c339fc4dc`; post-merge Anchor run `25353973718`, job `74339305929` passed in 7m23s.
