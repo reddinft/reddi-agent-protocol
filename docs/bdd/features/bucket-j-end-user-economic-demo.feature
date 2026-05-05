@@ -152,3 +152,10 @@ Feature: End-user economic workflow demo
     And the readiness gate must reject silent fallback to legacy Anchor program IDs
     And Anchor CI alone must not be presented as final hackathon submission proof
     And any missing Quasar deployment, signing, wallet, devnet, or environment action must be surfaced as an approval-gated blocker
+
+  Scenario: Quasar mode blocks unverified Anchor-only transaction builders
+    Given the hackathon demo program target is Quasar
+    When a runtime path constructs an on-chain instruction or decodes an on-chain account
+    Then the path must declare whether it is Quasar-compatible, Anchor-layout-only, or blocked pending verification
+    And Quasar demo readiness must fail if a demo-critical path uses an Anchor-layout-only builder without an explicit blocker
+    And the retrospective for the phase must decide whether the next loop ports builders or requests approval-gated live validation

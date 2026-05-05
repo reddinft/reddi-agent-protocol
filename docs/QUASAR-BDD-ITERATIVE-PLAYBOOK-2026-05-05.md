@@ -1,8 +1,8 @@
 # Quasar Hackathon Cutover — BDD Iterative Playbook
 
-_Date:_ 2026-05-05 AEST  
-_Issue:_ #236  
-_Goal:_ All hackathon submission demos use Quasar-deployed Solana programs.  
+_Date:_ 2026-05-05 AEST
+_Issue:_ #236
+_Goal:_ All hackathon submission demos use Quasar-deployed Solana programs.
 _Method:_ Small BDD loops with a retrospective after every phase, then plan refinement before the next phase starts.
 
 ## North star
@@ -181,21 +181,32 @@ Append this block under the relevant phase before proceeding:
 - Given the demo target is Quasar, when a transaction builder is selected, then it must either use a verified Quasar-compatible builder or fail with a clear compatibility blocker.
 - Given an account decoder reads Quasar-targeted accounts, then it must not apply Anchor account layout unless compatibility is documented.
 
-**Implementation plan:**
+**Implementation:** `config/quasar/runtime-compatibility.json` plus `npm run check:quasar:runtime-compatibility`.
 
-- Audit `lib/program.ts`, onboarding/reputation/attestation builders, registry bridge, and demo-agent builders.
-- Add `requiresAnchorLayout` / `requiresQuasarLayout` metadata or an equivalent compatibility boundary.
-- Add tests that fail if Quasar mode uses known Anchor-only builders without an explicit blocker.
+**Acceptance:**
 
-**Validation candidates:**
+- Demo-critical transaction/decode paths are listed with compatibility status.
+- `submissionReady=true` is impossible while any path is `anchor-layout-only` or `blocked-pending-quasar-port`.
+- BDD scenario documents the builder boundary.
 
-- targeted Jest for program/builders/registry bridge,
-- `npm run check:quasar:deployments`,
-- `npm run check:quasar:demo-readiness`,
-- `npm run test:bdd:index`,
-- `git diff --check`.
+**Validation:**
 
-**Retrospective requirement:** Decide whether Phase 5 is pure builder porting or whether deployment/signing approval is required first.
+- `npm run check:quasar:runtime-compatibility`
+- `npm run check:quasar:deployments`
+- `npm run check:quasar:demo-readiness`
+- `npm run test:bdd:index`
+- `git diff --check`
+
+### Retrospective — Phase 4
+
+- **Expected:** Identify Anchor-only runtime paths before porting builders.
+- **Observed:** Nine demo-critical paths still depend on Anchor-style discriminators, account layouts, or inline Anchor-era transaction construction.
+- **Validation:** Runtime compatibility guard passes while clearly reporting blockers.
+- **What worked:** Static boundary gives us a safe failing-forward contract without needing signing or live devnet execution.
+- **What failed / surprised us:** The demo-agent path is the densest blocker because it builds escrow, reputation, attestation, and PER instructions inline.
+- **Safety / approval review:** Static repo audit only; no signing, deployment, wallet/env mutation, paid calls, or live execution.
+- **Decision:** continue with builder porting; do not request live validation yet.
+- **Plan changes for next phase:** Phase 5 should start with extracting/porting shared Quasar instruction builders before touching the PER-heavy demo-agent flow.
 
 ### Phase 5 — Quasar transaction builder port
 
@@ -203,7 +214,9 @@ Append this block under the relevant phase before proceeding:
 
 **Implementation plan:**
 
-- Port or verify demo-critical builders for registry, escrow, reputation, attestation.
+- Start with shared builder extraction/port in `lib/program.ts` or a new Quasar-specific module.
+- Port/verify registry first, then escrow, reputation, attestation.
+- Leave PER/demo-agent inline flow blocked until shared builders are verified.
 - Do not port PER unless Quasar PER semantics are verified; keep as blocker if needed.
 - Add tests comparing expected instruction data and account metas to Quasar parity docs/source.
 
