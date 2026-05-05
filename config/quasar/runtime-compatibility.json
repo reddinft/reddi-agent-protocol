@@ -6,6 +6,12 @@
   "summary": "Static compatibility boundary for Quasar demo mode. Paths listed as anchor-layout-only or blocked must not be treated as Quasar submission-ready until ported/verified.",
   "demoCriticalPaths": [
     {
+      "path": "lib/quasar/instruction-builders.ts",
+      "surface": "shared Quasar instruction-data builders for registry/reputation/attestation",
+      "status": "quasar-compatible",
+      "reason": "Uses one-byte Quasar discriminators and fixed-size argument layouts from Quasar parity source/tests. Does not claim PER compatibility."
+    },
+    {
       "path": "lib/program.ts",
       "surface": "shared instruction builders and account decoders",
       "status": "anchor-layout-only",
