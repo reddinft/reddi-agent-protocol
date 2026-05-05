@@ -409,26 +409,40 @@ This is the staged plan from the current PR onward. Each phase remains a separat
 - **Decision:** Anchor CI remains as a legacy/reference quality gate, not final hackathon proof. Quasar readiness guard becomes the hackathon cutover gate.
 - **Plan changes for next phase:** Phase 11 should refresh judge packet/checklist copy to reflect: runtime blockers zero, submissionReady still false until final proof-chain language is updated, live PER not claimed without approval.
 
-### Phase 11 — Judge packet and submission refresh
+### Phase 11 — Judge packet and submission refresh ✅ implemented in PR #244
 
 **Expectation:** Public submission materials describe the Quasar-deployed demo path and do not lean on stale Anchor-era evidence.
 
-**Implementation plan:**
+**Implementation:**
 
-- Refresh judge packet, operator checklist, form copy, and recording script.
-- Include Quasar program ID, deployment evidence, compatibility status, known gaps, and approval-gated boundaries.
-- Include current PR/CI proof chain.
-- Keep unproven PER/privacy/live-settlement claims out of final copy.
+- Added `docs/QUASAR-SCOPED-JUDGE-PROOF-2026-05-06.md` as the explicit proof-boundary packet.
+- Refreshed `docs/ECONOMIC-DEMO-JUDGE-PACKET-2026-05-05.md` from Anchor-era/superseded language to scoped Quasar proof language.
+- Refreshed `docs/ECONOMIC-DEMO-OPERATOR-CHECKLIST-2026-05-05.md` so operator narration uses Quasar submission guard and does not claim live PER/TEE.
+- Refreshed `docs/QUASAR-HACKATHON-CUTOVER-PLAN-2026-05-05.md` current-state audit to reflect zero runtime blockers and Quasar PR guard.
+- Updated deployment inventory to `submissionReady=true` for the scoped proof boundary, with live PER/TEE and live actions moved to `knownLimitations` rather than unresolved blockers.
 
 **Acceptance:**
 
 - A reviewer can see what is proven, what is local/simulated, and what is not claimed.
 - The packet names the correct Quasar program target.
+- Anchor CI is retained only as historical/reference evidence, not final proof.
 - All local ignored artifacts are referenced only as operator pointers, not published raw.
 
-**Validation candidates:** `check:quasar:demo-readiness`, docs grep for Anchor-as-final-proof language, build/BDD, PR checks.
+**Validation:**
 
-**Retrospective requirement:** Decide if `submissionReady` can become true or remains blocked.
+- `npm run check:quasar:submission`
+- Full build/Jest/BDD/diff gates before push.
+
+### Retrospective — Phase 11
+
+- **Expected:** Refresh public-facing packet/checklist so `submissionReady` can either become true or remain blocked with a precise reason.
+- **Observed:** After Phase 10, remaining blockers were language/proof-boundary gaps, not runtime blockers. Once the packet explicitly scoped out live PER/TEE and legacy full-flow proof, readiness could become true for the scoped Quasar proof boundary.
+- **Validation:** Quasar readiness guard now passes without expected BLOCKED output after inventory update.
+- **What worked:** Separating `knownLimitations` from `knownGaps` avoided overstating: live PER is not proven, but it is also not claimed by the packet.
+- **What failed / surprised us:** The economic demo packet needed stronger language to prevent reviewers from reading old Anchor PR rows as Quasar final proof.
+- **Safety / approval review:** Local docs/config only; no signing, send, deployment, wallet/env mutation, paid calls, or live execution.
+- **Decision:** `submissionReady=true` for scoped Quasar proof, not for live PER/TEE proof.
+- **Plan changes for next phase:** Phase 12 should be a final approval-gated validation decision: either stop with local proof ready, or ask Nissan before any live devnet/PER/signing validation.
 
 ### Phase 12 — Approval-gated final validation, only if needed
 

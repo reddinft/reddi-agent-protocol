@@ -1,8 +1,8 @@
 # Economic Demo Operator Checklist
 
-_Date:_ 2026-05-05 AEST  
-_Status:_ Phase 2 committed checklist for Issue #228  
-_Demo route:_ `/economic-demo`  
+_Date:_ 2026-05-05 AEST
+_Status:_ Scoped Quasar operator checklist for Issue #236
+_Demo route:_ `/economic-demo`
 _Local preflight:_ `npm run check:economic-demo:submission-prep`
 
 ## Purpose
@@ -14,15 +14,16 @@ This checklist is public-safe repo documentation. It references local ignored ev
 
 ## Quasar cutover operator note
 
-Hackathon demos now target Quasar-deployed Solana programs, not the legacy Anchor deployment. Candidate devnet Quasar program: `VYCbMszux9seLK2aXFZMECMBFURvfuJLXsXPmJS5igW` (`config/quasar/deployments.json`). Treat any missing Quasar runtime wiring, PER/privacy-aware settlement proof, judge-packet refresh, signing, deployment, wallet mutation, devnet transfer, Coolify/env mutation, or paid/live provider call as an approval-gated blocker. Anchor CI can be cited only as historical/legacy implementation evidence, never as final Quasar submission proof.
+Hackathon demos now target Quasar-deployed Solana programs, not the legacy Anchor deployment. Candidate devnet Quasar program: `VYCbMszux9seLK2aXFZMECMBFURvfuJLXsXPmJS5igW` (`config/quasar/deployments.json`). Runtime compatibility is now cut over for scoped Quasar proof paths. Treat live PER/TEE execution, signing, deployment, wallet mutation, devnet transfer, Coolify/env mutation, or paid/live provider calls as approval-gated blockers. Anchor CI can be cited only as historical/legacy implementation evidence, never as final Quasar submission proof. Use `docs/QUASAR-SCOPED-JUDGE-PROOF-2026-05-06.md` as the proof boundary.
 
 ## Before recording
 
 1. Confirm the repo is on the intended branch or `main`.
-2. Run the local prep checker:
+2. Run the local prep checker and Quasar submission guard:
 
    ```bash
    npm run check:economic-demo:submission-prep
+   npm run check:quasar:submission
    ```
 
 3. Confirm the latest prep pack exists locally under `artifacts/economic-demo-submission-prep/`.
@@ -88,13 +89,14 @@ Point to:
 
 Say:
 
-> The current local/demo-prep chain is merged and green through GitHub Actions. Future live research or real image generation is a separate explicit approval step with provider, model, and budget caps.
+> The Quasar scoped-proof chain has runtime compatibility, deployment inventory, and demo-readiness guards. Future live PER/TEE, live research, or real image generation is a separate explicit approval step with network/provider/model/budget caps.
 
 Cite:
 
-- PR #225 — local evidence UI links; post-merge Anchor run `25359075289`.
-- PR #229 — BDD iterative submission readiness plan; post-merge Anchor run `25360618730`.
-- PR #230 — local submission-prep checker; post-merge Anchor run `25361165874`.
+- PR #244 — Quasar scoped runtime proof and readiness guard (pending merge).
+- `docs/QUASAR-SCOPED-JUDGE-PROOF-2026-05-06.md` — proof boundary and cutover answers.
+- `npm run check:quasar:submission` — runtime/deployment/readiness guard.
+- PR #225/#229/#230 — historical economic-demo local evidence loop; Anchor-era only.
 
 ## What is proven now
 
@@ -102,11 +104,13 @@ Cite:
 - The local evidence panel points to deterministic local artifacts.
 - The picture path is storyboard-only and blocks real image generation by default.
 - The submission-prep pack is locally checkable.
+- The Quasar runtime/deployment/readiness guard is locally and CI checkable.
 - The BDD plan requires retrospective and refinement before scope expansion.
 
 ## What is explicitly not claimed
 
 - No production settlement proof.
+- No live PER/TEE proof unless Nissan separately approves it.
 - No Phase 6 controlled live research proof.
 - No real OpenAI/Fal-generated image proof.
 - No new paid provider execution.
