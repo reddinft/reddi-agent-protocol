@@ -114,15 +114,23 @@ Requires explicit approval before action:
 
 **Expectation:** Demo code resolves Quasar program IDs from the new config when in hackathon/demo mode.
 
-**Implementation target:** Update `lib/program.ts`, network profiles, demo routes/scripts, and visible UI copy to use Quasar deployment metadata for hackathon demos while leaving Anchor as a clearly-labelled legacy/reference path if still needed.
+**Implementation:** `NEXT_PUBLIC_DEMO_PROGRAM_TARGET=quasar` / `HACKATHON_DEMO_TARGET=quasar` / `DEMO_PROGRAM_TARGET=quasar` now selects the Quasar devnet program from `config/quasar/deployments.json` in app runtime config. Demo-agent config mirrors the same target flag.
 
 **Acceptance:**
 
 - Local tests prove Quasar IDs are used in hackathon/demo mode.
 - Tests prove legacy Anchor IDs are not silently used.
-- UI surfaces state Quasar deployment status honestly.
+- Runtime exports expose `PROGRAM_COMPATIBILITY=quasar-layout-unverified` so target selection is not misread as instruction/layout proof.
 
-**Retrospective:** Decide whether Anchor CI should be removed, renamed, or kept as legacy reference.
+**Validation:**
+
+- `npx jest --runTestsByPath lib/__tests__/quasar-demo-program-config.test.ts lib/__tests__/program-network-alignment.test.ts lib/__tests__/program-rpc-config.test.ts --runInBand`
+- `npm run check:quasar:deployments`
+- `npm run check:quasar:demo-readiness`
+- `npm run test:bdd:index`
+- `git diff --check`
+
+**Retrospective:** Runtime ID selection is wired, but transaction builders and account decoders still need Quasar layout verification before submissionReady can become true. Package demo-agent TypeScript project has a pre-existing `rootDir` issue when typechecking due `packages/x402-solana/src/*` imports outside `packages/demo-agents/src`; this is a separate tooling blocker to fix before using package-level `tsc` as a gate.
 
 ### Phase 4 — CI cutover
 

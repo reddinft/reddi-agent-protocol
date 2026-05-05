@@ -14,6 +14,13 @@ const network = getNetworkProfile();
 /** Deployed program address (resolved from active network profile / env) */
 export const ESCROW_PROGRAM_ID = new PublicKey(network.programs.escrowProgramId);
 
+/** Active on-chain implementation target. Quasar target selection does not imply Anchor layout compatibility. */
+export const PROGRAM_TARGET = network.programs.target;
+export const PROGRAM_FRAMEWORK = network.programs.framework;
+export const PROGRAM_COMPATIBILITY = network.programs.compatibility;
+export const PROGRAM_SUBMISSION_READY = network.programs.submissionReady;
+export const PROGRAM_KNOWN_GAPS = network.programs.knownGaps;
+
 /** Solana RPC endpoint from active network profile */
 export const DEVNET_RPC = network.solana.rpcHttp;
 

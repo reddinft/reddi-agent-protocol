@@ -1,8 +1,10 @@
 import devnetProfile from "@/config/networks/devnet.json";
 import localSurfpoolProfile from "@/config/networks/local-surfpool.json";
 import mainnetProfile from "@/config/networks/mainnet.json";
+import quasarDeployments from "@/config/quasar/deployments.json";
 
 export type NetworkProfileName = "local-surfpool" | "devnet" | "mainnet";
+export type ProgramTarget = "legacy-anchor" | "quasar";
 
 export type NetworkProfile = {
   name: NetworkProfileName;
@@ -14,6 +16,12 @@ export type NetworkProfile = {
   };
   programs: {
     escrowProgramId: string;
+    target: ProgramTarget;
+    framework: "anchor" | "quasar";
+    compatibility: "anchor-layout" | "quasar-layout-unverified";
+    submissionReady: boolean;
+    submissionReadyReason?: string;
+    knownGaps: string[];
   };
   payments: {
     jupiterApiBase: string;
@@ -50,21 +58,36 @@ export function resolveNetworkProfileName(): NetworkProfileName {
   return "devnet";
 }
 
+export function resolveProgramTarget(): ProgramTarget {
+  const raw = (
+    pickEnv("NEXT_PUBLIC_DEMO_PROGRAM_TARGET", "HACKATHON_DEMO_TARGET", "DEMO_PROGRAM_TARGET") ?? "legacy-anchor"
+  ).toLowerCase();
+
+  if (raw === "quasar") return "quasar";
+  return "legacy-anchor";
+}
+
 export function getNetworkProfile(): NetworkProfile {
   const name = resolveNetworkProfileName();
   const base = PROFILES[name];
+  const requestedTarget = resolveProgramTarget();
+  const quasarDevnet = quasarDeployments.quasarDeployments.devnet;
+  const target: ProgramTarget = name === "devnet" && requestedTarget === "quasar" ? "quasar" : "legacy-anchor";
 
   const rpcOverride = pickEnv("NEXT_PUBLIC_RPC_ENDPOINT", "NEXT_PUBLIC_RPC_URL", "DEMO_DEVNET_RPC");
   const escrowOverride = pickEnv("NEXT_PUBLIC_ESCROW_PROGRAM_ID", "DEMO_ESCROW_PROGRAM_ID");
   const allowUnsafeDevnetOverride = pickEnv("ALLOW_UNSAFE_ESCROW_OVERRIDE") === "true";
 
+  const targetProgramId = target === "quasar" ? quasarDevnet.programId : base.programs.escrowProgramId;
+
   const effectiveEscrowProgramId =
     name === "devnet" &&
+    target === "legacy-anchor" &&
     escrowOverride &&
-    escrowOverride !== base.programs.escrowProgramId &&
+    escrowOverride !== targetProgramId &&
     !allowUnsafeDevnetOverride
-      ? base.programs.escrowProgramId
-      : escrowOverride ?? base.programs.escrowProgramId;
+      ? targetProgramId
+      : escrowOverride ?? targetProgramId;
 
   return {
     ...base,
@@ -76,6 +99,12 @@ export function getNetworkProfile(): NetworkProfile {
     programs: {
       ...base.programs,
       escrowProgramId: effectiveEscrowProgramId,
+      target,
+      framework: target === "quasar" ? "quasar" : "anchor",
+      compatibility: target === "quasar" ? "quasar-layout-unverified" : "anchor-layout",
+      submissionReady: target === "quasar" ? quasarDeployments.submissionReady : true,
+      submissionReadyReason: target === "quasar" ? quasarDeployments.submissionReadyReason : undefined,
+      knownGaps: target === "quasar" ? quasarDevnet.knownGaps : [],
     },
     payments: {
       ...base.payments,
