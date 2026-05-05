@@ -18,6 +18,7 @@ import {
 } from "@/lib/economic-demo/webpage-live-workflow-evidence";
 import type { EconomicDemoLedgerReconciliation } from "@/lib/economic-demo/ledger-reconciliation";
 import type { ResearchWorkflowDesign } from "@/lib/economic-demo/research-workflow-design";
+import type { PictureStoryboardDesign } from "@/lib/economic-demo/picture-storyboard-design";
 
 function shortWallet(wallet: string) {
   return `${wallet.slice(0, 8)}…${wallet.slice(-6)}`;
@@ -46,6 +47,8 @@ export default function EconomicDemoPage() {
   const [ledgerReconciliationStatus, setLedgerReconciliationStatus] = useState<"idle" | "loading" | "loaded" | "error">("idle");
   const [researchDesign, setResearchDesign] = useState<ResearchWorkflowDesign | null>(null);
   const [researchDesignStatus, setResearchDesignStatus] = useState<"idle" | "loading" | "loaded" | "error">("idle");
+  const [pictureStoryboardDesign, setPictureStoryboardDesign] = useState<PictureStoryboardDesign | null>(null);
+  const [pictureStoryboardStatus, setPictureStoryboardStatus] = useState<"idle" | "loading" | "loaded" | "error">("idle");
   const scenario = useMemo(
     () => economicDemoScenarios.find((candidate) => candidate.id === scenarioId) ?? economicDemoScenarios[0],
     [scenarioId],
@@ -155,6 +158,19 @@ export default function EconomicDemoPage() {
     }
   }
 
+  async function loadPictureStoryboardDesign() {
+    setPictureStoryboardStatus("loading");
+    try {
+      const res = await fetch("/api/economic-demo/picture-storyboard-design");
+      const payload = (await res.json()) as { ok?: boolean; design?: PictureStoryboardDesign };
+      if (!res.ok || !payload.ok || !payload.design) throw new Error("picture_storyboard_failed");
+      setPictureStoryboardDesign(payload.design);
+      setPictureStoryboardStatus("loaded");
+    } catch {
+      setPictureStoryboardStatus("error");
+    }
+  }
+
   return (
     <main className="min-h-screen bg-page">
       <section className="relative overflow-hidden border-b border-white/5">
@@ -246,6 +262,13 @@ export default function EconomicDemoPage() {
                 >
                   {researchDesignStatus === "loading" ? "Designing research path…" : "Design research workflow"}
                 </button>
+                <button
+                  onClick={loadPictureStoryboardDesign}
+                  disabled={pictureStoryboardStatus === "loading"}
+                  className="rounded-lg border border-yellow-400/30 bg-yellow-400/10 px-4 py-2 text-sm font-semibold text-yellow-100 transition hover:bg-yellow-400/15 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {pictureStoryboardStatus === "loading" ? "Building storyboard…" : "Design picture storyboard"}
+                </button>
                 <span className="text-xs text-gray-500">
                   Uses deployed 30-agent profile metadata · zero downstream calls
                 </span>
@@ -283,6 +306,11 @@ export default function EconomicDemoPage() {
               {researchDesignStatus === "error" && (
                 <p className="mt-3 rounded-lg border border-yellow-400/30 bg-yellow-400/10 p-3 text-sm text-yellow-100">
                   Research workflow design failed. No live call or Coolify mutation was attempted.
+                </p>
+              )}
+              {pictureStoryboardStatus === "error" && (
+                <p className="mt-3 rounded-lg border border-yellow-400/30 bg-yellow-400/10 p-3 text-sm text-yellow-100">
+                  Picture storyboard design failed. No image-generation provider, signing, or transfer was attempted.
                 </p>
               )}
               <dl className="mt-5 grid grid-cols-2 gap-3 text-sm">
@@ -523,6 +551,59 @@ export default function EconomicDemoPage() {
                         <li>No devnet transfer: {String(researchDesign.guardrails.noDevnetTransfer)}</li>
                       </ul>
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {pictureStoryboardDesign && (
+                <div className="mt-6 rounded-xl border border-yellow-400/25 bg-yellow-400/10 p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-yellow-100">Phase 7 picture storyboard dry-run</p>
+                      <p className="mt-1 text-sm leading-6 text-gray-200">{pictureStoryboardDesign.userRequest}</p>
+                      <p className="mt-2 text-xs leading-5 text-gray-400">
+                        Orchestrator: <span className="font-mono text-white">{pictureStoryboardDesign.orchestrator.profileId}</span> — {pictureStoryboardDesign.orchestrator.separationRationale}
+                      </p>
+                    </div>
+                    <span className="rounded-full border border-yellow-400/40 bg-yellow-400/10 px-2 py-0.5 text-xs text-yellow-100">
+                      storyboard · images generated: {pictureStoryboardDesign.imageGenerationExecuted}
+                    </span>
+                  </div>
+                  <div className="mt-4 grid gap-3 md:grid-cols-2">
+                    {pictureStoryboardDesign.storyboard.map((frame) => (
+                      <div key={frame.frame} className="rounded-lg border border-white/10 bg-black/20 p-3">
+                        <p className="font-mono text-sm text-white">Frame {frame.frame}: {frame.title}</p>
+                        <p className="mt-2 text-sm leading-6 text-gray-300">{frame.visualPrompt}</p>
+                        <p className="mt-2 text-xs leading-5 text-red-100">Negative prompt: {frame.negativePrompt}</p>
+                        <p className="mt-1 text-xs leading-5 text-yellow-100">Evidence caveat: {frame.evidenceCaveat}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-4 space-y-2">
+                    {pictureStoryboardDesign.edges.map((edge) => (
+                      <div key={`${edge.step}-${edge.profileId}`} className="rounded-lg border border-white/10 bg-black/20 p-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <p className="font-mono text-sm text-white">{edge.step}. {edge.profileId}</p>
+                          <span className={edge.status === "blocked" ? "rounded-full border border-red-400/40 bg-red-400/10 px-2 py-0.5 text-xs text-red-200" : "rounded-full border border-white/15 bg-white/5 px-2 py-0.5 text-xs text-gray-300"}>{edge.status}</span>
+                        </div>
+                        <p className="mt-1 text-xs text-gray-400">{edge.payloadClass.replaceAll("_", " ")} · {edge.capability} · {edge.priceUsdc} USDC</p>
+                        <p className="mt-2 text-sm leading-6 text-gray-300">{edge.scopedPayload}</p>
+                        <p className="mt-2 text-xs leading-5 text-[#14F195]">Expected output: {edge.expectedOutput}</p>
+                        <p className="mt-1 text-xs leading-5 text-yellow-100">Guardrail: {edge.guardrail}</p>
+                        <p className="mt-2 text-xs text-gray-500">
+                          Ledger: {edge.disclosureLedgerExpectation.requiredSchemaVersion} · {edge.disclosureLedgerExpectation.x402State} · calls {edge.disclosureLedgerExpectation.downstreamCallsExecuted}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-4 rounded-lg border border-white/10 bg-black/20 p-3">
+                    <p className="text-xs uppercase tracking-wide text-gray-400">Provider guardrails</p>
+                    <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-6 text-gray-300">
+                      <li>OpenAI image generation: {String(!pictureStoryboardDesign.guardrails.noOpenAiImageGeneration)}</li>
+                      <li>Fal.ai image generation: {String(!pictureStoryboardDesign.guardrails.noFalImageGeneration)}</li>
+                      <li>Paid provider requests: {String(!pictureStoryboardDesign.guardrails.noPaidProviderRequests)}</li>
+                      <li>Signing/wallet mutation/devnet transfer: {String(!(pictureStoryboardDesign.guardrails.noSigningOperations && pictureStoryboardDesign.guardrails.noWalletMutation && pictureStoryboardDesign.guardrails.noDevnetTransfer))}</li>
+                    </ul>
                   </div>
                 </div>
               )}

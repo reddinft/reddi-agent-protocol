@@ -1,7 +1,7 @@
 # Agentic Marketplace Manifest + Disclosure Ledger — BDD Iterative Plan
 
 _Date:_ 2026-05-05 AEST  
-_Status:_ Active after Phase 5 research dry-run disclosure implementation; artifact generator slice in progress
+_Status:_ Active after Phase 5 research dry-run artifact generator merge; Phase 7 storyboard dry-run local slice in progress
 _Related:_ PR #202, PR #203, PR #205, PR #214, `ECONOMIC-DEMO-BDD-ITERATIVE-ROADMAP-2026-05-04.md`, Bucket J BDD feature
 
 ## North star
@@ -43,7 +43,8 @@ Shipped:
 Still pending:
 
 - Live economic workflow evidence still predates hosted manifest parity and should only be regenerated under an explicit live-run approval gate.
-- Research workflow design now has a disclosure-ledger-first dry-run graph; artifact generation is being added before any live research calls.
+- Research workflow design now has a disclosure-ledger-first dry-run graph and deterministic artifact generator before any live research calls.
+- Phase 6 live research is skipped for now because it needs explicit hosted/devnet spend approval; Phase 7 storyboard dry-run is the next safe local proof.
 - Picture workflow expansion remains behind research planning and explicit image-generation approval.
 
 ## Phase 0 — Plan + BDD lock
@@ -330,6 +331,22 @@ Every planned edge must declare payload class, disclosure-ledger expectation, x4
 - optional approval-gated image run later.
 
 **Retrospective prompt:** Is storyboard mode sufficient for judging, or do we need approval-gated real image generation?
+
+### Retrospective — Phase 5 research dry-run artifact generator
+
+- **What worked:** The research dry-run graph is now serializable as a deterministic local artifact with mode `dry_run_no_live_calls`, planned x402 state on every edge, and zero live/provider/signing/wallet/devnet activity.
+- **What failed or surprised us:** The artifact generator needed runtime TypeScript transpilation because the repo does not emit a standalone build artifact for these library helpers. The script keeps alias resolution local and asserts dry-run guardrails before writing output.
+- **Safety/spend review:** Local artifact generation only. No hosted specialist calls, no paid provider requests, no Coolify mutation, no signing, no wallet mutation, and no devnet transfer.
+- **Judge clarity:** Improved: reviewers can inspect one JSON artifact that names the orchestrator, five planned research edges, disclosure-ledger expectations, and safety review counters.
+- **Plan adjustment:** Do not proceed to Phase 6 live research without explicit approval. Continue to Phase 7 storyboard dry-run so the picture path proves adapter gating without hidden image spend.
+
+### Retrospective — Phase 7 storyboard dry-run design
+
+- **What worked:** The picture path now models `tool-using-agent` as an adapter-gating orchestrator, marks `image-generation-adapter` as blocked, and produces storyboard frames with positive prompts, negative prompts, and evidence caveats.
+- **What failed or surprised us:** The existing picture dry-run graph included `tool-using-agent` as an edge target as well as orchestrator. The dedicated storyboard design makes that self-planning step explicit and keeps the provider adapter blocked.
+- **Safety/spend review:** Design/API/UI only. No OpenAI call, no Fal.ai call, no paid provider request, no signing, no wallet mutation, and no devnet transfer.
+- **Judge clarity:** Improved: storyboard mode can be shown as an honest visual proof plan, not mistaken for generated image evidence.
+- **Plan adjustment:** If the storyboard is sufficient for judging, stop before spend. If a real image is needed, request separate approval with provider, budget cap, and disclosure evidence requirements.
 
 ---
 

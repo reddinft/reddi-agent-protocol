@@ -32,6 +32,16 @@ Feature: End-user economic workflow demo
     And the generated image is available to the workflow
     And vision validation and verification attestation can be attached afterward
 
+  Scenario: Picture workflow dry-run produces a storyboard without hidden image spend
+    Given picture workflow planning is in storyboard dry-run mode
+    And ENABLE_ECONOMIC_DEMO_IMAGE_GENERATION is not true
+    When the picture storyboard graph is proposed
+    Then it includes visual brief, blocked image adapter, storyboard validation, and release attestation edges
+    And the blocked image adapter edge has downstream-disclosure ledger expectation reddi.downstream-disclosure-ledger.v1
+    And the storyboard frames include positive prompts, negative prompts, and evidence caveats
+    And imageGenerationExecuted is 0
+    And no OpenAI request, Fal.ai request, paid provider request, signing operation, wallet mutation, or devnet transfer occurs
+
   Scenario: Dry-run orchestration builds a real planned economic graph
     Given dry-run marketplace delegation is enabled
     When the user submits an end-user scenario
