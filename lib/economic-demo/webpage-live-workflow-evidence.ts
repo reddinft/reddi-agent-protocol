@@ -58,6 +58,13 @@ export type WebpageLiveWorkflowEvidence = {
   schemaVersion: "reddi.economic-demo.webpage.live-x402-workflow.summary.v1";
   generatedAt: string;
   sourceArtifactPath: string;
+  latestEvidencePack?: {
+    schemaVersion: string;
+    generatedAt: string;
+    artifactPath: string;
+    sourceArtifactPath: string | null;
+    disclosureLedgerSummary: WebpageLiveWorkflowDisclosureLedgerSummary;
+  };
   mode: "controlled_demo_receipt_multi_edge_webpage_workflow";
   scenarioId: "webpage";
   userRequest: string;
@@ -89,8 +96,8 @@ export function getDisclosureLedgerEvidenceStatus(summary: WebpageLiveWorkflowDi
   };
 }
 
-export function getWebpageLiveWorkflowEvidence(): WebpageLiveWorkflowEvidence {
-  const disclosureLedgerSummary: WebpageLiveWorkflowDisclosureLedgerSummary = {
+export function getFallbackDisclosureLedgerSummary(): WebpageLiveWorkflowDisclosureLedgerSummary {
+  return {
     schemaVersion: "reddi.economic-demo.disclosure-ledger-summary.v1",
     requiredLedgerSchemaVersion: "reddi.downstream-disclosure-ledger.v1",
     allEdgesHaveDisclosureLedger: false,
@@ -113,7 +120,9 @@ export function getWebpageLiveWorkflowEvidence(): WebpageLiveWorkflowEvidence {
       entries: [],
     })),
   };
+}
 
+export function getStaticWebpageLiveWorkflowEvidence(): WebpageLiveWorkflowEvidence {
   return {
     schemaVersion: "reddi.economic-demo.webpage.live-x402-workflow.summary.v1",
     generatedAt: "2026-05-04T09:35:08.940Z",
@@ -124,7 +133,7 @@ export function getWebpageLiveWorkflowEvidence(): WebpageLiveWorkflowEvidence {
       "Design me a webpage for a trustless AI agent marketplace where users pay specialist agents via x402 and receive attested outputs.",
     conclusion: "multi_edge_paid_workflow_reached",
     downstreamCallsExecuted: 8,
-    disclosureLedgerSummary,
+    disclosureLedgerSummary: getFallbackDisclosureLedgerSummary(),
     edges: [
       {
         step: 1,
@@ -228,4 +237,8 @@ export function getWebpageLiveWorkflowEvidence(): WebpageLiveWorkflowEvidence {
     ],
     nextStep: "Generate a judge-facing evidence pack and reconcile controlled receipt amounts with the ledger view.",
   };
+}
+
+export function getWebpageLiveWorkflowEvidence(): WebpageLiveWorkflowEvidence {
+  return getStaticWebpageLiveWorkflowEvidence();
 }
