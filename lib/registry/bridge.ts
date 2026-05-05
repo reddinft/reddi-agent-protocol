@@ -21,8 +21,9 @@ import { join } from "path";
 import {
   DEVNET_RPC,
   ESCROW_PROGRAM_ID,
-  ACCOUNT_DISC,
-  decodeAgentAccount,
+  ACTIVE_AGENT_ACCOUNT_DATA_SIZE,
+  ACTIVE_AGENT_ACCOUNT_DISC,
+  decodeActiveAgentAccount,
   type OnchainAgent,
 } from "@/lib/program";
 import {
@@ -190,19 +191,17 @@ export async function fetchSpecialistListings(): Promise<{
 
   try {
     const conn = new Connection(DEVNET_RPC, "confirmed");
-    const disc = ACCOUNT_DISC.AgentAccount;
-
     const accounts = await conn.getProgramAccounts(ESCROW_PROGRAM_ID, {
       commitment: "confirmed",
       filters: [
-        { memcmp: { offset: 0, bytes: toBase58(disc) } },
-        { dataSize: 150 },
+        { memcmp: { offset: 0, bytes: toBase58(ACTIVE_AGENT_ACCOUNT_DISC) } },
+        { dataSize: ACTIVE_AGENT_ACCOUNT_DATA_SIZE },
       ],
     });
 
     onchainAgents = accounts
       .map(({ pubkey, account }) => {
-        const agent = decodeAgentAccount(Buffer.from(account.data));
+        const agent = decodeActiveAgentAccount(Buffer.from(account.data));
         if (!agent) return null;
         return { pda: pubkey.toBase58(), agent };
       })

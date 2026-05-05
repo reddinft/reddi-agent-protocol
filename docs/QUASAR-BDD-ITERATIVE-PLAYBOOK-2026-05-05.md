@@ -261,7 +261,7 @@ This is the staged plan from the current PR onward. Each phase remains a separat
 - **Decision:** continue.
 - **Plan changes for next phase:** Move from honesty surfaces back to blocker reduction. Phase 7 should start with read/decode compatibility because judge screenshots depend on not accidentally showing Anchor-filtered account data in Quasar mode.
 
-### Phase 7 — Read/decode Quasar compatibility
+### Phase 7 — Read/decode Quasar compatibility ✅ implemented in PR #244
 
 **Expectation:** Marketplace and app read paths either decode Quasar accounts correctly or fail closed with explicit status.
 
@@ -270,23 +270,36 @@ This is the staged plan from the current PR onward. Each phase remains a separat
 - Given the demo target is Quasar, when registry data is read for marketplace or `/agents`, then the path must not use Anchor account discriminator filtering unless marked legacy-only.
 - Given Quasar account layout is not fully verified, when a reader would produce a misleading agent list, then it must surface a blocker instead of silently showing Anchor data.
 
-**Implementation plan:**
+**Implementation:**
 
-1. Inspect Quasar registry account layout from parity source/reports.
-2. Add a target-aware decode boundary for registry agent accounts.
-3. Port `lib/registry/bridge.ts` or mark it non-demo-critical with explicit rationale.
-4. Port `lib/useOnchainAgents.ts` or add UI/readiness blocking where required.
-5. Update `runtime-compatibility.json` and retrospective.
+1. Inspected Quasar attestation parity source for final AgentAccount layout: one-byte account discriminator `20`, 153-byte account data, fixed `model: [u8;64]`, and `attestation_accuracy` after bump.
+2. Added target-aware account discriminator/data-size constants and `decodeQuasarAgentAccount` / `decodeActiveAgentAccount` in `lib/program.ts`.
+3. Ported `lib/registry/bridge.ts` and `lib/useOnchainAgents.ts` to use active target filters and active decoder instead of Anchor-only memcmp/data-size/decode.
+4. Added fixture tests for Quasar AgentAccount decoding and active Quasar mode.
+5. Updated runtime compatibility inventory: read/decode blockers reduced from 6 to 4.
 
 **Acceptance:**
 
-- Read/decode blockers are reduced or transformed into explicit non-demo-critical blockers.
-- Any Quasar decoder has fixture tests covering discriminator/layout assumptions.
-- Anchor decode remains available only in legacy mode.
+- Read/decode blockers are reduced from 6 to 4.
+- Quasar decoder has fixture tests covering discriminator, data size, fixed model layout, invalid discriminator, and invalid model length.
+- Anchor decode remains available through legacy target mode.
 
-**Validation candidates:** targeted decoder tests, `npm run build`, runtime/readiness guards, BDD index, `git diff --check`.
+**Validation:**
 
-**Retrospective requirement:** Decide whether read/decode proof is enough for a judge packet screenshot, or whether transaction flows must be completed first.
+- `npx jest --runTestsByPath lib/__tests__/quasar-agent-account-decoder.test.ts --runInBand`
+- `npm run check:quasar:runtime-compatibility`
+- Full build/readiness/BDD gates before push.
+
+### Retrospective — Phase 7
+
+- **Expected:** Read/decode paths should stop filtering Quasar accounts with Anchor account discriminators and Anchor data sizes.
+- **Observed:** The Quasar parity source gave exact offsets, letting us implement a deterministic decoder without live RPC or signing.
+- **Validation:** Focused decoder tests passed; runtime compatibility now reports 4 blockers instead of 6.
+- **What worked:** Reusing one active decoder/filter boundary fixed both server bridge and client hook without duplicating layout logic.
+- **What failed / surprised us:** Quasar comments in test source used “disc=1” wording while the account macro uses discriminator 20; offset math and account macro confirm the actual account discriminator is byte 20.
+- **Safety / approval review:** Local source/tests only; no signing, send, deployment, wallet/env mutation, paid calls, or live execution.
+- **Decision:** continue.
+- **Plan changes for next phase:** Phase 8 should port reputation commit/reveal and remaining onboarding transaction paths; read/decode is now good enough for screenshots only if transaction readiness remains honestly marked blocked.
 
 ### Phase 8 — Reputation and onboarding remaining transaction paths
 

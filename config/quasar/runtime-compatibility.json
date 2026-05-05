@@ -68,14 +68,14 @@
     {
       "path": "lib/registry/bridge.ts",
       "surface": "on-chain AgentAccount decoder/filter",
-      "status": "anchor-layout-only",
-      "reason": "Filters by Anchor account discriminator and decodes Anchor account layout."
+      "status": "quasar-compatible",
+      "reason": "Uses active target account discriminator/data-size constants and target-aware AgentAccount decode; Quasar mode filters one-byte discriminator 20 and fixed-size Quasar AgentAccount layout."
     },
     {
       "path": "lib/useOnchainAgents.ts",
       "surface": "client-side AgentAccount fetch/decode",
-      "status": "anchor-layout-only",
-      "reason": "Filters by Anchor account discriminator and decodes Anchor account layout."
+      "status": "quasar-compatible",
+      "reason": "Uses active target account discriminator/data-size constants and target-aware AgentAccount decode; Quasar mode no longer applies Anchor memcmp/data-size filters."
     },
     {
       "path": "packages/demo-agents/src/register-agents.ts",
