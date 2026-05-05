@@ -1,0 +1,36 @@
+name: Quasar Readiness Guard
+
+on:
+  pull_request:
+    paths:
+      - "app/**"
+      - "config/quasar/**"
+      - "docs/QUASAR-*.md"
+      - "docs/verifiable-agent-protocol/colosseum-frontier-2026-04/QUASAR-*.md"
+      - "lib/**"
+      - "packages/demo-agents/**"
+      - "scripts/check-quasar-*.mjs"
+      - "package.json"
+      - "package-lock.json"
+  workflow_dispatch:
+
+jobs:
+  quasar-readiness:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify Quasar runtime/deployment/readiness guards
+        run: npm run check:quasar:submission

@@ -376,26 +376,38 @@ This is the staged plan from the current PR onward. Each phase remains a separat
 - **Decision:** Quasar final proof boundary is scoped proof, not full-flow PER proof. PER remains future/approval-gated live validation.
 - **Plan changes for next phase:** Phase 10 should convert the zero-blocker runtime inventory into CI/readiness language, update Quasar deployment known gaps from broad runtime wiring to scoped live-PER/judge-packet proof chain, and keep `submissionReady=false` until judge packet is refreshed.
 
-### Phase 10 — CI cutover from Anchor proof to Quasar proof
+### Phase 10 — CI cutover from Anchor proof to Quasar proof ✅ implemented in PR #244
 
 **Expectation:** CI and PR checks no longer present legacy Anchor as final hackathon proof, while preserving Anchor as reference if still useful.
 
-**Implementation plan:**
+**Implementation:**
 
-- Rename legacy Anchor workflow/check wording to `Legacy Anchor Reference` or equivalent.
-- Add Quasar readiness check to CI.
-- Add QuasarSVM/build checks only if they run without unsafe external mutation.
-- Ensure source-conformance and BDD gates still pass.
+- Added `npm run check:quasar:submission` to compose runtime compatibility, deployment inventory, and demo-readiness guards.
+- Added `.github/workflows/quasar-readiness-guard.yml` so Quasar runtime/deployment/readiness guards run on PRs touching Quasar-relevant app/lib/config/docs/scripts/package surfaces.
+- Refreshed deployment inventory known gaps: broad runtime Anchor-layout wiring gap is resolved; remaining gaps are scoped live PER/TEE proof and final judge-packet proof-chain refresh.
+- Kept `submissionReady=false` because zero runtime blockers is not the same as final judge-packet readiness.
 
 **Acceptance:**
 
-- CI status names make the proof boundary obvious to judges/reviewers.
-- Quasar readiness check runs in PRs and fails/blocks honestly when readiness is false.
-- Anchor proof cannot be mistaken for Quasar proof.
+- CI has a named Quasar readiness guard independent of legacy Anchor tests.
+- Quasar readiness check runs in PRs and blocks honestly only on guard failures; current expected readiness state remains `submissionReady=false` with explicit known gaps.
+- Anchor proof cannot be mistaken for Quasar proof in the runtime/deployment/readiness guard language.
 
-**Validation candidates:** workflow syntax validation, PR checks, readiness scripts, BDD index.
+**Validation:**
 
-**Retrospective requirement:** Decide whether Anchor CI remains required as reference or is removed from the hackathon proof chain.
+- `npm run check:quasar:submission`
+- Full build/Jest/readiness/BDD gates before push.
+
+### Retrospective — Phase 10
+
+- **Expected:** Convert local guard suite into CI-friendly command/workflow without claiming final submission readiness too early.
+- **Observed:** Runtime compatibility can now be clean while demo-readiness remains blocked for proof-chain language. That separation is useful and should stay.
+- **Validation:** Quasar guard command is composable and PR workflow is path-scoped to avoid unnecessary CI churn.
+- **What worked:** Moving the broad runtime gap out of deployment inventory made remaining risk precise: live PER/TEE and judge-packet wording.
+- **What failed / surprised us:** The existing Anchor workflow name is still Anchor-specific; not renamed in this phase because it is still a real reference check and changing it may affect existing branch filters/status expectations.
+- **Safety / approval review:** Local source/docs/workflow edits only; no signing, send, deployment, wallet/env mutation, paid calls, or live execution.
+- **Decision:** Anchor CI remains as a legacy/reference quality gate, not final hackathon proof. Quasar readiness guard becomes the hackathon cutover gate.
+- **Plan changes for next phase:** Phase 11 should refresh judge packet/checklist copy to reflect: runtime blockers zero, submissionReady still false until final proof-chain language is updated, live PER not claimed without approval.
 
 ### Phase 11 — Judge packet and submission refresh
 

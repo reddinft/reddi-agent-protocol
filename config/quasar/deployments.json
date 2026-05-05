@@ -4,7 +4,7 @@
   "decisionIssue": 236,
   "target": "hackathon-demo-quasar-cutover",
   "submissionReady": false,
-  "submissionReadyReason": "Candidate Quasar devnet program has been discovered, but full demo runtime wiring and judge-packet proof chain are not yet cut over.",
+  "submissionReadyReason": "Candidate Quasar devnet program and runtime compatibility are cut over for scoped proof paths, but final judge-packet proof chain and live PER/TEE scope language are not yet refreshed.",
   "legacyAnchorReference": {
     "cluster": "devnet",
     "programId": "794nTFNyJknzDrR13ApSfVyNCRvcvnCN3BVDfic8dcZD",
@@ -23,9 +23,8 @@
         "attestation-parity-docs-present"
       ],
       "knownGaps": [
-        "runtime demo wiring still assumes Anchor discriminators/layouts",
-        "PER/privacy-aware settlement is not yet proven end-to-end on Quasar",
-        "final judge packet still needs Quasar proof chain refresh"
+        "PER/privacy-aware settlement live TEE execution is not yet proven end-to-end on Quasar and remains explicitly approval-gated",
+        "final judge packet still needs Quasar proof chain refresh with scoped proof boundary"
       ],
       "evidence": [
         {
