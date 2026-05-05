@@ -293,6 +293,33 @@ Append this block under the relevant phase before proceeding:
 - **Decision:** continue.
 - **Plan changes for next phase:** Port read/decode surfaces next or add UI status so operators can see Quasar mode before any wallet action.
 
+### Phase 5 — Slice 4: Demo-agent registration script construction
+
+**Expectation:** Demo-agent registration construction can be target-aware without executing registration.
+
+**Implementation:** `packages/demo-agents/src/register-agents.ts` now delegates instruction construction to `packages/demo-agents/src/registration-instruction.ts`, which chooses Quasar register data in explicit Quasar mode and preserves Anchor data in legacy mode.
+
+**Validation:**
+
+- `npx jest --runTestsByPath packages/demo-agents/src/__tests__/registration-instruction.test.ts lib/register/__tests__/registration-instruction.test.ts lib/quasar/__tests__/instructions.test.ts lib/quasar/__tests__/instruction-builders.test.ts --runInBand`
+- `npm run build`
+- `npm run check:quasar:runtime-compatibility`
+- `npm run check:quasar:deployments`
+- `npm run check:quasar:demo-readiness`
+- `npm run test:bdd:index`
+- `git diff --check`
+
+### Retrospective — Phase 5 / Slice 4
+
+- **Expected:** Move demo-agent registration off inline Anchor-only encoding while avoiding live registration.
+- **Observed:** Registration script now logs target and constructs either Anchor or Quasar register data based on resolved demo target.
+- **Validation:** Tests prove legacy mode remains Anchor-discriminator encoded and Quasar mode uses one-byte Quasar register layout.
+- **What worked:** Extracting a package-local helper avoided running the side-effectful registration script during tests.
+- **What failed / surprised us:** The script is still live-send capable when manually executed; this slice intentionally changed construction only and did not execute it.
+- **Safety / approval review:** Local construction/build/tests only; no signing, send, deployment, wallet/env mutation, paid calls, or live execution.
+- **Decision:** continue.
+- **Plan changes for next phase:** Next best blocker is read/decode surfaces (`lib/registry/bridge.ts` / `lib/useOnchainAgents.ts`) or a UI status banner before any wallet action.
+
 ### Phase 6 — Quasar demo UI honesty
 
 **Expectation:** `/economic-demo` visibly shows Quasar program target, deployment status, submission readiness, and known gaps.

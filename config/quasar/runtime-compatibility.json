@@ -24,6 +24,12 @@
       "reason": "Selects Quasar registry wrapper when PROGRAM_TARGET is quasar; preserves Anchor builder only for legacy-anchor mode."
     },
     {
+      "path": "packages/demo-agents/src/registration-instruction.ts",
+      "surface": "demo-agent target-aware registration instruction helper",
+      "status": "quasar-compatible",
+      "reason": "Constructs demo-agent register instructions with Quasar register data when PROGRAM_TARGET is quasar and preserves Anchor encoding for legacy mode."
+    },
+    {
       "path": "lib/program.ts",
       "surface": "shared instruction builders and account decoders",
       "status": "anchor-layout-only",
@@ -68,8 +74,8 @@
     {
       "path": "packages/demo-agents/src/register-agents.ts",
       "surface": "demo-agent registration builder",
-      "status": "anchor-layout-only",
-      "reason": "Constructs Anchor-layout registration instruction."
+      "status": "quasar-compatible",
+      "reason": "Demo-agent registration now routes through target-aware helper using Quasar fixed-size one-byte register data in explicit Quasar mode; send remains operator-triggered only."
     },
     {
       "path": "packages/demo-agents/src/demo.ts",
