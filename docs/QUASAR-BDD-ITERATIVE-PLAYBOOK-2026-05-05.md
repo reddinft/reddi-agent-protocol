@@ -444,31 +444,42 @@ This is the staged plan from the current PR onward. Each phase remains a separat
 - **Decision:** `submissionReady=true` for scoped Quasar proof, not for live PER/TEE proof.
 - **Plan changes for next phase:** Phase 12 should be a final approval-gated validation decision: either stop with local proof ready, or ask Nissan before any live devnet/PER/signing validation.
 
-### Phase 12 — Approval-gated final validation, only if needed
+### Phase 12 — Approval-gated final validation ✅ local proof complete; live validation requires Nissan approval
 
 **Expectation:** If local/code/CI proof is insufficient, request exactly the missing approval and perform only the approved action.
 
-**Possible approvals:**
+**Decision:** Stop at local scoped proof unless Nissan explicitly approves live validation.
+
+**Possible approvals still available, but not used:**
 
 - devnet signing,
 - wallet funding/transfer,
 - program deployment/redeployment,
 - environment/Coolify/Vercel mutation,
 - live hosted demo run,
-- paid provider/specialist execution.
+- paid provider/specialist execution,
+- live MagicBlock PER/TEE validation.
 
 **Acceptance:**
 
-- Approval request names scope, max calls/transactions, spend cap, rollback, and artifact output.
+- Approval request must name scope, max calls/transactions, spend cap, rollback, and artifact output.
 - Runbook performs no extra live actions beyond the approval scope.
 - Public-safe evidence is captured and secret-scanned.
 
-**Validation candidates:** approved runbook, captured evidence artifact, secret scan, readiness guards.
+### Retrospective — Phase 12
 
-**Retrospective requirement:** Decide final submission readiness and final form/demo-video steps.
+- **Expected:** Decide whether scoped local proof is enough or whether live devnet/PER/signing validation is required.
+- **Observed:** Local proof is now internally consistent: runtime blockers are zero, Quasar readiness guard passes, judge packet is scoped, and live PER is explicitly not claimed.
+- **Validation:** Local gates passed; PR checks are running on GitHub after latest push.
+- **What worked:** The loop produced a submission-ready scoped proof without crossing any external/sensitive boundary.
+- **What failed / surprised us:** Final PR merge readiness still depends on asynchronous GitHub/Vercel checks, not local work.
+- **Safety / approval review:** No signing, send, deployment, wallet/env mutation, paid calls, or live execution. Continue to require explicit Nissan approval for live validation.
+- **Decision:** Scoped Quasar proof is ready locally. Do not perform Phase 12 live validation unless Nissan asks for it.
+- **Plan changes:** Next operational step is to monitor/resolve PR #244 checks, then merge/review according to normal repo policy. If Nissan wants stronger evidence, prepare a separate approval request for one bounded live validation lane.
 
 ## Active next step
 
-1. Merge or update **PR #244** with this refined staged plan.
-2. After PR #244 is merged, begin **Phase 6 Slice 2: Economic demo Quasar status card**.
-3. If Nissan prioritizes blocker reduction over UI clarity, skip Slice 6.2 and start **Phase 7: Read/decode Quasar compatibility** instead; record that decision in the retrospective before coding.
+1. Wait for PR #244 asynchronous GitHub/Vercel checks to finish.
+2. If checks fail, fix only the failing gate and append a small retrospective note.
+3. If checks pass, proceed with normal PR review/merge policy.
+4. Ask Nissan before any live devnet/PER/signing validation. before coding.
