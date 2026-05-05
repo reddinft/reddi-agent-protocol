@@ -8,7 +8,7 @@ import {
   type ReceiptVerificationResult,
   type X402Challenge,
 } from "@reddi/x402-solana";
-import { buildAgenticWorkflowManifestDisclosure, buildDownstreamDisclosureLedger, buildNoDownstreamDisclosureLedger } from "./agentic-workflow-disclosure.js";
+import { buildAgentDependencyManifestDisclosure, buildAgenticWorkflowManifestDisclosure, buildDownstreamDisclosureLedger, buildNoDownstreamDisclosureLedger } from "./agentic-workflow-disclosure.js";
 import { buildAttestationPromptEnvelope, evaluateAttestation, normalizeAttestationRequest } from "./attestation.js";
 import { buildLiveDelegationAuditEnvelope } from "./delegation-audit.js";
 import { evaluateDelegationBudget } from "./delegation-budget.js";
@@ -102,6 +102,7 @@ export async function verifyPayment(input: {
 }
 
 export function marketplaceMetadata(profile: SpecialistProfile, config: RuntimeConfig): Record<string, unknown> {
+  const dependencyDisclosure = buildAgentDependencyManifestDisclosure(profile);
   return {
     protocol: "reddi-agent-protocol",
     version: "0.1.0",
@@ -116,6 +117,13 @@ export function marketplaceMetadata(profile: SpecialistProfile, config: RuntimeC
     safetyMode: profile.safetyMode,
     preferredAttestors: profile.preferredAttestors,
     model: profile.model,
+    dependencyDisclosure,
+    tools: dependencyDisclosure.tools,
+    skills: dependencyDisclosure.skills,
+    marketplaceAgentCalls: dependencyDisclosure.marketplaceAgentCalls,
+    externalMcpServers: dependencyDisclosure.externalMcpServers,
+    nonMarketplaceAgentCalls: dependencyDisclosure.nonMarketplaceAgentCalls,
+    disclosurePolicy: dependencyDisclosure.disclosurePolicy,
     agenticWorkflowDisclosure: buildAgenticWorkflowManifestDisclosure(profile, config),
   };
 }

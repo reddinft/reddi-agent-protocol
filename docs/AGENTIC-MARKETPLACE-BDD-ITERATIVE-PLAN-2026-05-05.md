@@ -185,6 +185,14 @@ Still pending:
 
 **Expected next refinement:** If local conformance passes, request/perform approved hosted redeploy + smoke.
 
+### Retrospective — Phase 3 local manifest parity
+
+- **What worked:** The runtime `/.well-known/reddi-agent.json` metadata now exposes the same dependency classes as the public marketplace: tools, skills, marketplace-agent calls, external MCP servers, non-marketplace services, and disclosure policy. A local conformance script checks all 30 OpenRouter specialist profiles.
+- **What failed or surprised us:** The package build emits source files under `dist/src/*` because `rootDir` is `.`, so the first conformance script import path targeted the wrong dist root. That was fixed and logged in `.learnings/2026-05-05-openrouter-specialists-dist-root.md`.
+- **Safety/spend review:** The slice is local metadata generation and tests only. It performs no hosted redeploy, no live specialist calls, no signing, no wallet mutation, and no paid API calls.
+- **Judge clarity:** Programmatic consumers can reject an agent before purchase based on dependency disclosure, while paid responses remain governed by `reddi.downstream-disclosure-ledger.v1`.
+- **Plan adjustment:** Do not claim hosted manifest parity until explicit redeploy and public smoke are approved. Next safe step is status/PR for Phase 3; Phase 4 remains operator-gated.
+
 ---
 
 ## Phase 4 — Hosted redeploy + public smoke, approval-gated
