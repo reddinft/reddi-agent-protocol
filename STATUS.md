@@ -1,20 +1,20 @@
 # Reddi Agent Protocol Code — STATUS
 
 **Last updated:** 2026-05-05 AEST
-**State:** 🟢 Phase 2.5 latest evidence-pack summary UI wiring implemented locally; ready for PR.
+**State:** 🟢 Phase 3 local manifest parity implemented locally; ready for PR.
 
 ## RESUME FROM HERE
 
-1. Open/merge Phase 2.5 branch `feature/economic-demo-latest-evidence-pack-ui-20260505`: `/economic-demo` API/UI prefers the newest generated judge evidence-pack summary when present.
-2. Continue Phase 3 local manifest parity for `/.well-known/reddi-agent.json`: confirm tools/skills, marketplace-agent calls, external MCP servers, non-marketplace services, and disclosure policy.
+1. Open/merge Phase 3 branch `feature/local-manifest-parity-20260505`: `/.well-known/reddi-agent.json` now exposes tools/skills, marketplace-agent calls, external MCP servers, non-marketplace services, and disclosure policy.
+2. After Phase 3 merge, request explicit operator approval before any hosted Coolify redeploy/smoke.
 3. External Coolify redeploy remains explicit-operator-only.
 
 ## Current Branch / Repo State
 
-- Local branch: `feature/economic-demo-latest-evidence-pack-ui-20260505`
-- Local working tree: Phase 2.5 UI/API changes in progress.
-- Latest merge on main: `9a16e4ed docs: update status after phase 2 merge (#210)`.
-- PR #210: merged 2026-05-05 AEST; post-merge Anchor run `25348785645` passed.
+- Local branch: `feature/local-manifest-parity-20260505`
+- Local working tree: Phase 3 local manifest parity changes in progress.
+- Latest merge on main: `0a6999a1 feat: load latest evidence pack in economic demo (#211)`.
+- PR #211: merged 2026-05-05 AEST; post-merge Anchor run `25351170348` in progress at start of Phase 3.
 
 
 ## Current Follow-up PR — #203
@@ -110,6 +110,23 @@ Validation for Phase 2.5 latest evidence-pack UI wiring:
 - `git diff --check` — PASS.
 - Note: build retains existing workspace-root warning due multiple lockfiles; no build failure.
 
+
+Validation for Phase 2.5 PR #211:
+
+- PR: https://github.com/nissan/reddi-agent-protocol/pull/211
+- Merge commit: `0a6999a1e16b6a036e4dd31796533d5d3a092bc4`
+- PR checks passed: Vercel Preview Comments, Vercel deployment, Anchor runs `25350902818` / `25350904030`.
+- Post-merge `main` Anchor run `25351170348`, job `74330869241` — in progress when Phase 3 began.
+
+Validation for Phase 3 local manifest parity:
+
+- `npm test --prefix packages/openrouter-specialists` — PASS, 54/54.
+- `npm run manifest:parity --prefix packages/openrouter-specialists` — PASS, 30/30 profiles checked.
+- Targeted ESLint for OpenRouter specialist runtime/disclosure/test files — PASS.
+- `npm run test:bdd:index` — PASS.
+- `npm run build` — PASS (existing multiple-lockfile workspace-root warning; existing Turbopack NFT trace warning from server-side evidence-pack fs loader).
+- `git diff --check` — PASS.
+
 ## Retrospective — Phase 6.5 Slice A
 
 ### What worked
@@ -143,6 +160,7 @@ Do not proceed as a waterfall into research/picture live workflows until the dis
 - 2026-05-05: `/economic-demo` must render the normalized `disclosureLedgerSummary` and visibly mark historical pre-ledger artifacts as not evidence-complete.
 
 - 2026-05-05: `/economic-demo` should prefer the latest generated judge evidence-pack `disclosureLedgerSummary` when present, with fallback to the truthful historical pre-ledger summary.
+- 2026-05-05: `/.well-known/reddi-agent.json` must expose programmatic dependency disclosure parity with public marketplace cards/details before any purchase: tools, skills, marketplace-agent calls, external MCP servers, non-marketplace service calls, and downstream ledger disclosure policy.
 
 ## Blockers / Watch Items
 

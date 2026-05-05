@@ -22,6 +22,7 @@
     "wallet:register-devnet": "npm run build && node scripts/register-devnet-specialists.mjs",
     "check:devnet-balances": "node scripts/check-devnet-balances.mjs",
     "deployment:readiness": "npm run build && node scripts/deployment-readiness.mjs",
+    "manifest:parity": "npm run build && node scripts/check-local-manifest-parity.mjs",
     "delegation:noop-smoke": "npm run build && node scripts/live-noop-smoke.mjs",
     "delegation:private-smoke": "npm run build && node scripts/private-live-executor-smoke.mjs",
     "wallet:readiness": "npm run build && NODE_PATH=$PWD/node_modules node scripts/wallet-readiness.mjs",

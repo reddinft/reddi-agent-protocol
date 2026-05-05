@@ -237,11 +237,34 @@ test("well-known metadata includes Reddi marketplace fields", async () => {
   assert.ok(profile);
   const metadata = marketplaceMetadata(profile, config) as Record<string, unknown>;
 
-  for (const field of ["profileId", "displayName", "walletAddress", "endpoint", "capabilities", "roles", "price", "safetyMode", "preferredAttestors"]) {
+  for (const field of ["profileId", "displayName", "walletAddress", "endpoint", "capabilities", "roles", "price", "safetyMode", "preferredAttestors", "dependencyDisclosure", "tools", "skills", "marketplaceAgentCalls", "externalMcpServers", "nonMarketplaceAgentCalls", "disclosurePolicy"]) {
     assert.ok(metadata[field], `missing ${field}`);
   }
   assert.equal(metadata.profileId, "planning-agent");
   assert.equal(metadata.endpoint, "https://planning.example.test/v1/chat/completions");
+  const dependencyDisclosure = metadata.dependencyDisclosure as {
+    schemaVersion: string;
+    tools: string[];
+    skills: string[];
+    marketplaceAgentCalls: string[];
+    externalMcpServers: string[];
+    nonMarketplaceAgentCalls: string[];
+    disclosurePolicy: string;
+  };
+  assert.equal(dependencyDisclosure.schemaVersion, "reddi.agent-dependency-manifest.v1");
+  assert.ok(dependencyDisclosure.tools.includes("chat_completion"));
+  assert.ok(dependencyDisclosure.tools.includes("marketplace_discovery"));
+  assert.ok(dependencyDisclosure.tools.includes("x402_specialist_call"));
+  assert.ok(dependencyDisclosure.skills.includes("planning"));
+  assert.ok(dependencyDisclosure.marketplaceAgentCalls.includes("verification-validation-agent"));
+  assert.ok(dependencyDisclosure.nonMarketplaceAgentCalls.includes("openrouter:openai/gpt-4.1-mini"));
+  assert.match(dependencyDisclosure.disclosurePolicy, /downstream-disclosure-ledger/);
+  assert.deepEqual(metadata.tools, dependencyDisclosure.tools);
+  assert.deepEqual(metadata.skills, dependencyDisclosure.skills);
+  assert.deepEqual(metadata.marketplaceAgentCalls, dependencyDisclosure.marketplaceAgentCalls);
+  assert.deepEqual(metadata.externalMcpServers, dependencyDisclosure.externalMcpServers);
+  assert.deepEqual(metadata.nonMarketplaceAgentCalls, dependencyDisclosure.nonMarketplaceAgentCalls);
+  assert.equal(metadata.disclosurePolicy, dependencyDisclosure.disclosurePolicy);
   const disclosure = metadata.agenticWorkflowDisclosure as {
     schemaVersion: string;
     mayCallMarketplaceAgents: boolean;

@@ -2,6 +2,16 @@ import type { LiveDelegationExecutorEvidence } from "./delegation-executor.js";
 import type { LiveDelegationIntentPlan } from "./delegation-intent.js";
 import type { SpecialistProfile, SpecialistPrice } from "./types.js";
 
+export interface AgentDependencyManifestDisclosure {
+  schemaVersion: "reddi.agent-dependency-manifest.v1";
+  tools: string[];
+  skills: string[];
+  marketplaceAgentCalls: string[];
+  externalMcpServers: string[];
+  nonMarketplaceAgentCalls: string[];
+  disclosurePolicy: string;
+}
+
 export interface AgenticWorkflowManifestDisclosure {
   schemaVersion: "reddi.agentic-workflow-disclosure.v1";
   mayCallMarketplaceAgents: boolean;
@@ -82,6 +92,20 @@ export function buildAgenticWorkflowManifestDisclosure(profile: SpecialistProfil
   };
 }
 
+export function buildAgentDependencyManifestDisclosure(profile: SpecialistProfile): AgentDependencyManifestDisclosure {
+  const capabilities = profile.capabilities.map((capability) => capability.toLowerCase());
+  return {
+    schemaVersion: "reddi.agent-dependency-manifest.v1",
+    tools: toolsFor(profile, capabilities),
+    skills: skillsFor(profile, capabilities),
+    marketplaceAgentCalls: marketplaceAgentCallsFor(profile),
+    externalMcpServers: externalMcpServersFor(capabilities),
+    nonMarketplaceAgentCalls: nonMarketplaceAgentCallsFor(profile, capabilities),
+    disclosurePolicy:
+      "Public manifest discloses tool, skill, MCP, marketplace-agent, and non-marketplace-agent dependencies before purchase. Paid responses must return reddi.downstream-disclosure-ledger.v1 for attempted downstream calls.",
+  };
+}
+
 export function buildNoDownstreamDisclosureLedger(): DownstreamDisclosureLedger {
   return {
     schemaVersion: "reddi.downstream-disclosure-ledger.v1",
@@ -124,6 +148,48 @@ export function buildDownstreamDisclosureLedger(input: { intentPlan: LiveDelegat
 
 function downstreamCapabilitiesFor(profile: SpecialistProfile): string[] {
   return [...new Set([...profile.capabilities, "marketplace-discovery", "x402-payment", "delegated-attestation"])].sort();
+}
+
+function toolsFor(profile: SpecialistProfile, capabilities: string[]): string[] {
+  const tools = new Set<string>(["chat_completion"]);
+  if (profile.roles.includes("consumer")) tools.add("marketplace_discovery");
+  if (profile.roles.includes("consumer")) tools.add("x402_specialist_call");
+  if (profile.roles.includes("attestor")) tools.add("receipt_review");
+  if (profile.roles.includes("attestor")) tools.add("evidence_checks");
+  if (capabilities.some((capability) => /document|evidence|classification|summarization/.test(capability))) tools.add("document_parser");
+  if (capabilities.some((capability) => /code|debug|test/.test(capability))) tools.add("code_review_workspace");
+  return [...tools];
+}
+
+function skillsFor(profile: SpecialistProfile, capabilities: string[]): string[] {
+  return [...new Set([...profile.tags, ...capabilities])];
+}
+
+function marketplaceAgentCallsFor(profile: SpecialistProfile): string[] {
+  return [...new Set(profile.preferredAttestors)];
+}
+
+function externalMcpServersFor(capabilities: string[]): string[] {
+  const servers = new Set<string>();
+  if (capabilities.some((capability) => /document|evidence|classification|summarization/.test(capability))) {
+    servers.add("reddi.document-context-mcp");
+  }
+  if (capabilities.some((capability) => /code|debug|test/.test(capability))) {
+    servers.add("reddi.code-workspace-mcp");
+  }
+  return [...servers];
+}
+
+function nonMarketplaceAgentCallsFor(profile: SpecialistProfile, capabilities: string[]): string[] {
+  const calls = new Set<string>();
+  if (profile.model) calls.add(`openrouter:${profile.model}`);
+  if (capabilities.some((capability) => /document|evidence|classification|summarization/.test(capability))) {
+    calls.add("non-marketplace:document-parser");
+  }
+  if (capabilities.some((capability) => /code|debug|test/.test(capability))) {
+    calls.add("non-marketplace:static-analysis-worker");
+  }
+  return [...calls];
 }
 
 function summarizePayload(task: string): string {
