@@ -136,3 +136,11 @@ Feature: End-user economic workflow demo
     And it distinguishes controlled demo evidence, local Surfpool proof, storyboard-only image planning, and approval-gated future work
     And it references local ignored evidence paths only as operator pointers rather than publishing raw artifact contents
     And following the checklist does not call hosted specialists, request providers, sign, mutate wallets, transfer devnet funds, or mutate Coolify configuration
+
+  Scenario: Final judge packet is public-safe and evidence-exact
+    Given the economic demo final judge packet is committed
+    When a reviewer reads the packet
+    Then it states what is proven, what is local or simulated, and what is explicitly not claimed
+    And it cites the public PR and CI proof chain by identifier
+    And it separates approval-gated future proof categories from current evidence
+    And it does not publish raw ignored artifacts, secrets, provider outputs, private logs, or unsupported production settlement claims
