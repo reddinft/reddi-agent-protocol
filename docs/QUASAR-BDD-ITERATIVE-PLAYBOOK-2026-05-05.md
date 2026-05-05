@@ -322,6 +322,32 @@ Append this block under the relevant phase before proceeding:
 
 ### Phase 6 — Quasar demo UI honesty
 
+**Expectation:** Any operator-facing wallet path clearly distinguishes Quasar construction progress from full submission readiness.
+
+**Implementation:** `/register` now renders a Quasar-mode status card when the active program target is Quasar, including target, compatibility, submission readiness, and known gaps.
+
+**Validation:**
+
+- `npm run build`
+- `npm run check:quasar:runtime-compatibility`
+- `npm run check:quasar:deployments`
+- `npm run check:quasar:demo-readiness`
+- `npm run test:bdd:index`
+- `git diff --check`
+
+### Retrospective — Phase 6 / Slice 1
+
+- **Expected:** UI should not imply Quasar registration is fully submission-ready just because instruction construction is now target-aware.
+- **Observed:** The register page now surfaces Quasar mode and known gaps before the wallet action.
+- **Validation:** Build/readiness guards pass locally; readiness still blocks as expected.
+- **What worked:** Existing program metadata (`PROGRAM_TARGET`, compatibility, submission readiness, known gaps) was already centralized, so the UI could stay declarative.
+- **What failed / surprised us:** No surprise; this was an honesty/safety slice rather than a compatibility blocker reducer.
+- **Safety / approval review:** UI/build checks only; no signing, send, deployment, wallet/env mutation, paid calls, or live execution.
+- **Decision:** continue.
+- **Plan changes for next phase:** Resume blocker reduction with read/decode surfaces or reputation/attestation transaction wrappers.
+
+
+
 **Expectation:** `/economic-demo` visibly shows Quasar program target, deployment status, submission readiness, and known gaps.
 
 **Implementation plan:**
