@@ -92,3 +92,13 @@ Feature: End-user economic workflow demo
     And each downstream call has a reddi.downstream-disclosure-ledger.v1 entry
     And each participating wallet has a start balance, end balance, and delta
     And a bounded evidence artifact is produced
+
+  Scenario: Research workflow dry-run declares evidence and disclosure before live calls
+    Given research workflow planning is in dry-run mode
+    And public hosted specialist manifests expose dependency disclosure parity
+    When the research article workflow graph is proposed
+    Then it lists retrieval, research synthesis, content drafting, explainability, and verification edges
+    And each planned edge declares payload class, citation or evidence caveats, attestor criteria, and refund or dispute behavior
+    And each planned edge has a downstream-disclosure ledger expectation with x402 state planned
+    And downstreamCallsExecuted is 0
+    And no paid provider request, signing operation, wallet mutation, or devnet transfer occurs

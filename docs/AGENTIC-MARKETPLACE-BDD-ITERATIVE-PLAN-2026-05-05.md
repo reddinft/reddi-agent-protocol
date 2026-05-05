@@ -1,8 +1,8 @@
 # Agentic Marketplace Manifest + Disclosure Ledger — BDD Iterative Plan
 
 _Date:_ 2026-05-05 AEST  
-_Status:_ Active after PR #205 merged public marketplace manifest disclosure  
-_Related:_ PR #202, PR #203, PR #205, `ECONOMIC-DEMO-BDD-ITERATIVE-ROADMAP-2026-05-04.md`, Bucket J BDD feature
+_Status:_ Active after Phase 4 hosted manifest parity smoke
+_Related:_ PR #202, PR #203, PR #205, PR #214, `ECONOMIC-DEMO-BDD-ITERATIVE-ROADMAP-2026-05-04.md`, Bucket J BDD feature
 
 ## North star
 
@@ -38,12 +38,13 @@ Shipped:
 - PR #202: agentic workflow disclosure contract in runtime and manifests.
 - PR #203: evidence tooling rejects future live artifacts without downstream-disclosure ledger evidence.
 - PR #205: public `/agents` and `/agents/[wallet]` marketplace pages expose manifest tools, skills, downstream marketplace-agent dependencies, external MCP servers, and non-marketplace agent/service dependencies.
+- PR #214: hosted Coolify specialists redeployed/smoked; final sanitized evidence confirms 30/30 public `/.well-known/reddi-agent.json` endpoints expose dependency disclosure parity.
 
 Still pending:
 
-- Hosted Coolify specialist redeploy/smoke before public `/.well-known/reddi-agent.json` endpoints can be claimed current.
-- `/economic-demo` UI and evidence packs still need first-class display of `reddi.downstream-disclosure-ledger.v1` entries.
-- Research and picture workflows should not expand until webpage evidence is understandable and disclosure-complete.
+- Live economic workflow evidence still predates hosted manifest parity and should only be regenerated under an explicit live-run approval gate.
+- Research workflow design needs a disclosure-ledger-first dry-run graph before any live research calls.
+- Picture workflow expansion remains behind research planning and explicit image-generation approval.
 
 ## Phase 0 — Plan + BDD lock
 
@@ -221,6 +222,14 @@ Still pending:
 
 **Expected next refinement:** If public manifests are current, continue research workflow design. If not, fix infra/runtime drift first.
 
+### Retrospective — Phase 4 hosted redeploy + public smoke
+
+- **What worked:** Hosted manifest parity now matches local expectations. The final public smoke artifact shows 30/30 hosted specialist manifests expose `agenticWorkflowDisclosure`, dependency disclosure parity fields, and `reddi.agent-dependency-manifest.v1`.
+- **What failed or surprised us:** Coolify queue backpressure rejected 3 initial redeploy triggers with HTTP 429; retrying after the queue drained succeeded. `collective-intelligence-agent` then failed once because the helper container was not running during artifact setup, and a single redeploy retry fixed it.
+- **Safety/spend review:** Phase 4 only redeployed/smoked manifest endpoints. It made no live specialist calls, no paid API calls, no signing, no wallet mutation, and no devnet transfer. Secret grep over Phase 4 artifact JSON returned no matches.
+- **Judge clarity:** A judge/consumer agent can now inspect public hosted manifests before purchase and see disclosed tools, skills, marketplace-agent calls, external MCP servers, non-marketplace calls, and ledger disclosure policy.
+- **Plan adjustment:** Proceed to Phase 5 as dry-run research design only. Do not regenerate live economic workflow evidence until a separate approval explicitly authorizes the live run.
+
 ---
 
 ## Phase 5 — Research workflow BDD + dry-run design
@@ -232,6 +241,18 @@ Still pending:
 - Extend BDD for research path evidence quality.
 - Define retrieval/research/content/explainability/verification edges.
 - Confirm every planned edge has manifest disclosure and ledger output expectations.
+- Keep orchestration separate from synthesis unless the dry-run explains why a specialist self-loop is safer than using `agentic-workflow-system` as coordinator.
+
+**Initial dry-run graph candidate:**
+
+1. `agentic-workflow-system` or `scientific-research-agent` plans the article workflow and budget envelope.
+2. `knowledge-retrieval-agent` gathers source candidates and citation metadata without calling paid providers in dry-run mode.
+3. `scientific-research-agent` synthesizes claims, caveats, and evidence gaps.
+4. `content-creation-agent` drafts the article while preserving citations/caveats.
+5. `explainable-agent` summarizes provenance, payload flow, and what is intentionally obfuscated.
+6. `verification-validation-agent` checks citation coverage, unsupported claims, and release/refund/dispute guidance.
+
+Every planned edge must declare payload class, disclosure-ledger expectation, x402 state (`planned` in Phase 5), attestor expectation, and failure/refund behavior.
 
 **Acceptance criteria:**
 
