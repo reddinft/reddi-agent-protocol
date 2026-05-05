@@ -320,6 +320,33 @@ Append this block under the relevant phase before proceeding:
 - **Decision:** continue.
 - **Plan changes for next phase:** Next best blocker is read/decode surfaces (`lib/registry/bridge.ts` / `lib/useOnchainAgents.ts`) or a UI status banner before any wallet action.
 
+### Phase 5 — Slice 5: Onboarding attestation construction
+
+**Expectation:** The onboarding attestation operator path can construct `attest_quality` with Quasar instruction data in explicit Quasar mode without executing the operator send path.
+
+**Implementation:** `lib/onboarding/onchain-attestation.ts` now delegates construction to `lib/onboarding/attestation-instruction.ts`, which selects Quasar one-byte/fixed-size `attest_quality` data in Quasar mode and preserves Anchor encoding in legacy mode.
+
+**Validation:**
+
+- `npx jest --runTestsByPath lib/onboarding/__tests__/attestation-instruction.test.ts lib/quasar/__tests__/instructions.test.ts lib/quasar/__tests__/instruction-builders.test.ts --runInBand`
+- `npm run build`
+- `npm run check:quasar:runtime-compatibility`
+- `npm run check:quasar:deployments`
+- `npm run check:quasar:demo-readiness`
+- `npm run test:bdd:index`
+- `git diff --check`
+
+### Retrospective — Phase 5 / Slice 5
+
+- **Expected:** Reduce one more Anchor-layout runtime blocker by isolating construction behind a target-aware helper.
+- **Observed:** Onboarding attestation now constructs Quasar `attest_quality` data in Quasar mode while keeping the live send path unchanged and operator-triggered.
+- **Validation:** Tests prove legacy mode remains Anchor-discriminator encoded and Quasar mode uses one-byte Quasar attestation layout.
+- **What worked:** Reusing the Quasar data builder and account-meta wrapper avoided duplicating layouts in the operator path.
+- **What failed / surprised us:** The operator path is still live-send capable if manually/API triggered; this slice intentionally did not execute it.
+- **Safety / approval review:** Local construction/build/tests only; no signing, send, deployment, wallet/env mutation, paid calls, or live execution.
+- **Decision:** continue.
+- **Plan changes for next phase:** Reputation commit/reveal or read/decode surfaces are the next blocker-reduction candidates; PER remains separate.
+
 ### Phase 6 — Quasar demo UI honesty
 
 **Expectation:** Any operator-facing wallet path clearly distinguishes Quasar construction progress from full submission readiness.

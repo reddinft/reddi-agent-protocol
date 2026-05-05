@@ -2,10 +2,12 @@ import { PublicKey, SystemProgram } from "@solana/web3.js";
 
 import {
   QUASAR_INCINERATOR,
+  buildQuasarAttestQualityInstruction,
   buildQuasarDeregisterAgentInstruction,
   buildQuasarRegisterAgentInstruction,
   buildQuasarUpdateAgentInstruction,
   quasarAgentPda,
+  quasarAttestationPda,
 } from "@/lib/quasar/instructions";
 
 describe("Quasar registry transaction-instruction helpers", () => {
@@ -69,4 +71,33 @@ describe("Quasar registry transaction-instruction helpers", () => {
     expect(ix.keys.map((key) => [key.isSigner, key.isWritable])).toEqual([[false, true], [true, true]]);
     expect([...ix.data]).toEqual([2]);
   });
+  it("builds attest_quality with Quasar account order and data", () => {
+    const jobId = Uint8Array.from(Array.from({ length: 16 }, (_, i) => i + 1));
+    const scores = Uint8Array.from([8, 8, 9, 9, 10]);
+    const attestation = quasarAttestationPda(jobId, programId);
+    const judgeAgent = quasarAgentPda(owner, programId);
+    const ix = buildQuasarAttestQualityInstruction({
+      programId,
+      judge: owner,
+      jobId,
+      scores,
+      consumer: owner,
+    });
+
+    expect(ix.keys.map((key) => key.pubkey.toBase58())).toEqual([
+      attestation.toBase58(),
+      judgeAgent.toBase58(),
+      owner.toBase58(),
+      SystemProgram.programId.toBase58(),
+    ]);
+    expect(ix.keys.map((key) => [key.isSigner, key.isWritable])).toEqual([
+      [false, true],
+      [false, false],
+      [true, true],
+      [false, false],
+    ]);
+    expect(ix.data[0]).toBe(1);
+    expect(ix.data.length).toBe(54);
+  });
+
 });

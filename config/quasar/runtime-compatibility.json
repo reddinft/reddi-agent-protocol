@@ -30,6 +30,12 @@
       "reason": "Constructs demo-agent register instructions with Quasar register data when PROGRAM_TARGET is quasar and preserves Anchor encoding for legacy mode."
     },
     {
+      "path": "lib/onboarding/attestation-instruction.ts",
+      "surface": "target-aware onboarding attest_quality instruction selector",
+      "status": "quasar-compatible",
+      "reason": "Selects Quasar attest_quality wrapper/data when PROGRAM_TARGET is quasar; preserves Anchor builder only for legacy mode."
+    },
+    {
       "path": "lib/program.ts",
       "surface": "shared instruction builders and account decoders",
       "status": "anchor-layout-only",
@@ -50,8 +56,8 @@
     {
       "path": "lib/onboarding/onchain-attestation.ts",
       "surface": "attest_quality transaction builder",
-      "status": "anchor-layout-only",
-      "reason": "Uses buildAttestQualityData from lib/program.ts and Anchor-style account metas."
+      "status": "quasar-compatible",
+      "reason": "Onboarding attest_quality construction now routes through target-aware helper and uses Quasar one-byte/fixed-size attestation data in explicit Quasar mode; send remains operator-triggered only."
     },
     {
       "path": "lib/onboarding/reputation-signal.ts",
