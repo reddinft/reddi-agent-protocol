@@ -1,19 +1,19 @@
 # Reddi Agent Protocol Code — STATUS
 
 **Last updated:** 2026-05-05 AEST
-**State:** 🟢 Phase 5 research dry-run disclosure implementation merged; artifact generator slice in progress; hosted manifest parity remains 30/30.
+**State:** 🟢 Phase 5 research dry-run artifact generator merged; Phase 6 live research remains approval-gated; Phase 7 storyboard dry-run is next safe local slice.
 
 ## RESUME FROM HERE
 
-1. Continue Phase 5 by shipping the research dry-run artifact generator slice, then run the Phase 5 retrospective before deciding whether Phase 6 controlled live research is worth approval.
-2. Local Surfpool validator live tests are approved for safety validation because they use only offline/local SOL and do not risk real or devnet tokens.
-3. Do not execute hosted/devnet live downstream specialist calls, paid provider paths, signing with real/devnet wallets, or devnet transfers unless explicitly approved for that specific live run.
+1. Phase 5 is complete through the deterministic research dry-run artifact generator. Do not run Phase 6 controlled live research without explicit approval for hosted/devnet calls and spend.
+2. Continue with Phase 7 storyboard dry-run locally: prove the picture path without OpenAI/Fal image generation, signing, wallet mutation, or devnet transfer.
+3. Local Surfpool validator live tests remain approved for safety validation because they use only offline/local SOL and do not risk real or devnet tokens.
 
 ## Current Branch / Repo State
 
-- Local branch: `main`.
-- Local working tree: research dry-run artifact generator slice in progress; local evidence artifacts are under `artifacts/manifest-parity-phase4/`, `artifacts/economic-demo-surfpool-rehearsal/20260505T021309Z/`, `artifacts/surfpool-smoke/20260505-121331/`, and `artifacts/economic-demo-research-dry-run/20260505T025224Z/`.
-- Latest merge on main: `ecdcdbd1 feat: wire research dry-run disclosure plan (#217)`.
+- Local branch: `feat/picture-storyboard-dry-run-20260505`.
+- Local working tree: Phase 7 picture storyboard dry-run slice in progress. Local evidence artifacts are under `artifacts/manifest-parity-phase4/`, `artifacts/economic-demo-surfpool-rehearsal/20260505T021309Z/`, `artifacts/surfpool-smoke/20260505-121331/`, and `artifacts/economic-demo-research-dry-run/20260505T025224Z/`.
+- Latest merge on main: `5da85ccd feat: add research dry-run artifact generator (#218)`.
 - PR #204: closed as superseded after Nissan accepted recommendation.
 - PR #214: merged 2026-05-05 AEST as `a290db7093458f45ca1b3dbc2a047b404c856a29`; post-merge Anchor run `25353582949`, job `74338163008` passed in 7m26s.
 - PR #215: merged 2026-05-05 AEST as `cd202ebd6360d29f0a896e852fe9f63c339fc4dc`; post-merge Anchor run `25353973718`, job `74339305929` passed in 7m23s.
@@ -184,7 +184,7 @@ Validation for Phase 5 research dry-run disclosure implementation:
 - PR checks passed before merge: Vercel Preview Comments, Vercel deployment, Anchor run `25354771446`, job `74341647480` — PASS, 7m15s.
 - Post-merge `main` Anchor run `25354979566`, job `74342253225` — PASS, 7m30s.
 
-Validation for Phase 5 research dry-run artifact generator slice (local, not yet PR):
+Validation for Phase 5 research dry-run artifact generator slice:
 
 - `npm run evidence:economic-demo:research-dry-run` — PASS; artifact `artifacts/economic-demo-research-dry-run/20260505T025224Z/research-dry-run.json`.
 - Artifact summary: scenario `research`, mode `dry_run_no_live_calls`, orchestrator `agentic-workflow-system`, 5 planned edges, downstream calls executed `0`, x402 state `planned` for every edge, live calls/provider requests/signing/wallet mutation/devnet transfers all `0`.
@@ -192,6 +192,21 @@ Validation for Phase 5 research dry-run artifact generator slice (local, not yet
 - `node --check scripts/generate-economic-demo-research-dry-run.mjs` — PASS.
 - Targeted ESLint + `npm run test:bdd:index` + `npm run build` + `git diff --check` — PASS.
 - Secret grep over generated dry-run artifact produced only policy-text false positives (`secrets`, `Coolify` guardrail wording); no credential material present.
+- PR: https://github.com/nissan/reddi-agent-protocol/pull/218
+- Merge commit: `5da85ccdd78661b3ea29a3c69ce2bcf9885f7de0`
+- PR checks passed before merge: Vercel Preview Comments, Vercel deployment, `bdd-index-guard`, `source-conformance-matrix`, Anchor run `25355281318`, job `74343109526` — PASS, 7m30s.
+- Post-merge `main` Anchor run `25355508196`, job `74343778434` — PASS, 7m35s.
+
+Validation for Phase 7 picture storyboard dry-run slice (local, not yet PR):
+
+- Added `reddi.economic-demo.picture-storyboard-design.v1` design/API/UI path for storyboard-only picture proof.
+- The image-generation adapter is explicitly represented as `blocked` with `x402State = blocked_disabled_adapter` and `reddi.downstream-disclosure-ledger.v1` expectations.
+- Storyboard frames include positive prompts, negative prompts, and evidence caveats; `imageGenerationExecuted = 0`, `downstreamCallsExecuted = 0`.
+- Targeted Jest for picture storyboard + dry-run — PASS, 7/7.
+- Targeted ESLint for picture storyboard design/test/API/page — PASS.
+- `npm run test:bdd:index` — PASS.
+- `npm run build` — PASS; existing workspace-root/NFT trace warnings only.
+- `git diff --check` — PASS.
 
 ## Retrospective — Phase 6.5 Slice A
 
@@ -230,9 +245,11 @@ Do not proceed as a waterfall into research/picture live workflows until the dis
 - 2026-05-05: Hosted Phase 4 redeploy/smoke is approved and complete; public hosted OpenRouter specialist manifests now expose dependency disclosure parity across 30/30 endpoints.
 - 2026-05-05: Surfpool local-validator live tests are approved as a safe validation lane because they use only offline/local SOL and do not risk real or devnet tokens.
 - 2026-05-05: Research workflow orchestration should be owned by `agentic-workflow-system`; `scientific-research-agent` stays a synthesis specialist so paid-edge coordination and evidence synthesis remain separate.
+- 2026-05-05: Phase 6 controlled live research remains approval-gated; next safe progress is Phase 7 storyboard dry-run with image generation disabled.
 
 ## Blockers / Watch Items
 
 - Live hosted/devnet economic workflow evidence still predates Phase 4 hosted manifest parity; regenerate only under an explicit hosted/devnet live-run approval gate.
-- Continue Phase 5 research implementation as dry-run/local-only first: no paid specialist spend, hosted downstream calls, real/devnet signing, wallet mutation, or devnet transfer from harness without specific approval.
+- Phase 6 controlled live research is blocked pending explicit approval for hosted/devnet live downstream specialist calls and spend.
+- Phase 7 picture/storyboard work must remain dry-run/local-only first: no OpenAI/Fal image generation, paid provider spend, hosted downstream calls, real/devnet signing, wallet mutation, or devnet transfer without specific approval.
 - Existing demo-agent CLI copy still labels some local Surfpool transactions as `devnet`/Explorer links even when RPC is local; keep evidence/status wording explicit that the executed lane used local Surfpool RPC.
