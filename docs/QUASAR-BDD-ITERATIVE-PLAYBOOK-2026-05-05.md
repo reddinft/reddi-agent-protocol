@@ -548,3 +548,69 @@ This is the staged plan from the current PR onward. Each phase remains a separat
 - **Decision:** Registering Quasar A/B/C agents on devnet is the likely next live step. Deregistering legacy Anchor agents is optional cleanup; keeping them does not block Quasar because PDAs are derived under a different program ID.
 - **Safety / approval review:** No devnet signing or mutation was performed in this loop. Next state-changing action remains Nissan-approval-gated.
 - **Plan adjustment:** Ask approval for Quasar registration first; only ask for legacy cleanup if Nissan wants a clean operator surface before recording.
+
+## Phase 14 — Goal realignment: Quasar-native hackathon demo stack
+
+**Goal correction:** The final Colosseum Frontier submission must not merely be “scoped Quasar proof plus legacy economic evidence.” It must present the hackathon demos as a deliberate move from legacy Anchor-compiled programs to Quasar-compiled Solana programs, while making the identified ecosystem/bounty products visible: MagicBlock PER, x402, Jupiter, OpenRouter specialist agents, Surfpool local validation, and supporting integrations such as Torque/ElizaOS/SendAI where evidence exists.
+
+**Alignment verdict:** The current plan is partially aligned but too conservative for the final demo goal. It is correctly preventing false Anchor-as-Quasar claims, but it over-scopes Quasar to registry/reputation/attestation and leaves MagicBlock/PER/Jupiter/economic-demo evidence as mostly legacy or local/supporting proof. That is safe, but not yet the strongest hackathon submission posture.
+
+**BDD scenarios:**
+
+- Given Nissan’s hackathon goal is Quasar-compiled programs, when a demo records on-chain registry/reputation/attestation actions, then the active program ID must be the Quasar devnet program `VYCbMszux9seLK2aXFZMECMBFURvfuJLXsXPmJS5igW`, not the legacy Anchor reference.
+- Given the demo uses MagicBlock as a bounty/ecosystem product, when PER is shown, then the narration must distinguish: “MagicBlock PER path proven in current/legacy evidence; Quasar-native live PER is approval-gated until explicitly validated.”
+- Given x402/OpenRouter specialists are core to the economic workflow, when the web app or evidence pack shows paid calls, then it must show fail-closed `402 + x402-request`, controlled demo receipts or real receipt verifier status, downstream disclosure, and no hidden paid provider calls.
+- Given Jupiter is part of cross-token settlement, when mentioned in the final demo, then it must be tied to the existing tested Jupiter/SOL→USDC artifact or a newly approved live/devnet validation lane.
+- Given Surfpool is local confidence infrastructure, when local tests are cited, then they must be framed as pre-devnet regression confidence, not final Quasar proof unless the lane actually deploys/executes the Quasar-compiled program.
+
+### Phase 14.1 — Quasar-first demo eligibility matrix
+
+- Create a final demo eligibility matrix that classifies every demo surface as one of:
+  - `quasar-live-ready`: executed or read against Quasar devnet program.
+  - `quasar-local-compatible`: Quasar-compatible construction/readiness proven locally, but not signed on devnet.
+  - `ecosystem-supporting-evidence`: x402/MagicBlock/Jupiter/OpenRouter/Surfpool evidence that supports the story but is not Quasar program proof.
+  - `legacy-reference-only`: Anchor-era evidence retained only for comparison/history.
+- Gate: no final demo script can present `ecosystem-supporting-evidence` or `legacy-reference-only` as Quasar-native proof.
+
+### Phase 14.2 — Quasar devnet registration + readback, approval-gated
+
+- Register A/B/C demo agents under Quasar devnet after explicit approval.
+- Save signatures and readback artifacts proving Quasar PDAs exist.
+- Update web app/operator surfaces to point at Quasar and avoid showing legacy Anchor registrations as the primary demo state.
+- Optional cleanup: deregister legacy Anchor A/B/C only if Nissan wants a cleaner operator surface.
+
+### Phase 14.3 — MagicBlock/PER decision gate for final submission
+
+Choose one before recording:
+
+- **Track A — Honest scoped claim:** Show MagicBlock PER as proven ecosystem evidence from current/legacy path plus fallback semantics; state Quasar-native PER is next/approval-gated. This is safest and likely sufficient if time is tight.
+- **Track B — Stronger live claim:** Seek explicit approval for bounded live devnet/PER validation against Quasar-compatible flows. Requires exact commands, max tx/call count, wallet/program IDs, rollback, evidence output, and failure criteria before execution.
+
+Recommendation until Nissan approves live PER: Track A.
+
+### Phase 14.4 — x402/OpenRouter economic workflow alignment
+
+- Keep x402/OpenRouter demo as the economic workflow centerpiece, but label settlement status precisely:
+  - unpaid challenge: real `402 + x402-request`;
+  - controlled demo-paid completions: demo receipts unless real verifier enabled;
+  - real settlement: only if a receipt verifier/signing path is approved and validated.
+- Ensure `/economic-demo`, judge packet, and video script use the same language.
+
+### Phase 14.5 — Jupiter/Torque/framework visibility pass
+
+- Jupiter: include tested SOL→USDC/Jupiter invoke evidence if final demo mentions cross-token settlement; do not imply live production swap unless approved and run.
+- Torque: include retention/leaderboard telemetry only as supporting layer unless a sidetrack requires it.
+- ElizaOS/SendAI: include as framework integration/distribution proof, not core on-chain proof.
+
+### Phase 14.6 — Final recording readiness gate
+
+Before recording, verify:
+
+1. Quasar devnet A/B/C registrations exist or the script explicitly says registration is approval-gated/not yet performed.
+2. Web app target cards and operator checklist say Quasar program ID first.
+3. x402 evidence panel shows challenge/receipt status accurately.
+4. MagicBlock/PER wording matches Track A or Track B.
+5. Legacy Anchor evidence is visually labeled “reference/history only.”
+6. Final judge packet has a one-page proof map: Quasar proof, MagicBlock proof, x402 proof, Jupiter proof, OpenRouter proof, Surfpool proof.
+
+**Plan adjustment:** Phase 13’s “scoped proof is enough” posture is now superseded for recording readiness. Scoped proof remains a safe fallback, but the active plan is Quasar-first demo readiness with explicit ecosystem-product proof mapping.

@@ -1,0 +1,50 @@
+# Quasar Final Demo Eligibility Matrix — 2026-05-06
+
+## Goal
+
+Move the Colosseum Frontier submission from legacy Anchor-compiled program evidence to Quasar-compiled Solana program evidence, while visibly using the identified ecosystem/bounty products: MagicBlock, x402, Jupiter, OpenRouter specialist agents, Surfpool, and supporting integrations such as Torque/ElizaOS/SendAI where the evidence exists.
+
+## Classification rules
+
+- `quasar-live-ready`: executed or read against the Quasar devnet program `VYCbMszux9seLK2aXFZMECMBFURvfuJLXsXPmJS5igW`.
+- `quasar-local-compatible`: Quasar-compatible construction/read/decode/readiness proven locally, but not yet signed on devnet.
+- `ecosystem-supporting-evidence`: supports the demo/product stack but is not direct Quasar program proof.
+- `legacy-reference-only`: Anchor-era evidence retained only as historical/reference proof.
+
+## Matrix
+
+| Demo/evidence surface | Current classification | What it proves | Gap before final recording | Required framing |
+| --- | --- | --- | --- | --- |
+| Quasar program target/readiness guard | `quasar-local-compatible` | App/runtime selects Quasar devnet program; guard blocks stale Anchor proof | Register/read back demo agents on Quasar devnet for stronger live proof | “Quasar is the hackathon target; readiness guard passes for scoped proof.” |
+| `/register` Quasar transaction builder | `quasar-local-compatible` | Registration instruction construction no longer uses Anchor encoding in Quasar mode | Approval-gated signed devnet registration | “Ready to register against Quasar; live txs require approval.” |
+| Demo-agent A/B/C registration | `quasar-local-compatible` → target `quasar-live-ready` after approval | A/B/C can be registered under Quasar program | A/B/C currently absent under Quasar; legacy Anchor A/B/C exist | “Next signed step is Quasar registration; legacy Anchor is reference only.” |
+| Quasar AgentAccount read/decode | `quasar-local-compatible` | Web/read paths use Quasar account discriminator/layout in Quasar mode | Needs live Quasar PDA readback after registration | “Decode path is Quasar-compatible; readback becomes proof after registration.” |
+| Reputation commit/reveal + attestation confirm/dispute builders | `quasar-local-compatible` | Demo-critical reputation/attestation transaction construction routes to Quasar helpers | Live signed execution not yet approved | “Quasar-compatible builders exist; live tx proof pending approval.” |
+| Full `packages/demo-agents/src/demo.ts` A→B→C/PER script | `legacy-reference-only` | Historical full-flow escrow/PER/Jupiter/reputation/attestation shape | Not eligible as Quasar proof; fails closed in Quasar mode | “Reference only; not final Quasar proof.” |
+| MagicBlock PER happy path/fallback evidence | `ecosystem-supporting-evidence` | MagicBlock PER client/fallback story and prior proof | Quasar-native live PER not yet approved/proven | “MagicBlock is part of the stack; Quasar-native PER is approval-gated unless Track B is run.” |
+| x402/OpenRouter 30 specialist workflow | `ecosystem-supporting-evidence` | Real fail-closed x402 challenges, controlled demo-paid completions, agent marketplace/delegation | Real receipt verifier/signing path not enabled unless separately approved | “Economic workflow proof; settlement status is controlled-demo unless real verifier is run.” |
+| Jupiter SOL→USDC/cross-token settlement evidence | `ecosystem-supporting-evidence` | Cross-token settlement logic and tested Jupiter invoke lane | Live production swap not claimed unless approved/run | “Jupiter integration evidence; do not overclaim live swap.” |
+| Surfpool local economic rehearsal | `ecosystem-supporting-evidence` | Local transfer semantics and regression confidence | Existing Surfpool lanes use local/legacy program; not Quasar proof | “Local confidence before devnet, not final Quasar proof.” |
+| Torque retention/leaderboard | `ecosystem-supporting-evidence` | Supporting retention/engagement layer | Needs final script mention only if relevant | “Supporting ecosystem layer.” |
+| ElizaOS/SendAI integrations | `ecosystem-supporting-evidence` | Framework distribution/integration proof | No final on-chain proof role | “Framework integration proof, not Quasar proof.” |
+
+## Recording readiness requirements
+
+Before recording the final hackathon demo:
+
+1. Show Quasar program ID first everywhere: `VYCbMszux9seLK2aXFZMECMBFURvfuJLXsXPmJS5igW`.
+2. Do not show legacy Anchor program `794nTFNyJknzDrR13ApSfVyNCRvcvnCN3BVDfic8dcZD` as the active hackathon proof.
+3. Prefer approval-gated Quasar A/B/C devnet registration and readback before recording.
+4. If MagicBlock PER is shown without live Quasar PER validation, narrate it as ecosystem-supporting evidence and future/approval-gated Quasar PER parity.
+5. If x402 paid completions are shown, distinguish unpaid challenges, controlled demo receipts, and real settlement.
+6. If Jupiter is shown, tie it to the tested invoke/cross-token evidence and avoid claiming live swap unless separately run.
+7. Add a proof-map slide/panel: Quasar proof, MagicBlock proof, x402 proof, Jupiter proof, OpenRouter proof, Surfpool proof.
+
+## Recommendation
+
+The plan should now be Quasar-first, not scoped-proof-first:
+
+1. Keep PR #244 as the Quasar compatibility/readiness foundation.
+2. Get explicit approval for Quasar devnet A/B/C registration.
+3. Make the web app and judge packet show Quasar live readback as the primary on-chain proof.
+4. Use MagicBlock/x402/Jupiter/OpenRouter/Surfpool as clearly labeled supporting ecosystem proofs unless a stronger approval-gated live validation lane is executed.
