@@ -1,7 +1,7 @@
 # Economic Demo Submission Readiness — BDD Iterative Plan
 
-_Date:_ 2026-05-05 AEST  
-_Status:_ Phase 0 in progress  
+_Date:_ 2026-05-05 AEST
+_Status:_ Phase 2 complete locally; PR pending
 _Related:_ Issue #228, PR #225, PR #226, PR #227, `/economic-demo`, `artifacts/economic-demo-submission-prep/latest`
 
 ## North star
@@ -191,3 +191,13 @@ _Status:_ Complete locally; ready for PR.
 - **Safety/spend review:** Local filesystem validation only. No hosted specialist calls, provider requests, signing, wallet mutation, devnet transfer, Coolify/env mutation, or paid spend.
 - **Judge clarity:** Improved for operators: the prep pack now has a repeatable validation command before recording/submission, reducing reliance on chat memory.
 - **Plan adjustment:** Phase 2 should surface a committed operator checklist or UI panel using sanitized claims, not raw ignored artifact contents. Keep the checker as a local preflight before any rehearsal.
+
+### Phase 2 retrospective
+
+_Status:_ Complete locally; ready for PR.
+
+- **What worked:** Added `docs/ECONOMIC-DEMO-OPERATOR-CHECKLIST-2026-05-05.md` as a public-safe recording path with the demo route, local preflight command, five-beat narration, proof chain, and explicit not-claimed section.
+- **What failed or surprised us:** The STATUS file was stale after the rapid PR #229/#230 loop, so this phase also needs a resume-state refresh. That reinforces why each loop must update STATUS after merge/CI.
+- **Safety/spend review:** Docs/BDD/status only. No hosted specialist calls, provider requests, image generation, signing, wallet mutation, devnet transfer, Coolify/env mutation, or paid spend.
+- **Judge clarity:** Improved. Nissan can record from a committed checklist that separates proven local/demo evidence from future approval-gated live research or real image generation.
+- **Plan adjustment:** Phase 3 should run a local dry-run rehearsal using the checker and checklist, then write an ignored rehearsal report plus retrospective. If the rehearsal shows UI ambiguity, do a small polish loop before final packet work.

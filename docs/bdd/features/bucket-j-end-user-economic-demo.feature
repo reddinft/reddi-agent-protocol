@@ -128,3 +128,11 @@ Feature: End-user economic workflow demo
     Then it confirms the demo entrypoint, green evidence chain, local evidence paths, recording outline, and hard no-go list are present
     And every referenced local evidence artifact path exists
     And no hosted specialist call, provider request, signing operation, wallet mutation, devnet transfer, or Coolify mutation occurs
+
+  Scenario: Operator checklist gives a public-safe recording path
+    Given the economic demo operator checklist is committed
+    When Nissan prepares to record or submit the economic demo
+    Then the checklist names the demo route, local prep checker, five-beat narration, public PR or CI proof chain, and hard not-claimed section
+    And it distinguishes controlled demo evidence, local Surfpool proof, storyboard-only image planning, and approval-gated future work
+    And it references local ignored evidence paths only as operator pointers rather than publishing raw artifact contents
+    And following the checklist does not call hosted specialists, request providers, sign, mutate wallets, transfer devnet funds, or mutate Coolify configuration
