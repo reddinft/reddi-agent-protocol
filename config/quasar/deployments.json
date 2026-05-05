@@ -1,0 +1,56 @@
+{
+  "$schema": "./deployments.schema.json",
+  "updatedAt": "2026-05-05",
+  "decisionIssue": 236,
+  "target": "hackathon-demo-quasar-cutover",
+  "submissionReady": false,
+  "submissionReadyReason": "Candidate Quasar devnet program has been discovered, but full demo runtime wiring and judge-packet proof chain are not yet cut over.",
+  "legacyAnchorReference": {
+    "cluster": "devnet",
+    "programId": "794nTFNyJknzDrR13ApSfVyNCRvcvnCN3BVDfic8dcZD",
+    "purpose": "Legacy/reference Anchor deployment only. Must not be used as hackathon demo target after Quasar cutover."
+  },
+  "quasarDeployments": {
+    "devnet": {
+      "cluster": "devnet",
+      "rpcHttp": "https://api.devnet.solana.com",
+      "programId": "VYCbMszux9seLK2aXFZMECMBFURvfuJLXsXPmJS5igW",
+      "status": "candidate-executable-verified",
+      "scope": [
+        "escrow-parity-candidate",
+        "registry-parity-docs-present",
+        "reputation-parity-docs-present",
+        "attestation-parity-docs-present"
+      ],
+      "knownGaps": [
+        "runtime demo wiring still assumes Anchor discriminators/layouts",
+        "PER/privacy-aware settlement is not yet proven end-to-end on Quasar",
+        "final judge packet still needs Quasar proof chain refresh"
+      ],
+      "evidence": [
+        {
+          "type": "read-only-rpc-account-check",
+          "checkedAt": "2026-05-05T20:25:00+10:00",
+          "command": "solana account VYCbMszux9seLK2aXFZMECMBFURvfuJLXsXPmJS5igW --url https://api.devnet.solana.com",
+          "result": "executable=true; owner=BPFLoaderUpgradeab1e11111111111111111111111; no signing or wallet mutation"
+        },
+        {
+          "type": "repo-artifact",
+          "path": "docs/verifiable-agent-protocol/colosseum-frontier-2026-04/QUASAR-REGISTRY-PARITY-REPORT.md"
+        },
+        {
+          "type": "repo-artifact",
+          "path": "docs/verifiable-agent-protocol/colosseum-frontier-2026-04/QUASAR-REPUTATION-PARITY-REPORT.md"
+        },
+        {
+          "type": "repo-artifact",
+          "path": "docs/verifiable-agent-protocol/colosseum-frontier-2026-04/QUASAR-ATTESTATION-PARITY-REPORT.md"
+        },
+        {
+          "type": "repo-artifact",
+          "path": "docs/verifiable-agent-protocol/colosseum-frontier-2026-04/QUASAR-PER-PARITY-REPORT.md"
+        }
+      ]
+    }
+  }
+}

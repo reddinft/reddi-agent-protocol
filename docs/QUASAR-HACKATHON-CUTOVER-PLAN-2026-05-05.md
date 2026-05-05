@@ -73,7 +73,7 @@ Requires explicit approval before action:
 
 **Expectation:** The repo has one canonical place for Quasar deployment metadata.
 
-**Implementation target:** Add a Quasar deployment inventory/config contract that records program IDs, cluster, source artifact/report, and validation status. It must distinguish Quasar deployment IDs from legacy Anchor IDs.
+**Implementation:** `config/quasar/deployments.json` plus `npm run check:quasar:deployments`.
 
 **Acceptance:**
 
@@ -81,7 +81,13 @@ Requires explicit approval before action:
 - Missing Quasar program IDs fails locally.
 - Anchor program IDs are allowed only under explicit `legacyAnchorReference`, not as demo target IDs.
 
-**Retrospective:** Decide whether known Quasar IDs are sufficient or deployment approval is needed.
+**Validation:**
+
+- `npm run check:quasar:deployments`
+- `npm run test:bdd:index`
+- `git diff --check`
+
+**Retrospective:** Complete locally. Known Quasar candidate ID exists and is executable on devnet by read-only RPC check, but this is not enough for submission readiness because runtime wiring and PER/judge-packet proof chain are still incomplete. No deployment/signing approval has been used.
 
 ### Phase 2 — Demo/readiness guardrail
 
