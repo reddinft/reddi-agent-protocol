@@ -267,6 +267,32 @@ Append this block under the relevant phase before proceeding:
 - **Decision:** continue.
 - **Plan changes for next phase:** Port one low-risk runtime surface to use registry wrappers under explicit Quasar mode, or keep it disabled with a visible blocker if transaction sending would be required.
 
+### Phase 5 — Slice 3: Register page target-aware construction
+
+**Expectation:** A low-risk runtime surface can construct Quasar registry instructions under explicit Quasar mode without changing signing/deployment behavior.
+
+**Implementation:** `/register` now delegates transaction construction to `buildAgentRegistrationInstruction`, which selects Quasar registry wrappers when `PROGRAM_TARGET=quasar` and keeps Anchor construction only for legacy mode.
+
+**Validation:**
+
+- `npx jest --runTestsByPath lib/register/__tests__/registration-instruction.test.ts lib/quasar/__tests__/instructions.test.ts lib/quasar/__tests__/instruction-builders.test.ts --runInBand`
+- `npm run check:quasar:runtime-compatibility`
+- `npm run check:quasar:deployments`
+- `npm run check:quasar:demo-readiness`
+- `npm run test:bdd:index`
+- `git diff --check`
+
+### Retrospective — Phase 5 / Slice 3
+
+- **Expected:** Move one runtime path from Anchor-layout-only to target-aware Quasar-compatible construction.
+- **Observed:** `/register` no longer manually builds Anchor registration instruction data; construction is isolated and tested by target.
+- **Validation:** Tests prove legacy target still uses Anchor discriminator and Quasar target uses one-byte Quasar discriminator.
+- **What worked:** A selector helper avoided mixing target logic directly into the page component.
+- **What failed / surprised us:** Existing account checks still use PDA lookup only; actual wallet send remains user/external action and is not validated here.
+- **Safety / approval review:** Construction tests only; no signing, send, deployment, wallet/env mutation, paid calls, or live execution.
+- **Decision:** continue.
+- **Plan changes for next phase:** Port read/decode surfaces next or add UI status so operators can see Quasar mode before any wallet action.
+
 ### Phase 6 — Quasar demo UI honesty
 
 **Expectation:** `/economic-demo` visibly shows Quasar program target, deployment status, submission readiness, and known gaps.

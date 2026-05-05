@@ -6,18 +6,16 @@ import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import {
   Connection,
   Transaction,
-  TransactionInstruction,
-  SystemProgram,
 } from "@solana/web3.js";
 import {
   ESCROW_PROGRAM_ID,
   DEVNET_RPC,
   AGENT_TYPE_ENUM,
-  buildRegisterAgentData,
+  PROGRAM_TARGET,
   agentPda,
-  INCINERATOR,
 } from "@/lib/program";
 import { toExplorerTxUrl } from "@/lib/config/explorer";
+import { buildAgentRegistrationInstruction } from "@/lib/register/registration-instruction";
 import {
   INITIAL_EXISTING_AGENT_STATE,
   agentDetailHref,
@@ -375,18 +373,14 @@ function RegisterInner() {
       const modelName = form.model || "unknown";
       const minRep = form.minConsumerRep ?? 0;
 
-      const pda = agentPda(publicKey);
-      const data = buildRegisterAgentData(agentTypeByte, modelName, rateLamports, minRep);
-
-      const ix = new TransactionInstruction({
+      const ix = buildAgentRegistrationInstruction({
+        target: PROGRAM_TARGET,
         programId: ESCROW_PROGRAM_ID,
-        keys: [
-          { pubkey: pda, isSigner: false, isWritable: true },
-          { pubkey: publicKey, isSigner: true, isWritable: true },
-          { pubkey: INCINERATOR, isSigner: false, isWritable: true },
-          { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
-        ],
-        data,
+        owner: publicKey,
+        agentType: agentTypeByte,
+        model: modelName,
+        rateLamports,
+        minReputation: minRep,
       });
 
       const { blockhash } = await conn.getLatestBlockhash();
