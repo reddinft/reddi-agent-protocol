@@ -1,19 +1,19 @@
 # Reddi Agent Protocol Code — STATUS
 
 **Last updated:** 2026-05-05 AEST
-**State:** 🟢 Phase 7 picture storyboard dry-run + deterministic artifact generator merged; GitHub Actions Node 24 migration merged; Phase 6 live research and real image generation remain approval-gated.
+**State:** 🟢 Phase 7 picture storyboard dry-run + deterministic artifact generator merged; GitHub Actions Node 24 migration and compact local-evidence UI link merged; Phase 6 live research and real image generation remain approval-gated.
 
 ## RESUME FROM HERE
 
 1. Phase 7 picture storyboard artifact generator is complete through PR #221. Do not run real OpenAI/Fal image generation without explicit approval, provider choice, and budget cap.
 2. GitHub Actions Node.js 20 deprecation cleanup is complete through PR #223; post-merge `main` Anchor CI has no Node.js 20 deprecation annotation.
-3. Do not run Phase 6 controlled live research without explicit approval for hosted/devnet calls and spend. Next safe local work: add a compact UI link to latest local evidence artifacts, or pause for demo/submission prep.
+3. Compact `/economic-demo` local-evidence artifact links are complete through PR #225. Do not run Phase 6 controlled live research without explicit approval for hosted/devnet calls and spend. Next safe local work: pause for demo/submission prep, or only make polish/docs changes that do not call hosted/devnet services.
 
 ## Current Branch / Repo State
 
-- Local branch: `docs/status-after-node24-ci-20260505` (status-only follow-up after PR #223 merge).
-- Local working tree: status update after PR #223 merge. Local evidence artifacts are under `artifacts/manifest-parity-phase4/`, `artifacts/economic-demo-surfpool-rehearsal/20260505T021309Z/`, `artifacts/surfpool-smoke/20260505-121331/`, `artifacts/economic-demo-research-dry-run/20260505T025224Z/`, and generated/ignored `artifacts/economic-demo-picture-storyboard/`.
-- Latest merge on main: `c9ba5835 ci: use Node 24 GitHub Actions releases (#223)`.
+- Local branch: `docs/status-after-local-evidence-ui-20260505` (status-only follow-up after PR #225 merge).
+- Local working tree: status update after PR #225 merge. Local evidence artifacts are under `artifacts/manifest-parity-phase4/`, `artifacts/economic-demo-surfpool-rehearsal/20260505T021309Z/`, `artifacts/surfpool-smoke/20260505-121331/`, `artifacts/economic-demo-research-dry-run/20260505T025224Z/`, and generated/ignored `artifacts/economic-demo-picture-storyboard/`.
+- Latest merge on main: `f36d4bb5 feat: surface local economic demo evidence paths (#225)`.
 - PR #204: closed as superseded after Nissan accepted recommendation.
 - PR #214: merged 2026-05-05 AEST as `a290db7093458f45ca1b3dbc2a047b404c856a29`; post-merge Anchor run `25353582949`, job `74338163008` passed in 7m26s.
 - PR #215: merged 2026-05-05 AEST as `cd202ebd6360d29f0a896e852fe9f63c339fc4dc`; post-merge Anchor run `25353973718`, job `74339305929` passed in 7m23s.
@@ -241,6 +241,15 @@ Validation for Phase 7 picture storyboard artifact generator + Node 24 CI cleanu
 - PR #223 post-merge `main` Anchor run `25358109765`, job `74351504389` — PASS, 7m30s.
 - Post-merge log grep for `Node.js 20`, forced runtime warnings, and old `actions/*@v4` usage produced no matches.
 
+- PR #224: https://github.com/nissan/reddi-agent-protocol/pull/224
+- PR #224 merge commit: `17a401645aaf528b26d81783b0e2ab31ffc46706`
+- PR #224 post-merge `main` Anchor run `25358560125`, job `74352818548` — PASS, 7m15s.
+- PR #225: https://github.com/nissan/reddi-agent-protocol/pull/225
+- PR #225 merge commit: `f36d4bb55b7f10bbc5177b3fda189c67f17d7cd3`
+- PR #225 validation: `npx eslint app/economic-demo/page.tsx`, `npm run build`, `git diff --check`, PR checks — PASS.
+- PR #225 post-merge `main` Anchor run `25359075289`, job `74354425576` — PASS, 7m24s.
+- `/economic-demo` now links to latest local/ignored dry-run artifact paths without loading or publishing private logs and without triggering live calls.
+
 ## Retrospective — Phase 6.5 Slice A
 
 ### What worked
@@ -282,6 +291,7 @@ Do not proceed as a waterfall into research/picture live workflows until the dis
 - 2026-05-05: Phase 7 storyboard dry-run is merged; real image generation needs a separate approval with provider and budget cap.
 - 2026-05-05: Picture storyboard artifact generation should remain local/ignored and assert the disabled adapter as evidence, not omit it.
 - 2026-05-05: GitHub Actions Node.js 20 deprecation cleanup uses Node 24-capable action major versions (`actions/checkout@v5`, `actions/cache@v5`) rather than the temporary forced-runtime env workaround.
+- 2026-05-05: `/economic-demo` may surface local/ignored evidence artifact paths as operator pointers, but must not publish private logs or trigger live calls from that panel.
 
 ## Blockers / Watch Items
 
