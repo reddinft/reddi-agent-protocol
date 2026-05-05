@@ -85,9 +85,9 @@
     },
     {
       "path": "packages/demo-agents/src/demo.ts",
-      "surface": "demo-agent escrow/reputation/attestation/PER transaction flow",
-      "status": "blocked-pending-quasar-port",
-      "reason": "Builds multiple instructions inline and includes PER flow. Requires Quasar builder port and PER semantics verification before use as Quasar proof."
+      "surface": "legacy demo-agent escrow/reputation/attestation/PER transaction flow",
+      "status": "not-demo-critical",
+      "reason": "Phase 9 decision: this script is explicitly legacy Anchor/PER proof material and now fails closed when DEMO/HACKATHON target is quasar. Quasar submission proof must use scoped web/onboarding/judge-packet paths until full escrow/PER live TEE semantics are separately verified."
     }
   ],
   "allowedStatuses": [

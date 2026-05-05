@@ -37,6 +37,12 @@ import { runMintReadinessPreflight } from "./payments-mint-readiness";
 
 const PROGRAM_ID = new PublicKey(ESCROW_PROGRAM_ID);
 const connection = new Connection(DEVNET_RPC, "confirmed");
+const DEMO_PROGRAM_TARGET = (
+  process.env.HACKATHON_DEMO_TARGET ??
+  process.env.DEMO_PROGRAM_TARGET ??
+  process.env.NEXT_PUBLIC_DEMO_PROGRAM_TARGET ??
+  "legacy-anchor"
+).toLowerCase();
 
 type SettlementMode = "auto" | "magicblock_per" | "vanish_core" | "public";
 
@@ -168,6 +174,13 @@ function encodeAttestQuality(jobId: Uint8Array, scores: number[], consumerPk: Pu
 // ── Demo ──────────────────────────────────────────────────────────────────────
 
 async function runDemo() {
+  if (DEMO_PROGRAM_TARGET === "quasar") {
+    throw new Error(
+      "packages/demo-agents/src/demo.ts is a legacy Anchor full-flow/PER demo and is not a Quasar submission proof. " +
+        "Use the Quasar-scoped web/onboarding/judge-packet paths instead, or run this script only with DEMO_PROGRAM_TARGET=legacy-anchor."
+    );
+  }
+
   const start = Date.now();
   const requestedSettlementMode = readSettlementMode();
   const allowFallback = String(process.env.DEMO_ALLOW_FALLBACK ?? "true").toLowerCase() === "true";

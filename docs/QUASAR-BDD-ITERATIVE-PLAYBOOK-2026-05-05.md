@@ -340,29 +340,41 @@ This is the staged plan from the current PR onward. Each phase remains a separat
 - **Decision:** continue to Phase 9 decision gate. Recommend splitting PER/escrow into scoped claim: demo can prove registry/reputation/attestation Quasar paths now, but cannot claim PER/escrow Quasar parity until the remaining full-flow path is either ported or explicitly excluded.
 - **Plan changes for next phase:** Phase 9 should inspect `packages/demo-agents/src/demo.ts`, identify exactly which escrow/PER instructions block submission readiness, then choose either (A) port non-PER demo-agent calls and mark PER out of scope, or (B) keep readiness blocked pending Quasar PER semantics.
 
-### Phase 9 — Demo-agent full flow and PER decision gate
+### Phase 9 — Demo-agent full flow and PER decision gate ✅ implemented in PR #244
 
 **Expectation:** The submission demo has an honest Quasar-compatible path for the flows it shows, and PER is either proven under Quasar or explicitly scoped as fallback/future work.
 
-**Implementation plan:**
+**Implementation:**
 
-1. Decompose `packages/demo-agents/src/demo.ts` into target-aware instruction helpers.
-2. Port non-PER escrow/reputation/attestation construction where parity evidence exists.
-3. Investigate PER parity report and current MagicBlock/TEE dependency assumptions.
-4. Choose one of:
-   - Quasar PER-compatible proof path,
-   - non-PER Quasar demo path plus explicit PER limitation,
-   - approval-gated live/local validation request if local evidence is insufficient.
+1. Inspected `packages/demo-agents/src/demo.ts`: it is an end-to-end legacy full-flow script with inline escrow/PER transaction construction and live send paths.
+2. Compared against current Quasar evidence: registry, reputation, attestation, and PER parity reports exist; however live MagicBlock/TEE PER remains explicitly unproven and approval-gated.
+3. Chose the safe scoped-proof path: do not silently reuse this script as Quasar proof.
+4. Added a fail-closed guard so the script throws immediately when `HACKATHON_DEMO_TARGET` / `DEMO_PROGRAM_TARGET` / `NEXT_PUBLIC_DEMO_PROGRAM_TARGET` is `quasar`.
+5. Marked the script `not-demo-critical` in runtime compatibility because the Quasar submission proof boundary is now scoped to web/onboarding/judge-packet paths, not this legacy full-flow/PER script.
+6. Added a guard test proving the legacy full-flow script cannot be accidentally presented as Quasar proof.
 
 **Acceptance:**
 
 - Demo script does not silently run Anchor constructions when target is Quasar.
-- PER claims in demo/judge packet match evidence.
-- Any required signing/deployment/devnet/live action is stopped behind explicit Nissan approval.
+- PER claims remain scoped: Quasar PER parity exists as source/test evidence, but live TEE execution remains unproven without explicit approval.
+- Required signing/deployment/devnet/live action remains stopped behind explicit Nissan approval.
+- Runtime compatibility has zero blocker-status demo-critical paths.
 
-**Validation candidates:** targeted demo-agent tests, package build/test, readiness guards, BDD index, optional approved Surfpool/local-only smoke if needed.
+**Validation:**
 
-**Retrospective requirement:** Decide final proof boundary: Quasar full-flow proof, Quasar scoped proof, or blocked pending approval.
+- `npm run check:quasar:runtime-compatibility` should now report submission-compatible runtime inventory (no blocker-status demo-critical paths).
+- Full build/Jest/readiness/BDD gates before push.
+
+### Retrospective — Phase 9
+
+- **Expected:** Either port demo-agent full flow or explicitly block/scope it so it cannot become false proof.
+- **Observed:** Full-flow `demo.ts` mixes escrow, PER, Jupiter, reputation, and attestation live sends; porting it would expand scope and still not prove live TEE PER without approval. The correct hackathon-safe move is fail-closed scoping.
+- **Validation:** Static guard test added; runtime compatibility no longer treats the legacy full-flow script as a Quasar blocker because it is not eligible as Quasar proof.
+- **What worked:** The BDD loop prevented a misleading “all demos are Quasar” claim by forcing the PER decision into a visible phase.
+- **What failed / surprised us:** Runtime compatibility can reach zero blockers while submission readiness is still gated by judge-packet proof-chain language and known-gaps cleanup.
+- **Safety / approval review:** Local source/tests only; no signing, send, deployment, wallet/env mutation, paid calls, or live execution.
+- **Decision:** Quasar final proof boundary is scoped proof, not full-flow PER proof. PER remains future/approval-gated live validation.
+- **Plan changes for next phase:** Phase 10 should convert the zero-blocker runtime inventory into CI/readiness language, update Quasar deployment known gaps from broad runtime wiring to scoped live-PER/judge-packet proof chain, and keep `submissionReady=false` until judge packet is refreshed.
 
 ### Phase 10 — CI cutover from Anchor proof to Quasar proof
 
