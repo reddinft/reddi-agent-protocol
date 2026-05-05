@@ -22,6 +22,15 @@ type DemoNetworkProfile = {
   defaultPerRpc: string;
 };
 
+const QUASAR_DEVNET_ESCROW_PROGRAM_ID = "VYCbMszux9seLK2aXFZMECMBFURvfuJLXsXPmJS5igW";
+
+export type DemoProgramTarget = "legacy-anchor" | "quasar";
+
+function resolveProgramTarget(): DemoProgramTarget {
+  const raw = (pickEnv("NEXT_PUBLIC_DEMO_PROGRAM_TARGET", "HACKATHON_DEMO_TARGET", "DEMO_PROGRAM_TARGET") ?? "legacy-anchor").toLowerCase();
+  return raw === "quasar" ? "quasar" : "legacy-anchor";
+}
+
 const DEMO_NETWORK_PROFILES: Record<DemoNetworkProfileName, DemoNetworkProfile> = {
   "local-surfpool": {
     rpcHttp: "http://127.0.0.1:18999",
@@ -50,11 +59,17 @@ function resolveNetworkProfileName(): DemoNetworkProfileName {
   return "devnet";
 }
 
-const activeProfile = DEMO_NETWORK_PROFILES[resolveNetworkProfileName()];
+const activeNetworkProfileName = resolveNetworkProfileName();
+const activeProfile = DEMO_NETWORK_PROFILES[activeNetworkProfileName];
+export const PROGRAM_TARGET: DemoProgramTarget =
+  activeNetworkProfileName === "devnet" && resolveProgramTarget() === "quasar" ? "quasar" : "legacy-anchor";
+export const PROGRAM_FRAMEWORK = PROGRAM_TARGET === "quasar" ? "quasar" : "anchor";
+export const PROGRAM_COMPATIBILITY = PROGRAM_TARGET === "quasar" ? "quasar-layout-unverified" : "anchor-layout";
 
 /** Deployed program ID (overrideable for local Surfpool/test lanes) */
 export const ESCROW_PROGRAM_ID =
-  pickEnv("DEMO_ESCROW_PROGRAM_ID", "NEXT_PUBLIC_ESCROW_PROGRAM_ID") ?? activeProfile.defaultEscrowProgramId;
+  pickEnv("DEMO_ESCROW_PROGRAM_ID", "NEXT_PUBLIC_ESCROW_PROGRAM_ID") ??
+  (PROGRAM_TARGET === "quasar" ? QUASAR_DEVNET_ESCROW_PROGRAM_ID : activeProfile.defaultEscrowProgramId);
 
 /** Solana RPC (overrideable for local Surfpool/test lanes) */
 export const DEVNET_RPC = pickEnv("DEMO_DEVNET_RPC", "NEXT_PUBLIC_RPC_ENDPOINT") ?? activeProfile.rpcHttp;
