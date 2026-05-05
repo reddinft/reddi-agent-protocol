@@ -1,7 +1,7 @@
 # Economic Demo Submission Readiness — BDD Iterative Plan
 
 _Date:_ 2026-05-05 AEST
-_Status:_ Phase 2 complete locally; PR pending
+_Status:_ Phase 3 complete locally; PR pending
 _Related:_ Issue #228, PR #225, PR #226, PR #227, `/economic-demo`, `artifacts/economic-demo-submission-prep/latest`
 
 ## North star
@@ -201,3 +201,15 @@ _Status:_ Complete locally; ready for PR.
 - **Safety/spend review:** Docs/BDD/status only. No hosted specialist calls, provider requests, image generation, signing, wallet mutation, devnet transfer, Coolify/env mutation, or paid spend.
 - **Judge clarity:** Improved. Nissan can record from a committed checklist that separates proven local/demo evidence from future approval-gated live research or real image generation.
 - **Plan adjustment:** Phase 3 should run a local dry-run rehearsal using the checker and checklist, then write an ignored rehearsal report plus retrospective. If the rehearsal shows UI ambiguity, do a small polish loop before final packet work.
+
+### Phase 3 retrospective
+
+_Status:_ Complete locally; ready for PR.
+
+- **What worked:** The local rehearsal successfully chained the committed checklist and local prep checker. `npm run check:economic-demo:submission-prep` passed, the checklist contains the required narration/proven/not-claimed sections, `/economic-demo` still exposes the local evidence anchor/panel, `npm run build` passed, and BDD index/diff checks passed.
+- **What failed or surprised us:** The build still emits known Next/Turbopack workspace-root and NFT trace warnings. They remain non-blocking, but the final packet should not present the build as warning-free. The STATUS file also needed another refresh after the rapid #232 merge.
+- **Safety/spend review:** Local filesystem/source/build validation only. No hosted specialist calls, provider requests, image generation, signing, wallet mutation, devnet transfer, Coolify/env mutation, or paid spend.
+- **Judge clarity:** Improved. The rehearsal report proves Nissan can follow committed docs and page anchors without hidden chat context. It confirms the current story is ready for a final public-safe packet unless Nissan wants a separate UI polish loop.
+- **Plan adjustment:** Phase 4 should produce the final judge/submission packet as a committed public-safe doc. It must include what is proven, what is local/simulated, exact PR/CI proof chain, and explicit not-claimed boundaries. Do not add live proof categories without separate approval.
+
+_Phase 3 local artifact:_ `artifacts/economic-demo-rehearsal/20260505T091725Z/REHEARSAL-REPORT.md` (ignored, local-only).
