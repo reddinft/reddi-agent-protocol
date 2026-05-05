@@ -36,7 +36,8 @@
     "smoke:economic-demo:live-x402-readiness": "node ./scripts/run-economic-demo-live-x402-readiness.mjs",
     "smoke:economic-demo:webpage-live-x402-workflow": "node ./scripts/run-economic-demo-webpage-live-x402-workflow.mjs",
     "evidence:economic-demo:webpage": "node ./scripts/generate-economic-demo-evidence-pack.mjs",
-    "evidence:economic-demo:research-dry-run": "node ./scripts/generate-economic-demo-research-dry-run.mjs"
+    "evidence:economic-demo:research-dry-run": "node ./scripts/generate-economic-demo-research-dry-run.mjs",
+    "evidence:economic-demo:picture-storyboard": "node ./scripts/generate-economic-demo-picture-storyboard.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",
