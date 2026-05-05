@@ -1,0 +1,70 @@
+{
+  "$schema": "./runtime-compatibility.schema.json",
+  "updatedAt": "2026-05-05",
+  "phase": 4,
+  "target": "quasar-builder-compatibility-boundary",
+  "summary": "Static compatibility boundary for Quasar demo mode. Paths listed as anchor-layout-only or blocked must not be treated as Quasar submission-ready until ported/verified.",
+  "demoCriticalPaths": [
+    {
+      "path": "lib/program.ts",
+      "surface": "shared instruction builders and account decoders",
+      "status": "anchor-layout-only",
+      "reason": "Uses Anchor SHA256 global/account discriminators and Anchor account layout comments. Quasar program ID selection is wired, but data layout compatibility is not verified."
+    },
+    {
+      "path": "app/register/page.tsx",
+      "surface": "registration transaction builder",
+      "status": "anchor-layout-only",
+      "reason": "Builds register_agent transaction with shared Anchor-layout builder."
+    },
+    {
+      "path": "app/onboarding/page.tsx",
+      "surface": "onboarding registration and attestation confirmation/dispute builders",
+      "status": "anchor-layout-only",
+      "reason": "Builds transactions with shared Anchor-layout builders."
+    },
+    {
+      "path": "lib/onboarding/onchain-attestation.ts",
+      "surface": "attest_quality transaction builder",
+      "status": "anchor-layout-only",
+      "reason": "Uses buildAttestQualityData from lib/program.ts and Anchor-style account metas."
+    },
+    {
+      "path": "lib/onboarding/reputation-signal.ts",
+      "surface": "commit/reveal reputation builders",
+      "status": "anchor-layout-only",
+      "reason": "Local commit/reveal data builders use Anchor discriminators from IX."
+    },
+    {
+      "path": "lib/registry/bridge.ts",
+      "surface": "on-chain AgentAccount decoder/filter",
+      "status": "anchor-layout-only",
+      "reason": "Filters by Anchor account discriminator and decodes Anchor account layout."
+    },
+    {
+      "path": "lib/useOnchainAgents.ts",
+      "surface": "client-side AgentAccount fetch/decode",
+      "status": "anchor-layout-only",
+      "reason": "Filters by Anchor account discriminator and decodes Anchor account layout."
+    },
+    {
+      "path": "packages/demo-agents/src/register-agents.ts",
+      "surface": "demo-agent registration builder",
+      "status": "anchor-layout-only",
+      "reason": "Constructs Anchor-layout registration instruction."
+    },
+    {
+      "path": "packages/demo-agents/src/demo.ts",
+      "surface": "demo-agent escrow/reputation/attestation/PER transaction flow",
+      "status": "blocked-pending-quasar-port",
+      "reason": "Builds multiple instructions inline and includes PER flow. Requires Quasar builder port and PER semantics verification before use as Quasar proof."
+    }
+  ],
+  "allowedStatuses": [
+    "quasar-compatible",
+    "anchor-layout-only",
+    "blocked-pending-quasar-port",
+    "not-demo-critical"
+  ],
+  "submissionReadyRule": "submissionReady may not be true while any demoCriticalPaths entry is anchor-layout-only or blocked-pending-quasar-port."
+}
