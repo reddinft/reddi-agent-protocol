@@ -1,13 +1,13 @@
 # Reddi Agent Protocol Code — STATUS
 
 **Last updated:** 2026-05-05 AEST
-**State:** 🟢 Phase 7 picture storyboard dry-run merged; deterministic storyboard artifact generator in progress; Phase 6 live research and real image generation remain approval-gated.
+**State:** 🟢 Phase 7 picture storyboard dry-run + deterministic artifact generator merged; Phase 6 live research and real image generation remain approval-gated.
 
 ## RESUME FROM HERE
 
-1. Deterministic picture storyboard artifact generator is the current safe local slice. Do not run real OpenAI/Fal image generation without explicit approval, provider choice, and budget cap.
+1. Phase 7 picture storyboard artifact generator is complete through PR #221. Do not run real OpenAI/Fal image generation without explicit approval, provider choice, and budget cap.
 2. Do not run Phase 6 controlled live research without explicit approval for hosted/devnet calls and spend.
-3. After this slice, next safe local work is GitHub Actions Node.js 20 deprecation cleanup or a compact UI link to latest local evidence artifacts.
+3. Next safe local work: fix the GitHub Actions Node.js 20 deprecation warning, or add a compact UI link to latest local evidence artifacts.
 
 ## Current Branch / Repo State
 
@@ -212,13 +212,18 @@ Validation for Phase 7 picture storyboard dry-run slice:
 - PR checks passed before merge: Vercel Preview Comments, Vercel deployment, `bdd-index-guard`, `source-conformance-matrix`, Anchor run `25355869246`, job `74344891406` — PASS, 6m2s.
 - Post-merge `main` Anchor run `25356047688`, job `74345428981` — PASS, 7m13s.
 
-Validation for Phase 7 picture storyboard artifact generator slice (local, not yet PR):
+Validation for Phase 7 picture storyboard artifact generator slice:
 
 - Added `scripts/generate-economic-demo-picture-storyboard.mjs` and `npm run evidence:economic-demo:picture-storyboard`.
 - Generated artifact `artifacts/economic-demo-picture-storyboard/20260505T034749Z/picture-storyboard.json` with schema `reddi.economic-demo.picture-storyboard-artifact.v1`.
 - Artifact summary: scenario `picture`, mode `storyboard_no_image_generation`, orchestrator `tool-using-agent`, 4 edges, 4 storyboard frames, blocked adapter x402 state `blocked_disabled_adapter`, `imageGenerationExecuted = 0`, `downstreamCallsExecuted = 0`.
 - Safety review counters: OpenAI image requests `0`, Fal.ai image requests `0`, paid provider requests `0`, signing operations `0`, wallet mutations `0`, devnet transfers `0`.
 - Secret grep over generated artifact produced only policy-text false positive `ENABLE_ECONOMIC_DEMO_IMAGE_GENERATION`; no credential material present.
+- Local validation: `npm run evidence:economic-demo:picture-storyboard`, targeted Jest, `node --check`, targeted ESLint, `npm run test:bdd:index`, `npm run build`, `git diff --check` — PASS.
+- PR: https://github.com/nissan/reddi-agent-protocol/pull/221
+- Merge commit: `a48478cb69416a039ad4b9851cb328751b5e47d4`
+- PR checks passed before merge: Vercel Preview Comments, Vercel deployment, `bdd-index-guard`, `source-conformance-matrix`, Anchor run `25356793595`, job `74347616865` — PASS, 7m43s.
+- Post-merge `main` Anchor run `25357010731`, job `74348248057` — PASS, 7m29s.
 
 ## Retrospective — Phase 6.5 Slice A
 
