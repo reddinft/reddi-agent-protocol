@@ -7,7 +7,7 @@
 
 1. Phase 7 picture storyboard artifact generator is complete through PR #221. Do not run real OpenAI/Fal image generation without explicit approval, provider choice, and budget cap.
 2. GitHub Actions Node.js 20 deprecation cleanup is complete through PR #223; post-merge `main` Anchor CI has no Node.js 20 deprecation annotation.
-3. Compact `/economic-demo` local-evidence artifact links are complete through PR #225. Demo/submission readiness now follows Issue #228 and `docs/ECONOMIC-DEMO-BDD-SUBMISSION-ITERATIVE-PLAN-2026-05-05.md`: complete Phase 0 docs/BDD validation, write the Phase 0 retrospective, then refine Phase 1 before implementation. Do not run Phase 6 controlled live research or real image generation without explicit approval gates.
+3. Demo/submission readiness follows Issue #228 and `docs/ECONOMIC-DEMO-BDD-SUBMISSION-ITERATIVE-PLAN-2026-05-05.md`: Phase 0 is merged through PR #229; Phase 1 local submission-prep checker is in progress. Next loop is Phase 2 operator checklist/UI after Phase 1 PR/CI/retro. Do not run Phase 6 controlled live research or real image generation without explicit approval gates.
 
 ## Current Branch / Repo State
 

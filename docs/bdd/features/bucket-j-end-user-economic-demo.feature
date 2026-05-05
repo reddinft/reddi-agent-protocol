@@ -121,3 +121,10 @@ Feature: End-user economic workflow demo
     And the retrospective must record what worked, what failed or surprised us, safety and spend review, judge clarity, and plan adjustment
     And the next phase cannot expand scope until the retrospective updates the plan
     And local ignored evidence paths may be referenced but raw private artifact contents are not published
+
+  Scenario: Submission prep artifact index is locally checkable without live calls
+    Given a local economic demo submission prep pack exists under artifacts/economic-demo-submission-prep/latest
+    When the submission prep checker validates the pack
+    Then it confirms the demo entrypoint, green evidence chain, local evidence paths, recording outline, and hard no-go list are present
+    And every referenced local evidence artifact path exists
+    And no hosted specialist call, provider request, signing operation, wallet mutation, devnet transfer, or Coolify mutation occurs

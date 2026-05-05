@@ -181,3 +181,13 @@ _Status:_ Complete locally; ready for PR.
 - **Safety/spend review:** Docs/BDD/status only. No live research, OpenAI/Fal image generation, paid provider calls, signing, wallet mutation, devnet transfer, or Coolify/env mutation.
 - **Judge clarity:** Improved. The plan separates local proof, controlled demo evidence, storyboard-only proof, and approval-gated future work so the submission story stays honest.
 - **Plan adjustment:** Phase 1 should stay local and add/check the submission prep artifact index before any UI/runtime polish. If the index is confusing or leaks too much local detail, revise the pack schema before moving to Phase 2.
+
+### Phase 1 retrospective
+
+_Status:_ Complete locally; ready for PR.
+
+- **What worked:** Added `check:economic-demo:submission-prep` so the ignored local prep pack can be validated without publishing its contents. The checker confirms required sections/guardrails and verifies referenced local evidence paths exist.
+- **What failed or surprised us:** The existing `latest` symlink was broken because it pointed to `artifacts/economic-demo-submission-prep/...` from inside the same directory. The checker now falls back to the newest timestamped prep directory when `latest` is absent or broken. `git diff --check` also caught a trailing blank line in the BDD feature before commit.
+- **Safety/spend review:** Local filesystem validation only. No hosted specialist calls, provider requests, signing, wallet mutation, devnet transfer, Coolify/env mutation, or paid spend.
+- **Judge clarity:** Improved for operators: the prep pack now has a repeatable validation command before recording/submission, reducing reliance on chat memory.
+- **Plan adjustment:** Phase 2 should surface a committed operator checklist or UI panel using sanitized claims, not raw ignored artifact contents. Keep the checker as a local preflight before any rehearsal.
