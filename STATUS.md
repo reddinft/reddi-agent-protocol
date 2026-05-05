@@ -1,19 +1,19 @@
 # Reddi Agent Protocol Code — STATUS
 
 **Last updated:** 2026-05-05 AEST
-**State:** 🟢 Phase 7 picture storyboard dry-run merged; Phase 6 live research and real image generation remain approval-gated.
+**State:** 🟢 Phase 7 picture storyboard dry-run merged; deterministic storyboard artifact generator in progress; Phase 6 live research and real image generation remain approval-gated.
 
 ## RESUME FROM HERE
 
-1. Phase 7 storyboard dry-run is complete through PR #219. Do not run real OpenAI/Fal image generation without explicit approval, provider choice, and budget cap.
+1. Deterministic picture storyboard artifact generator is the current safe local slice. Do not run real OpenAI/Fal image generation without explicit approval, provider choice, and budget cap.
 2. Do not run Phase 6 controlled live research without explicit approval for hosted/devnet calls and spend.
-3. Next safe local slice: either add a deterministic picture storyboard artifact generator, or fix the GitHub Actions Node.js 20 deprecation warning before it becomes urgent.
+3. After this slice, next safe local work is GitHub Actions Node.js 20 deprecation cleanup or a compact UI link to latest local evidence artifacts.
 
 ## Current Branch / Repo State
 
-- Local branch: `docs/status-after-picture-storyboard-20260505` (status-only follow-up after PR #219 merge).
-- Local working tree: status update after PR #219 merge. Local evidence artifacts are under `artifacts/manifest-parity-phase4/`, `artifacts/economic-demo-surfpool-rehearsal/20260505T021309Z/`, `artifacts/surfpool-smoke/20260505-121331/`, and `artifacts/economic-demo-research-dry-run/20260505T025224Z/`.
-- Latest merge on main: `2fdf9706 feat: add picture storyboard dry-run (#219)`.
+- Local branch: `feat/picture-storyboard-artifact-20260505`.
+- Local working tree: Phase 7 deterministic picture storyboard artifact generator in progress. Local evidence artifacts are under `artifacts/manifest-parity-phase4/`, `artifacts/economic-demo-surfpool-rehearsal/20260505T021309Z/`, `artifacts/surfpool-smoke/20260505-121331/`, and `artifacts/economic-demo-research-dry-run/20260505T025224Z/`.
+- Latest merge on main: `6d99b339 docs: update status after picture storyboard dry run (#220)`.
 - PR #204: closed as superseded after Nissan accepted recommendation.
 - PR #214: merged 2026-05-05 AEST as `a290db7093458f45ca1b3dbc2a047b404c856a29`; post-merge Anchor run `25353582949`, job `74338163008` passed in 7m26s.
 - PR #215: merged 2026-05-05 AEST as `cd202ebd6360d29f0a896e852fe9f63c339fc4dc`; post-merge Anchor run `25353973718`, job `74339305929` passed in 7m23s.
@@ -212,6 +212,14 @@ Validation for Phase 7 picture storyboard dry-run slice:
 - PR checks passed before merge: Vercel Preview Comments, Vercel deployment, `bdd-index-guard`, `source-conformance-matrix`, Anchor run `25355869246`, job `74344891406` — PASS, 6m2s.
 - Post-merge `main` Anchor run `25356047688`, job `74345428981` — PASS, 7m13s.
 
+Validation for Phase 7 picture storyboard artifact generator slice (local, not yet PR):
+
+- Added `scripts/generate-economic-demo-picture-storyboard.mjs` and `npm run evidence:economic-demo:picture-storyboard`.
+- Generated artifact `artifacts/economic-demo-picture-storyboard/20260505T034749Z/picture-storyboard.json` with schema `reddi.economic-demo.picture-storyboard-artifact.v1`.
+- Artifact summary: scenario `picture`, mode `storyboard_no_image_generation`, orchestrator `tool-using-agent`, 4 edges, 4 storyboard frames, blocked adapter x402 state `blocked_disabled_adapter`, `imageGenerationExecuted = 0`, `downstreamCallsExecuted = 0`.
+- Safety review counters: OpenAI image requests `0`, Fal.ai image requests `0`, paid provider requests `0`, signing operations `0`, wallet mutations `0`, devnet transfers `0`.
+- Secret grep over generated artifact produced only policy-text false positive `ENABLE_ECONOMIC_DEMO_IMAGE_GENERATION`; no credential material present.
+
 ## Retrospective — Phase 6.5 Slice A
 
 ### What worked
@@ -251,6 +259,7 @@ Do not proceed as a waterfall into research/picture live workflows until the dis
 - 2026-05-05: Research workflow orchestration should be owned by `agentic-workflow-system`; `scientific-research-agent` stays a synthesis specialist so paid-edge coordination and evidence synthesis remain separate.
 - 2026-05-05: Phase 6 controlled live research remains approval-gated; next safe progress is Phase 7 storyboard dry-run with image generation disabled.
 - 2026-05-05: Phase 7 storyboard dry-run is merged; real image generation needs a separate approval with provider and budget cap.
+- 2026-05-05: Picture storyboard artifact generation should remain local/ignored and assert the disabled adapter as evidence, not omit it.
 
 ## Blockers / Watch Items
 

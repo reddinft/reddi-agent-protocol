@@ -1,7 +1,7 @@
 # Agentic Marketplace Manifest + Disclosure Ledger — BDD Iterative Plan
 
 _Date:_ 2026-05-05 AEST  
-_Status:_ Active after Phase 5 research dry-run artifact generator merge; Phase 7 storyboard dry-run local slice in progress
+_Status:_ Active after Phase 7 storyboard dry-run merge; picture storyboard artifact generator local slice in progress
 _Related:_ PR #202, PR #203, PR #205, PR #214, `ECONOMIC-DEMO-BDD-ITERATIVE-ROADMAP-2026-05-04.md`, Bucket J BDD feature
 
 ## North star
@@ -44,7 +44,7 @@ Still pending:
 
 - Live economic workflow evidence still predates hosted manifest parity and should only be regenerated under an explicit live-run approval gate.
 - Research workflow design now has a disclosure-ledger-first dry-run graph and deterministic artifact generator before any live research calls.
-- Phase 6 live research is skipped for now because it needs explicit hosted/devnet spend approval; Phase 7 storyboard dry-run is the next safe local proof.
+- Phase 6 live research is skipped for now because it needs explicit hosted/devnet spend approval; Phase 7 storyboard dry-run is merged and now has a deterministic artifact generator slice underway.
 - Picture workflow expansion remains behind research planning and explicit image-generation approval.
 
 ## Phase 0 — Plan + BDD lock
@@ -347,6 +347,14 @@ Every planned edge must declare payload class, disclosure-ledger expectation, x4
 - **Safety/spend review:** Design/API/UI only. No OpenAI call, no Fal.ai call, no paid provider request, no signing, no wallet mutation, and no devnet transfer.
 - **Judge clarity:** Improved: storyboard mode can be shown as an honest visual proof plan, not mistaken for generated image evidence.
 - **Plan adjustment:** If the storyboard is sufficient for judging, stop before spend. If a real image is needed, request separate approval with provider, budget cap, and disclosure evidence requirements.
+
+### Retrospective — Phase 7 storyboard artifact generator
+
+- **What worked:** The picture storyboard can now be exported as a deterministic local artifact with schema `reddi.economic-demo.picture-storyboard-artifact.v1`, blocked adapter details, storyboard frames, disclosure-ledger expectations, and zero-execution safety counters.
+- **What failed or surprised us:** Artifact validation needs to treat the disabled adapter as a first-class edge, not as absence of an edge. The blocked state is the useful evidence because it proves adapter gating before spend.
+- **Safety/spend review:** Local artifact generation only. No OpenAI request, no Fal.ai request, no paid provider request, no signing, no wallet mutation, and no devnet transfer.
+- **Judge clarity:** Improved: reviewers can inspect one JSON artifact that says what would be generated, why it is not generated yet, and which disclosure fields must be preserved if the adapter is later approved.
+- **Plan adjustment:** Keep real image generation approval-gated. Next safe work is either CI Node.js 20 deprecation cleanup or a compact UI link to latest local evidence artifacts.
 
 ---
 
