@@ -1,21 +1,22 @@
 # Reddi Agent Protocol Code — STATUS
 
 **Last updated:** 2026-05-05 AEST
-**State:** 🟢 Phase 4 hosted redeploy/public manifest smoke complete; 30/30 hosted specialist manifests expose dependency disclosure parity.
+**State:** 🟢 Phase 5 Surfpool local-validator live tests passed; hosted manifest parity remains 30/30.
 
 ## RESUME FROM HERE
 
-1. Continue the gated loop with safe Phase 5 research workflow BDD/dry-run planning only.
-2. Do not execute live downstream specialist calls, paid API paths, signing, wallet mutation, or devnet transfer unless explicitly approved for that specific live run.
-3. Preserve Phase 4 evidence truth: hosted manifest parity is confirmed by sanitized smoke evidence, but no live economic workflow evidence was regenerated in Phase 4.
+1. Continue Phase 5 by wiring the research workflow dry-run implementation to the BDD plan.
+2. Local Surfpool validator live tests are approved for safety validation because they use only offline/local SOL and do not risk real or devnet tokens.
+3. Do not execute hosted/devnet live downstream specialist calls, paid provider paths, signing with real/devnet wallets, or devnet transfers unless explicitly approved for that specific live run.
 
 ## Current Branch / Repo State
 
 - Local branch: `main`.
-- Local working tree: status-only post-Phase 4 update; Phase 4 evidence artifacts are local under `artifacts/manifest-parity-phase4/`.
-- Latest merge on main: `95e1489 docs: update status after phase 3 merge (#213)`.
+- Local working tree: status-only post-Surfpool evidence update; local evidence artifacts are under `artifacts/manifest-parity-phase4/`, `artifacts/economic-demo-surfpool-rehearsal/20260505T021309Z/`, and `artifacts/surfpool-smoke/20260505-121331/`.
+- Latest merge on main: `cd202ebd docs: plan phase 5 research dry run (#215)`.
 - PR #204: closed as superseded after Nissan accepted recommendation.
-- PR #213: merged 2026-05-05 AEST; post-merge Anchor run `25352130407`, job `74333836069` passed.
+- PR #214: merged 2026-05-05 AEST as `a290db7093458f45ca1b3dbc2a047b404c856a29`; post-merge Anchor run `25353582949`, job `74338163008` passed in 7m26s.
+- PR #215: merged 2026-05-05 AEST as `cd202ebd6360d29f0a896e852fe9f63c339fc4dc`; post-merge Anchor run `25353973718`, job `74339305929` passed in 7m23s.
 
 
 ## Current Follow-up PR — #203
@@ -153,6 +154,27 @@ Validation for Phase 4 hosted manifest redeploy/smoke:
 - Final manifest parity assertion: each hosted manifest exposes `agenticWorkflowDisclosure`, `dependencyDisclosure`, `tools`, `skills`, `marketplaceAgentCalls`, `externalMcpServers`, `nonMarketplaceAgentCalls`, and `disclosurePolicy` with `dependencyDisclosure.schemaVersion = reddi.agent-dependency-manifest.v1`.
 - Secret grep over Phase 4 artifact JSON for API/token/secret patterns — PASS (no matches).
 
+Validation for Phase 5 research dry-run planning:
+
+- PR: https://github.com/nissan/reddi-agent-protocol/pull/215
+- Merge commit: `cd202ebd6360d29f0a896e852fe9f63c339fc4dc`
+- Local validation before PR: `npm run test:bdd:index` — PASS; `git diff --check` — PASS.
+- PR checks passed before merge: Vercel, `bdd-index-guard`, `source-conformance-matrix`, Anchor run `25353751238`.
+- Post-merge `main` Anchor run `25353973718`, job `74339305929` — PASS, 7m23s.
+
+Validation for Phase 5 Surfpool local-validator live tests:
+
+- Approval scope: Nissan explicitly approved live tests in Surfpool local validator because they do not risk real or devnet tokens.
+- `npm run smoke:economic-demo:surfpool` — PASS; artifact `artifacts/economic-demo-surfpool-rehearsal/20260505T021309Z/summary.json`.
+  - Offline Surfpool RPC `http://127.0.0.1:19101`.
+  - Executed 4 local SOL transfers from `agentic-workflow-system` to webpage specialists.
+  - Positive proof: planned transfer amount `3,500,000` lamports; total credited `3,500,000`; total debited `3,520,000` including fees; credited matches transfers = true; debit covers transfers and fees = true.
+  - Negative proof: not-allowlisted and over-budget blocked transfers were not executed; blocked delta `0`.
+- `npm run test:surfpool:critical` — PASS; artifact `artifacts/surfpool-smoke/20260505-121331/SUMMARY.md`.
+  - Surfpool local RPC `http://127.0.0.1:18999`.
+  - Program deployed to local Surfpool; public settlement path passed; PER-unreachable fallback to L1 local path passed.
+- Secret grep over Surfpool evidence artifacts for API/token/private-key patterns — PASS (no matches).
+
 ## Retrospective — Phase 6.5 Slice A
 
 ### What worked
@@ -188,8 +210,10 @@ Do not proceed as a waterfall into research/picture live workflows until the dis
 - 2026-05-05: `/economic-demo` should prefer the latest generated judge evidence-pack `disclosureLedgerSummary` when present, with fallback to the truthful historical pre-ledger summary.
 - 2026-05-05: `/.well-known/reddi-agent.json` must expose programmatic dependency disclosure parity with public marketplace cards/details before any purchase: tools, skills, marketplace-agent calls, external MCP servers, non-marketplace service calls, and downstream ledger disclosure policy.
 - 2026-05-05: Hosted Phase 4 redeploy/smoke is approved and complete; public hosted OpenRouter specialist manifests now expose dependency disclosure parity across 30/30 endpoints.
+- 2026-05-05: Surfpool local-validator live tests are approved as a safe validation lane because they use only offline/local SOL and do not risk real or devnet tokens.
 
 ## Blockers / Watch Items
 
-- Live economic workflow evidence still predates Phase 4 hosted manifest parity; regenerate only under an explicit live-run approval gate.
-- Continue Phase 5 as BDD/dry-run planning first: no paid specialist spend, signing, wallet mutation, or devnet transfer from harness without specific approval.
+- Live hosted/devnet economic workflow evidence still predates Phase 4 hosted manifest parity; regenerate only under an explicit hosted/devnet live-run approval gate.
+- Continue Phase 5 research implementation as dry-run/local-only first: no paid specialist spend, hosted downstream calls, real/devnet signing, wallet mutation, or devnet transfer from harness without specific approval.
+- Existing demo-agent CLI copy still labels some local Surfpool transactions as `devnet`/Explorer links even when RPC is local; keep evidence/status wording explicit that the executed lane used local Surfpool RPC.
