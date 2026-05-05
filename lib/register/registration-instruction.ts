@@ -4,8 +4,8 @@ import {
   AGENT_SEED,
   INCINERATOR,
   buildRegisterAgentData,
-  type ProgramTarget,
 } from "@/lib/program";
+import type { ProgramTarget } from "@/lib/config/network";
 import { buildQuasarRegisterAgentInstruction } from "@/lib/quasar/instructions";
 
 export function registrationAgentPda(owner: PublicKey, programId: PublicKey): PublicKey {
