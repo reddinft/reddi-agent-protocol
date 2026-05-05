@@ -28,7 +28,7 @@ export type DryRunEconomicPlan = {
 
 const ORCHESTRATORS: Record<EconomicDemoScenarioId, string> = {
   webpage: "agentic-workflow-system",
-  research: "scientific-research-agent",
+  research: "agentic-workflow-system",
   picture: "tool-using-agent",
 };
 

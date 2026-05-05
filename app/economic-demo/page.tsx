@@ -479,11 +479,14 @@ export default function EconomicDemoPage() {
                 <div className="mt-6 rounded-xl border border-accent-purple/25 bg-accent-purple/10 p-4">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                      <p className="text-xs uppercase tracking-wide text-accent-purple">Phase 8A research workflow design</p>
+                      <p className="text-xs uppercase tracking-wide text-accent-purple">Phase 5 research workflow dry-run</p>
                       <p className="mt-1 text-sm leading-6 text-gray-200">{researchDesign.userRequest}</p>
+                      <p className="mt-2 text-xs leading-5 text-gray-400">
+                        Orchestrator: <span className="font-mono text-white">{researchDesign.orchestrator.profileId}</span> — {researchDesign.orchestrator.separationRationale}
+                      </p>
                     </div>
                     <span className="rounded-full border border-accent-purple/40 bg-accent-purple/10 px-2 py-0.5 text-xs text-accent-purple">
-                      design only · no live calls
+                      dry-run · downstream calls: {researchDesign.downstreamCallsExecuted}
                     </span>
                   </div>
                   <div className="mt-4 grid gap-3 md:grid-cols-2">
@@ -491,19 +494,35 @@ export default function EconomicDemoPage() {
                       <div key={edge.profileId} className="rounded-lg border border-white/10 bg-black/20 p-3">
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <p className="font-mono text-sm text-white">{edge.step}. {edge.profileId}</p>
-                          <p className="text-xs text-yellow-100">{edge.controlledDemoReceiptReadiness.replaceAll("_", " ")}</p>
+                          <p className="text-xs text-yellow-100">x402 {edge.disclosureLedgerExpectation.x402State}</p>
                         </div>
-                        <p className="mt-1 text-xs text-gray-400">{edge.capability} · {edge.priceUsdc} USDC</p>
+                        <p className="mt-1 text-xs text-gray-400">{edge.payloadClass.replaceAll("_", " ")} · {edge.capability} · {edge.priceUsdc} USDC</p>
                         <p className="mt-2 text-sm leading-6 text-gray-300">{edge.scopedPayload}</p>
                         <p className="mt-2 text-xs leading-5 text-[#14F195]">Evidence gate: {edge.evidenceRequirement}</p>
+                        <p className="mt-1 text-xs leading-5 text-yellow-100">Citation/caveat: {edge.citationOrEvidenceCaveat}</p>
+                        <p className="mt-1 text-xs leading-5 text-gray-400">Refund/dispute: {edge.refundOrDisputeBehavior}</p>
+                        <p className="mt-2 text-xs text-gray-500">
+                          Ledger: {edge.disclosureLedgerExpectation.requiredSchemaVersion} · {edge.disclosureLedgerExpectation.disclosureScope.replaceAll("_", " ")} · required fields {edge.disclosureLedgerExpectation.requiredFields.length}
+                        </p>
                       </div>
                     ))}
                   </div>
-                  <div className="mt-4 rounded-lg border border-white/10 bg-black/20 p-3">
-                    <p className="text-xs uppercase tracking-wide text-gray-400">Acceptance criteria</p>
-                    <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-6 text-gray-300">
-                      {researchDesign.acceptanceCriteria.map((criterion) => <li key={criterion}>{criterion}</li>)}
-                    </ul>
+                  <div className="mt-4 grid gap-3 md:grid-cols-2">
+                    <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+                      <p className="text-xs uppercase tracking-wide text-gray-400">Acceptance criteria</p>
+                      <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-6 text-gray-300">
+                        {researchDesign.acceptanceCriteria.map((criterion) => <li key={criterion}>{criterion}</li>)}
+                      </ul>
+                    </div>
+                    <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+                      <p className="text-xs uppercase tracking-wide text-gray-400">Live-call guardrails</p>
+                      <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-6 text-gray-300">
+                        <li>No live specialist calls: {String(researchDesign.guardrails.noLiveCalls)}</li>
+                        <li>No paid provider requests: {String(researchDesign.guardrails.noPaidProviderRequests)}</li>
+                        <li>No signing or wallet mutation: {String(researchDesign.guardrails.noSigningOperations && researchDesign.guardrails.noWalletMutation)}</li>
+                        <li>No devnet transfer: {String(researchDesign.guardrails.noDevnetTransfer)}</li>
+                      </ul>
+                    </div>
                   </div>
                 </div>
               )}
