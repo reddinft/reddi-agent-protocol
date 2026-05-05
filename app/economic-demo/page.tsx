@@ -19,6 +19,14 @@ import {
 import type { EconomicDemoLedgerReconciliation } from "@/lib/economic-demo/ledger-reconciliation";
 import type { ResearchWorkflowDesign } from "@/lib/economic-demo/research-workflow-design";
 import type { PictureStoryboardDesign } from "@/lib/economic-demo/picture-storyboard-design";
+import {
+  ESCROW_PROGRAM_ID,
+  PROGRAM_COMPATIBILITY,
+  PROGRAM_FRAMEWORK,
+  PROGRAM_KNOWN_GAPS,
+  PROGRAM_SUBMISSION_READY,
+  PROGRAM_TARGET,
+} from "@/lib/program";
 
 function shortWallet(wallet: string) {
   return `${wallet.slice(0, 8)}…${wallet.slice(-6)}`;
@@ -356,6 +364,52 @@ export default function EconomicDemoPage() {
                   <dd className="mt-1 text-gray-200">{formatLamports(totalPlanned)}</dd>
                 </div>
               </dl>
+            </div>
+
+            <div className={`rounded-2xl border p-6 shadow-card ${PROGRAM_TARGET === "quasar" ? "border-amber-400/25 bg-amber-500/10" : "border-white/10 bg-card/70"}`}>
+              <p className="section-label">Solana program target</p>
+              <h3 className="mt-2 text-xl font-semibold text-white">
+                {PROGRAM_TARGET === "quasar" ? "Quasar hackathon target active" : "Legacy Anchor reference target"}
+              </h3>
+              <p className="mt-3 text-sm leading-6 text-gray-300">
+                This panel separates economic workflow evidence from final Quasar on-chain proof. Controlled x402/OpenRouter evidence, Surfpool local rehearsal evidence, and storyboard dry-runs are not automatically final Quasar submission proof.
+              </p>
+              <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+                <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                  <dt className="text-gray-500">Program ID</dt>
+                  <dd className="mt-1 break-all font-mono text-[#14F195]">{ESCROW_PROGRAM_ID.toBase58()}</dd>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                  <dt className="text-gray-500">Target / framework</dt>
+                  <dd className="mt-1 font-mono text-gray-200">{PROGRAM_TARGET} · {PROGRAM_FRAMEWORK}</dd>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                  <dt className="text-gray-500">Compatibility</dt>
+                  <dd className="mt-1 font-mono text-gray-200">{PROGRAM_COMPATIBILITY}</dd>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                  <dt className="text-gray-500">Submission readiness</dt>
+                  <dd className={PROGRAM_SUBMISSION_READY ? "mt-1 font-semibold text-[#14F195]" : "mt-1 font-semibold text-yellow-100"}>
+                    {PROGRAM_SUBMISSION_READY ? "ready" : "blocked"}
+                  </dd>
+                </div>
+              </dl>
+              {!PROGRAM_SUBMISSION_READY && PROGRAM_KNOWN_GAPS.length > 0 && (
+                <div className="mt-4 rounded-xl border border-yellow-400/30 bg-yellow-400/10 p-4 text-sm text-yellow-50/90">
+                  <p className="font-semibold text-yellow-50">Known Quasar proof gaps before judge-ready submission:</p>
+                  <ul className="mt-2 space-y-1">
+                    {PROGRAM_KNOWN_GAPS.map((gap) => (
+                      <li key={gap} className="flex gap-2">
+                        <span>•</span>
+                        <span>{gap}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <p className="mt-4 rounded-lg border border-white/10 bg-black/20 p-3 text-xs leading-5 text-gray-300">
+                Hard boundary: this page must not sign, mutate wallets, transfer devnet funds, deploy programs, mutate Coolify/Vercel/env settings, or perform paid/live specialist work unless Nissan explicitly approves that specific loop.
+              </p>
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-card/70 p-6 shadow-card">

@@ -228,37 +228,38 @@ This is the staged plan from the current PR onward. Each phase remains a separat
 
 **Retrospective status:** Written above.
 
-#### Slice 6.2 — Economic demo status card 🔜 next after PR #244
+#### Slice 6.2 — Economic demo status card ✅ implemented in PR #244
 
 **BDD expectation:** `/economic-demo` must distinguish economic workflow evidence from Quasar on-chain proof.
 
-**Implementation plan:**
-
-- Add a Quasar status card to `/economic-demo` using centralized program/readiness metadata.
-- Explicitly separate:
-  - controlled x402/OpenRouter workflow evidence,
-  - local Surfpool proof,
-  - Quasar program target/readiness,
-  - approval-gated gaps.
-- Add/adjust a focused test if practical; otherwise rely on build plus direct component inspection.
+**Implementation:** `/economic-demo` now renders a Solana program target card using centralized program/readiness metadata. It names the active program ID, target/framework, compatibility status, submission readiness, known Quasar proof gaps, and hard no-live-action boundary.
 
 **Acceptance:**
 
-- The page names the Quasar program ID in explicit Quasar mode.
-- The page says `submissionReady=false` while blockers remain.
-- The page does not imply Anchor-era evidence is final Quasar proof.
+- The page names the active program ID.
+- The page says `submissionReady=blocked` while Quasar blockers remain.
+- The page explicitly says controlled x402/OpenRouter evidence, Surfpool local rehearsal evidence, and storyboard dry-runs are not automatically final Quasar submission proof.
 - No hosted call, signing, wallet mutation, devnet transfer, env mutation, or paid call is introduced.
 
-**Validation candidates:**
+**Validation:**
 
-- targeted Jest/UI test if the component boundary supports it
 - `npm run build`
 - `npm run check:quasar:runtime-compatibility`
+- `npm run check:quasar:deployments`
 - `npm run check:quasar:demo-readiness`
 - `npm run test:bdd:index`
 - `git diff --check`
 
-**Retrospective requirement:** Decide whether demo status clarity is sufficient for judge recording, or whether the judge packet must wait for more Quasar runtime compatibility.
+### Retrospective — Phase 6 / Slice 2
+
+- **Expected:** Economic demo should stop being ambiguous about what is economic workflow evidence versus Quasar on-chain proof.
+- **Observed:** A visible status card can reuse existing centralized metadata; no new API or live call was needed.
+- **Validation:** Build/readiness/BDD/diff gates are the required proof for this slice.
+- **What worked:** The existing program metadata made this a UI honesty slice instead of a new state-management surface.
+- **What failed / surprised us:** The page is a client component and already imports program metadata elsewhere in the app, so we kept the implementation simple rather than introducing a server API.
+- **Safety / approval review:** UI/build only; no signing, send, deployment, wallet/env mutation, paid calls, or live execution.
+- **Decision:** continue.
+- **Plan changes for next phase:** Move from honesty surfaces back to blocker reduction. Phase 7 should start with read/decode compatibility because judge screenshots depend on not accidentally showing Anchor-filtered account data in Quasar mode.
 
 ### Phase 7 — Read/decode Quasar compatibility
 
