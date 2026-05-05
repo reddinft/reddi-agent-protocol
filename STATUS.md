@@ -1,19 +1,19 @@
 # Reddi Agent Protocol Code — STATUS
 
 **Last updated:** 2026-05-05 AEST
-**State:** 🟢 Phase 5 Surfpool local-validator live tests passed; hosted manifest parity remains 30/30.
+**State:** 🟢 Phase 5 research dry-run disclosure implementation merged; artifact generator slice in progress; hosted manifest parity remains 30/30.
 
 ## RESUME FROM HERE
 
-1. Continue Phase 5 by wiring the research workflow dry-run implementation to the BDD plan.
+1. Continue Phase 5 by shipping the research dry-run artifact generator slice, then run the Phase 5 retrospective before deciding whether Phase 6 controlled live research is worth approval.
 2. Local Surfpool validator live tests are approved for safety validation because they use only offline/local SOL and do not risk real or devnet tokens.
 3. Do not execute hosted/devnet live downstream specialist calls, paid provider paths, signing with real/devnet wallets, or devnet transfers unless explicitly approved for that specific live run.
 
 ## Current Branch / Repo State
 
 - Local branch: `main`.
-- Local working tree: status-only post-Surfpool evidence update; local evidence artifacts are under `artifacts/manifest-parity-phase4/`, `artifacts/economic-demo-surfpool-rehearsal/20260505T021309Z/`, and `artifacts/surfpool-smoke/20260505-121331/`.
-- Latest merge on main: `cd202ebd docs: plan phase 5 research dry run (#215)`.
+- Local working tree: research dry-run artifact generator slice in progress; local evidence artifacts are under `artifacts/manifest-parity-phase4/`, `artifacts/economic-demo-surfpool-rehearsal/20260505T021309Z/`, `artifacts/surfpool-smoke/20260505-121331/`, and `artifacts/economic-demo-research-dry-run/20260505T025224Z/`.
+- Latest merge on main: `ecdcdbd1 feat: wire research dry-run disclosure plan (#217)`.
 - PR #204: closed as superseded after Nissan accepted recommendation.
 - PR #214: merged 2026-05-05 AEST as `a290db7093458f45ca1b3dbc2a047b404c856a29`; post-merge Anchor run `25353582949`, job `74338163008` passed in 7m26s.
 - PR #215: merged 2026-05-05 AEST as `cd202ebd6360d29f0a896e852fe9f63c339fc4dc`; post-merge Anchor run `25353973718`, job `74339305929` passed in 7m23s.
@@ -175,6 +175,24 @@ Validation for Phase 5 Surfpool local-validator live tests:
   - Program deployed to local Surfpool; public settlement path passed; PER-unreachable fallback to L1 local path passed.
 - Secret grep over Surfpool evidence artifacts for API/token/private-key patterns — PASS (no matches).
 
+Validation for Phase 5 research dry-run disclosure implementation:
+
+- PR: https://github.com/nissan/reddi-agent-protocol/pull/217
+- Merge commit: `ecdcdbd1381e8526a3118ac9496853f74fb4367e`
+- Implemented `reddi.economic-demo.research-workflow-design.v2`: agentic-workflow-system orchestrates, scientific-research-agent remains synthesis specialist, every planned edge declares payload class, citation/evidence caveat, attestor criteria, refund/dispute behavior, and planned downstream-disclosure ledger expectations.
+- Local validation before PR: targeted Jest (4/4) — PASS; targeted ESLint — PASS; `npm run test:bdd:index` — PASS; `npm run build` — PASS; `git diff --check` — PASS.
+- PR checks passed before merge: Vercel Preview Comments, Vercel deployment, Anchor run `25354771446`, job `74341647480` — PASS, 7m15s.
+- Post-merge `main` Anchor run `25354979566`, job `74342253225` — PASS, 7m30s.
+
+Validation for Phase 5 research dry-run artifact generator slice (local, not yet PR):
+
+- `npm run evidence:economic-demo:research-dry-run` — PASS; artifact `artifacts/economic-demo-research-dry-run/20260505T025224Z/research-dry-run.json`.
+- Artifact summary: scenario `research`, mode `dry_run_no_live_calls`, orchestrator `agentic-workflow-system`, 5 planned edges, downstream calls executed `0`, x402 state `planned` for every edge, live calls/provider requests/signing/wallet mutation/devnet transfers all `0`.
+- Targeted Jest for dry-run + research design — PASS, 5/5.
+- `node --check scripts/generate-economic-demo-research-dry-run.mjs` — PASS.
+- Targeted ESLint + `npm run test:bdd:index` + `npm run build` + `git diff --check` — PASS.
+- Secret grep over generated dry-run artifact produced only policy-text false positives (`secrets`, `Coolify` guardrail wording); no credential material present.
+
 ## Retrospective — Phase 6.5 Slice A
 
 ### What worked
@@ -211,6 +229,7 @@ Do not proceed as a waterfall into research/picture live workflows until the dis
 - 2026-05-05: `/.well-known/reddi-agent.json` must expose programmatic dependency disclosure parity with public marketplace cards/details before any purchase: tools, skills, marketplace-agent calls, external MCP servers, non-marketplace service calls, and downstream ledger disclosure policy.
 - 2026-05-05: Hosted Phase 4 redeploy/smoke is approved and complete; public hosted OpenRouter specialist manifests now expose dependency disclosure parity across 30/30 endpoints.
 - 2026-05-05: Surfpool local-validator live tests are approved as a safe validation lane because they use only offline/local SOL and do not risk real or devnet tokens.
+- 2026-05-05: Research workflow orchestration should be owned by `agentic-workflow-system`; `scientific-research-agent` stays a synthesis specialist so paid-edge coordination and evidence synthesis remain separate.
 
 ## Blockers / Watch Items
 

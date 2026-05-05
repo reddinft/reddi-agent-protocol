@@ -1,7 +1,7 @@
 # Agentic Marketplace Manifest + Disclosure Ledger — BDD Iterative Plan
 
 _Date:_ 2026-05-05 AEST  
-_Status:_ Active after Phase 4 hosted manifest parity smoke
+_Status:_ Active after Phase 5 research dry-run disclosure implementation; artifact generator slice in progress
 _Related:_ PR #202, PR #203, PR #205, PR #214, `ECONOMIC-DEMO-BDD-ITERATIVE-ROADMAP-2026-05-04.md`, Bucket J BDD feature
 
 ## North star
@@ -43,7 +43,7 @@ Shipped:
 Still pending:
 
 - Live economic workflow evidence still predates hosted manifest parity and should only be regenerated under an explicit live-run approval gate.
-- Research workflow design needs a disclosure-ledger-first dry-run graph before any live research calls.
+- Research workflow design now has a disclosure-ledger-first dry-run graph; artifact generation is being added before any live research calls.
 - Picture workflow expansion remains behind research planning and explicit image-generation approval.
 
 ## Phase 0 — Plan + BDD lock
@@ -268,7 +268,15 @@ Every planned edge must declare payload class, disclosure-ledger expectation, x4
 
 **Retrospective prompt:** Does research add a new proof category, or does it just repeat webpage with weaker evidence?
 
-**Expected next refinement:** If useful, run controlled multi-edge research. If not, improve evidence criteria first.
+**Expected next refinement:** If useful, generate and review the dry-run artifact, then decide whether controlled multi-edge research deserves a separate live-run approval gate. If not, improve evidence criteria first.
+
+### Retrospective — Phase 5 research dry-run disclosure design
+
+- **What worked:** The dry-run graph now uses `agentic-workflow-system` as coordinator and keeps `scientific-research-agent` as a synthesis specialist. Each planned research edge declares payload class, citation/evidence caveat, attestor criteria, refund/dispute behavior, and planned downstream-disclosure ledger expectations before any live call.
+- **What failed or surprised us:** The earlier fixture and test expectation treated `scientific-research-agent` as orchestrator. That blurred synthesis with paid-edge coordination, so the implementation corrected the separation.
+- **Safety/spend review:** The slice is dry-run metadata/UI/API only: no live specialist calls, no paid provider requests, no signing, no wallet mutation, and no devnet transfer.
+- **Judge clarity:** Improved. `/economic-demo` can now show the research graph as a planned evidence contract rather than a vague article workflow.
+- **Plan adjustment:** Add a deterministic research dry-run artifact generator and review that artifact before requesting any Phase 6 controlled live research approval.
 
 ---
 
