@@ -11,9 +11,9 @@
 
 ## Current Branch / Repo State
 
-- Local branch: `docs/status-after-local-evidence-ui-20260505` (status-only follow-up after PR #225 merge).
-- Local working tree: status update after PR #225 merge. Local evidence artifacts are under `artifacts/manifest-parity-phase4/`, `artifacts/economic-demo-surfpool-rehearsal/20260505T021309Z/`, `artifacts/surfpool-smoke/20260505-121331/`, `artifacts/economic-demo-research-dry-run/20260505T025224Z/`, and generated/ignored `artifacts/economic-demo-picture-storyboard/`.
-- Latest merge on main: `f36d4bb5 feat: surface local economic demo evidence paths (#225)`.
+- Local branch: `docs/status-after-pr226-ci-20260505` (status-only follow-up after PR #226 merge).
+- Local working tree: status update after PR #226 post-merge CI. Local evidence artifacts are under `artifacts/manifest-parity-phase4/`, `artifacts/economic-demo-surfpool-rehearsal/20260505T021309Z/`, `artifacts/surfpool-smoke/20260505-121331/`, `artifacts/economic-demo-research-dry-run/20260505T025224Z/`, and generated/ignored `artifacts/economic-demo-picture-storyboard/`.
+- Latest merge on main: `7a17cc75 docs: update status after local evidence UI link (#226)`.
 - PR #204: closed as superseded after Nissan accepted recommendation.
 - PR #214: merged 2026-05-05 AEST as `a290db7093458f45ca1b3dbc2a047b404c856a29`; post-merge Anchor run `25353582949`, job `74338163008` passed in 7m26s.
 - PR #215: merged 2026-05-05 AEST as `cd202ebd6360d29f0a896e852fe9f63c339fc4dc`; post-merge Anchor run `25353973718`, job `74339305929` passed in 7m23s.
