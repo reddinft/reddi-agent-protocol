@@ -12,6 +12,12 @@
       "reason": "Uses one-byte Quasar discriminators and fixed-size argument layouts from Quasar parity source/tests. Does not claim PER compatibility."
     },
     {
+      "path": "lib/quasar/instructions.ts",
+      "surface": "Quasar registry transaction-instruction helpers",
+      "status": "quasar-compatible",
+      "reason": "Wraps shared Quasar registry instruction data with account metas/order from Quasar parity source/tests. Covers registry only; reputation/attestation wrappers remain future work."
+    },
+    {
       "path": "lib/program.ts",
       "surface": "shared instruction builders and account decoders",
       "status": "anchor-layout-only",

@@ -241,6 +241,32 @@ Append this block under the relevant phase before proceeding:
 - **Decision:** continue with account-meta/transaction wrapper port next.
 - **Plan changes for next phase:** Phase 5 Slice 2 should wrap these data builders in transaction-instruction helpers for registry first, then update blocked runtime paths one at a time.
 
+### Phase 5 — Slice 2: Registry transaction-instruction wrappers
+
+**Expectation:** The shared Quasar registry data builders can be wrapped into Solana `TransactionInstruction`s with Quasar account metas/order, without sending or signing.
+
+**Implementation:** `lib/quasar/instructions.ts` adds registry helpers for register/update/deregister plus PDA derivation.
+
+**Validation:**
+
+- `npx jest --runTestsByPath lib/quasar/__tests__/instructions.test.ts lib/quasar/__tests__/instruction-builders.test.ts --runInBand`
+- `npm run check:quasar:runtime-compatibility`
+- `npm run check:quasar:deployments`
+- `npm run check:quasar:demo-readiness`
+- `npm run test:bdd:index`
+- `git diff --check`
+
+### Retrospective — Phase 5 / Slice 2
+
+- **Expected:** Registry helpers can be made Quasar-compatible without touching live app flows.
+- **Observed:** Register/update/deregister wrappers now produce Quasar program IDs, PDA derivation, account metas, and one-byte discriminator data locally.
+- **Validation:** Jest verified account order/signers/writability/data for registry wrappers.
+- **What worked:** Registry was the right first wrapper because Quasar parity source has simple account metas and no PER dependency.
+- **What failed / surprised us:** This does not reduce the 9 existing blocked runtime paths yet because app/demo surfaces still import Anchor-era builders; the next loop must swap one runtime surface deliberately.
+- **Safety / approval review:** Local construction tests only; no signing, send, deployment, wallet/env mutation, paid calls, or live execution.
+- **Decision:** continue.
+- **Plan changes for next phase:** Port one low-risk runtime surface to use registry wrappers under explicit Quasar mode, or keep it disabled with a visible blocker if transaction sending would be required.
+
 ### Phase 6 — Quasar demo UI honesty
 
 **Expectation:** `/economic-demo` visibly shows Quasar program target, deployment status, submission readiness, and known gaps.
