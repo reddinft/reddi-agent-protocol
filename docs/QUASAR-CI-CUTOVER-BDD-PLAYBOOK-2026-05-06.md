@@ -259,3 +259,12 @@ PATH="$HOME/.cargo/bin:$PATH" bash scripts/run-quasar-program-tests.sh
 ```
 
 Both pass locally after the fix. Phase 3 remains gated on the rerun/new PR check passing in GitHub.
+
+
+### Phase 2 CI-retro addendum 2 — Solana cargo compatibility
+
+**Observation:** after narrowing the vendored workspace members, GitHub still failed in `cargo build-sbf` with Cargo `1.79.0` reporting `feature edition2024 is required`. The Rust 1.89 setup was not enough because Solana/Anza `cargo build-sbf` invokes its own older cargo toolchain.
+
+**Fix:** downgrade the vendored Quasar workspace resolver from upstream `resolver = "3"` to `resolver = "2"`, preserving package `edition = "2021"` while making the workspace parseable by the Solana SBF cargo toolchain used in CI.
+
+**Re-validation:** local `cargo metadata` and the full `scripts/run-quasar-program-tests.sh` loop pass after the resolver fix.
