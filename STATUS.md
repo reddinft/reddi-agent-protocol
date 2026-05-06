@@ -472,3 +472,10 @@ RESUME FROM HERE: Surface this in PR evidence as “wallet-backed Jupiter devnet
 Wired the wallet-backed Jupiter devnet attempt into the report generator and `/economic-demo` copy so the page no longer says the swap is merely approval-gated. It now states the real result: live Jupiter quote + swap transaction + wallet signature succeeded, then devnet RPC rejected Jupiter mainnet address-table material. Latest report: `artifacts/economic-demo-run-report/20260506T161444Z/`. Validation passed: `npm run report:economic-demo:run`, `npm run test:bdd:index`, `npx playwright test e2e/economic-demo.spec.ts`, `npm run build`, `git diff --check`.
 
 RESUME FROM HERE: commit/push the PR evidence polish, then monitor PR #244 checks.
+
+## Autonomous Loop 3 after PR #244 merge — PR #246 recording-readiness audit
+- **Time:** 2026-05-07 AEST
+- **Loop:** Recording-readiness review before PR #246 merge.
+- **Actions:** Confirmed PR #246 branch `chore/post-244-demo-proof-map-20260507` at `279931d3`; GitHub checks green (`quasar-readiness`, Vercel Preview Comments, Vercel deployment). Audited `/economic-demo` e2e expectations after the Jupiter wording change and found stale test assertions still expected “Swap SOL via Jupiter and run” / “Swap execution story”. Patched the e2e to assert the new boundary wording.
+- **Validation:** `npx eslint app/economic-demo/page.tsx` PASS; `npm run test:bdd:index` PASS; `npm run build` PASS with pre-existing workspace-root/NFT trace warnings only; `npx playwright test e2e/economic-demo.spec.ts` PASS; `git diff --check` PASS.
+- **Review/retrospective:** PR #246 is still mergeable in substance, but Loop 3 caught a real drift risk: docs/UI copy can be correct while e2e still encodes the old story. Plan adjustment: keep e2e assertions aligned with final recording language, then re-check PR #246 after pushing the test update.

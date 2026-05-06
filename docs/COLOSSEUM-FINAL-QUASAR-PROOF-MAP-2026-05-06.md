@@ -54,3 +54,11 @@ NEXT_PUBLIC_DEMO_PROGRAM_TARGET=quasar npm run build
 - Action taken: updated the `/economic-demo` Jupiter card/run timeline so it cannot be misread as a successful devnet Jupiter swap claim. Validation: targeted ESLint, BDD index, and `npm run build` pass.
 - Loop 2 action: ran the existing local Surfpool/mock-Jupiter invoke lane. Result: PASS at `artifacts/surfpool-jupiter-invoke/20260507-023023/SUMMARY.md`; trace includes `x402:swap_used:order=ord_surfpool_jupiter_001`.
 - Plan adjustment: no new simulation code needed right now. Use the existing Surfpool/mock-Jupiter lane as the successful no-real-funds visual, and keep devnet Jupiter as an honest quote/build/sign rejection boundary.
+
+## Loop 3 retrospective — recording-readiness audit
+
+- What changed: audited the e2e recording path after the Jupiter copy was made more honest.
+- What we found: the page copy was corrected, but the Playwright test still expected old “Swap SOL via Jupiter and run” / “Swap execution story” phrasing. That creates drift between automated evidence and final recording language.
+- Action taken: updated `e2e/economic-demo.spec.ts` to assert “Show Jupiter boundary and run”, “Intended execution story”, and the explicit public-Jupiter-devnet boundary language.
+- Validation: `npx playwright test e2e/economic-demo.spec.ts`, `npm run test:bdd:index`, and `git diff --check` passed.
+- Plan adjustment: treat e2e assertions as part of the judge-story contract, not just regression tests; future copy changes must update tests in the same loop.
