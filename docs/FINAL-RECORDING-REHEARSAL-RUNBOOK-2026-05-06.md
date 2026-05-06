@@ -73,7 +73,8 @@ npm run test:surfpool:quasar-critical
 ## Latest green evidence
 
 - PR #244 merged to main as `bbfa0a92`; post-merge main Quasar Program Tests run `25447650320` passed.
-- PR #246 merged to main; follow-up boundary fixes continue from main after Oli’s Playwright drift finding.
+- PR #246 merged to main as `6f0b33c4`: `/economic-demo` UI labels the signed devnet budget-lane tx as **not** a Jupiter swap receipt.
+- PR #247 merged to main as `a51fab80`: generated run report now uses `Jupiter quote and budget-lane proof` / `live_quote_plus_signed_devnet_budget_lane`, not executed devnet swap language.
 - Devnet Reputation upgrade tx: `24bf49dnB9YCiqS6uT21jnQHRy9RveTquffBSNjhUpeHPE663kf7PEMCMch5k4ZR9sADxYUWvVijufEN993PVzqg`.
 - Latest full devnet Quasar A→B→C PASS in 6516ms:
   - Escrow lock tx `22XLto6VVbfYGZfRPvR65KNVEyztw4HAm1c7gPbWNXWpcNbqBdtNHFpAEeGL4L8T6UodT2fxan4yxYdPNb8hDzhx`
