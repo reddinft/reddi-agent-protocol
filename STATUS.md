@@ -325,3 +325,28 @@ Latest local evidence:
 - `npm run test:bdd:index` PASS
 - `NEXT_PUBLIC_DEMO_PROGRAM_TARGET=quasar npm run build` PASS
 - Read-only devnet PDA check confirms both legacy Anchor A/B/C and Quasar Registry A/B/C accounts exist; Quasar Registry A/B/C data length is 153. No deregistration is needed for the Quasar path; legacy cleanup is optional and approval-gated.
+
+## Devnet Quasar rehearsal — 2026-05-06
+
+After Nissan approved rerunning the failed/approval-gated commands, ran the Quasar-native devnet A→B→C rehearsal without deregistering legacy Anchor accounts. Result: PASS.
+
+Command:
+
+```bash
+DEMO_PROGRAM_TARGET=quasar HACKATHON_DEMO_TARGET=quasar DEMO_SETTLEMENT_MODE=public DEMO_STOP_AFTER_SETTLEMENT=true npm run demo
+```
+
+Evidence:
+- Target: `quasar`
+- Escrow: `VYCbMszux9seLK2aXFZMECMBFURvfuJLXsXPmJS5igW`
+- Registry: `Xk7jczJZ1HHJZuE1ZUWDqFmowxYhnom7mWzrNSGf9FU`
+- Reputation: `nb9rLVjoHMibsgfRGgKuPqm6M8GVcH9r6bYNfg7Yiy6`
+- Attestation: `CRGsWWkptdxsH6N6aWAyahLbuMsT58yM624EopEsv1Ex`
+- Escrow lock tx: `5E7u1LkzezkVTm815o75uKPt6wN7U63EcDk7sjNmv7HvUquqLWUBaBNCkfvtGkME5HQVK6xrZkEknZTt3Pq4dnny`
+- Quasar public settlement tx: `9yDRZ9MGW7DuoQj8w6HQapzQSHsuumFY58NUueBR6TVsK4N1D4b8hn6Kv39VNd3AVozJq2bKaZX22yXSupqcTzb`
+- Escrow PDA: `A8Lsq7aiDQ1pb8SZLgFyn2HWCRhbpFG2RvcJGpXbR9ZW`
+- Rating PDA: `E6pFbn5xMKTXEssBxMY8Na3aW23sLTEqnmG5MyWqQANe`
+- Attestation PDA: `FTa8U3Gg1eGnMGb2J5y88pfqqqtnjCy7995JEPoxmZLB`
+- Runtime: 6805ms (<10s target)
+
+MagicBlock PER/TEE was not claimed; the command used Quasar public settlement. Jupiter integration remains wired/verified but live swap requires `JUPITER_API_KEY`.
