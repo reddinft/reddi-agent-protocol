@@ -37,6 +37,10 @@ const jupiterQuotePath = process.env.ECONOMIC_DEMO_UPFRONT_JUPITER_QUOTE_SOURCE
   ? join(rootDir, process.env.ECONOMIC_DEMO_UPFRONT_JUPITER_QUOTE_SOURCE)
   : latestArtifact(join("artifacts", "economic-demo-jupiter-quote-proof"), "quote-proof.json");
 
+const devnetUsdcReceiptPath = process.env.ECONOMIC_DEMO_UPFRONT_DEVNET_USDC_RECEIPT_SOURCE
+  ? join(rootDir, process.env.ECONOMIC_DEMO_UPFRONT_DEVNET_USDC_RECEIPT_SOURCE)
+  : latestArtifact(join("artifacts", "economic-demo-devnet-usdc-receipt"), "receipt-verification.json");
+
 const surfpool = readJson(sourcePath);
 assert(surfpool.schemaVersion === "reddi.economic-demo.surfpool-rehearsal.v1", "unsupported_surfpool_schema");
 assert(surfpool.upfrontFunding?.signature, "missing_upfront_funding_signature");
@@ -45,6 +49,12 @@ assert(surfpool.positiveProof?.specialistCreditsMatchDownstreamTransfers === tru
 assert(surfpool.positiveProof?.upfrontCoversDownstreamBudget === true, "upfront_does_not_cover_downstream_budget");
 assert(surfpool.positiveProof?.orchestratorRetainsPositiveMarkupBeforeFees === true, "orchestrator_markup_not_retained");
 assert(surfpool.negativeProof?.totalBlockedDeltaLamports === 0, "blocked_transfer_mutated_balance");
+
+const devnetUsdcReceipt = devnetUsdcReceiptPath && existsSync(devnetUsdcReceiptPath) ? readJson(devnetUsdcReceiptPath) : null;
+if (devnetUsdcReceipt) {
+  assert(devnetUsdcReceipt.schemaVersion === "reddi.economic-demo.devnet-usdc-receipt-verification.v1", "unsupported_devnet_usdc_receipt_schema");
+  assert(devnetUsdcReceipt.status === "verified" || devnetUsdcReceipt.status === "blocked", "unsupported_devnet_usdc_receipt_status");
+}
 
 const jupiterQuote = jupiterQuotePath && existsSync(jupiterQuotePath) ? readJson(jupiterQuotePath) : null;
 if (jupiterQuote) {
@@ -70,6 +80,15 @@ const pack = {
     signaturePresent: Boolean(surfpool.upfrontFunding.signature),
   },
   jupiterSolRoute: surfpool.jupiterSolRoute,
+  devnetUsdcReceiptVerification: devnetUsdcReceipt
+    ? {
+        sourceArtifactPath: relative(rootDir, devnetUsdcReceiptPath),
+        status: devnetUsdcReceipt.status,
+        signaturePresent: Boolean(devnetUsdcReceipt.signature),
+        verifiedTransfer: devnetUsdcReceipt.verifiedTransfer,
+        blockers: devnetUsdcReceipt.checks?.filter((check) => !check.ok).map((check) => check.id) ?? [],
+      }
+    : null,
   liveJupiterQuoteProof: jupiterQuote
     ? {
         sourceArtifactPath: relative(rootDir, jupiterQuotePath),
@@ -89,6 +108,7 @@ const pack = {
     "Evidence pack is public-safe: private key material is not included.",
     "Jupiter route is quote/proof-lane metadata here; live swap is not claimed unless status contains an executed swap receipt.",
     ...(jupiterQuote ? ["A live Jupiter quote was fetched without requesting a swap transaction."] : []),
+    ...(devnetUsdcReceipt?.status === "verified" ? ["A devnet USDC receipt was verified against explicit cap and recipient constraints."] : []),
   ],
   limitations: [
     "Surfpool/local proof demonstrates transaction ordering and budget math before devnet/live mutation.",
@@ -126,6 +146,7 @@ writeFileSync(
     `- Slippage cap: ${pack.jupiterSolRoute.slippageBps} bps`,
     `- Status: ${pack.jupiterSolRoute.status}`,
     pack.liveJupiterQuoteProof ? `- Live quote proof: ${pack.liveJupiterQuoteProof.inputSol} SOL → ${pack.liveJupiterQuoteProof.outputUsdc} USDC across ${pack.liveJupiterQuoteProof.routePlanLength} route leg(s)` : "- Live quote proof: not attached",
+    pack.devnetUsdcReceiptVerification ? `- Devnet USDC receipt verification: ${pack.devnetUsdcReceiptVerification.status}` : "- Devnet USDC receipt verification: not attached",
     "",
     "## Limitations",
     "",
