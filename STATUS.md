@@ -396,3 +396,7 @@ Created `docs/COLOSSEUM-FINAL-QUASAR-PROOF-MAP-2026-05-06.md` and refreshed `doc
 ## Phase 5 CI/front-end copy retrospective — 2026-05-06
 
 PR #244 checks are green after head `26aeaab1`: Quasar Program Tests PASS, bdd-index-guard PASS, quasar-readiness PASS, source-conformance-matrix PASS, Vercel PASS, mergeStateStatus CLEAN. Frontend copy scan found stale `scoped-proof` wording in `docs/ECONOMIC-DEMO-JUDGE-PACKET-2026-05-05.md`; corrected it to final Quasar devnet proof language. `/economic-demo` target panel correctly shows Quasar program IDs and submission readiness when `NEXT_PUBLIC_DEMO_PROGRAM_TARGET=quasar`; no code patch needed there.
+
+## Phase 6 final recording rehearsal prep — 2026-05-06
+
+Created `docs/FINAL-RECORDING-REHEARSAL-RUNBOOK-2026-05-06.md`. Started local dev server with `NEXT_PUBLIC_DEMO_PROGRAM_TARGET=quasar HACKATHON_DEMO_TARGET=quasar DEMO_PROGRAM_TARGET=quasar` and fetched `/economic-demo`; confirmed rendered HTML includes “Quasar hackathon target active”, all four Quasar program IDs, and `ready`, with no “Legacy Anchor reference target” active copy. Re-ran lightweight gates: `git diff --check` PASS, `npm run check:quasar:submission` PASS, `npm run test:bdd:index` PASS, `NEXT_PUBLIC_DEMO_PROGRAM_TARGET=quasar npm run build` PASS. Did not rerun devnet A→B→C because no demo code changed after the latest successful devnet proof; use the runbook to rerun immediately before recording.
