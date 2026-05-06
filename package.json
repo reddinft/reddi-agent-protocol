@@ -50,7 +50,8 @@
     "check:economic-demo:live-payment-gate": "node ./scripts/check-economic-demo-live-payment-gate.mjs",
     "verify:economic-demo:devnet-usdc-receipt": "node ./scripts/verify-economic-demo-devnet-usdc-receipt.mjs",
     "plan:economic-demo:devnet-usdc-sender": "node ./scripts/plan-economic-demo-devnet-usdc-sender.mjs",
-    "generate:economic-demo:submission-prep": "node ./scripts/generate-economic-demo-submission-prep.mjs"
+    "generate:economic-demo:submission-prep": "node ./scripts/generate-economic-demo-submission-prep.mjs",
+    "report:economic-demo:run": "node ./scripts/generate-economic-demo-run-report.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",

@@ -438,3 +438,10 @@ Loop 9 added submission prep generator: `npm run generate:economic-demo:submissi
 Loop 10 local CI parity check passed: `npm run test:source:matrix` green (openclaw/hermes/pi smoke; summary `artifacts/source-conformance-matrix/20260507-015110/SUMMARY.md`) and `npm run check:quasar:submission` green (runtime compatibility, deployments, demo readiness, critical success).
 
 RESUME FROM HERE: monitor GitHub PR checks for latest head `e6607de5`; if they pass, PR #244 is ready for review/merge from the current non-mutating evidence standpoint.
+
+
+## Economic demo attestation/run-report slice — 2026-05-07
+
+Nissan requested the visualisations show attestors attesting properly, a run report covering specialist calls/validations/payments, on-chain transaction addresses for payment receipts, and reputation score before/after commit-reveal. Implemented on PR #244 branch: `/economic-demo` now has a Run report panel with specialist calls, payment receipt tx fields, attestor validation chain, and reputation commit/reveal impact; `npm run report:economic-demo:run` generates `artifacts/economic-demo-run-report/<timestamp>/RUN-REPORT.md` + JSON from latest Surfpool evidence, including local transaction signatures as payment receipt addresses and safe guardrails for devnet/mainnet claims. Latest local artifact: `artifacts/economic-demo-run-report/20260506T160008Z/`. Validation passed: `npm run report:economic-demo:run`, `npm run test:bdd:index`, `npx playwright test e2e/economic-demo.spec.ts`, `npm run build`, `git diff --check`.
+
+RESUME FROM HERE: commit/push this slice, then watch PR #244 CI. Do not claim live devnet/mainnet payment or reputation receipts unless verified by the gated verifier/executor; current run report uses local Surfpool tx signatures plus fixture commit/reveal placeholders.

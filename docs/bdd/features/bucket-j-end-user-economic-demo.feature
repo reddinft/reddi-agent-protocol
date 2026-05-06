@@ -67,6 +67,16 @@ Feature: End-user economic workflow demo
     And every downstream call includes x402 challenge or receipt evidence and a downstream-disclosure ledger entry
     And the final budget reconciliation proves the orchestrator acted as both paid provider and consumer agent
 
+  Scenario: Run report shows attestation, payment receipts, and reputation commit-reveal
+    Given the orchestrator has purchased specialist work from the funded run budget
+    And attestors validate the specialist outputs, receipt chain, disclosure ledger, and release criteria
+    When the economic demo run report is shown
+    Then it tells the story of every specialist call, validation, payment, and returned result
+    And it lists payment receipt transaction addresses or explicit fail-closed receipt status for each paid edge
+    And it shows which attestor validated which specialist output and the attestation receipt
+    And it shows reputation scores before commit, the committed score, and after reveal
+    And reputation changes are not represented as final until the reveal receipt is present or explicitly marked fixture-only
+
   Scenario: Playwright recording proves the visible economic demo flow
     Given deterministic economic demo fixture mode is enabled for Playwright
     When the Playwright test records the wallet connect, quote, payment choice, communication graph, payment graph, evidence ledger, and final result panels

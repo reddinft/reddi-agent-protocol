@@ -25,6 +25,15 @@ test.describe("/economic-demo upfront funded consumer-agent flow", () => {
     await expect(paymentFlow).toContainText("Reserved copy specialist budget");
     await expect(paymentFlow).toContainText("Orchestrator retained markup");
 
+    const runReport = page.getByTestId("run-report");
+    await expect(runReport).toContainText("Run report");
+    await expect(runReport).toContainText("Payment receipt");
+    await expect(runReport).toContainText("Attested by");
+    await expect(page.getByTestId("attestation-proof")).toContainText("Attestor validation chain");
+    await expect(page.getByTestId("reputation-commit-reveal")).toContainText("Reputation commit-reveal impact");
+    await expect(page.getByTestId("reputation-commit-reveal")).toContainText("commit tx");
+    await expect(page.getByTestId("reputation-commit-reveal")).toContainText("reveal tx");
+
     await page.getByRole("button", { name: /pay with sol/i }).click();
     await expect(page.getByTestId("jupiter-swap-proof")).toBeVisible();
     await expect(page.getByTestId("jupiter-swap-proof")).toContainText("Jupiter swap proof lane");

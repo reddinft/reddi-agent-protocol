@@ -65,6 +65,50 @@ export type EconomicDemoScenario = {
   guardrails: string[];
 };
 
+export type EconomicRunReportPaymentReceipt = {
+  from: string;
+  to: string;
+  purpose: string;
+  amountUsdc: number;
+  proofStatus: "fixture" | "local-surfpool" | "devnet-verified" | "pending-live-receipt";
+  transactionAddress: string;
+};
+
+export type EconomicRunReportAttestation = {
+  attestorProfileId: string;
+  validatesProfileId: string;
+  validation: string;
+  result: "release_recommended" | "needs_revision" | "blocked";
+  attestationReceipt: string;
+};
+
+export type EconomicRunReportReputationEvent = {
+  profileId: string;
+  beforeScore: number;
+  committedScore: number;
+  afterScore: number;
+  commitTx: string;
+  revealTx: string;
+  status: "fixture_commit_reveal" | "devnet_verified" | "pending_live_reveal";
+};
+
+export type EconomicRunReport = {
+  scenarioId: EconomicDemoScenarioId;
+  title: string;
+  narrative: string;
+  specialistCalls: Array<{
+    step: number;
+    specialistProfileId: string;
+    capability: string;
+    payloadSummary: string;
+    paymentReceipt: EconomicRunReportPaymentReceipt;
+    validation: EconomicRunReportAttestation | null;
+  }>;
+  paymentReceipts: EconomicRunReportPaymentReceipt[];
+  attestations: EconomicRunReportAttestation[];
+  reputationEvents: EconomicRunReportReputationEvent[];
+};
+
 const USER_WALLET = "UserDevnet111111111111111111111111111111111";
 
 export const economicDemoScenarios: EconomicDemoScenario[] = [
@@ -257,4 +301,77 @@ export function lamportsDelta(balance: WalletBalance) {
 export function formatLamports(lamports: number) {
   const sign = lamports > 0 ? "+" : "";
   return `${sign}${(lamports / 1_000_000_000).toFixed(6)} SOL`;
+}
+
+function fixtureTx(label: string) {
+  return `fixture-local-tx:${label}`;
+}
+
+export function buildEconomicRunReport(scenario: EconomicDemoScenario): EconomicRunReport {
+  const attestors = scenario.agents.filter((agent) => agent.role === "attestor");
+  const specialistEdges = scenario.edges.filter((edge) => edge.to !== scenario.orchestrator && edge.status !== "blocked");
+  const paymentReceipts = scenario.budgetLedger
+    .filter((entry) => entry.category !== "markup" && entry.amountUsdc > 0)
+    .map((entry): EconomicRunReportPaymentReceipt => ({
+      from: entry.from,
+      to: entry.to,
+      purpose: entry.label,
+      amountUsdc: entry.amountUsdc,
+      proofStatus: "pending-live-receipt",
+      transactionAddress: fixtureTx(`${scenario.id}:${entry.category}:${entry.from}->${entry.to}`),
+    }));
+  const attestations = specialistEdges
+    .filter((edge) => edge.capability.includes("attestation") || edge.capability.includes("verification") || edge.status === "attested")
+    .map((edge, index): EconomicRunReportAttestation => ({
+      attestorProfileId: edge.to,
+      validatesProfileId: specialistEdges[Math.max(0, index - 1)]?.to ?? scenario.orchestrator,
+      validation: `${edge.payloadSummary} Attestor checks payload, receipt chain, budget reconciliation, and release/refund criteria.`,
+      result: edge.status === "blocked" ? "blocked" : "release_recommended",
+      attestationReceipt: edge.receipt,
+    }));
+  const fallbackAttestor = attestors[0]?.profileId ?? "verification-validation-agent";
+  const calls = specialistEdges
+    .filter((edge) => !edge.capability.includes("attestation") && !edge.capability.includes("verification") && !edge.capability.includes("review"))
+    .map((edge, index) => {
+      const matchingPayment = paymentReceipts.find((receipt) => receipt.to === edge.to) ?? paymentReceipts[index + 1] ?? paymentReceipts[0];
+      const validation = attestations.find((attestation) => attestation.validatesProfileId === edge.to) ?? {
+        attestorProfileId: fallbackAttestor,
+        validatesProfileId: edge.to,
+        validation: `Attestor validates ${edge.to} output against acceptance criteria, payment receipt, and disclosure-ledger completeness.`,
+        result: "release_recommended" as const,
+        attestationReceipt: `fixture:attestation:${scenario.id}:${edge.to}:release-recommended`,
+      };
+      return {
+        step: index + 1,
+        specialistProfileId: edge.to,
+        capability: edge.capability,
+        payloadSummary: edge.payloadSummary,
+        paymentReceipt: matchingPayment,
+        validation,
+      };
+    });
+
+  const reputationEvents = calls.map((call, index): EconomicRunReportReputationEvent => {
+    const beforeScore = 72 + index * 4;
+    const committedScore = call.validation?.result === "release_recommended" ? 5 : 2;
+    return {
+      profileId: call.specialistProfileId,
+      beforeScore,
+      committedScore,
+      afterScore: beforeScore + committedScore,
+      commitTx: fixtureTx(`${scenario.id}:reputation:${call.specialistProfileId}:commit`),
+      revealTx: fixtureTx(`${scenario.id}:reputation:${call.specialistProfileId}:reveal`),
+      status: "fixture_commit_reveal",
+    };
+  });
+
+  return {
+    scenarioId: scenario.id,
+    title: `${scenario.title} run report`,
+    narrative: "The user funds the activity, the orchestrator purchases specialist work, attestors validate outputs and receipts, then reputation changes are applied only after commit-reveal.",
+    specialistCalls: calls,
+    paymentReceipts,
+    attestations,
+    reputationEvents,
+  };
 }

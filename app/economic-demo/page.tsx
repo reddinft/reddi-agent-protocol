@@ -5,6 +5,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useMemo, useState } from "react";
 
 import {
+  buildEconomicRunReport,
   economicDemoScenarios,
   formatLamports,
   lamportsDelta,
@@ -96,6 +97,7 @@ export default function EconomicDemoPage() {
     [scenarioId],
   );
   const totalPlanned = scenario.edges.reduce((sum, edge) => sum + edge.amountLamports, 0);
+  const runReport = useMemo(() => buildEconomicRunReport(scenario), [scenario]);
   const activeDryRunPlan = dryRunPlan?.scenarioId === scenario.id ? dryRunPlan : null;
   const activeBalanceReport = balanceReport?.scenarioId === scenario.id ? balanceReport : null;
   const activeSurfpoolReport = surfpoolReport?.scenarioId === scenario.id ? surfpoolReport : null;
@@ -590,6 +592,71 @@ export default function EconomicDemoPage() {
                           <span className="font-mono text-white">{entry.from} → {entry.to}</span><span className="font-mono text-[#14F195]">{formatUsdc(entry.amountUsdc)}</span>
                         </div>
                         <p className="mt-1 text-xs text-gray-400">{entry.category}: {entry.label}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div data-testid="run-report" className="mt-6 rounded-xl border border-[#14F195]/25 bg-[#14F195]/10 p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-[#14F195]">Run report · specialist calls, attestations, payments, reputation</p>
+                    <h3 className="mt-1 text-xl font-semibold text-white">{runReport.title}</h3>
+                    <p className="mt-2 text-sm leading-6 text-gray-300">{runReport.narrative}</p>
+                  </div>
+                  <span className="rounded-full border border-yellow-400/40 bg-yellow-400/10 px-2 py-0.5 text-xs text-yellow-100">
+                    fixture/local proof · live receipts gated
+                  </span>
+                </div>
+
+                <div className="mt-4 grid gap-3 lg:grid-cols-2">
+                  {runReport.specialistCalls.map((call) => (
+                    <div key={`${call.step}-${call.specialistProfileId}`} className="rounded-lg border border-white/10 bg-black/20 p-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="font-mono text-sm text-white">{call.step}. {call.specialistProfileId}</p>
+                        <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-xs text-gray-300">{call.capability}</span>
+                      </div>
+                      <p className="mt-2 text-sm leading-6 text-gray-300">{call.payloadSummary}</p>
+                      <div className="mt-3 rounded border border-[#14F195]/20 bg-[#14F195]/10 p-2 text-xs leading-5 text-gray-200">
+                        <p className="text-[#14F195]">Payment receipt: {call.paymentReceipt.purpose}</p>
+                        <p>Amount: {formatUsdc(call.paymentReceipt.amountUsdc)} · status: {call.paymentReceipt.proofStatus}</p>
+                        <p className="break-all font-mono text-gray-400">tx: {call.paymentReceipt.transactionAddress}</p>
+                      </div>
+                      {call.validation && (
+                        <div className="mt-3 rounded border border-accent-purple/25 bg-accent-purple/10 p-2 text-xs leading-5 text-gray-200">
+                          <p className="text-accent-purple">Attested by {call.validation.attestorProfileId}: {call.validation.result}</p>
+                          <p>{call.validation.validation}</p>
+                          <p className="break-all font-mono text-gray-400">attestation receipt: {call.validation.attestationReceipt}</p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <div data-testid="attestation-proof" className="mt-4 rounded-lg border border-accent-purple/25 bg-black/20 p-3">
+                  <p className="text-xs uppercase tracking-wide text-accent-purple">Attestor validation chain</p>
+                  <div className="mt-3 grid gap-2 md:grid-cols-2">
+                    {runReport.attestations.map((attestation) => (
+                      <div key={`${attestation.attestorProfileId}-${attestation.validatesProfileId}`} className="rounded border border-white/10 bg-white/5 p-2 text-xs leading-5 text-gray-300">
+                        <p className="font-mono text-white">{attestation.attestorProfileId} → validates {attestation.validatesProfileId}</p>
+                        <p className="mt-1 text-[#14F195]">{attestation.result}</p>
+                        <p className="mt-1">{attestation.validation}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div data-testid="reputation-commit-reveal" className="mt-4 rounded-lg border border-yellow-400/25 bg-black/20 p-3">
+                  <p className="text-xs uppercase tracking-wide text-yellow-100">Reputation commit-reveal impact</p>
+                  <div className="mt-3 grid gap-2 md:grid-cols-2">
+                    {runReport.reputationEvents.map((event) => (
+                      <div key={event.profileId} className="rounded border border-white/10 bg-white/5 p-2 text-xs leading-5 text-gray-300">
+                        <p className="font-mono text-white">{event.profileId}</p>
+                        <p className="mt-1">score: {event.beforeScore} → commit {event.committedScore}/5 → {event.afterScore}</p>
+                        <p className="mt-1 break-all font-mono text-gray-500">commit tx: {event.commitTx}</p>
+                        <p className="mt-1 break-all font-mono text-gray-500">reveal tx: {event.revealTx}</p>
+                        <p className="mt-1 text-yellow-100">{event.status}</p>
                       </div>
                     ))}
                   </div>
