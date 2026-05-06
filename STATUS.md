@@ -421,4 +421,6 @@ Implemented first Issue #245 slice in PR branch: deterministic quote/budget ledg
 
 Loop 2 added deterministic Surfpool upfront-funding semantics: the local rehearsal now models user → orchestrator upfront funding before orchestrator → downstream specialist/attestor spends, includes SOL→USDC Jupiter quote fields, proves specialist credits match downstream transfers, upfront funding covers downstream budget, and orchestrator retains positive markup before fees. Latest local artifact: `artifacts/economic-demo-surfpool-rehearsal/20260506T153156Z/summary.json`.
 
-RESUME FROM HERE: next slice is approval-gated devnet/live USDC payment and SOL→USDC Jupiter swap receipt plumbing, plus evidence-pack schema updates for actual upfront payment/swap receipts.
+Loop 3 added a public-safe upfront payment evidence pack generator: `npm run evidence:economic-demo:upfront-payment`, producing `artifacts/economic-demo-upfront-payment-evidence/20260506T153452Z/` from the latest Surfpool upfront-funding artifact. It fails closed unless upfront funding signature exists, Jupiter route fields exist, specialist credits match downstream transfers, upfront covers downstream budget, markup is retained, and blocked transfers mutate zero balance.
+
+RESUME FROM HERE: next slice is approval-gated devnet/live USDC payment and SOL→USDC Jupiter swap receipt plumbing, then regenerate the upfront evidence pack with live receipt fields.

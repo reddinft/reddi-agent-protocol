@@ -44,7 +44,8 @@
     "check:quasar:runtime-compatibility": "node ./scripts/check-quasar-runtime-compatibility.mjs",
     "check:quasar:submission": "npm run check:quasar:runtime-compatibility && npm run check:quasar:deployments && npm run check:quasar:demo-readiness && npm run check:quasar:critical-success",
     "check:quasar:critical-success": "node ./scripts/check-quasar-critical-success.mjs",
-    "test:surfpool:quasar-critical": "./scripts/run-surfpool-quasar-critical-smoke.sh"
+    "test:surfpool:quasar-critical": "./scripts/run-surfpool-quasar-critical-smoke.sh",
+    "evidence:economic-demo:upfront-payment": "node ./scripts/generate-economic-demo-upfront-payment-evidence.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",
