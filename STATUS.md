@@ -466,3 +466,10 @@ RESUME FROM HERE: commit/push this signed devnet UX/action slice and monitor PR 
 Per Nissan approval, attempted the live wallet-backed Jupiter swap path using the funded devnet demo wallet `AjAPTMjZbsJbeXmdBGzMADWkFixRvVw3mKt8sp99mVCe`. Added repeatable runner `npm run run:economic-demo:devnet-wallet-backed-jupiter-swap`. First `quote-api.jup.ag/v6` attempt failed at fetch. Second attempt with `https://lite-api.jup.ag/swap/v1` succeeded through Jupiter quote + swap transaction creation and local wallet signing, but devnet RPC rejected submission: `invalid transaction: Transaction loads an address table account that doesn't exist`. Artifact: `artifacts/economic-demo-devnet-wallet-backed-jupiter-swap/20260506T161220Z/wallet-backed-jupiter-swap.json`. Skip-preflight retry produced the same devnet rejection: `artifacts/economic-demo-devnet-wallet-backed-jupiter-swap/20260506T161235Z/wallet-backed-jupiter-swap.json`. Conclusion: Jupiter returned mainnet liquidity transaction/address-table material; our devnet wallet could sign it, but devnet cannot execute it. The separate signed devnet swap-lane budget/payment tx remains the executable devnet proof.
 
 RESUME FROM HERE: Surface this in PR evidence as “wallet-backed Jupiter devnet attempted; signed tx blocked by Jupiter mainnet-only account material,” and do not claim an executed Jupiter devnet swap unless a real devnet-supported Jupiter route/pool is found.
+
+
+## PR evidence polish — wallet-backed Jupiter boundary surfaced — 2026-05-07
+
+Wired the wallet-backed Jupiter devnet attempt into the report generator and `/economic-demo` copy so the page no longer says the swap is merely approval-gated. It now states the real result: live Jupiter quote + swap transaction + wallet signature succeeded, then devnet RPC rejected Jupiter mainnet address-table material. Latest report: `artifacts/economic-demo-run-report/20260506T161444Z/`. Validation passed: `npm run report:economic-demo:run`, `npm run test:bdd:index`, `npx playwright test e2e/economic-demo.spec.ts`, `npm run build`, `git diff --check`.
+
+RESUME FROM HERE: commit/push the PR evidence polish, then monitor PR #244 checks.

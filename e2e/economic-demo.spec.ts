@@ -43,6 +43,7 @@ test.describe("/economic-demo upfront funded consumer-agent flow", () => {
     await expect(page.getByTestId("jupiter-swap-proof")).toContainText("Jupiter swap proof lane");
     await expect(page.getByTestId("jupiter-swap-proof")).toContainText("Swap execution story");
     await expect(page.getByTestId("jupiter-swap-proof")).toContainText("swap tx");
+    await expect(page.getByTestId("jupiter-swap-proof")).toContainText("Wallet-backed Jupiter attempt");
     await expect(page.getByTestId("jupiter-swap-proof")).toContainText(/slippage cap/i);
     await expect(runReport).toContainText("Jupiter swap before downstream payments");
     await expect(runReport).toContainText("downstream agents are paid only after this converted budget exists");

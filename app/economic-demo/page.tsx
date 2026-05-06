@@ -429,9 +429,9 @@ export default function EconomicDemoPage() {
                       Swap execution story: user starts with SOL, Jupiter converts {scenario.quote.solEstimate.toFixed(3)} SOL → {formatUsdc(scenario.quote.totalUsdc)}, then the orchestrator pays downstream agents from the USDC budget. Slippage cap: {scenario.quote.slippageBps} bps; allowance: {formatUsdc(scenario.quote.jupiterSwapAllowanceUsdc)}.
                     </p>
                     <div className="mt-3 rounded border border-white/10 bg-black/20 p-2 text-xs leading-5 text-yellow-50/90">
-                      <p>Composite proof: live Jupiter route quote + local Surfpool budget-conversion receipt.</p>
+                      <p>Composite proof: live Jupiter route quote + signed devnet swap-lane budget receipt.</p>
                       <p className="break-all font-mono text-gray-400">swap tx: {runReport.jupiterSwapProof.transactionAddress}</p>
-                      <p className="text-yellow-100">Live wallet-backed swap remains approval-gated before we claim devnet/mainnet execution.</p>
+                      <p className="text-yellow-100">Wallet-backed Jupiter attempt: quote + swap transaction + wallet signature succeeded; devnet RPC rejected Jupiter mainnet address-table material.</p>
                     </div>
                   </div>
                 )}
@@ -658,7 +658,7 @@ export default function EconomicDemoPage() {
                       {runReport.jupiterSwapProof.inputAmount?.toFixed(3)} {runReport.jupiterSwapProof.inputAsset} → {formatUsdc(runReport.jupiterSwapProof.amountUsdc)} {runReport.jupiterSwapProof.outputAsset}; downstream agents are paid only after this converted budget exists.
                     </p>
                     <p className="mt-2 break-all font-mono text-xs text-gray-400">swap receipt: {runReport.jupiterSwapProof.transactionAddress}</p>
-                    <p className="mt-1 text-xs text-yellow-100">status: {runReport.jupiterSwapProof.proofStatus} · live execution requires approval-gated receipt</p>
+                    <p className="mt-1 text-xs text-yellow-100">status: {runReport.jupiterSwapProof.proofStatus} · wallet-backed Jupiter devnet attempt captured separately</p>
                   </div>
                   {runReport.specialistCalls.map((call) => (
                     <div key={`${call.step}-${call.specialistProfileId}`} className="rounded-lg border border-white/10 bg-black/20 p-3">

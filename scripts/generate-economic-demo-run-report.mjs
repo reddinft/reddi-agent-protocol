@@ -27,6 +27,7 @@ const upfrontPackPath = latestArtifact("artifacts/economic-demo-upfront-payment-
 const devnetReceiptPath = latestArtifact("artifacts/economic-demo-devnet-usdc-receipt", "receipt-verification.json");
 const jupiterQuotePath = latestArtifact("artifacts/economic-demo-jupiter-quote-proof", "quote-proof.json");
 const devnetSignedActionPath = latestArtifact("artifacts/economic-demo-devnet-signed-action", "signed-action.json");
+const walletBackedJupiterSwapPath = latestArtifact("artifacts/economic-demo-devnet-wallet-backed-jupiter-swap", "wallet-backed-jupiter-swap.json");
 
 if (!surfpoolPath) throw new Error("missing_surfpool_rehearsal_summary");
 const surfpool = readJson(surfpoolPath);
@@ -34,6 +35,7 @@ const upfrontPack = upfrontPackPath ? readJson(upfrontPackPath) : null;
 const devnetReceipt = devnetReceiptPath ? readJson(devnetReceiptPath) : null;
 const jupiterQuote = jupiterQuotePath ? readJson(jupiterQuotePath) : null;
 const devnetSignedAction = devnetSignedActionPath ? readJson(devnetSignedActionPath) : null;
+const walletBackedJupiterSwap = walletBackedJupiterSwapPath ? readJson(walletBackedJupiterSwapPath) : null;
 
 const downstreamPayments = surfpool.executedTransfers.filter((transfer) => transfer.category === "downstream_agent_payment");
 const attestationTransfers = downstreamPayments.filter((transfer) => /verification|attest|explain/i.test(transfer.toProfileId));
@@ -72,6 +74,7 @@ const report = {
     devnetUsdcReceipt: devnetReceiptPath ? relative(rootDir, devnetReceiptPath) : null,
     jupiterQuote: jupiterQuotePath ? relative(rootDir, jupiterQuotePath) : null,
     devnetSignedAction: devnetSignedActionPath ? relative(rootDir, devnetSignedActionPath) : null,
+    walletBackedJupiterSwap: walletBackedJupiterSwapPath ? relative(rootDir, walletBackedJupiterSwapPath) : null,
   },
   story: [
     "User starts with SOL when they do not have the required downstream USDC budget.",
@@ -91,9 +94,21 @@ const report = {
     localSettlementSignature: surfpool.upfrontFunding?.signature ?? null,
     devnetSignedSwapBudgetTx: devnetSignedAction?.jupiterSwapProof?.swapBudgetTx ?? null,
     devnetDownstreamPayments: devnetSignedAction?.downstreamPayments ?? [],
+    walletBackedAttempt: walletBackedJupiterSwap
+      ? {
+          status: walletBackedJupiterSwap.status,
+          ok: walletBackedJupiterSwap.ok,
+          wallet: walletBackedJupiterSwap.wallet,
+          quote: walletBackedJupiterSwap.quote,
+          swapTransactionReceived: walletBackedJupiterSwap.swapTransactionReceived,
+          walletSignedTransaction: walletBackedJupiterSwap.walletSignedTransaction,
+          signature: walletBackedJupiterSwap.signature,
+          sendError: walletBackedJupiterSwap.sendError?.message ?? null,
+        }
+      : null,
     proofStatus: devnetSignedAction ? "live_quote_plus_signed_devnet_swap_lane" : "live_quote_plus_local_surfpool_conversion",
     caveat: devnetSignedAction
-      ? "Signed devnet transaction proves SOL-funded budget conversion and downstream payment flow; live Jupiter route quote proves route availability. Not a mainnet swap claim."
+      ? "Signed devnet transaction proves SOL-funded budget conversion and downstream payment flow; live Jupiter route quote proves route availability. Wallet-backed Jupiter transaction was attempted separately and devnet rejected Jupiter mainnet account-table material. Not a mainnet swap claim."
       : "This proves route availability plus local budget conversion semantics; live wallet-backed swap receipt remains approval-gated.",
   },
   paymentReceipts: surfpool.executedTransfers.map((transfer) => ({
@@ -123,7 +138,8 @@ const report = {
       }
     : null,
   guardrails: [
-    "Jupiter swap proof is live quote plus local Surfpool conversion unless a future live swap receipt is attached.",
+    "Jupiter swap proof includes live quote, signed devnet budget-conversion receipts, and a wallet-backed Jupiter attempt artifact when available.",
+    "Wallet-backed Jupiter public swap transactions may reference mainnet address-table/liquidity accounts and fail on devnet; do not claim executed devnet Jupiter swap unless signature is present.",
     "Surfpool signatures are local/offline transaction addresses, not devnet or mainnet settlement receipts.",
     "Devnet USDC receipt status is attached separately and must be verified before claiming real devnet payment.",
     "Reputation commit/reveal entries are fixture-only until a live Quasar reputation commit and reveal receipt are supplied.",
@@ -152,6 +168,8 @@ writeFileSync(
     `- ${report.jupiterSwapProof.inputSol} SOL → ${report.jupiterSwapProof.outputUsdc} USDC · route legs ${report.jupiterSwapProof.routePlanLength ?? "local"} · status ${report.jupiterSwapProof.proofStatus}`,
     `- local settlement/signature: ${report.jupiterSwapProof.localSettlementSignature}`,
     report.jupiterSwapProof.devnetSignedSwapBudgetTx ? `- signed devnet swap-lane tx: ${report.jupiterSwapProof.devnetSignedSwapBudgetTx.explorer}` : "- signed devnet swap-lane tx: not attached",
+    report.jupiterSwapProof.walletBackedAttempt ? `- wallet-backed Jupiter attempt: ${report.jupiterSwapProof.walletBackedAttempt.status}; signed=${report.jupiterSwapProof.walletBackedAttempt.walletSignedTransaction}; signature=${report.jupiterSwapProof.walletBackedAttempt.signature ?? "none"}` : "- wallet-backed Jupiter attempt: not attached",
+    report.jupiterSwapProof.walletBackedAttempt?.sendError ? `- wallet-backed devnet rejection: ${report.jupiterSwapProof.walletBackedAttempt.sendError}` : null,
     `- caveat: ${report.jupiterSwapProof.caveat}`,
     "",
     "## Payment receipts",
@@ -166,7 +184,7 @@ writeFileSync(
     "",
     ...report.reputationEvents.map((event) => `- ${event.profileId}: ${event.beforeScore} → commit ${event.committedScore}/5 → ${event.afterScore}; commit ${event.commitTx}; reveal ${event.revealTx}; ${event.status}`),
     "",
-  ].join("\n"),
+  ].filter(Boolean).join("\n"),
 );
 
 console.log(JSON.stringify({ ok: true, jsonPath, mdPath, paymentReceipts: report.paymentReceipts.length, attestations: report.attestations.length, reputationEvents: report.reputationEvents.length }, null, 2));
