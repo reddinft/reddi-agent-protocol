@@ -425,4 +425,6 @@ Loop 3 added a public-safe upfront payment evidence pack generator: `npm run evi
 
 Loop 4 added live Jupiter quote-only proof: `npm run smoke:economic-demo:jupiter-quote`, latest artifact `artifacts/economic-demo-jupiter-quote-proof/20260506T153602Z/quote-proof.json` showing 0.042 SOL → 3.726188 USDC across 1 route leg, no signing/swap/transfer. The upfront evidence pack now attaches the latest quote proof and fails closed if quote output is below the upfront fee. Latest combined pack: `artifacts/economic-demo-upfront-payment-evidence/20260506T153630Z/`.
 
-RESUME FROM HERE: next slice is approval-gated actual devnet/live USDC payment and SOL→USDC Jupiter swap receipt plumbing; quote-only proof is complete but must not be described as executed swap.
+Loop 5 added live payment receipt safety gate: `npm run check:economic-demo:live-payment-gate`, latest blocked artifact `artifacts/economic-demo-live-payment-gate/20260506T153929Z/gate.json`. The gate records exact missing prerequisites and performs no signing/swap/transfer/mutation. It requires explicit confirmation token, asset, network, spend cap, payer reference, recipient, and Jupiter quote reference for SOL route before a future executor is allowed.
+
+RESUME FROM HERE: next slice is to implement the dedicated executor behind this gate for devnet USDC direct payment first; SOL/Jupiter executed swap remains separate and should only run with exact wallet/signing/cap inputs.
