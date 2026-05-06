@@ -50,7 +50,7 @@ Scope: safe local/demo prep only. Generated: ${new Date().toISOString()}.
 ## Demo entrypoint
 
 - Route: \`/economic-demo\`
-- PRs: \`https://github.com/nissan/reddi-agent-protocol/pull/244\` and follow-up \`https://github.com/nissan/reddi-agent-protocol/pull/246\`
+- PRs: \`https://github.com/nissan/reddi-agent-protocol/pull/244\`, follow-up boundary PRs \`https://github.com/nissan/reddi-agent-protocol/pull/246\` / \`https://github.com/nissan/reddi-agent-protocol/pull/247\`, and final recording evidence PR \`https://github.com/nissan/reddi-agent-protocol/pull/248\`
 - BDD: \`${evidence.bdd}\`
 - Proof hierarchy: \`${evidence.proofHierarchy}\`
 
@@ -58,7 +58,7 @@ Scope: safe local/demo prep only. Generated: ${new Date().toISOString()}.
 
 - BDD index guard: \`npm run test:bdd:index\`
 - Economic demo Playwright: \`npx playwright test e2e/economic-demo.spec.ts\`
-- App build: \`npm run build\`
+- App build: \`NEXT_PUBLIC_DEMO_PROGRAM_TARGET=quasar npm run build\`
 - Upfront evidence pack: \`npm run evidence:economic-demo:upfront-payment\`
 - Surfpool/mock-Jupiter invoke proof: \`npm run test:surfpool:jupiter-invoke\`
 - Jupiter quote proof: \`npm run smoke:economic-demo:jupiter-quote\`
