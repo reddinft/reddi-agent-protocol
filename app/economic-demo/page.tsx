@@ -91,6 +91,7 @@ export default function EconomicDemoPage() {
   const [pictureStoryboardDesign, setPictureStoryboardDesign] = useState<PictureStoryboardDesign | null>(null);
   const [pictureStoryboardStatus, setPictureStoryboardStatus] = useState<"idle" | "loading" | "loaded" | "error">("idle");
   const [paymentAsset, setPaymentAsset] = useState<"USDC" | "SOL">("USDC");
+  const [runStarted, setRunStarted] = useState(false);
   const { connected, publicKey } = useWallet();
   const scenario = useMemo(
     () => economicDemoScenarios.find((candidate) => candidate.id === scenarioId) ?? economicDemoScenarios[0],
@@ -243,6 +244,24 @@ export default function EconomicDemoPage() {
                 </button>
               ))}
             </div>
+            <div className="grid gap-3 pt-3 md:grid-cols-3">
+              {economicDemoScenarios.map((candidate) => (
+                <button
+                  key={`card-${candidate.id}`}
+                  type="button"
+                  onClick={() => {
+                    setScenarioId(candidate.id);
+                    setRunStarted(false);
+                  }}
+                  className={`rounded-2xl border p-4 text-left transition ${candidate.id === scenario.id ? "border-[#14F195]/50 bg-[#14F195]/10" : "border-white/10 bg-white/5 hover:border-white/25"}`}
+                >
+                  <p className="text-xs uppercase tracking-wide text-gray-500">Predefined action</p>
+                  <h3 className="mt-2 font-semibold text-white">{candidate.title}</h3>
+                  <p className="mt-2 text-sm leading-5 text-gray-400">{candidate.finalOutputSummary}</p>
+                  <p className="mt-3 font-mono text-sm text-[#14F195]">{formatUsdc(candidate.quote.totalUsdc)}</p>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -387,7 +406,16 @@ export default function EconomicDemoPage() {
                       Pay with {asset}
                     </button>
                   ))}
+                  <button
+                    type="button"
+                    onClick={() => setRunStarted(true)}
+                    disabled={!connected}
+                    className={connected ? "rounded-lg bg-[#14F195] px-4 py-2 text-sm font-bold text-black shadow-card" : "rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm font-bold text-gray-500"}
+                  >
+                    {paymentAsset === "SOL" ? "Swap SOL via Jupiter and run" : `Pay ${formatUsdc(scenario.quote.totalUsdc)} and run`}
+                  </button>
                 </div>
+                {!connected && <p className="mt-3 text-xs text-yellow-100">Connect a devnet wallet to start the signed demo action.</p>}
                 <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                   <div className="rounded-lg border border-white/10 bg-black/20 p-3"><p className="text-xs text-gray-500">downstream specialists</p><p className="mt-1 font-mono text-sm text-white">{formatUsdc(scenario.quote.downstreamFeesUsdc)}</p></div>
                   <div className="rounded-lg border border-white/10 bg-black/20 p-3"><p className="text-xs text-gray-500">attestors</p><p className="mt-1 font-mono text-sm text-white">{formatUsdc(scenario.quote.attestorFeesUsdc)}</p></div>
@@ -405,6 +433,14 @@ export default function EconomicDemoPage() {
                       <p className="break-all font-mono text-gray-400">swap tx: {runReport.jupiterSwapProof.transactionAddress}</p>
                       <p className="text-yellow-100">Live wallet-backed swap remains approval-gated before we claim devnet/mainnet execution.</p>
                     </div>
+                  </div>
+                )}
+                {runStarted && (
+                  <div data-testid="live-run-status" className="mt-4 rounded-lg border border-[#14F195]/30 bg-black/20 p-3">
+                    <p className="text-xs uppercase tracking-wide text-[#14F195]">Live run timeline started</p>
+                    <p className="mt-2 text-sm leading-6 text-gray-200">
+                      Wallet connected → quote accepted → {paymentAsset === "SOL" ? "Jupiter SOL→USDC devnet proof selected" : "USDC direct route selected"} → downstream payments and attestation evidence shown below.
+                    </p>
                   </div>
                 )}
               </div>

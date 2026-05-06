@@ -15,6 +15,8 @@ test.describe("/economic-demo upfront funded consumer-agent flow", () => {
     await expect(quote).toContainText("total quote");
     await expect(quote).toContainText("orchestrator markup");
     await expect(quote).toContainText("USDC direct");
+    await expect(page.getByText("Predefined action").first()).toBeVisible();
+    await expect(page.getByRole("button", { name: /pay \$3\.33 usdc and run/i })).toBeVisible();
 
     await expect(page.getByTestId("communication-flow")).toContainText("end-user");
     await expect(page.getByTestId("communication-flow")).toContainText("agentic-workflow-system");
@@ -35,6 +37,8 @@ test.describe("/economic-demo upfront funded consumer-agent flow", () => {
     await expect(page.getByTestId("reputation-commit-reveal")).toContainText("reveal tx");
 
     await page.getByRole("button", { name: /pay with sol/i }).click();
+    await page.getByRole("button", { name: /swap sol via jupiter and run/i }).click();
+    await expect(page.getByTestId("live-run-status")).toContainText("Live run timeline started");
     await expect(page.getByTestId("jupiter-swap-proof")).toBeVisible();
     await expect(page.getByTestId("jupiter-swap-proof")).toContainText("Jupiter swap proof lane");
     await expect(page.getByTestId("jupiter-swap-proof")).toContainText("Swap execution story");

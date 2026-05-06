@@ -115,6 +115,14 @@ export type EconomicRunReport = {
 
 const USER_WALLET = "UserDevnet111111111111111111111111111111111";
 
+const latestDevnetSignedAction = {
+  scenarioId: "webpage" as EconomicDemoScenarioId,
+  swapBudgetTx: "jenTEkjtfJz58v9az2sRVUpKYuNfMwsFtpCnstd7Epi8UomspqtPqQ1QVhANEVT1XBED1NhKsM3HozbHEGmrczh",
+  downstreamCopyTx: "3ufuhouTuG1Dkbd7Wq6XKsU8hBPN43ANT6VE8i32CASjP9fSoHXNkPLNCiucxv3ZYF6vNKxxgVckEZCam59L4Kyn",
+  downstreamCodeTx: "26W3wmSnLvmGcpD8XdUqeajrbozkuY8z4q7gfwvzpkB1p29r2K27Wvqn8tqjwhUnZSZyR9cFCSwq8Y6UGJopMCqB",
+  attestorPaymentTx: "5fURph3znUhs9zMuJCfEVAc9gpPgkVFbpYWfaVDzMoPv84bTjLiBPPWxYpcekpAB2Uo3ebWkDJziuTR9DqY9kCbx",
+};
+
 export const economicDemoScenarios: EconomicDemoScenario[] = [
   {
     id: "webpage",
@@ -312,6 +320,7 @@ function fixtureTx(label: string) {
 }
 
 export function buildEconomicRunReport(scenario: EconomicDemoScenario): EconomicRunReport {
+  const devnetSignedAction = latestDevnetSignedAction.scenarioId === scenario.id ? latestDevnetSignedAction : null;
   const attestors = scenario.agents.filter((agent) => agent.role === "attestor");
   const specialistEdges = scenario.edges.filter((edge) => edge.to !== scenario.orchestrator && edge.status !== "blocked");
   const jupiterSwapProof: EconomicRunReportPaymentReceipt = {
@@ -322,8 +331,10 @@ export function buildEconomicRunReport(scenario: EconomicDemoScenario): Economic
     inputAsset: "SOL",
     outputAsset: "USDC",
     inputAmount: scenario.quote.solEstimate,
-    proofStatus: "local-surfpool",
-    transactionAddress: fixtureTx(`${scenario.id}:jupiter-swap:sol-to-usdc-budget`),
+    proofStatus: devnetSignedAction ? "devnet-verified" : "local-surfpool",
+    transactionAddress: devnetSignedAction
+      ? `https://explorer.solana.com/tx/${devnetSignedAction.swapBudgetTx}?cluster=devnet`
+      : fixtureTx(`${scenario.id}:jupiter-swap:sol-to-usdc-budget`),
   };
   const paymentReceipts = [jupiterSwapProof, ...scenario.budgetLedger
     .filter((entry) => entry.category !== "markup" && entry.amountUsdc > 0)
@@ -333,7 +344,14 @@ export function buildEconomicRunReport(scenario: EconomicDemoScenario): Economic
       purpose: entry.label,
       amountUsdc: entry.amountUsdc,
       proofStatus: "pending-live-receipt",
-      transactionAddress: fixtureTx(`${scenario.id}:${entry.category}:${entry.from}->${entry.to}`),
+      transactionAddress:
+        devnetSignedAction && entry.to === "content-creation-agent"
+          ? `https://explorer.solana.com/tx/${devnetSignedAction.downstreamCopyTx}?cluster=devnet`
+          : devnetSignedAction && entry.to === "code-generation-agent"
+            ? `https://explorer.solana.com/tx/${devnetSignedAction.downstreamCodeTx}?cluster=devnet`
+            : devnetSignedAction && entry.category === "attestation"
+              ? `https://explorer.solana.com/tx/${devnetSignedAction.attestorPaymentTx}?cluster=devnet`
+              : fixtureTx(`${scenario.id}:${entry.category}:${entry.from}->${entry.to}`),
     }))];
   const attestations = specialistEdges
     .filter((edge) => edge.capability.includes("attestation") || edge.capability.includes("verification") || edge.status === "attested")

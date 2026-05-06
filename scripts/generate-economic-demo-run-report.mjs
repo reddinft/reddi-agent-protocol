@@ -26,12 +26,14 @@ const surfpoolPath = latestArtifact("artifacts/economic-demo-surfpool-rehearsal"
 const upfrontPackPath = latestArtifact("artifacts/economic-demo-upfront-payment-evidence", "upfront-payment-evidence.json");
 const devnetReceiptPath = latestArtifact("artifacts/economic-demo-devnet-usdc-receipt", "receipt-verification.json");
 const jupiterQuotePath = latestArtifact("artifacts/economic-demo-jupiter-quote-proof", "quote-proof.json");
+const devnetSignedActionPath = latestArtifact("artifacts/economic-demo-devnet-signed-action", "signed-action.json");
 
 if (!surfpoolPath) throw new Error("missing_surfpool_rehearsal_summary");
 const surfpool = readJson(surfpoolPath);
 const upfrontPack = upfrontPackPath ? readJson(upfrontPackPath) : null;
 const devnetReceipt = devnetReceiptPath ? readJson(devnetReceiptPath) : null;
 const jupiterQuote = jupiterQuotePath ? readJson(jupiterQuotePath) : null;
+const devnetSignedAction = devnetSignedActionPath ? readJson(devnetSignedActionPath) : null;
 
 const downstreamPayments = surfpool.executedTransfers.filter((transfer) => transfer.category === "downstream_agent_payment");
 const attestationTransfers = downstreamPayments.filter((transfer) => /verification|attest|explain/i.test(transfer.toProfileId));
@@ -69,6 +71,7 @@ const report = {
     upfrontPack: upfrontPackPath ? relative(rootDir, upfrontPackPath) : null,
     devnetUsdcReceipt: devnetReceiptPath ? relative(rootDir, devnetReceiptPath) : null,
     jupiterQuote: jupiterQuotePath ? relative(rootDir, jupiterQuotePath) : null,
+    devnetSignedAction: devnetSignedActionPath ? relative(rootDir, devnetSignedActionPath) : null,
   },
   story: [
     "User starts with SOL when they do not have the required downstream USDC budget.",
@@ -86,8 +89,12 @@ const report = {
     routePlanLength: jupiterQuote?.response?.routePlanLength ?? null,
     slippageBps: jupiterQuote?.request?.slippageBps ?? surfpool.jupiterSolRoute?.slippageBps ?? null,
     localSettlementSignature: surfpool.upfrontFunding?.signature ?? null,
-    proofStatus: "live_quote_plus_local_surfpool_conversion",
-    caveat: "This proves route availability plus local budget conversion semantics; live wallet-backed swap receipt remains approval-gated.",
+    devnetSignedSwapBudgetTx: devnetSignedAction?.jupiterSwapProof?.swapBudgetTx ?? null,
+    devnetDownstreamPayments: devnetSignedAction?.downstreamPayments ?? [],
+    proofStatus: devnetSignedAction ? "live_quote_plus_signed_devnet_swap_lane" : "live_quote_plus_local_surfpool_conversion",
+    caveat: devnetSignedAction
+      ? "Signed devnet transaction proves SOL-funded budget conversion and downstream payment flow; live Jupiter route quote proves route availability. Not a mainnet swap claim."
+      : "This proves route availability plus local budget conversion semantics; live wallet-backed swap receipt remains approval-gated.",
   },
   paymentReceipts: surfpool.executedTransfers.map((transfer) => ({
     fromProfileId: transfer.fromProfileId,
@@ -144,6 +151,7 @@ writeFileSync(
     "",
     `- ${report.jupiterSwapProof.inputSol} SOL → ${report.jupiterSwapProof.outputUsdc} USDC · route legs ${report.jupiterSwapProof.routePlanLength ?? "local"} · status ${report.jupiterSwapProof.proofStatus}`,
     `- local settlement/signature: ${report.jupiterSwapProof.localSettlementSignature}`,
+    report.jupiterSwapProof.devnetSignedSwapBudgetTx ? `- signed devnet swap-lane tx: ${report.jupiterSwapProof.devnetSignedSwapBudgetTx.explorer}` : "- signed devnet swap-lane tx: not attached",
     `- caveat: ${report.jupiterSwapProof.caveat}`,
     "",
     "## Payment receipts",
