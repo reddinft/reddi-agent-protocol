@@ -410,3 +410,11 @@ Surfpool gate passed before devnet mutation: `npm run smoke:economic-demo:surfpo
 Picture local storyboard gate passed: `artifacts/economic-demo-picture-storyboard/20260506T145126Z/`. Approved generated image artifact copied to `artifacts/economic-demo-picture-generation/20260506T145200Z/`. Fresh hosted x402 workflow artifact for evidence-pack schema: `artifacts/economic-demo-webpage-live-x402-workflow/20260506T145256Z/`; fresh judge evidence pack: `artifacts/economic-demo-evidence-pack/20260506T145348Z/`. Completion matrix doc: `docs/OPENROUTER-SPECIALISTS-COMPLETION-MATRIX-2026-05-06.md`.
 
 RESUME FROM HERE: generate/refresh judge evidence pack and UI references so `/economic-demo` can surface the new current inventory + devnet paid workflow + picture artifact. Keep wording precise: devnet SOL transfers prove wallet-balance impact; hosted x402 is bounded demo receipt mode, not production USDC settlement verification.
+
+## Economic demo upfront payment/Jupiter requirement — 2026-05-07
+
+Nissan clarified the correct economic-demo product flow: the user connects a wallet and pays an upfront activity fee that covers all downstream agent calls plus orchestrator markup. The orchestrator/first agent then becomes a consumer agent and spends that funded run budget on downstream specialists/attestors. The user must be able to pay in USDC directly or SOL via Jupiter swap proof, so the demo can prove real-time swap behavior as part of agent-economy execution.
+
+Opened GitHub Issue #245 and added BDD/spec plan: `docs/ECONOMIC-DEMO-UPFRONT-PAYMENT-JUPITER-BDD-PLAN-2026-05-07.md`. Updated Bucket J BDD with scenarios for upfront run funding, USDC route, SOL/Jupiter route, funded consumer-agent orchestration, and Playwright-recordable proof.
+
+RESUME FROM HERE: implement Issue #245 in slices: (1) deterministic quote/budget ledger fixture model, (2) `/economic-demo` wallet-connect/upfront quote + communication/payment graph visuals, (3) `e2e/economic-demo.spec.ts` Playwright recording lane, (4) Surfpool-first then approval-gated devnet/live USDC/SOL/Jupiter proof.

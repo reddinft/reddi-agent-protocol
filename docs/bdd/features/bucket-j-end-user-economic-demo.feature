@@ -6,6 +6,50 @@ Feature: End-user economic workflow demo
     And demo artifacts must not expose private keys, signer material, provider API keys, or payment secrets
     And autonomous specialists and attestors may act as consumer agents only when their manifest discloses downstream marketplace delegation
 
+
+  Scenario: User funds a run budget before the orchestrator calls downstream agents
+    Given the user opens /economic-demo and connects a wallet
+    And the selected activity has a quoted downstream agent budget
+    And the quote includes downstream specialist fees, attestor fees, Jupiter swap allowance when needed, and orchestrator markup
+    When the user approves the upfront demo payment
+    Then the payment is recorded as the user-to-orchestrator funding edge
+    And the orchestrator budget ledger shows gross revenue, reserved downstream budget, retained markup, and remaining refundable balance
+    And downstream specialists are paid only from the funded run budget
+    And the final output includes the user payment receipt, downstream payment receipts, and budget reconciliation
+
+  Scenario: User can pay the upfront demo fee in USDC
+    Given the activity quote is denominated in USDC
+    And the connected user wallet has sufficient USDC on the selected network
+    When the user chooses USDC payment
+    Then the demo records a USDC payment receipt from user wallet to orchestrator wallet or escrow
+    And no Jupiter swap is required
+    And the orchestrator can spend the received budget on downstream agent calls
+    And the communication-flow visualization links the user payment to every downstream paid edge it funds
+
+  Scenario: User can pay the upfront demo fee in SOL through Jupiter swap proof
+    Given the activity quote is denominated in USDC
+    And the connected user wallet chooses SOL payment
+    When the demo requests a Jupiter quote and executes the approved swap path
+    Then the evidence records the Jupiter quote, route, input SOL amount, output USDC amount, slippage guard, and swap signature or fail-closed reason
+    And the resulting USDC budget or equivalent settlement record funds the orchestrator run budget
+    And the page distinguishes swap cost, downstream agent fees, and orchestrator markup
+    And if the quote expires, slippage exceeds the cap, or output is insufficient, no downstream agent call is executed
+
+  Scenario: Consumer-agent proof shows funded orchestration and downstream purchasing
+    Given the orchestrator has received the upfront run budget
+    When it hires downstream marketplace agents to fulfill the request
+    Then the page shows the communication path user to orchestrator to specialists to attestor to user result
+    And the page shows the payment path user to orchestrator, orchestrator to specialists, orchestrator to attestors, and retained markup
+    And every downstream call includes x402 challenge or receipt evidence and a downstream-disclosure ledger entry
+    And the final budget reconciliation proves the orchestrator acted as both paid provider and consumer agent
+
+  Scenario: Playwright recording proves the visible economic demo flow
+    Given deterministic economic demo fixture mode is enabled for Playwright
+    When the Playwright test records the wallet connect, quote, payment choice, communication graph, payment graph, evidence ledger, and final result panels
+    Then the test saves screenshot, video, and trace artifacts under artifacts/playwright-economic-demo
+    And it asserts the upfront quote, user payment edge, downstream payment edges, Jupiter swap panel, wallet deltas, disclosure ledger, and final output are visible
+    And the deterministic recording performs no real signing, swap, transfer, paid provider call, hosted specialist call, or wallet mutation
+
   Scenario: Static fixture explains the economic workflow without spending
     Given the user opens /economic-demo
     When they select the webpage, research article, or picture scenario
