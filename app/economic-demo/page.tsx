@@ -1,5 +1,7 @@
 "use client";
 
+import dynamic from "next/dynamic";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { useMemo, useState } from "react";
 
 import {
@@ -35,6 +37,14 @@ function shortWallet(wallet: string) {
   return `${wallet.slice(0, 8)}…${wallet.slice(-6)}`;
 }
 
+function formatUsdc(amount: number) {
+  return `$${amount.toFixed(2)} USDC`;
+}
+
+const WalletMultiButton = dynamic(
+  async () => (await import("@solana/wallet-adapter-react-ui")).WalletMultiButton,
+  { ssr: false },
+);
 
 const localEvidenceArtifacts = [
   {
@@ -79,6 +89,8 @@ export default function EconomicDemoPage() {
   const [researchDesignStatus, setResearchDesignStatus] = useState<"idle" | "loading" | "loaded" | "error">("idle");
   const [pictureStoryboardDesign, setPictureStoryboardDesign] = useState<PictureStoryboardDesign | null>(null);
   const [pictureStoryboardStatus, setPictureStoryboardStatus] = useState<"idle" | "loading" | "loaded" | "error">("idle");
+  const [paymentAsset, setPaymentAsset] = useState<"USDC" | "SOL">("USDC");
+  const { connected, publicKey } = useWallet();
   const scenario = useMemo(
     () => economicDemoScenarios.find((candidate) => candidate.id === scenarioId) ?? economicDemoScenarios[0],
     [scenarioId],
@@ -349,6 +361,47 @@ export default function EconomicDemoPage() {
                   Picture storyboard design failed. No image-generation provider, signing, or transfer was attempted.
                 </p>
               )}
+              <div data-testid="economic-upfront-quote" className="mt-6 rounded-xl border border-[#14F195]/25 bg-[#14F195]/10 p-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-[#14F195]">Upfront run budget</p>
+                    <h3 className="mt-1 text-xl font-semibold text-white">User funds the whole activity first</h3>
+                    <p className="mt-2 text-sm leading-6 text-gray-300">
+                      The first agent receives one funded run budget, keeps its markup, then spends the reserved budget on downstream consumer-agent calls.
+                    </p>
+                  </div>
+                  <div className="min-w-48 rounded-lg border border-white/10 bg-black/25 p-3 text-right">
+                    <p className="text-xs text-gray-400">total quote</p>
+                    <p className="font-mono text-2xl text-[#14F195]">{formatUsdc(scenario.quote.totalUsdc)}</p>
+                  </div>
+                </div>
+                <div className="mt-4 flex flex-wrap items-center gap-3">
+                  <WalletMultiButton />
+                  <span className={connected ? "rounded-full border border-[#14F195]/30 px-3 py-1 text-xs text-[#14F195]" : "rounded-full border border-yellow-400/40 px-3 py-1 text-xs text-yellow-100"}>
+                    {connected && publicKey ? `connected ${shortWallet(publicKey.toBase58())}` : "connect wallet to pay"}
+                  </span>
+                  {(["USDC", "SOL"] as const).map((asset) => (
+                    <button key={asset} type="button" onClick={() => setPaymentAsset(asset)} className={paymentAsset === asset ? "rounded-lg border border-accent-purple/40 bg-accent-purple/15 px-3 py-2 text-sm font-semibold text-accent-purple" : "rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm font-semibold text-gray-300"}>
+                      Pay with {asset}
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                  <div className="rounded-lg border border-white/10 bg-black/20 p-3"><p className="text-xs text-gray-500">downstream specialists</p><p className="mt-1 font-mono text-sm text-white">{formatUsdc(scenario.quote.downstreamFeesUsdc)}</p></div>
+                  <div className="rounded-lg border border-white/10 bg-black/20 p-3"><p className="text-xs text-gray-500">attestors</p><p className="mt-1 font-mono text-sm text-white">{formatUsdc(scenario.quote.attestorFeesUsdc)}</p></div>
+                  <div className="rounded-lg border border-white/10 bg-black/20 p-3"><p className="text-xs text-gray-500">orchestrator markup</p><p className="mt-1 font-mono text-sm text-[#14F195]">{formatUsdc(scenario.quote.orchestratorMarkupUsdc)}</p></div>
+                  <div className="rounded-lg border border-white/10 bg-black/20 p-3"><p className="text-xs text-gray-500">selected route</p><p className="mt-1 font-mono text-sm text-white">{paymentAsset === "SOL" ? `${scenario.quote.solEstimate.toFixed(3)} SOL via Jupiter` : "USDC direct"}</p></div>
+                </div>
+                {paymentAsset === "SOL" && (
+                  <div data-testid="jupiter-swap-proof" className="mt-4 rounded-lg border border-yellow-400/30 bg-yellow-400/10 p-3">
+                    <p className="text-xs uppercase tracking-wide text-yellow-100">Jupiter swap proof lane</p>
+                    <p className="mt-2 text-sm leading-6 text-yellow-50/90">
+                      Deterministic demo route: quote {scenario.quote.solEstimate.toFixed(3)} SOL → {formatUsdc(scenario.quote.totalUsdc)} with {scenario.quote.slippageBps} bps slippage cap and {formatUsdc(scenario.quote.jupiterSwapAllowanceUsdc)} allowance. Live swap execution remains Surfpool-first and approval-gated.
+                    </p>
+                  </div>
+                )}
+              </div>
+
               <dl className="mt-5 grid grid-cols-2 gap-3 text-sm">
                 <div className="rounded-xl border border-white/10 bg-white/5 p-3">
                   <dt className="text-gray-500">Orchestrator</dt>
@@ -428,7 +481,7 @@ export default function EconomicDemoPage() {
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-card/70 p-6 shadow-card">
-              <p className="section-label">Final output</p>
+              <p data-testid="economic-final-output" className="section-label">Final output</p>
               <h3 className="mt-2 text-xl font-semibold text-white">{scenario.finalOutputType}</h3>
               <p className="mt-3 text-sm leading-6 text-gray-300">{scenario.finalOutputSummary}</p>
               <div className="mt-5 rounded-xl border border-[#14F195]/20 bg-[#14F195]/10 p-4 text-sm text-[#14F195]">
@@ -511,6 +564,36 @@ export default function EconomicDemoPage() {
                 <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-gray-400">
                   fixture · zero spend
                 </span>
+              </div>
+
+              <div className="mt-6 grid gap-4 xl:grid-cols-2">
+                <div data-testid="communication-flow" className="rounded-xl border border-white/10 bg-black/20 p-4">
+                  <p className="text-xs uppercase tracking-wide text-gray-500">Communication flow</p>
+                  <div className="mt-3 space-y-2">
+                    {scenario.communicationFlow.map((edge) => (
+                      <div key={`${edge.from}-${edge.to}-${edge.label}`} className="rounded-lg border border-white/10 bg-white/5 p-3 text-sm">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-mono text-white">{edge.from}</span><span className="text-gray-500">→</span><span className="font-mono text-white">{edge.to}</span>
+                          <span className="rounded-full border border-white/10 px-2 py-0.5 text-xs text-gray-300">{edge.status}</span>
+                        </div>
+                        <p className="mt-1 text-xs text-gray-400">{edge.label}: {edge.payload}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div data-testid="payment-flow" className="rounded-xl border border-[#14F195]/20 bg-black/20 p-4">
+                  <p className="text-xs uppercase tracking-wide text-[#14F195]">Payment flow + budget reconciliation</p>
+                  <div className="mt-3 space-y-2">
+                    {scenario.budgetLedger.map((entry) => (
+                      <div key={`${entry.from}-${entry.to}-${entry.label}`} className="rounded-lg border border-white/10 bg-white/5 p-3 text-sm">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <span className="font-mono text-white">{entry.from} → {entry.to}</span><span className="font-mono text-[#14F195]">{formatUsdc(entry.amountUsdc)}</span>
+                        </div>
+                        <p className="mt-1 text-xs text-gray-400">{entry.category}: {entry.label}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">

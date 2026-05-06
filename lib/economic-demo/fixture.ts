@@ -1,5 +1,7 @@
 export type EconomicDemoScenarioId = "webpage" | "research" | "picture";
 
+export type PaymentAsset = "USDC" | "SOL";
+
 export type WalletBalance = {
   profileId: string;
   role: "end-user" | "orchestrator" | "specialist" | "attestor" | "adapter";
@@ -18,6 +20,34 @@ export type EconomicEdge = {
   receipt: string;
 };
 
+export type EconomicDemoQuote = {
+  currency: "USDC";
+  downstreamFeesUsdc: number;
+  attestorFeesUsdc: number;
+  orchestratorMarkupUsdc: number;
+  jupiterSwapAllowanceUsdc: number;
+  totalUsdc: number;
+  solEstimate: number;
+  slippageBps: number;
+};
+
+export type BudgetLedgerEntry = {
+  label: string;
+  from: string;
+  to: string;
+  amountUsdc: number;
+  category: "user-funding" | "swap" | "downstream" | "attestation" | "markup" | "refund";
+};
+
+export type VisualFlowEdge = {
+  from: string;
+  to: string;
+  label: string;
+  payload: string;
+  paymentUsdc: number;
+  status: "quoted" | "funded" | "reserved" | "paid" | "attested" | "returned" | "blocked";
+};
+
 export type EconomicDemoScenario = {
   id: EconomicDemoScenarioId;
   title: string;
@@ -26,6 +56,9 @@ export type EconomicDemoScenario = {
   mode: "fixture-zero-spend" | "planned-dry-run" | "adapter-required";
   finalOutputType: "webpage" | "article" | "image-brief";
   finalOutputSummary: string;
+  quote: EconomicDemoQuote;
+  budgetLedger: BudgetLedgerEntry[];
+  communicationFlow: VisualFlowEdge[];
   agents: Array<{ profileId: string; role: WalletBalance["role"]; description: string }>;
   edges: EconomicEdge[];
   balances: WalletBalance[];
@@ -44,6 +77,22 @@ export const economicDemoScenarios: EconomicDemoScenario[] = [
     finalOutputType: "webpage",
     finalOutputSummary:
       "A responsive landing page plan with hero copy, menu sections, sustainability proof points, and implementation-ready component notes.",
+    quote: { currency: "USDC", downstreamFeesUsdc: 2, attestorFeesUsdc: 0.5, orchestratorMarkupUsdc: 0.75, jupiterSwapAllowanceUsdc: 0.08, totalUsdc: 3.33, solEstimate: 0.021, slippageBps: 75 },
+    budgetLedger: [
+      { label: "Upfront activity fee", from: "end-user", to: "agentic-workflow-system", amountUsdc: 3.33, category: "user-funding" },
+      { label: "Reserved copy specialist budget", from: "agentic-workflow-system", to: "content-creation-agent", amountUsdc: 1, category: "downstream" },
+      { label: "Reserved code specialist budget", from: "agentic-workflow-system", to: "code-generation-agent", amountUsdc: 1, category: "downstream" },
+      { label: "Reserved attestation budget", from: "agentic-workflow-system", to: "verification-validation-agent", amountUsdc: 0.5, category: "attestation" },
+      { label: "Orchestrator retained markup", from: "agentic-workflow-system", to: "agentic-workflow-system", amountUsdc: 0.75, category: "markup" },
+      { label: "SOL route swap/slippage allowance", from: "Jupiter", to: "agentic-workflow-system", amountUsdc: 0.08, category: "swap" },
+    ],
+    communicationFlow: [
+      { from: "end-user", to: "agentic-workflow-system", label: "fund and request", payload: "Goal, audience, tone, payment asset, and run budget.", paymentUsdc: 3.33, status: "funded" },
+      { from: "agentic-workflow-system", to: "content-creation-agent", label: "buy copy", payload: "Bakery positioning, section list, and CTA requirements.", paymentUsdc: 1, status: "paid" },
+      { from: "agentic-workflow-system", to: "code-generation-agent", label: "buy code", payload: "Approved copy plus responsive layout constraints.", paymentUsdc: 1, status: "paid" },
+      { from: "agentic-workflow-system", to: "verification-validation-agent", label: "buy attestation", payload: "Final page draft, acceptance criteria, and receipt chain.", paymentUsdc: 0.5, status: "attested" },
+      { from: "verification-validation-agent", to: "end-user", label: "return result", payload: "Release guidance, final output, and budget reconciliation.", paymentUsdc: 0, status: "returned" },
+    ],
     agents: [
       { profileId: "end-user", role: "end-user", description: "Submits the goal and funds the run budget." },
       { profileId: "agentic-workflow-system", role: "orchestrator", description: "Breaks the request into paid specialist jobs." },
@@ -107,6 +156,24 @@ export const economicDemoScenarios: EconomicDemoScenario[] = [
     finalOutputType: "article",
     finalOutputSummary:
       "A structured article outline with evidence-gathering, synthesis, drafting, explainability, and verification steps.",
+    quote: { currency: "USDC", downstreamFeesUsdc: 3, attestorFeesUsdc: 1, orchestratorMarkupUsdc: 1, jupiterSwapAllowanceUsdc: 0.12, totalUsdc: 5.12, solEstimate: 0.032, slippageBps: 75 },
+    budgetLedger: [
+      { label: "Upfront research activity fee", from: "end-user", to: "agentic-workflow-system", amountUsdc: 5.12, category: "user-funding" },
+      { label: "Knowledge retrieval budget", from: "agentic-workflow-system", to: "knowledge-retrieval-agent", amountUsdc: 1, category: "downstream" },
+      { label: "Scientific synthesis budget", from: "agentic-workflow-system", to: "scientific-research-agent", amountUsdc: 1, category: "downstream" },
+      { label: "Drafting budget", from: "agentic-workflow-system", to: "content-creation-agent", amountUsdc: 1, category: "downstream" },
+      { label: "Attestation/review budget", from: "agentic-workflow-system", to: "explainable-agent + verification-validation-agent", amountUsdc: 1, category: "attestation" },
+      { label: "Orchestrator retained markup", from: "agentic-workflow-system", to: "agentic-workflow-system", amountUsdc: 1, category: "markup" },
+      { label: "SOL route swap/slippage allowance", from: "Jupiter", to: "agentic-workflow-system", amountUsdc: 0.12, category: "swap" },
+    ],
+    communicationFlow: [
+      { from: "end-user", to: "agentic-workflow-system", label: "fund and request", payload: "Topic, evidence standard, audience, payment asset, and budget envelope.", paymentUsdc: 5.12, status: "funded" },
+      { from: "agentic-workflow-system", to: "knowledge-retrieval-agent", label: "buy retrieval", payload: "Search questions, source criteria, and citation requirements.", paymentUsdc: 1, status: "paid" },
+      { from: "agentic-workflow-system", to: "scientific-research-agent", label: "buy synthesis", payload: "Source map, claim hierarchy, gaps, and caveats.", paymentUsdc: 1, status: "paid" },
+      { from: "agentic-workflow-system", to: "content-creation-agent", label: "buy article", payload: "Evidence synthesis, angle, outline, and caveats.", paymentUsdc: 1, status: "paid" },
+      { from: "agentic-workflow-system", to: "verification-validation-agent", label: "buy verification", payload: "Final article and cited evidence map.", paymentUsdc: 0.5, status: "attested" },
+      { from: "verification-validation-agent", to: "end-user", label: "return article", payload: "Final article plus citation caveats and reconciliation.", paymentUsdc: 0, status: "returned" },
+    ],
     agents: [
       { profileId: "end-user", role: "end-user", description: "Requests a research-backed article." },
       { profileId: "agentic-workflow-system", role: "orchestrator", description: "Coordinates the research graph and budget envelope." },
@@ -144,6 +211,22 @@ export const economicDemoScenarios: EconomicDemoScenario[] = [
     finalOutputType: "image-brief",
     finalOutputSummary:
       "A visual brief/storyboard until an image-generation adapter is explicitly approved and allowlisted.",
+    quote: { currency: "USDC", downstreamFeesUsdc: 0.5, attestorFeesUsdc: 0.25, orchestratorMarkupUsdc: 0.5, jupiterSwapAllowanceUsdc: 0.05, totalUsdc: 1.3, solEstimate: 0.008, slippageBps: 75 },
+    budgetLedger: [
+      { label: "Upfront picture activity fee", from: "end-user", to: "tool-using-agent", amountUsdc: 1.3, category: "user-funding" },
+      { label: "Image adapter budget", from: "tool-using-agent", to: "image-generation-adapter", amountUsdc: 0, category: "downstream" },
+      { label: "Vision validation budget", from: "tool-using-agent", to: "vision-language-agent", amountUsdc: 0.5, category: "downstream" },
+      { label: "Attestation budget", from: "tool-using-agent", to: "verification-validation-agent", amountUsdc: 0.25, category: "attestation" },
+      { label: "Orchestrator retained markup", from: "tool-using-agent", to: "tool-using-agent", amountUsdc: 0.5, category: "markup" },
+      { label: "SOL route swap/slippage allowance", from: "Jupiter", to: "tool-using-agent", amountUsdc: 0.05, category: "swap" },
+    ],
+    communicationFlow: [
+      { from: "end-user", to: "tool-using-agent", label: "fund and request", payload: "Prompt, style, safety constraints, payment asset, and budget cap.", paymentUsdc: 1.3, status: "funded" },
+      { from: "tool-using-agent", to: "image-generation-adapter", label: "call image adapter", payload: "Adapter remains gated by env/provider approval.", paymentUsdc: 0, status: "blocked" },
+      { from: "tool-using-agent", to: "vision-language-agent", label: "buy validation", payload: "Generated image or storyboard plus prompt criteria.", paymentUsdc: 0.5, status: "paid" },
+      { from: "tool-using-agent", to: "verification-validation-agent", label: "buy release check", payload: "Validation result, image/storyboard receipt, and release/refund criteria.", paymentUsdc: 0.25, status: "attested" },
+      { from: "verification-validation-agent", to: "end-user", label: "return visual", payload: "Image/storyboard, release guidance, and budget reconciliation.", paymentUsdc: 0, status: "returned" },
+    ],
     agents: [
       { profileId: "end-user", role: "end-user", description: "Requests a visual output." },
       { profileId: "tool-using-agent", role: "orchestrator", description: "Would call an allowlisted image adapter after approval." },

@@ -417,4 +417,6 @@ Nissan clarified the correct economic-demo product flow: the user connects a wal
 
 Opened GitHub Issue #245 and added BDD/spec plan: `docs/ECONOMIC-DEMO-UPFRONT-PAYMENT-JUPITER-BDD-PLAN-2026-05-07.md`. Updated Bucket J BDD with scenarios for upfront run funding, USDC route, SOL/Jupiter route, funded consumer-agent orchestration, and Playwright-recordable proof.
 
-RESUME FROM HERE: implement Issue #245 in slices: (1) deterministic quote/budget ledger fixture model, (2) `/economic-demo` wallet-connect/upfront quote + communication/payment graph visuals, (3) `e2e/economic-demo.spec.ts` Playwright recording lane, (4) Surfpool-first then approval-gated devnet/live USDC/SOL/Jupiter proof.
+Implemented first Issue #245 slice in PR branch: deterministic quote/budget ledger fixture model, `/economic-demo` wallet-connect/upfront quote panel, USDC/SOL route toggle with Jupiter proof lane, communication-flow and payment-flow/budget-reconciliation panels, plus `e2e/economic-demo.spec.ts` recordable Playwright proof lane. Validation: `npx playwright test e2e/economic-demo.spec.ts` PASS, `npm run test:bdd:index` PASS, `npm run build` PASS.
+
+RESUME FROM HERE: next slice is Surfpool-first then approval-gated devnet/live USDC/SOL/Jupiter proof plumbing and evidence-pack schema updates for actual upfront payment/swap receipts.
