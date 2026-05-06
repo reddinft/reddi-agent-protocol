@@ -14,7 +14,7 @@
 ## Current Branch / Repo State
 
 - Local branch: `feat/quasar-shared-instruction-builders-20260505` (PR #244, shared Quasar instruction builders + register/demo/onboarding construction + register honesty UI + refined staged BDD plan).
-- Local working tree: contains follow-up Quasar CI parity fix: `.github/workflows/quasar-program-tests.yml` updated from Anza `v2.2.0` to `v3.1.13` to match local `cargo-build-sbf 4.0.0`/Rust 1.89 stack after repeated Cargo 1.79 edition-2024 failures. Experiment lockfiles are also pinned to `proc-macro-crate 3.3.0`. Next step is commit/push and observe GitHub checks.
+- Local working tree: contains follow-up Quasar CI parity fix: `.github/workflows/quasar-program-tests.yml` updated from Anza `v2.2.0` to `v3.1.13` to match local `cargo-build-sbf 4.0.0`/Rust 1.89 stack after repeated Cargo 1.79 edition-2024 failures. Experiment lockfiles are also pinned to `proc-macro-crate 3.3.0`. PR #244 checks are now green and mergeStateStatus is CLEAN. Next step: Phase 3 retrospective/branch-protection decision before renaming or de-scoping branch-protection-sensitive legacy Anchor check names.
 - Latest observed `origin/main`: `1f1de7d2 chore: add Quasar runtime compatibility boundary (#242)`; check `git fetch && git log origin/main -1` before merging.
 - Current PR: #244 `feat: add shared Quasar instruction builders` — open, but no longer final-ready after Nissan critical-success correction. Latest branch state adds refined Phase 6.2–12 plan, BDD retrospective-gate scenario, Phase 6.2 `/economic-demo` Quasar status card, Phase 7 target-aware Quasar AgentAccount read/decode compatibility, Phase 8 Quasar reputation/onboarding tx wrapper routing, Phase 9 demo-agent/PER scoped-proof guard, Phase 10 Quasar CI/readiness guard, Phase 11 scoped judge packet refresh, and Phase 12 final validation boundary. Local validation passed (`npm run build`, focused Quasar Jest, `npm run check:quasar:submission` now submissionReady=true, BDD index, `git diff --check`). Latest PR #244 head `f158acb5`; GitHub/Vercel checks are all green as of 2026-05-06 AEST.
 - PR #204: closed as superseded after Nissan accepted recommendation.
@@ -302,3 +302,10 @@ Do not proceed as a waterfall into research/picture live workflows until the dis
 - Phase 6 controlled live research is blocked pending explicit approval for hosted/devnet live downstream specialist calls and spend.
 - Phase 7 picture/storyboard work must remain dry-run/local-only first: no OpenAI/Fal image generation, paid provider spend, hosted downstream calls, real/devnet signing, wallet mutation, or devnet transfer without specific approval.
 - Existing demo-agent CLI copy still labels some local Surfpool transactions as `devnet`/Explorer links even when RPC is local; keep evidence/status wording explicit that the executed lane used local Surfpool RPC.
+
+
+## Update — 2026-05-06 10:31 AEST
+
+PR #244 checks green after Quasar CI parity fixes. Evidence: `Build & Test (Anchor 1.0.0 / LiteSVM)`, both `Quasar Program Tests (QuasarSVM / LiteSVM)` runs, `bdd-index-guard`, `quasar-readiness`, `source-conformance-matrix`, Vercel Preview Comments, and `Vercel – reddi-agent-protocol` all passed. `gh pr view 244` reports `mergeStateStatus: CLEAN` at head `64088501c1bbb0c15f5ff2d65545a6722d656f0f`.
+
+RESUME FROM HERE: start Phase 3 by writing the CI cutover retrospective and deciding how to handle branch-protection-sensitive legacy Anchor workflow/check names. Do not rename/remove Anchor checks until branch protection is confirmed safe.
