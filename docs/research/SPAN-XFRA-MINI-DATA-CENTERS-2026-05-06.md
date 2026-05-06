@@ -1,7 +1,8 @@
 # SPAN XFRA / Home Mini Data Centers — Pitch Reference
 
 _Date ingested:_ 2026-05-06 AEST  
-_Primary prompt/source:_ CNBC, “Nvidia and PulteGroup are helping this startup put mini data centers on homes,” 2026-05-05, https://www.cnbc.com/2026/05/05/nvidia-pulte-span-mini-data-centers-on-homes.html  
+_Primary prompt/source:_ CNBC, “Nvidia and PulteGroup are helping this startup put mini data centers on homes,” published 2026-05-05T12:30:01+0000, https://www.cnbc.com/2026/05/05/nvidia-pulte-span-mini-data-centers-on-homes.html  
+_User-provided source capture:_ title/URL/published timestamp and CNBC markdown header pasted into Telegram on 2026-05-06.  
 _Supporting source:_ SPAN announcement, “SPAN Announces XFRA, a Distributed Data Center Solution to Close the Speed-to-Power Gap for AI Compute Demand,” 2026-04-13, https://www.span.io/blog/span-announces-xfra-a-distributed-data-center-solution-to-close-the-speed-to-power-gap-for-ai-compute-demand
 
 ## TL;DR
@@ -77,7 +78,7 @@ Use this reference as the market backdrop, then map our demo:
 
 ## Caveats / avoid overclaiming
 
-- CNBC article extraction was limited by page extraction; details above are grounded in search result snippets plus SPAN’s primary announcement.
+- CNBC article extraction was limited by page extraction; Nissan supplied the CNBC title/URL/published timestamp and page header separately. The factual details above are grounded in CNBC search snippets plus SPAN’s primary announcement.
 - Do not imply SPAN uses Reddi, Solana, x402, Quasar, MagicBlock, or our agent protocol.
 - Do not imply residential compute is already broadly deployed; SPAN describes launches/deployments beginning later and pipeline toward 2027.
 - Keep MagicBlock PER/TEE separate: our current Quasar demo path uses public Quasar settlement unless live PER validation is separately approved and completed.
