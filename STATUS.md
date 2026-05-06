@@ -537,3 +537,11 @@ RESUME FROM HERE: commit/push the PR evidence polish, then monitor PR #244 check
 - **Actions:** Patched `scripts/generate-economic-demo-submission-prep.mjs` to always `rmSync(latestLink, { recursive: true, force: true })` before creating the latest symlink. Regenerated the prep artifact; `latest` now points to `20260506T211913Z` and resolves correctly.
 - **Validation:** `node --check scripts/generate-economic-demo-submission-prep.mjs` PASS; `npm run generate:economic-demo:submission-prep` PASS; `test -f artifacts/economic-demo-submission-prep/latest/SUBMISSION-PREP.md` PASS; `git diff --check` PASS; `npm run test:bdd:index` PASS.
 - **Review/retrospective:** The final packet was right to use a latest pointer, but the pointer itself was fragile. Plan adjustment: open a tiny PR for the symlink fix, then re-run the final packet pointer check from main after merge.
+
+## Autonomous Loop 13 — bounty showcase coverage pass
+- **Time:** 2026-05-07 AEST
+- **Loop:** Review all hackathon bounty/ecosystem projects for deployed demo/website showcase coverage.
+- **Finding:** Quasar/x402/OpenRouter/Surfpool/Jupiter-boundary evidence were visible enough; Torque existed but was under-showcased; ElizaOS/SendAI existed as adapter packages but lacked a recording beat; MagicBlock is intentionally honest-boundary only unless a separate live PER/TEE validation is approved.
+- **Actions:** Added homepage “Hackathon ecosystem proof map” cards for Quasar, x402, OpenRouter, Jupiter, Surfpool, Torque, MagicBlock, and ElizaOS/SendAI; added `docs/HACKATHON-BOUNTY-SHOWCASE-AUDIT-2026-05-07.md`; updated final proof map and recording runbook to include Torque and ElizaOS/SendAI as supporting beats without overclaiming MagicBlock/Jupiter.
+- **Validation:** `npm run test:bdd:index` PASS; `npx eslint app/page.tsx` PASS; `git diff --check` PASS; `NEXT_PUBLIC_DEMO_PROGRAM_TARGET=quasar npm run build` PASS with existing workspace-root/NFT trace warnings only.
+- **Review/retrospective:** The deployed website needed a judge-visible sponsor map, not just buried docs/tests. Plan adjustment: keep MagicBlock safe unless Nissan approves live PER/TEE validation; otherwise the new map maximizes showcase coverage without false claims.
