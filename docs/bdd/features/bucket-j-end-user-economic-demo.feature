@@ -35,6 +35,30 @@ Feature: End-user economic workflow demo
     And the page distinguishes swap cost, downstream agent fees, and orchestrator markup
     And if the quote expires, slippage exceeds the cap, or output is insufficient, no downstream agent call is executed
 
+  Scenario: Live Jupiter quote proof is not described as an executed swap
+    Given the economic demo fetches a public Jupiter SOL to USDC quote
+    When the quote proof artifact records input SOL, output USDC, slippage, and route legs
+    Then the artifact states that no swap transaction was requested
+    And it states that no wallet signing, transfer, or mutation occurred
+    And judge materials may claim route availability only
+    And judge materials must not claim an executed Jupiter swap without a swap signature receipt
+
+  Scenario: Devnet USDC receipt verification is separate from payment execution
+    Given the live payment gate has explicit confirmation, network, asset, cap, payer, and recipient inputs
+    And a devnet transaction signature is supplied for verification
+    When the devnet USDC receipt verifier checks the transaction on Solana RPC
+    Then it accepts only a USDC SPL-token transfer to the declared recipient within the approved cap
+    And it rejects missing signatures, mainnet routes, wrong assets, missing recipients, and over-cap transfers
+    And it does not sign, submit, swap, transfer, or mutate a wallet
+
+  Scenario: Upfront evidence pack preserves proof hierarchy boundaries
+    Given local Surfpool evidence, live Jupiter quote proof, and devnet USDC receipt verification artifacts may exist
+    When the upfront payment evidence pack is generated
+    Then it aggregates the latest public-safe proof statuses
+    And it fails closed if local upfront funding, budget reconciliation, or attached Jupiter quote coverage is invalid
+    And it labels quote-only proof separately from executed swap receipts
+    And it labels blocked devnet receipt verification separately from verified devnet USDC receipts
+
   Scenario: Consumer-agent proof shows funded orchestration and downstream purchasing
     Given the orchestrator has received the upfront run budget
     When it hires downstream marketplace agents to fulfill the request

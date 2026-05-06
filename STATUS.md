@@ -429,4 +429,6 @@ Loop 5 added live payment receipt safety gate: `npm run check:economic-demo:live
 
 Loop 6 added devnet USDC receipt verifier: `npm run verify:economic-demo:devnet-usdc-receipt`, latest blocked artifact `artifacts/economic-demo-devnet-usdc-receipt/20260506T154219Z/receipt-verification.json`. This verifier does not sign or submit transactions; it verifies a provided devnet tx signature contains a USDC transfer to the approved recipient within cap. Upfront evidence pack now attaches latest receipt verification status/blockers.
 
-RESUME FROM HERE: next slice is to add the actual devnet USDC sender behind the gate if signer material is explicitly provided/approved, or keep using the verifier with an externally produced signature. SOL/Jupiter executed swap remains separate.
+Loop 7 added judge/operator proof hierarchy docs and BDD boundaries: `docs/ECONOMIC-DEMO-PROOF-HIERARCHY-2026-05-07.md`; BDD scenarios now distinguish live Jupiter quote-only proof, devnet USDC receipt verification, and upfront evidence aggregation.
+
+RESUME FROM HERE: watch PR checks for latest head, then either fix CI issues or continue with an approval-gated devnet USDC sender design. Do not run signing/swap/transfer without explicit approval and signer/cap inputs.
