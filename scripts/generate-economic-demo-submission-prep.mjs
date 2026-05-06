@@ -120,7 +120,8 @@ Not safe to say yet:
 writeFileSync(prepPath, content);
 
 try {
-  if (existsSync(latestLink)) rmSync(latestLink, { recursive: true, force: true });
+  // rmSync(..., force: true) also removes broken symlinks; existsSync() returns false for them.
+  rmSync(latestLink, { recursive: true, force: true });
   symlinkSync(relative(prepParent, outDir), latestLink, "dir");
 } catch {
   // Symlink creation is best-effort; checker can still discover newest timestamped prep dir.
