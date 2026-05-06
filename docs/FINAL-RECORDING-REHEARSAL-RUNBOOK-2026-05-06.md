@@ -13,7 +13,7 @@ Record the Colosseum Frontier submission with Quasar-compiled Solana programs as
   - Reputation `nb9rLVjoHMibsgfRGgKuPqm6M8GVcH9r6bYNfg7Yiy6`
   - Attestation `CRGsWWkptdxsH6N6aWAyahLbuMsT58yM624EopEsv1Ex`
 - Do not claim mainnet-ready; architectural audit blockers remain.
-- Do not claim MagicBlock PER/TEE live proof unless separately validated.
+- MagicBlock PER/TEE has live boundary proof (`docs/MAGICBLOCK-PER-TEE-VALIDATION-2026-05-07.md`), but do not claim successful PER settlement; the TEE finalized the PER-routed attempt with `InvalidAccountForFee`.
 - Do not claim successful public Jupiter devnet execution. Current safe Jupiter framing is: local Surfpool/mock-Jupiter invoke success plus public Jupiter quote/build/sign boundary. A real successful Jupiter swap requires separately approved mainnet-beta execution.
 - Legacy Anchor registrations/artifacts are reference-only.
 
@@ -69,7 +69,7 @@ npm run test:surfpool:quasar-critical
    - Surfpool localnet confidence passed.
    - x402/OpenRouter/Jupiter evidence is visible with exact boundaries.
    - Jupiter: Surfpool/mock-Jupiter is the successful no-real-funds visual; public Jupiter devnet is quote/build/sign boundary only.
-   - MagicBlock PER/TEE and successful live Jupiter swap are not final claims unless separately run with explicit approval.
+   - MagicBlock PER/TEE: authenticated devnet TEE + PER-routed submission + public invisibility are evidenced; successful PER settlement is not claimed. Successful live Jupiter swap is not a final claim unless separately run with explicit approval.
    - Not mainnet-ready until architectural audit blockers are resolved and re-reviewed.
 
 ## Latest green evidence

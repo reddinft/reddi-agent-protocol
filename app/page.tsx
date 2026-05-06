@@ -49,8 +49,8 @@ const ECOSYSTEM_PROOFS = [
   },
   {
     name: "MagicBlock",
-    status: "Honest boundary",
-    desc: "PER/TEE is presented as approval-gated supporting evidence; the final Quasar path does not claim live PER execution.",
+    status: "Live boundary proof",
+    desc: "Authenticated devnet TEE lane submitted a PER-routed settlement with fallback disabled; TEE rejected it, so successful PER settlement is not claimed.",
     href: "/economic-demo",
   },
   {

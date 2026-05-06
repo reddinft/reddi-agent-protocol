@@ -2,7 +2,7 @@
 
 ## Verdict
 
-Most bounty/ecosystem surfaces are incorporated into the website/demo enough to showcase, but they are not all equally strong. Quasar, x402, OpenRouter, Surfpool, and Jupiter-boundary evidence are strong. Torque exists but needed a clearer website/showcase beat. MagicBlock is intentionally honest-boundary only unless live PER/TEE validation is separately approved. ElizaOS/SendAI exist as framework adapter evidence, not core on-chain proof.
+Most bounty/ecosystem surfaces are incorporated into the website/demo enough to showcase, but they are not all equally strong. Quasar, x402, OpenRouter, Surfpool, and Jupiter-boundary evidence are strong. Torque exists and is now clearer on the homepage. MagicBlock has moved from approval-gated boundary to live boundary proof: authenticated TEE access and PER-routed submission were validated, but successful PER settlement is not claimed because the TEE finalized the attempt with `InvalidAccountForFee`. ElizaOS/SendAI exist as framework adapter evidence, not core on-chain proof.
 
 ## Showcase matrix
 
@@ -14,7 +14,7 @@ Most bounty/ecosystem surfaces are incorporated into the website/demo enough to 
 | Jupiter | `/economic-demo`, run-report/submission-prep artifacts, Surfpool/mock-Jupiter invoke lane | Medium/strong if framed honestly: quote/build/sign + local no-real-funds invoke proof | “Public Jupiter devnet execution is not claimed; successful live Jupiter would require approved mainnet.” |
 | Surfpool | `/economic-demo`, local rehearsal scripts/artifacts | Strong supporting proof | “Local validator confidence gate before devnet; caught bugs before live proof.” |
 | Torque | `/leaderboard`, `/api/torque/event`, `lib/torque/*`, Bucket G tests | Medium: implemented, now made more visible via homepage ecosystem map | “Retention/leaderboard and custom event plumbing for completed agent jobs.” |
-| MagicBlock | `packages/per-client`, docs/proof boundaries, demo-agent fail-closed behavior | Weak for prize unless live PER/TEE validation is approved/run | “PER/TEE is not claimed in final Quasar path; approval-gated supporting lane.” |
+| MagicBlock | `packages/per-client`, `scripts/run-per-happy-smoke.sh`, `docs/MAGICBLOCK-PER-TEE-VALIDATION-2026-05-07.md`, artifacts `artifacts/per-happy/20260507-090621/` | Medium boundary proof: authenticated TEE token + PER-routed submission + public-RPC invisibility; no successful settlement claim (`InvalidAccountForFee`) | “We live-tested the PER/TEE lane; it reached TEE and stayed invisible publicly, but needs full MagicBlock permission/delegation hooks before claiming successful settlement.” |
 | ElizaOS | `packages/eliza-plugin-x402`, planner tool manifest | Medium/weak: adapter evidence, not central demo path | “Framework adapter for x402-protected agent commerce.” |
 | SendAI | `packages/sendai-x402` | Medium/weak: adapter evidence, not central demo path | “Framework adapter for distribution beyond the web app.” |
 
@@ -24,4 +24,4 @@ Added a homepage “Hackathon ecosystem proof map” so the deployed website can
 
 ## Remaining decision
 
-If MagicBlock has a must-win bounty, decide whether to approve a separate live PER/TEE validation lane. Without that, keep MagicBlock as an honest supporting/boundary surface, not a final claim.
+MagicBlock live validation has now been run. The remaining decision is whether to spend implementation time on docs-conformant MagicBlock permission/delegation hooks to chase a successful PER settlement, or keep the current honest live-boundary proof for submission.

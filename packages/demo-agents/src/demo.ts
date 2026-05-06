@@ -482,11 +482,16 @@ async function runDemo() {
       settlementRouteUsed = "magicblock_per";
       console.log(`   🔒 PER settlement submitted: ${settlementSig}`);
       console.log(`   ℹ️  Confirmation polling via TEE endpoint (async, omitted from timing)\n`);
-    } catch (e: any) {
-      if (!allowFallback || requestedSettlementMode === "magicblock_per") {
-        throw new Error(`PER settlement failed and fallback disabled: ${e.message}`);
+      if (String(process.env.DEMO_STOP_AFTER_SETTLEMENT ?? "false").toLowerCase() === "true") {
+        console.log("   ✅ DEMO_STOP_AFTER_SETTLEMENT=true — stopping after bounded PER settlement lane.\n");
+        return;
       }
-      console.log(`   ⚠️  PER unavailable (${e.message?.slice(0, 60)}...) — using L1 fallback`);
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : String(e);
+      if (!allowFallback || requestedSettlementMode === "magicblock_per") {
+        throw new Error(`PER settlement failed and fallback disabled: ${message}`);
+      }
+      console.log(`   ⚠️  PER unavailable (${message.slice(0, 60)}...) — using L1 fallback`);
       settlementSig = await releaseViaL1();
       settlementRouteUsed = "public";
       console.log(`   ✅ L1 fallback used — sig: ${explorerTxUrl(settlementSig)}\n`);
