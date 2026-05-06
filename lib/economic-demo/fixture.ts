@@ -73,7 +73,7 @@ export type EconomicRunReportPaymentReceipt = {
   inputAsset?: PaymentAsset;
   outputAsset?: "USDC";
   inputAmount?: number;
-  proofStatus: "fixture" | "local-surfpool" | "devnet-verified" | "pending-live-receipt";
+  proofStatus: "fixture" | "local-surfpool" | "devnet-signed-boundary" | "pending-live-receipt";
   transactionAddress: string;
 };
 
@@ -331,7 +331,7 @@ export function buildEconomicRunReport(scenario: EconomicDemoScenario): Economic
     inputAsset: "SOL",
     outputAsset: "USDC",
     inputAmount: scenario.quote.solEstimate,
-    proofStatus: devnetSignedAction ? "devnet-verified" : "local-surfpool",
+    proofStatus: devnetSignedAction ? "devnet-signed-boundary" : "local-surfpool",
     transactionAddress: devnetSignedAction
       ? `https://explorer.solana.com/tx/${devnetSignedAction.swapBudgetTx}?cluster=devnet`
       : fixtureTx(`${scenario.id}:jupiter-swap:sol-to-usdc-budget`),

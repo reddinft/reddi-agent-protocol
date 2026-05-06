@@ -14,7 +14,7 @@ Record the Colosseum Frontier submission with Quasar-compiled Solana programs as
   - Attestation `CRGsWWkptdxsH6N6aWAyahLbuMsT58yM624EopEsv1Ex`
 - Do not claim mainnet-ready; architectural audit blockers remain.
 - Do not claim MagicBlock PER/TEE live proof unless separately validated.
-- Do not claim live Jupiter swap unless `JUPITER_API_KEY` is set and the live swap lane is intentionally run.
+- Do not claim successful public Jupiter devnet execution. Current safe Jupiter framing is: local Surfpool/mock-Jupiter invoke success plus public Jupiter quote/build/sign boundary. A real successful Jupiter swap requires separately approved mainnet-beta execution.
 - Legacy Anchor registrations/artifacts are reference-only.
 
 ## Recording environment
@@ -66,13 +66,14 @@ npm run test:surfpool:quasar-critical
    - Quasar-native devnet proof is live.
    - Surfpool localnet confidence passed.
    - x402/OpenRouter/Jupiter evidence is visible with exact boundaries.
-   - MagicBlock PER/TEE and live Jupiter swap are not final claims unless separately run.
+   - Jupiter: Surfpool/mock-Jupiter is the successful no-real-funds visual; public Jupiter devnet is quote/build/sign boundary only.
+   - MagicBlock PER/TEE and successful live Jupiter swap are not final claims unless separately run with explicit approval.
    - Not mainnet-ready until architectural audit blockers are resolved and re-reviewed.
 
 ## Latest green evidence
 
-- PR #244 head `b5ec02f68c6118e824e5dd700b560aa92487ca70`, merge state CLEAN.
-- PR checks all pass: Quasar Program Tests, bdd-index-guard, quasar-readiness, source-conformance-matrix, Vercel Preview Comments, Vercel deployment.
+- PR #244 merged to main as `bbfa0a92`; post-merge main Quasar Program Tests run `25447650320` passed.
+- PR #246 head `848e751b` is CLEAN at latest observation; checks pass: quasar-readiness, Vercel Preview Comments, Vercel deployment.
 - Devnet Reputation upgrade tx: `24bf49dnB9YCiqS6uT21jnQHRy9RveTquffBSNjhUpeHPE663kf7PEMCMch5k4ZR9sADxYUWvVijufEN993PVzqg`.
 - Latest full devnet Quasar A→B→C PASS in 6516ms:
   - Escrow lock tx `22XLto6VVbfYGZfRPvR65KNVEyztw4HAm1c7gPbWNXWpcNbqBdtNHFpAEeGL4L8T6UodT2fxan4yxYdPNb8hDzhx`
