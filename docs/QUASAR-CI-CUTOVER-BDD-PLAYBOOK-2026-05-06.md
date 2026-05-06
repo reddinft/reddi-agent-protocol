@@ -243,3 +243,19 @@ PATH="$HOME/.cargo/bin:$PATH" bash scripts/run-quasar-program-tests.sh
 ```
 
 **Refinement for Phase 3:** do not remove/rename the legacy Anchor workflow until this new workflow is observed on PR #244. If GitHub branch protection is pinned to `Build & Test (Anchor 1.0.0 / LiteSVM)`, coordinate required-check updates before changing that name.
+
+
+### Phase 2 CI-retro addendum — GitHub parity fix
+
+**Observation:** the first GitHub run for `Quasar Program Tests (QuasarSVM / LiteSVM)` failed while local validation passed. Root cause was vendoring only the Quasar crates needed by our programs while leaving upstream workspace members (`idl`, `profile`, examples, test suites, CLI) in `third_party/quasar/Cargo.toml`. CI parsed the vendored workspace directly and failed on missing members.
+
+**Fix:** normalize `third_party/quasar/Cargo.toml` to the vendored crate set only: `lang`, `derive`, `pod`, and `spl`.
+
+**Re-validation:**
+
+```bash
+PATH="$HOME/.cargo/bin:$PATH" cargo metadata --manifest-path third_party/quasar/lang/Cargo.toml --no-deps --format-version 1
+PATH="$HOME/.cargo/bin:$PATH" bash scripts/run-quasar-program-tests.sh
+```
+
+Both pass locally after the fix. Phase 3 remains gated on the rerun/new PR check passing in GitHub.
