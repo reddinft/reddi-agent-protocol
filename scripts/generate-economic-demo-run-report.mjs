@@ -78,8 +78,8 @@ const report = {
   },
   story: [
     "User starts with SOL when they do not have the required downstream USDC budget.",
-    "Jupiter converts SOL into the USDC run budget before downstream payments are released.",
-    "User funds the orchestrator upfront with the converted budget.",
+    "A live Jupiter quote proves SOL→USDC route availability for the required downstream USDC budget.",
+    "Surfpool/local or explicitly approved live execution funds the orchestrator upfront before downstream payments are released.",
     "Orchestrator pays specialist agents from the funded run budget.",
     "Attestors validate output quality, disclosure-ledger completeness, and payment receipt chain before release.",
     "Reputation updates are represented as commit-reveal events and are not final unless reveal receipt status is verified.",
@@ -106,10 +106,10 @@ const report = {
           sendError: walletBackedJupiterSwap.sendError?.message ?? null,
         }
       : null,
-    proofStatus: devnetSignedAction ? "live_quote_plus_signed_devnet_swap_lane" : "live_quote_plus_local_surfpool_conversion",
+    proofStatus: devnetSignedAction ? "live_quote_plus_signed_devnet_budget_lane" : "live_quote_plus_local_surfpool_budget_lane",
     caveat: devnetSignedAction
-      ? "Signed devnet transaction proves SOL-funded budget conversion and downstream payment flow; live Jupiter route quote proves route availability. Wallet-backed Jupiter transaction was attempted separately and devnet rejected Jupiter mainnet account-table material. Not a mainnet swap claim."
-      : "This proves route availability plus local budget conversion semantics; live wallet-backed swap receipt remains approval-gated.",
+      ? "Signed devnet transaction proves the SOL-funded demo budget lane and downstream payment flow; live Jupiter route quote proves route availability only. Wallet-backed Jupiter transaction was attempted separately and devnet rejected Jupiter mainnet account-table material. Not an executed Jupiter devnet or mainnet swap claim."
+      : "This proves route availability plus local budget-lane semantics; live wallet-backed swap receipt remains approval-gated.",
   },
   paymentReceipts: surfpool.executedTransfers.map((transfer) => ({
     fromProfileId: transfer.fromProfileId,
@@ -138,8 +138,8 @@ const report = {
       }
     : null,
   guardrails: [
-    "Jupiter swap proof includes live quote, signed devnet budget-conversion receipts, and a wallet-backed Jupiter attempt artifact when available.",
-    "Wallet-backed Jupiter public swap transactions may reference mainnet address-table/liquidity accounts and fail on devnet; do not claim executed devnet Jupiter swap unless signature is present.",
+    "Jupiter proof includes live quote, signed devnet budget-lane receipts, and a wallet-backed Jupiter attempt artifact when available.",
+    "Wallet-backed Jupiter public swap transactions may reference mainnet address-table/liquidity accounts and fail on devnet; do not claim executed devnet Jupiter swap unless a successful confirmed devnet Jupiter execution signature is present.",
     "Surfpool signatures are local/offline transaction addresses, not devnet or mainnet settlement receipts.",
     "Devnet USDC receipt status is attached separately and must be verified before claiming real devnet payment.",
     "Reputation commit/reveal entries are fixture-only until a live Quasar reputation commit and reveal receipt are supplied.",
@@ -163,11 +163,11 @@ writeFileSync(
     "",
     ...report.story.map((item) => `- ${item}`),
     "",
-    "## Jupiter swap proof",
+    "## Jupiter quote and budget-lane proof",
     "",
     `- ${report.jupiterSwapProof.inputSol} SOL → ${report.jupiterSwapProof.outputUsdc} USDC · route legs ${report.jupiterSwapProof.routePlanLength ?? "local"} · status ${report.jupiterSwapProof.proofStatus}`,
     `- local settlement/signature: ${report.jupiterSwapProof.localSettlementSignature}`,
-    report.jupiterSwapProof.devnetSignedSwapBudgetTx ? `- signed devnet swap-lane tx: ${report.jupiterSwapProof.devnetSignedSwapBudgetTx.explorer}` : "- signed devnet swap-lane tx: not attached",
+    report.jupiterSwapProof.devnetSignedSwapBudgetTx ? `- signed devnet budget-lane tx, not Jupiter swap receipt: ${report.jupiterSwapProof.devnetSignedSwapBudgetTx.explorer}` : "- signed devnet budget-lane tx: not attached",
     report.jupiterSwapProof.walletBackedAttempt ? `- wallet-backed Jupiter attempt: ${report.jupiterSwapProof.walletBackedAttempt.status}; signed=${report.jupiterSwapProof.walletBackedAttempt.walletSignedTransaction}; signature=${report.jupiterSwapProof.walletBackedAttempt.signature ?? "none"}` : "- wallet-backed Jupiter attempt: not attached",
     report.jupiterSwapProof.walletBackedAttempt?.sendError ? `- wallet-backed devnet rejection: ${report.jupiterSwapProof.walletBackedAttempt.sendError}` : null,
     `- caveat: ${report.jupiterSwapProof.caveat}`,

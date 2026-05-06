@@ -73,7 +73,7 @@ npm run test:surfpool:quasar-critical
 ## Latest green evidence
 
 - PR #244 merged to main as `bbfa0a92`; post-merge main Quasar Program Tests run `25447650320` passed.
-- PR #246 head `848e751b` is CLEAN at latest observation; checks pass: quasar-readiness, Vercel Preview Comments, Vercel deployment.
+- PR #246 merged to main; follow-up boundary fixes continue from main after Oli’s Playwright drift finding.
 - Devnet Reputation upgrade tx: `24bf49dnB9YCiqS6uT21jnQHRy9RveTquffBSNjhUpeHPE663kf7PEMCMch5k4ZR9sADxYUWvVijufEN993PVzqg`.
 - Latest full devnet Quasar A→B→C PASS in 6516ms:
   - Escrow lock tx `22XLto6VVbfYGZfRPvR65KNVEyztw4HAm1c7gPbWNXWpcNbqBdtNHFpAEeGL4L8T6UodT2fxan4yxYdPNb8hDzhx`
