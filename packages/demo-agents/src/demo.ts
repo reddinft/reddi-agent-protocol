@@ -109,10 +109,15 @@ async function sendTx(ix: TransactionInstruction, signers: Keypair[]): Promise<s
   return sig;
 }
 
-function sha256(score: number, salt: Uint8Array): Uint8Array {
+function ratingCommitment(score: number, salt: Uint8Array, jobId: Uint8Array): Uint8Array {
   const h = crypto.createHash("sha256");
   h.update(Buffer.from([score]));
   h.update(salt);
+  if (PROGRAM_TARGET === "quasar") {
+    // Quasar audit hardening binds commitments to job_id and the compile-time program ID.
+    h.update(Buffer.from(jobId));
+    h.update(Buffer.from(REPUTATION_PROGRAM.toBytes()));
+  }
   return new Uint8Array(h.digest());
 }
 
@@ -557,8 +562,8 @@ async function runDemo() {
   const specialistScore = 9;
   const consumerSalt = new Uint8Array(crypto.randomBytes(32));
   const specialistSalt = new Uint8Array(crypto.randomBytes(32));
-  const cCommitment = sha256(consumerScore, consumerSalt);
-  const sCommitment = sha256(specialistScore, specialistSalt);
+  const cCommitment = ratingCommitment(consumerScore, consumerSalt, jobId);
+  const sCommitment = ratingCommitment(specialistScore, specialistSalt, jobId);
 
   // Consumer commits (role=0)
   const commitConsumerIx = new TransactionInstruction({

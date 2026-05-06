@@ -372,3 +372,19 @@ Removed `.github/workflows/anchor-test.yml` after Nissan confirmed final demos u
 ## Quasar audit follow-up observations — 2026-05-06
 
 Follow-up audit response ingested. Fixed N1 by changing escrow `CANCEL_WINDOW_SLOTS` to `1_512_000`, matching the reputation expiry cadence (~7 days at 2.5 slots/sec). Added `docs/QUASAR-PROGRAMS-SECURITY-AUDIT-RESPONSE-2026-05-06.md` and updated the remediation log with N2/N3/N4 clarifications: program-ID-bound commitments require migration/drain operational handling, participant-only expiry is defense-in-depth, and self-confirmation rejection is partial defense-in-depth until real job/escrow binding lands.
+
+## Final hackathon demo loop — 2026-05-06
+
+Created controlling loop plan `docs/QUASAR-FINAL-HACKATHON-DEMO-LOOP-2026-05-06.md`. Goal is explicit: Quasar-compiled Solana programs for every demo-critical on-chain path; bounty/product evidence visible for MagicBlock, x402, Jupiter, OpenRouter specialist agents, Surfpool, and supporting products; Surfpool Quasar localnet before devnet/testnet; retrospectives after every phase. Nissan approved devnet transactions as needed for this goal. Mainnet, paid provider calls, production env mutation, real image generation, and live PER/TEE claims remain separately approval-gated unless explicitly authorized.
+
+## Phase 1 retrospective — Surfpool Quasar critical smoke
+
+`npm run test:surfpool:quasar-critical` initially caught a real Quasar bug: reputation reveal failed because demo-agent/onboarding commitment hashing had not been updated after audit hardening. Patched Quasar commitment calculation to `sha256(score || salt || job_id || reputation_program_id)` in `packages/demo-agents/src/demo.ts` and `lib/onboarding/reputation-signal.ts`. Focused Quasar TS tests passed, then Surfpool Quasar critical smoke passed end-to-end twice. Continue to devnet rehearsal with patched commitment path.
+
+## Phase 2 retrospective — devnet Quasar rehearsal
+
+Read-only devnet PDA check confirmed Quasar Registry A/B/C present and legacy Anchor A/B/C still present as reference. First devnet rehearsal failed at reputation reveal because devnet Quasar Reputation was still pre-audit while local Surfpool had audit-hardened code. Upgraded devnet Reputation program `nb9rLVjoHMibsgfRGgKuPqm6M8GVcH9r6bYNfg7Yiy6` with upgrade tx `24bf49dnB9YCiqS6uT21jnQHRy9RveTquffBSNjhUpeHPE663kf7PEMCMch5k4ZR9sADxYUWvVijufEN993PVzqg`. Full devnet Quasar A→B→C demo then passed in 6516ms: escrow lock `22XLto6VVbfYGZfRPvR65KNVEyztw4HAm1c7gPbWNXWpcNbqBdtNHFpAEeGL4L8T6UodT2fxan4yxYdPNb8hDzhx`; settlement `4bhPXA3SCDM1CQKBHMVxKFiGtfcmqnNEnTFDpEW2i85DWiE9dFr3co7h5EUL2ysqMs3ctcFmHfu8fpjefzpzz1JJ`; rating PDA `cwBzEz3p26mKU7FGWQWDkkmKY8j8NG4iPgruSkVJqKz`; attestation PDA `G2hmyNWC3N8zdqKRNgzgr7z6sN8wxJtc9YjpYmoWgzT1`. Continue to web-app Quasar proof/readiness.
+
+## Phase 3 retrospective — web/app Quasar build gate
+
+Build-level web readiness passed after devnet Quasar upgrade/rehearsal: `npm run check:quasar:critical-success` PASS, `npm run test:bdd:index` PASS, `NEXT_PUBLIC_DEMO_PROGRAM_TARGET=quasar npm run build` PASS. Existing Turbopack warnings remain about workspace root/multiple lockfiles and broad evidence-pack tracing; not new blockers. Next: proof-map/judge packet and final human-triggered frontend rehearsal.

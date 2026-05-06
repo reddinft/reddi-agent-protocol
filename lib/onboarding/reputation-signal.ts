@@ -4,10 +4,11 @@ import "server-only";
  * On-chain reputation signal wiring for planner feedback.
  *
  * Commit-reveal lifecycle:
- * 1. commit_rating   — blind sha256(score_u8 || salt_bytes32) commitment
+ * 1. commit_rating   — blind commitment
  * 2. reveal_rating   — reveal score + salt to finalise and apply reputation update
  *
- * Commitment hash: sha256([score_byte] + salt_bytes32)  (matches Rust: Sha256::update([score]) + update(salt))
+ * Legacy Anchor commitment hash: sha256(score_u8 || salt_bytes32)
+ * Quasar commitment hash: sha256(score_u8 || salt_bytes32 || job_id_bytes16 || reputation_program_id)
  * Rating PDA seeds: [b"rating", job_id_bytes16]
  */
 
@@ -189,8 +190,13 @@ export async function commitReputationRating(
   const jobId = jobIdFromRunId(runId);
   // salt: 32 random bytes
   const salt = randomBytes(32);
-  // commitment: sha256([score_byte] + salt_bytes)  — matches Rust: sha256(score || salt)
-  const commitHash = createHash("sha256").update(Buffer.from([score])).update(salt).digest();
+  // Quasar audit hardening binds commitments to job_id and the target program ID.
+  const hasher = createHash("sha256").update(Buffer.from([score])).update(salt);
+  if (PROGRAM_TARGET === "quasar") {
+    hasher.update(Buffer.from(jobId));
+    hasher.update(Buffer.from(REPUTATION_PROGRAM_ID.toBytes()));
+  }
+  const commitHash = hasher.digest();
   const commitHashHex = commitHash.toString("hex");
   const saltHex = salt.toString("hex");
 
