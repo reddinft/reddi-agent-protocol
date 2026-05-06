@@ -64,11 +64,11 @@ Nissan has selected Quasar-compiled Solana programs as the final hackathon demo 
 
 ## Public proof chain
 
-The current rows below prove the Quasar scoped-proof cutover loop. Legacy Anchor rows are retained as historical implementation evidence only; Anchor CI alone is insufficient for the hackathon target.
+The current rows below prove the final Quasar devnet cutover loop. Legacy Anchor rows are retained as historical implementation evidence only; Anchor CI alone is insufficient for the hackathon target.
 
 | PR | Purpose | Merge commit | CI/evidence |
 | --- | --- | --- | --- |
-| #244 | Quasar scoped runtime proof: target wiring, builders, read/decode, onboarding/reputation, fail-closed legacy full-flow guard, Quasar readiness CI | pending merge | Local gates passed: `npm run build`; focused Quasar Jest; `npm run check:quasar:submission`; BDD index; `git diff --check` |
+| #244 | Final Quasar devnet proof: target wiring, builders, read/decode, onboarding/reputation, Quasar-native A→B→C demo-agent path, Surfpool Quasar gate, devnet Reputation upgrade, proof map, and Quasar readiness CI | pending merge | Local gates passed: `npm run test:surfpool:quasar-critical`; full devnet Quasar A→B→C PASS; `NEXT_PUBLIC_DEMO_PROGRAM_TARGET=quasar npm run build`; `npm run check:quasar:submission`; BDD index; `git diff --check` |
 | #225 | Compact `/economic-demo` local evidence UI links | `f36d4bb55b7f10bbc5177b3fda189c67f17d7cd3` | PR checks passed; post-merge Anchor run `25359075289` passed |
 | #229 | Phase 0 BDD iterative plan + BDD lock + retrospective | `f5499576c11b97b91dcf51d4d148b7d0a7e8302f` | PR checks passed; post-merge Anchor run `25360618730` passed |
 | #230 | Phase 1 local submission-prep checker + retrospective | `ee90eafc47d4c15b3ab6ea800a5552a011d6ed59` | PR checks passed; post-merge Anchor run `25361165874` passed |
@@ -99,4 +99,4 @@ The next stronger proof category requires explicit approval because it changes t
 2. **Real image generation** — requires provider/model choice and budget cap for OpenAI or Fal.
 3. **Production settlement proof** — requires a separate settlement runbook and explicit signing/wallet/devnet or production-network authorization.
 
-Until those are approved, the honest endpoint is this packet: local/demo proof, transparent boundaries, and green CI-backed implementation history.
+Until those are approved, the honest endpoint is this packet: Quasar-native devnet proof, local Surfpool confidence, transparent ecosystem-product boundaries, and green CI-backed implementation history.
