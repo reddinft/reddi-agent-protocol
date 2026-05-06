@@ -412,7 +412,7 @@ export default function EconomicDemoPage() {
                     disabled={!connected}
                     className={connected ? "rounded-lg bg-[#14F195] px-4 py-2 text-sm font-bold text-black shadow-card" : "rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm font-bold text-gray-500"}
                   >
-                    {paymentAsset === "SOL" ? "Swap SOL via Jupiter and run" : `Pay ${formatUsdc(scenario.quote.totalUsdc)} and run`}
+                    {paymentAsset === "SOL" ? "Show Jupiter boundary and run" : `Pay ${formatUsdc(scenario.quote.totalUsdc)} and run`}
                   </button>
                 </div>
                 {!connected && <p className="mt-3 text-xs text-yellow-100">Connect a devnet wallet to start the signed demo action.</p>}
@@ -426,10 +426,10 @@ export default function EconomicDemoPage() {
                   <div data-testid="jupiter-swap-proof" className="mt-4 rounded-lg border border-yellow-400/30 bg-yellow-400/10 p-3">
                     <p className="text-xs uppercase tracking-wide text-yellow-100">Jupiter swap proof lane</p>
                     <p className="mt-2 text-sm leading-6 text-yellow-50/90">
-                      Swap execution story: user starts with SOL, Jupiter converts {scenario.quote.solEstimate.toFixed(3)} SOL → {formatUsdc(scenario.quote.totalUsdc)}, then the orchestrator pays downstream agents from the USDC budget. Slippage cap: {scenario.quote.slippageBps} bps; allowance: {formatUsdc(scenario.quote.jupiterSwapAllowanceUsdc)}.
+                      Intended execution story: user starts with SOL, Jupiter would convert {scenario.quote.solEstimate.toFixed(3)} SOL → {formatUsdc(scenario.quote.totalUsdc)} on mainnet liquidity, then the orchestrator pays downstream agents from the USDC budget. Slippage cap: {scenario.quote.slippageBps} bps; allowance: {formatUsdc(scenario.quote.jupiterSwapAllowanceUsdc)}.
                     </p>
                     <div className="mt-3 rounded border border-white/10 bg-black/20 p-2 text-xs leading-5 text-yellow-50/90">
-                      <p>Composite proof: live Jupiter route quote + signed devnet swap-lane budget receipt.</p>
+                      <p>Composite proof: live Jupiter route quote + wallet-specific transaction build/signature attempt; successful Jupiter execution is not claimed on devnet.</p>
                       <p className="break-all font-mono text-gray-400">swap tx: {runReport.jupiterSwapProof.transactionAddress}</p>
                       <p className="text-yellow-100">Wallet-backed Jupiter attempt: quote + swap transaction + wallet signature succeeded; devnet RPC rejected Jupiter mainnet address-table material.</p>
                     </div>
@@ -439,7 +439,7 @@ export default function EconomicDemoPage() {
                   <div data-testid="live-run-status" className="mt-4 rounded-lg border border-[#14F195]/30 bg-black/20 p-3">
                     <p className="text-xs uppercase tracking-wide text-[#14F195]">Live run timeline started</p>
                     <p className="mt-2 text-sm leading-6 text-gray-200">
-                      Wallet connected → quote accepted → {paymentAsset === "SOL" ? "Jupiter SOL→USDC devnet proof selected" : "USDC direct route selected"} → downstream payments and attestation evidence shown below.
+                      Wallet connected → quote accepted → {paymentAsset === "SOL" ? "Jupiter SOL→USDC boundary lane selected" : "USDC direct route selected"} → downstream payments and attestation evidence shown below.
                     </p>
                   </div>
                 )}
@@ -655,10 +655,10 @@ export default function EconomicDemoPage() {
                   <div className="rounded-lg border border-yellow-400/25 bg-yellow-400/10 p-3 lg:col-span-2">
                     <p className="text-xs uppercase tracking-wide text-yellow-100">Jupiter swap before downstream payments</p>
                     <p className="mt-2 text-sm leading-6 text-yellow-50/90">
-                      {runReport.jupiterSwapProof.inputAmount?.toFixed(3)} {runReport.jupiterSwapProof.inputAsset} → {formatUsdc(runReport.jupiterSwapProof.amountUsdc)} {runReport.jupiterSwapProof.outputAsset}; downstream agents are paid only after this converted budget exists.
+                      {runReport.jupiterSwapProof.inputAmount?.toFixed(3)} {runReport.jupiterSwapProof.inputAsset} → {formatUsdc(runReport.jupiterSwapProof.amountUsdc)} {runReport.jupiterSwapProof.outputAsset}; this is the intended cross-token budget path, while public Jupiter devnet execution remains an explicit boundary.
                     </p>
                     <p className="mt-2 break-all font-mono text-xs text-gray-400">swap receipt: {runReport.jupiterSwapProof.transactionAddress}</p>
-                    <p className="mt-1 text-xs text-yellow-100">status: {runReport.jupiterSwapProof.proofStatus} · wallet-backed Jupiter devnet attempt captured separately</p>
+                    <p className="mt-1 text-xs text-yellow-100">status: {runReport.jupiterSwapProof.proofStatus} · wallet-backed Jupiter quote/build/sign attempt captured separately; no successful devnet Jupiter swap claimed</p>
                   </div>
                   {runReport.specialistCalls.map((call) => (
                     <div key={`${call.step}-${call.specialistProfileId}`} className="rounded-lg border border-white/10 bg-black/20 p-3">

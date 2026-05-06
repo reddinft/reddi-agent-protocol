@@ -2,7 +2,7 @@
 
 ## Status
 
-Final-demo target: **Quasar-compiled Solana programs** for all demo-critical on-chain paths.
+Final-demo target: **Quasar-compiled Solana programs** for all demo-critical on-chain paths. PR #244 is merged to main as `bbfa0a92`, so the Quasar shared-builder/runtime path is now the mainline baseline.
 
 Legacy Anchor artifacts and devnet registrations may remain as historical/reference evidence only. They are not the active hackathon proof path.
 
@@ -15,7 +15,7 @@ Legacy Anchor artifacts and devnet registrations may remain as historical/refere
 | Devnet A→B→C | Live Quasar demo path proves agent-to-agent payment + reputation + attestation | `DEMO_PROGRAM_TARGET=quasar HACKATHON_DEMO_TARGET=quasar DEMO_SETTLEMENT_MODE=public npm run demo --prefix packages/demo-agents` PASS in 6516ms | Public Quasar escrow settlement; MagicBlock PER/TEE not claimed |
 | x402 | Agent payment boundary/protocol story | `/economic-demo` and x402/OpenRouter evidence show 402 challenge, controlled receipts, disclosure ledger expectations, and payment-gated agent calls | Controlled/demo receipts unless live verifier is explicitly enabled |
 | OpenRouter / 30 specialists | Marketplace of specialist agents for human-triggered workflows | `/economic-demo` uses deployed 30-agent profile metadata and specific use-case triggers | No hidden downstream paid calls on page load |
-| Jupiter | Cross-token settlement lane | Jupiter Swap V2 integration is wired and verified in demo output; prior Surfpool/Jupiter invoke evidence exists | Live swap requires `JUPITER_API_KEY`; do not claim live swap unless run |
+| Jupiter | Cross-token settlement/boundary lane | Jupiter quote + wallet-specific transaction + devnet signature attempt are evidenced; research note `docs/JUPITER-DEVNET-SWAP-RESEARCH-2026-05-07.md` shows public Jupiter APIs route against mainnet liquidity/account material | Do not claim successful Jupiter devnet execution. Options: honest signed-but-devnet-rejected boundary, local/Surfpool simulation, or explicit approved tiny mainnet-beta swap |
 | MagicBlock | Ecosystem product boundary | Demo explicitly fail-closes/not-claims PER/TEE for final Quasar path unless separately validated | No PER/TEE claim in final Quasar demo today |
 | Web app | Human-triggered demo surface | `NEXT_PUBLIC_DEMO_PROGRAM_TARGET=quasar npm run build` PASS; `/economic-demo` separates Quasar proof from supporting economic evidence | Inspect before recording for visual Anchor ambiguity |
 
@@ -33,8 +33,8 @@ Legacy Anchor artifacts and devnet registrations may remain as historical/refere
 2. Show Surfpool local gate: localnet caught a real bug before devnet, then passed.
 3. Trigger the frontend economic/demo flow by human action; narrate that it uses 30 specialist profiles and x402-style payment boundaries.
 4. Show devnet terminal proof: Quasar A→B→C completes with escrow, settlement, reputation, and attestation.
-5. Show ecosystem map: x402/OpenRouter/Jupiter/Surfpool/MagicBlock boundaries.
-6. Close honestly: final demo is Quasar-native devnet proof; not mainnet-ready; MagicBlock PER/TEE and live Jupiter swap are not claimed unless separately run.
+5. Show ecosystem map: x402/OpenRouter/Jupiter/Surfpool/MagicBlock boundaries. For Jupiter, say: “we can build and sign a Jupiter-routed transaction, but public Jupiter devnet execution is not supported; successful live Jupiter requires mainnet approval.”
+6. Close honestly: final demo is Quasar-native devnet proof; not mainnet-ready; MagicBlock PER/TEE and successful live Jupiter swap are not claimed unless separately run.
 
 ## Required pre-recording gates
 
@@ -45,3 +45,11 @@ DEMO_PROGRAM_TARGET=quasar HACKATHON_DEMO_TARGET=quasar DEMO_SETTLEMENT_MODE=pub
 npm run check:quasar:submission
 NEXT_PUBLIC_DEMO_PROGRAM_TARGET=quasar npm run build
 ```
+
+## Loop 1 retrospective — after PR #244 merge
+
+- What changed: PR #244 is now merged, so Quasar shared instruction builders and final-demo fail-closed boundaries are on main.
+- What we learned: Jupiter devnet is not a viable success path through public Jupiter APIs; the evidence points to mainnet-routed transactions, missing devnet program/account graph, and no network selector.
+- Plan adjustment: stop spending time trying to force a Jupiter devnet success. Preserve the honest boundary proof and choose either local/Surfpool simulation or explicit tiny mainnet-beta execution if a successful swap visual is absolutely required.
+- Action taken: updated the `/economic-demo` Jupiter card/run timeline so it cannot be misread as a successful devnet Jupiter swap claim. Validation: targeted ESLint, BDD index, and `npm run build` pass.
+- Next loop: observe post-merge CI to completion, then decide whether a separate local/Surfpool simulation lane is worth adding for a successful no-real-funds swap visual.
