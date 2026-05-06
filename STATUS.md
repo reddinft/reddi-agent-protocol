@@ -433,4 +433,6 @@ Loop 7 added judge/operator proof hierarchy docs and BDD boundaries: `docs/ECONO
 
 Loop 8 added a no-mutation devnet USDC sender plan command: `npm run plan:economic-demo:devnet-usdc-sender`, latest blocked artifact `artifacts/economic-demo-devnet-usdc-sender-plan/20260506T154540Z/sender-plan.json`. It defines future executor requirements (`@solana/spl-token`, exact confirmation token, gate artifact, signer ref, token accounts, amount within cap) and expected verify-after-send flow, but does not construct/sign/submit transactions.
 
-RESUME FROM HERE: monitor PR checks for latest head, then fix CI if needed. If continuing feature work, add docs/BDD for sender plan or implement sender only after explicit approval and signer/cap inputs.
+Loop 9 added submission prep generator: `npm run generate:economic-demo:submission-prep`. It creates a latest local prep pack with proof hierarchy, current green evidence commands, local artifact paths, five-beat recording outline, and hard no-go list. Latest generated/checkable pack: `artifacts/economic-demo-submission-prep/20260506T154827Z/SUBMISSION-PREP.md`.
+
+RESUME FROM HERE: monitor PR checks for latest head; if green, provide final PR readiness/update. If continuing feature work, keep it non-mutating unless Nissan explicitly approves signer/spend inputs.

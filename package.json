@@ -49,7 +49,8 @@
     "smoke:economic-demo:jupiter-quote": "node ./scripts/run-economic-demo-jupiter-quote-proof.mjs",
     "check:economic-demo:live-payment-gate": "node ./scripts/check-economic-demo-live-payment-gate.mjs",
     "verify:economic-demo:devnet-usdc-receipt": "node ./scripts/verify-economic-demo-devnet-usdc-receipt.mjs",
-    "plan:economic-demo:devnet-usdc-sender": "node ./scripts/plan-economic-demo-devnet-usdc-sender.mjs"
+    "plan:economic-demo:devnet-usdc-sender": "node ./scripts/plan-economic-demo-devnet-usdc-sender.mjs",
+    "generate:economic-demo:submission-prep": "node ./scripts/generate-economic-demo-submission-prep.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",
