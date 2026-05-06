@@ -12,6 +12,15 @@ Prior Quasar docs treated Quasar as fork-isolated/post-hackathon optimisation. N
 
 This document supersedes the older "Anchor now, Quasar later" submission posture for demo/submission readiness. Anchor may remain as a legacy/reference implementation until parity is complete, but it must not be presented as the hackathon demo proof after cutover.
 
+
+## Goal alignment update — 2026-05-06
+
+The plan remains aligned on the Quasar migration, but it was too narrow if read as “Quasar CI green = final submission ready.” The corrected goal is:
+
+> Final Colosseum Frontier demos must use Quasar-compiled Solana programs for demo-critical on-chain paths **and** must visibly use the bounty protocols/products identified for the submission story: MagicBlock, x402, Jupiter, OpenRouter, Surfpool, plus any later confirmed sponsor targets.
+
+Therefore Phase 4/5 must include a bounty/product evidence matrix, not only Quasar CI. Anchor can remain as legacy/reference coverage, but it must not be the final demo proof path. MagicBlock PER/TEE remains fail-closed/not claimed unless separately live-validated with approval.
+
 ## Current state audit
 
 - Quasar PR guard exists: `.github/workflows/quasar-readiness-guard.yml` runs `npm run check:quasar:submission` for Quasar-relevant changes.

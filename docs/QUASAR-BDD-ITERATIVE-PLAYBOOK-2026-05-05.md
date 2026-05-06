@@ -14,6 +14,42 @@ The hackathon demo must not silently rely on the legacy Anchor deployment. Every
 3. What fails if the demo falls back to Anchor?
 4. Which gaps are still approval-gated or unverified?
 
+
+## Goal-alignment correction — 2026-05-06
+
+Nissan clarified that the target is broader than “scoped Quasar proof green.” The final Colosseum Frontier submission must show **all final demo surfaces** running against **Quasar-compiled Solana programs** and must visibly incorporate the bounty protocols/products we identified for the hackathon story.
+
+### Corrected north-star acceptance
+
+A phase is not final-ready unless it can answer all of these:
+
+1. **Quasar-native:** Does this demo path use Quasar-compiled Solana program IDs for every demo-critical on-chain action, with Anchor disabled or explicitly marked legacy/reference?
+2. **Bounty-visible:** Which bounty product/protocol is visible in the demo evidence or UI — MagicBlock, x402, Jupiter, OpenRouter, Surfpool, and any later confirmed sponsor target?
+3. **Honest proof boundary:** Is the proof live, local, replay/screenshot, or storyboard-only? MagicBlock PER/TEE must stay fail-closed/not claimed unless separately live-validated.
+4. **Regression guard:** What test/check fails if the path silently falls back to Anchor or drops the bounty integration from the demo?
+
+### Demo/bounty coverage matrix
+
+| Demo surface | Required Quasar proof | Required bounty/product visibility | Current status | Next adjustment |
+| --- | --- | --- | --- | --- |
+| `/register` + agent onboarding | Quasar Registry + Attestation builders and readback | OpenRouter specialist identity/capability disclosure where relevant | Quasar-compatible builders exist; read/decode compatibility completed in PR #244 | Add/verify UI/evidence text that ties registered agents to OpenRouter-capable marketplace story |
+| `/economic-demo` | Quasar program status card + no Anchor final-proof path | x402 payment evidence, OpenRouter specialist/workflow evidence, Jupiter route/quote evidence where applicable | Honesty card exists; bounty coverage is described but not yet a hard matrix gate | Add a sponsor/product checklist artifact and guard so every final demo packet lists visible bounty evidence |
+| Demo-agent A→B→C script | Quasar Registry, Escrow, Reputation, Attestation IDs and transaction builders | x402/OpenRouter economic workflow; optional Jupiter step if used by final packet | Quasar-native A→B→C flow exists; PER/TEE scoped fail-closed | Ensure generated evidence labels each Quasar tx and each bounty product used |
+| MagicBlock/PER rehearsal | No Anchor fallback; Quasar path must fail closed if PER/TEE is unavailable | MagicBlock / Surfpool evidence only when actually validated | MagicBlock PER/TEE is not claimed; Surfpool/local rehearsal evidence is separate | Keep as explicit decision gate: either live-validate with approval or present as non-claimed/local rehearsal only |
+| Judge packet/operator checklist | Must cite Quasar CI + readiness guard, not Anchor CI | Must include sponsor/bounty map with evidence links | Scoped packet refreshed; CI now green | Refresh packet again after CI cutover with the corrected full-goal matrix |
+
+### Plan adjustment
+
+The CI cutover phases remain necessary, but they are **not sufficient**. After Quasar CI is green, the next loops must shift from “can Quasar compile/test?” to “does every final demo and evidence artifact prove Quasar + bounty-product usage?”
+
+New order after current CI cutover:
+
+1. **Phase A — CI final-proof boundary:** keep Quasar program tests green; de-scope Anchor checks only after branch protection is safe.
+2. **Phase B — Bounty coverage guard:** add a repo-local sponsor/bounty coverage matrix/check for MagicBlock, x402, Jupiter, OpenRouter, Surfpool.
+3. **Phase C — Demo evidence refresh:** update `/economic-demo`, demo-agent evidence generation, judge packet, and operator checklist so each final surface lists Quasar program IDs plus bounty evidence.
+4. **Phase D — MagicBlock decision gate:** either approval-gated live validation for MagicBlock/PER/TEE or explicit non-claim with Surfpool/local rehearsal evidence only.
+5. **Phase E — Final rehearsal:** run local Quasar-native rehearsal and checks; only perform live signing/deployment/provider calls with explicit approval.
+
 ## Non-negotiable guardrails
 
 No phase may perform these without explicit Nissan approval:
