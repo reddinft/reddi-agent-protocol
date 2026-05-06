@@ -16,22 +16,28 @@ This is the judge/operator map for what the current economic demo evidence prove
    - Proves: local user-to-orchestrator upfront funding, downstream specialist/attestor transfers, budget reconciliation, blocked edge zero-delta behavior.
    - Does not prove: devnet/mainnet USDC settlement or live Jupiter swap execution.
 
-3. **Live Jupiter quote-only proof**
+3. **Surfpool/mock-Jupiter invoke proof**
+   - Script: `npm run test:surfpool:jupiter-invoke`
+   - Latest artifact: `artifacts/surfpool-jupiter-invoke/20260507-023023/SUMMARY.md`
+   - Proves: local no-real-funds x402 challenge flow can use a swap-shaped SOL→USDC auto-route before satisfying a specialist payment.
+   - Does not prove: successful public Jupiter devnet execution or mainnet Jupiter settlement.
+
+4. **Live Jupiter quote-only proof**
    - Script: `npm run smoke:economic-demo:jupiter-quote`
    - Proves: public Jupiter route availability for SOL→USDC at the time of the artifact, including output estimate, slippage, and route legs.
    - Does not prove: swap transaction creation, signing, execution, or wallet mutation.
 
-4. **Devnet USDC receipt verification**
+5. **Devnet USDC receipt verification**
    - Script: `npm run verify:economic-demo:devnet-usdc-receipt`
    - Proves: a supplied devnet transaction signature contains a USDC SPL-token transfer to the declared recipient within the approved cap.
    - Does not prove: this repo initiated the payment. It is a verifier, not a signer/sender.
 
-5. **Live payment gate**
+6. **Live payment gate**
    - Script: `npm run check:economic-demo:live-payment-gate`
    - Proves: all required inputs for an actual live receipt lane are explicit before any future executor can run.
    - Does not prove: transfer/swap occurred.
 
-6. **Future gated sender/swap executor**
+7. **Future gated sender/swap executor**
    - Status: not implemented yet.
    - Required before claiming: exact confirmation token, network, spend cap, signer reference, recipient, asset route, and receipt verification artifact.
 
@@ -57,12 +63,14 @@ Safe claims:
 
 - “The demo shows an upfront-funded consumer-agent workflow.”
 - “Surfpool/local evidence proves payment ordering and budget reconciliation.”
-- “Jupiter quote evidence proves route availability, not an executed swap.”
+- “Surfpool/mock-Jupiter evidence proves a successful no-real-funds swap-shaped invoke path.”
+- “Public Jupiter quote evidence proves route availability, not an executed devnet swap.”
 - “Devnet USDC receipt verification is ready and fail-closed; a verified receipt requires a supplied devnet transaction signature.”
 
 Do not claim yet:
 
-- “The app executed a live Jupiter swap.”
+- “The app executed a successful public Jupiter devnet swap.”
+- “The app executed a live/mainnet Jupiter swap.”
 - “The app transferred real USDC from the judge wallet.”
 - “The repo submitted a live payment transaction.”
 - “Mainnet settlement is supported.”
