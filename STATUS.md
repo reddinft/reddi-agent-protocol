@@ -423,4 +423,6 @@ Loop 2 added deterministic Surfpool upfront-funding semantics: the local rehears
 
 Loop 3 added a public-safe upfront payment evidence pack generator: `npm run evidence:economic-demo:upfront-payment`, producing `artifacts/economic-demo-upfront-payment-evidence/20260506T153452Z/` from the latest Surfpool upfront-funding artifact. It fails closed unless upfront funding signature exists, Jupiter route fields exist, specialist credits match downstream transfers, upfront covers downstream budget, markup is retained, and blocked transfers mutate zero balance.
 
-RESUME FROM HERE: next slice is approval-gated devnet/live USDC payment and SOL→USDC Jupiter swap receipt plumbing, then regenerate the upfront evidence pack with live receipt fields.
+Loop 4 added live Jupiter quote-only proof: `npm run smoke:economic-demo:jupiter-quote`, latest artifact `artifacts/economic-demo-jupiter-quote-proof/20260506T153602Z/quote-proof.json` showing 0.042 SOL → 3.726188 USDC across 1 route leg, no signing/swap/transfer. The upfront evidence pack now attaches the latest quote proof and fails closed if quote output is below the upfront fee. Latest combined pack: `artifacts/economic-demo-upfront-payment-evidence/20260506T153630Z/`.
+
+RESUME FROM HERE: next slice is approval-gated actual devnet/live USDC payment and SOL→USDC Jupiter swap receipt plumbing; quote-only proof is complete but must not be described as executed swap.
