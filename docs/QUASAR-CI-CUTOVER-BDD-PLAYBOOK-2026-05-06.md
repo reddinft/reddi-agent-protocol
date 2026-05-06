@@ -268,3 +268,12 @@ Both pass locally after the fix. Phase 3 remains gated on the rerun/new PR check
 **Fix:** downgrade the vendored Quasar workspace resolver from upstream `resolver = "3"` to `resolver = "2"`, preserving package `edition = "2021"` while making the workspace parseable by the Solana SBF cargo toolchain used in CI.
 
 **Re-validation:** local `cargo metadata` and the full `scripts/run-quasar-program-tests.sh` loop pass after the resolver fix.
+
+
+### Phase 2 CI-retro addendum 3 — SBF transitive lock compatibility
+
+**Observation:** after resolver compatibility was fixed, GitHub advanced further but `cargo build-sbf` still failed under Solana Cargo `1.79.0` when the experiment lockfiles selected `proc-macro-crate 3.5.0`, which pulls `toml_edit 0.25.x` / `toml_datetime 1.1.x` requiring edition 2024.
+
+**Fix:** pin the experiment lockfiles to `proc-macro-crate 3.3.0`, which keeps the same downstream `num_enum`-compatible range but resolves to `toml_edit 0.22.27` / `toml_datetime 0.6.11`, parseable by Cargo 1.79. This is a lockfile compatibility fix for the Solana SBF builder, not a Quasar program semantics change.
+
+**Re-validation:** the full local `scripts/run-quasar-program-tests.sh` loop passes after updating all four experiment `Cargo.lock` files.
