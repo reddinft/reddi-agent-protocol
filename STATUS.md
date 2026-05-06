@@ -431,4 +431,6 @@ Loop 6 added devnet USDC receipt verifier: `npm run verify:economic-demo:devnet-
 
 Loop 7 added judge/operator proof hierarchy docs and BDD boundaries: `docs/ECONOMIC-DEMO-PROOF-HIERARCHY-2026-05-07.md`; BDD scenarios now distinguish live Jupiter quote-only proof, devnet USDC receipt verification, and upfront evidence aggregation.
 
-RESUME FROM HERE: watch PR checks for latest head, then either fix CI issues or continue with an approval-gated devnet USDC sender design. Do not run signing/swap/transfer without explicit approval and signer/cap inputs.
+Loop 8 added a no-mutation devnet USDC sender plan command: `npm run plan:economic-demo:devnet-usdc-sender`, latest blocked artifact `artifacts/economic-demo-devnet-usdc-sender-plan/20260506T154540Z/sender-plan.json`. It defines future executor requirements (`@solana/spl-token`, exact confirmation token, gate artifact, signer ref, token accounts, amount within cap) and expected verify-after-send flow, but does not construct/sign/submit transactions.
+
+RESUME FROM HERE: monitor PR checks for latest head, then fix CI if needed. If continuing feature work, add docs/BDD for sender plan or implement sender only after explicit approval and signer/cap inputs.
