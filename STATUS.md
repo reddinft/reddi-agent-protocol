@@ -515,3 +515,10 @@ RESUME FROM HERE: commit/push the PR evidence polish, then monitor PR #244 check
 - **Actions:** Opened follow-up branch `chore/economic-demo-report-jupiter-boundary-20260507`; changed the report generator to label this as `Jupiter quote and budget-lane proof`, `live_quote_plus_signed_devnet_budget_lane`, and `signed devnet budget-lane tx, not Jupiter swap receipt`; updated Playwright expectation and final recording runbook status.
 - **Validation:** `node --check scripts/generate-economic-demo-run-report.mjs` PASS; `npm run report:economic-demo:run` PASS with latest report `artifacts/economic-demo-run-report/20260506T164958Z/RUN-REPORT.md`; `npx eslint app/economic-demo/page.tsx lib/economic-demo/fixture.ts e2e/economic-demo.spec.ts scripts/generate-economic-demo-run-report.mjs` PASS with pre-existing unused `upfrontPack` warning only; `npm run test:bdd:index` PASS; `npx playwright test e2e/economic-demo.spec.ts` PASS; `git diff --check` PASS.
 - **Review/retrospective:** Fixing UI copy alone was not enough; generated evidence needs the same claim-boundary discipline. Plan adjustment: PR this small follow-up before recording/judge packet use.
+
+## Autonomous Loop 7 after PR #247 — merged + post-merge verification
+- **Time:** 2026-05-07 AEST
+- **Loop:** PR #247 merge and post-merge gate.
+- **Outcome:** PR #247 merged to `main` as `a51fab800f90b3c2bb2b53d9134d1079aa2f5cd1`. Local `main` fast-forwarded.
+- **Validation:** Oli APPROVE; PR checks green (Vercel Preview Comments + Vercel deployment). Post-merge local validation on `main`: `node --check scripts/generate-economic-demo-run-report.mjs` PASS; `npm run report:economic-demo:run` PASS with latest report `artifacts/economic-demo-run-report/20260506T165238Z/RUN-REPORT.md`; `npm run test:bdd:index` PASS; `git diff --check` PASS.
+- **Review/retrospective:** The economic-demo claim boundary is now consistent across UI, Playwright proof, generated run report, and recording runbook. Plan adjustment: stop iterating on Jupiter wording unless new evidence appears; next autonomous loop should focus on final recording/judge packet readiness from clean `main`.
