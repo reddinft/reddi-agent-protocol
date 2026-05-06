@@ -10,7 +10,7 @@ The target state is **not** “no LiteSVM.” LiteSVM/QuasarSVM-style local exec
 
 1. Final required CI includes Quasar program compile/test coverage for escrow, registry, reputation, and attestation.
 2. `quasar-readiness-guard.yml` remains required for app/demo/runtime wiring, so code cannot drift back to Anchor IDs/layouts.
-3. Legacy Anchor CI is either removed from final-required checks or renamed/de-scoped as historical reference only.
+3. Legacy Anchor CI is removed from final-required checks; Quasar CI is the final program proof gate.
 4. Every phase ends with a retrospective and a refined next-step plan before proceeding.
 5. No deployment, env/Coolify/Vercel mutation, paid/live specialist work, or live PER/TEE claim is introduced by this CI cutover.
 
@@ -143,7 +143,7 @@ Then GitHub Actions runs Quasar program tests independently of Anchor CI.
 - If runtime is too slow, cache cargo and split jobs by program.
 - If one program is flaky, keep workflow required but quarantine only the flaky test with a documented issue and deadline.
 
-### Phase 3 — De-scope legacy Anchor CI from final proof
+### Phase 3 — Remove legacy Anchor CI from final proof
 
 **BDD scenario**
 
@@ -154,7 +154,7 @@ Then the blocking final-proof checks are Quasar program tests + Quasar readiness
 **Actions**
 
 - Rename `anchor-test.yml` to clarify historical scope, e.g. `Legacy Anchor Reference Tests`.
-- Rename job from `Build & Test (Anchor 1.0.0 / LiteSVM)` to `Legacy Anchor Reference Tests (non-final proof)`.
+- Remove `.github/workflows/anchor-test.yml` once Quasar gates are green and branch protection is not pinned to the old Anchor check name.
 - Decide whether to remove it from PR triggers or keep it on `workflow_dispatch` / main-only.
 - Coordinate branch protection if required checks are pinned by name.
 
@@ -242,7 +242,7 @@ Start Phase 1 next: import the four Quasar program directories into `experiments
 PATH="$HOME/.cargo/bin:$PATH" bash scripts/run-quasar-program-tests.sh
 ```
 
-**Refinement for Phase 3:** do not remove/rename the legacy Anchor workflow until this new workflow is observed on PR #244. If GitHub branch protection is pinned to `Build & Test (Anchor 1.0.0 / LiteSVM)`, coordinate required-check updates before changing that name.
+**Phase 3 update:** PR #244 has first-class Quasar gates. Branch protection required-status lookup returned 404/no accessible required-status configuration, so the legacy Anchor workflow was removed after Nissan confirmed Quasar-only final demo scope.
 
 
 ### Phase 2 CI-retro addendum — GitHub parity fix
@@ -286,3 +286,7 @@ Both pass locally after the fix. Phase 3 remains gated on the rerun/new PR check
 **Fix:** update `.github/workflows/quasar-program-tests.yml` to install `https://release.anza.xyz/v3.1.13/install`, matching the local Quasar compile environment rather than fighting an older SBF Cargo resolver crate-by-crate.
 
 **Plan refinement:** future Quasar CI phases must assert/print `cargo build-sbf --version` before running the compile loop, so toolchain drift is visible immediately.
+
+### Phase 3 completion note — 2026-05-06
+
+`.github/workflows/anchor-test.yml` was removed. Final program proof now rests on `Quasar Program Tests (QuasarSVM / LiteSVM)` and `quasar-readiness`; Anchor remains legacy/reference source only.
