@@ -55,7 +55,7 @@ jobs:
 
       - name: Install Solana CLI
         run: |
-          sh -c "$(curl -sSfL https://release.anza.xyz/v2.2.0/install)"
+          sh -c "$(curl -sSfL https://release.anza.xyz/v3.1.13/install)"
           echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
 
       - name: Run Quasar program compile/test loop

@@ -277,3 +277,12 @@ Both pass locally after the fix. Phase 3 remains gated on the rerun/new PR check
 **Fix:** pin the experiment lockfiles to `proc-macro-crate 3.3.0`, which keeps the same downstream `num_enum`-compatible range but resolves to `toml_edit 0.22.27` / `toml_datetime 0.6.11`, parseable by Cargo 1.79. This is a lockfile compatibility fix for the Solana SBF builder, not a Quasar program semantics change.
 
 **Re-validation:** the full local `scripts/run-quasar-program-tests.sh` loop passes after updating all four experiment `Cargo.lock` files.
+
+
+### Phase 2 CI-retro addendum 4 — align SBF toolchain with local/runtime stack
+
+**Observation:** after transitive lockfile pinning, GitHub advanced again but failed on another edition-2024 crate (`wincode-derive 0.4.4`). The deeper issue is toolchain drift: local validation uses `cargo-build-sbf 4.0.0`, `platform-tools v1.53`, `rustc 1.89.0`, and `solana-cli 3.1.13`, while the initial workflow installed Anza/Solana `v2.2.0`, whose SBF cargo path reports Cargo `1.79.0`.
+
+**Fix:** update `.github/workflows/quasar-program-tests.yml` to install `https://release.anza.xyz/v3.1.13/install`, matching the local Quasar compile environment rather than fighting an older SBF Cargo resolver crate-by-crate.
+
+**Plan refinement:** future Quasar CI phases must assert/print `cargo build-sbf --version` before running the compile loop, so toolchain drift is visible immediately.
