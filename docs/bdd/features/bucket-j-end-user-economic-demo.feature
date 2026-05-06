@@ -6,6 +6,93 @@ Feature: End-user economic workflow demo
     And demo artifacts must not expose private keys, signer material, provider API keys, or payment secrets
     And autonomous specialists and attestors may act as consumer agents only when their manifest discloses downstream marketplace delegation
 
+
+  Scenario: User funds a run budget before the orchestrator calls downstream agents
+    Given the user opens /economic-demo and connects a wallet
+    And the selected activity has a quoted downstream agent budget
+    And the quote includes downstream specialist fees, attestor fees, Jupiter swap allowance when needed, and orchestrator markup
+    When the user approves the upfront demo payment
+    Then the payment is recorded as the user-to-orchestrator funding edge
+    And the orchestrator budget ledger shows gross revenue, reserved downstream budget, retained markup, and remaining refundable balance
+    And downstream specialists are paid only from the funded run budget
+    And the final output includes the user payment receipt, downstream payment receipts, and budget reconciliation
+
+  Scenario: User can pay the upfront demo fee in USDC
+    Given the activity quote is denominated in USDC
+    And the connected user wallet has sufficient USDC on the selected network
+    When the user chooses USDC payment
+    Then the demo records a USDC payment receipt from user wallet to orchestrator wallet or escrow
+    And no Jupiter swap is required
+    And the orchestrator can spend the received budget on downstream agent calls
+    And the communication-flow visualization links the user payment to every downstream paid edge it funds
+
+  Scenario: User can pay the upfront demo fee in SOL through Jupiter swap proof
+    Given the activity quote is denominated in USDC
+    And the connected user wallet chooses SOL payment
+    When the demo requests a Jupiter quote and executes the approved swap path
+    Then the evidence records the Jupiter quote, route, input SOL amount, output USDC amount, slippage guard, and swap signature or fail-closed reason
+    And the resulting USDC budget or equivalent settlement record funds the orchestrator run budget
+    And the page distinguishes swap cost, downstream agent fees, and orchestrator markup
+    And if the quote expires, slippage exceeds the cap, or output is insufficient, no downstream agent call is executed
+
+  Scenario: SOL payment path shows conversion before downstream agent payments
+    Given the user does not initially hold the USDC budget required by downstream agents
+    And the user chooses to fund the run with SOL
+    When the economic demo visualises the Jupiter conversion lane
+    Then it shows SOL entering Jupiter and USDC funding the orchestrator run budget
+    And it shows a swap receipt transaction address or explicit fail-closed swap status
+    And downstream specialist and attestor payments are shown only after the converted USDC budget exists
+    And the run report distinguishes local Surfpool swap proof, live quote proof, and future live swap receipt proof
+
+  Scenario: Live Jupiter quote proof is not described as an executed swap
+    Given the economic demo fetches a public Jupiter SOL to USDC quote
+    When the quote proof artifact records input SOL, output USDC, slippage, and route legs
+    Then the artifact states that no swap transaction was requested
+    And it states that no wallet signing, transfer, or mutation occurred
+    And judge materials may claim route availability only
+    And judge materials must not claim an executed Jupiter swap without a swap signature receipt
+
+  Scenario: Devnet USDC receipt verification is separate from payment execution
+    Given the live payment gate has explicit confirmation, network, asset, cap, payer, and recipient inputs
+    And a devnet transaction signature is supplied for verification
+    When the devnet USDC receipt verifier checks the transaction on Solana RPC
+    Then it accepts only a USDC SPL-token transfer to the declared recipient within the approved cap
+    And it rejects missing signatures, mainnet routes, wrong assets, missing recipients, and over-cap transfers
+    And it does not sign, submit, swap, transfer, or mutate a wallet
+
+  Scenario: Upfront evidence pack preserves proof hierarchy boundaries
+    Given local Surfpool evidence, live Jupiter quote proof, and devnet USDC receipt verification artifacts may exist
+    When the upfront payment evidence pack is generated
+    Then it aggregates the latest public-safe proof statuses
+    And it fails closed if local upfront funding, budget reconciliation, or attached Jupiter quote coverage is invalid
+    And it labels quote-only proof separately from executed swap receipts
+    And it labels blocked devnet receipt verification separately from verified devnet USDC receipts
+
+  Scenario: Consumer-agent proof shows funded orchestration and downstream purchasing
+    Given the orchestrator has received the upfront run budget
+    When it hires downstream marketplace agents to fulfill the request
+    Then the page shows the communication path user to orchestrator to specialists to attestor to user result
+    And the page shows the payment path user to orchestrator, orchestrator to specialists, orchestrator to attestors, and retained markup
+    And every downstream call includes x402 challenge or receipt evidence and a downstream-disclosure ledger entry
+    And the final budget reconciliation proves the orchestrator acted as both paid provider and consumer agent
+
+  Scenario: Run report shows attestation, payment receipts, and reputation commit-reveal
+    Given the orchestrator has purchased specialist work from the funded run budget
+    And attestors validate the specialist outputs, receipt chain, disclosure ledger, and release criteria
+    When the economic demo run report is shown
+    Then it tells the story of every specialist call, validation, payment, and returned result
+    And it lists payment receipt transaction addresses or explicit fail-closed receipt status for each paid edge
+    And it shows which attestor validated which specialist output and the attestation receipt
+    And it shows reputation scores before commit, the committed score, and after reveal
+    And reputation changes are not represented as final until the reveal receipt is present or explicitly marked fixture-only
+
+  Scenario: Playwright recording proves the visible economic demo flow
+    Given deterministic economic demo fixture mode is enabled for Playwright
+    When the Playwright test records the wallet connect, quote, payment choice, communication graph, payment graph, evidence ledger, and final result panels
+    Then the test saves screenshot, video, and trace artifacts under artifacts/playwright-economic-demo
+    And it asserts the upfront quote, user payment edge, downstream payment edges, Jupiter swap panel, wallet deltas, disclosure ledger, and final output are visible
+    And the deterministic recording performs no real signing, swap, transfer, paid provider call, hosted specialist call, or wallet mutation
+
   Scenario: Static fixture explains the economic workflow without spending
     Given the user opens /economic-demo
     When they select the webpage, research article, or picture scenario
@@ -159,3 +246,11 @@ Feature: End-user economic workflow demo
     Then the path must declare whether it is Quasar-compatible, Anchor-layout-only, or blocked pending verification
     And Quasar demo readiness must fail if a demo-critical path uses an Anchor-layout-only builder without an explicit blocker
     And the retrospective for the phase must decide whether the next loop ports builders or requests approval-gated live validation
+
+  Scenario: Quasar cutover advances through retrospective-gated phases
+    Given the Quasar hackathon cutover is active
+    When a phase or slice completes
+    Then the playbook must record expectation, implementation scope, acceptance criteria, validation commands, and safety guardrails
+    And the retrospective must record observed behavior, blocker count, surprises, safety review, and next-plan adjustment
+    And the next phase must not expand into signing, wallet mutation, devnet transfer, deployment, environment mutation, paid calls, or live execution without explicit approval
+    And submission readiness must remain false while any demo-critical Quasar blocker remains

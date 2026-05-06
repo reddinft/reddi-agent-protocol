@@ -25,9 +25,11 @@ const rpcUrl = `http://127.0.0.1:${port}`;
 
 const scenario = {
   id: "webpage",
+  user: "end-user",
   orchestrator: "agentic-workflow-system",
+  upfrontFunding: { amountUsdc: 3.33, equivalentLamports: 3_330_000, paymentAsset: "USDC" },
+  jupiterSolRoute: { inputAsset: "SOL", outputAsset: "USDC", estimatedInputSol: 0.021, outputUsdc: 3.33, slippageBps: 75, status: "quoted_not_executed" },
   transfers: [
-    ["planning-agent", 1_000_000],
     ["content-creation-agent", 1_000_000],
     ["code-generation-agent", 1_000_000],
     ["verification-validation-agent", 500_000],
@@ -77,22 +79,46 @@ async function main() {
   try {
     await waitForRpc(connection);
 
+    const user = keypairFor(scenario.user);
     const orchestrator = keypairFor(scenario.orchestrator);
     const specialists = new Map(scenario.transfers.map(([profileId]) => [profileId, keypairFor(profileId)]));
     const participants = [
+      [scenario.user, user.publicKey],
       [scenario.orchestrator, orchestrator.publicKey],
       ...[...specialists.entries()].map(([profileId, keypair]) => [profileId, keypair.publicKey]),
     ];
 
-    const airdropSig = await connection.requestAirdrop(orchestrator.publicKey, 2 * LAMPORTS_PER_SOL);
-    const latest = await connection.getLatestBlockhash();
-    await connection.confirmTransaction({ signature: airdropSig, ...latest }, "confirmed");
+    const userAirdropSig = await connection.requestAirdrop(user.publicKey, 2 * LAMPORTS_PER_SOL);
+    const orchestratorAirdropSig = await connection.requestAirdrop(orchestrator.publicKey, LAMPORTS_PER_SOL);
+    let latest = await connection.getLatestBlockhash();
+    await connection.confirmTransaction({ signature: userAirdropSig, ...latest }, "confirmed");
+    latest = await connection.getLatestBlockhash();
+    await connection.confirmTransaction({ signature: orchestratorAirdropSig, ...latest }, "confirmed");
 
     const before = Object.fromEntries(
       await Promise.all(participants.map(async ([profileId, publicKey]) => [profileId, await connection.getBalance(publicKey)])),
     );
 
     const executedTransfers = [];
+    const upfrontTx = new Transaction().add(
+      SystemProgram.transfer({
+        fromPubkey: user.publicKey,
+        toPubkey: orchestrator.publicKey,
+        lamports: scenario.upfrontFunding.equivalentLamports,
+      }),
+    );
+    const upfrontSignature = await sendAndConfirmTransaction(connection, upfrontTx, [user], { commitment: "confirmed" });
+    executedTransfers.push({
+      fromProfileId: scenario.user,
+      toProfileId: scenario.orchestrator,
+      fromLocalWalletAddress: user.publicKey.toBase58(),
+      toLocalWalletAddress: orchestrator.publicKey.toBase58(),
+      amountLamports: scenario.upfrontFunding.equivalentLamports,
+      signature: upfrontSignature,
+      status: "executed",
+      category: "upfront_user_funding",
+    });
+
     for (const [toProfileId, amountLamports] of scenario.transfers) {
       const to = specialists.get(toProfileId);
       const tx = new Transaction().add(
@@ -111,6 +137,7 @@ async function main() {
         amountLamports,
         signature,
         status: "executed",
+        category: "downstream_agent_payment",
       });
     }
 
@@ -127,7 +154,14 @@ async function main() {
     }));
     const totalDebitedLamports = participantReports.reduce((sum, item) => sum + Math.max(0, -item.deltaLamports), 0);
     const totalCreditedLamports = participantReports.reduce((sum, item) => sum + Math.max(0, item.deltaLamports), 0);
-    const transferAmountLamports = executedTransfers.reduce((sum, transfer) => sum + transfer.amountLamports, 0);
+    const downstreamTransferAmountLamports = executedTransfers
+      .filter((transfer) => transfer.category === "downstream_agent_payment")
+      .reduce((sum, transfer) => sum + transfer.amountLamports, 0);
+    const grossExecutedLamports = executedTransfers.reduce((sum, transfer) => sum + transfer.amountLamports, 0);
+    const specialistCreditedLamports = participantReports
+      .filter((item) => item.profileId !== scenario.user && item.profileId !== scenario.orchestrator)
+      .reduce((sum, item) => sum + Math.max(0, item.deltaLamports), 0);
+    const orchestratorDeltaLamports = participantReports.find((item) => item.profileId === scenario.orchestrator)?.deltaLamports ?? 0;
 
     const artifact = {
       schemaVersion: "reddi.economic-demo.surfpool-rehearsal.v1",
@@ -136,15 +170,22 @@ async function main() {
       rpcUrl,
       mode: "surfpool_local_transaction_rehearsal",
       downstreamCallsExecuted: 0,
-      airdropSignature: airdropSig,
+      airdropSignatures: { user: userAirdropSig, orchestrator: orchestratorAirdropSig },
+      upfrontFunding: { ...scenario.upfrontFunding, fromProfileId: scenario.user, toProfileId: scenario.orchestrator, signature: upfrontSignature },
+      jupiterSolRoute: scenario.jupiterSolRoute,
       participants: participantReports,
       executedTransfers,
       positiveProof: {
-        transferAmountLamports,
+        upfrontFundingLamports: scenario.upfrontFunding.equivalentLamports,
+        downstreamTransferAmountLamports,
+        grossExecutedLamports,
         totalDebitedLamports,
         totalCreditedLamports,
-        creditedMatchesTransfers: totalCreditedLamports === transferAmountLamports,
-        debitCoversTransfersAndFees: totalDebitedLamports >= transferAmountLamports,
+        specialistCreditedLamports,
+        orchestratorDeltaLamports,
+        specialistCreditsMatchDownstreamTransfers: specialistCreditedLamports === downstreamTransferAmountLamports,
+        upfrontCoversDownstreamBudget: scenario.upfrontFunding.equivalentLamports >= downstreamTransferAmountLamports,
+        orchestratorRetainsPositiveMarkupBeforeFees: orchestratorDeltaLamports > 0,
       },
       negativeProof: {
         blockedTransfers: [
@@ -165,7 +206,7 @@ async function main() {
     writeFileSync(artifactPath, `${JSON.stringify(artifact, null, 2)}\n`);
     writeFileSync(
       join(outDir, "SUMMARY.md"),
-      `# Economic Demo Surfpool Rehearsal\n\n- Scenario: ${scenario.id}\n- RPC: ${rpcUrl}\n- Executed transfers: ${executedTransfers.length}\n- Transfer amount: ${transferAmountLamports}\n- Credited matches transfers: ${artifact.positiveProof.creditedMatchesTransfers}\n- Debit covers transfers and fees: ${artifact.positiveProof.debitCoversTransfersAndFees}\n- Blocked delta: ${artifact.negativeProof.totalBlockedDeltaLamports}\n- JSON: ${artifactPath}\n`,
+      `# Economic Demo Surfpool Rehearsal\n\n- Scenario: ${scenario.id}\n- RPC: ${rpcUrl}\n- Executed transfers: ${executedTransfers.length}\n- Upfront funding: ${scenario.upfrontFunding.equivalentLamports} lamports-equivalent (${scenario.upfrontFunding.amountUsdc} USDC)\n- Jupiter SOL route: ${scenario.jupiterSolRoute.estimatedInputSol} SOL → ${scenario.jupiterSolRoute.outputUsdc} USDC (${scenario.jupiterSolRoute.status})\n- Downstream transfer amount: ${downstreamTransferAmountLamports}\n- Specialist credits match downstream transfers: ${artifact.positiveProof.specialistCreditsMatchDownstreamTransfers}\n- Upfront covers downstream budget: ${artifact.positiveProof.upfrontCoversDownstreamBudget}\n- Orchestrator retains positive markup before fees: ${artifact.positiveProof.orchestratorRetainsPositiveMarkupBeforeFees}\n- Blocked delta: ${artifact.negativeProof.totalBlockedDeltaLamports}\n- JSON: ${artifactPath}\n`,
     );
     console.log(JSON.stringify({ ok: true, artifactPath, summaryPath: join(outDir, "SUMMARY.md") }, null, 2));
   } finally {

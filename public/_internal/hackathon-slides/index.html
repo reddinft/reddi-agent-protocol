@@ -13,6 +13,14 @@
     .top .spacer { flex:1; }
     .stage { position:relative; display:grid; place-items:center; background:#0b0f14; }
     .stage img { max-width:100%; max-height:calc(100vh - 190px); object-fit:contain; border-radius:10px; box-shadow:0 8px 30px rgba(0,0,0,.45); }
+    .textSlide { display:none; width:min(1100px, calc(100vw - 64px)); min-height:min(620px, calc(100vh - 230px)); padding:54px 62px; border-radius:18px; background:radial-gradient(circle at 20% 0%, rgba(22,163,74,.22), transparent 36%), linear-gradient(135deg, #101827 0%, #08111f 100%); box-shadow:0 8px 30px rgba(0,0,0,.45); border:1px solid #29425f; }
+    .textSlide h1 { margin:0 0 18px; font-size:44px; line-height:1.04; letter-spacing:-.035em; }
+    .textSlide .eyebrow { color:#73e0a9; text-transform:uppercase; letter-spacing:.14em; font-size:13px; font-weight:800; margin-bottom:14px; }
+    .textSlide .lede { color:#dce8f7; font-size:23px; line-height:1.35; max-width:900px; margin-bottom:26px; }
+    .textSlide ul { margin:0; padding-left:24px; display:grid; gap:13px; color:#c7d2e3; font-size:20px; line-height:1.35; }
+    .textSlide strong { color:#fff; }
+    .textSlide .quote { margin-top:28px; padding:18px 20px; border-left:4px solid #73e0a9; background:rgba(15,23,42,.72); color:#eaf0f7; font-size:20px; line-height:1.35; }
+    .textSlide .source { margin-top:18px; color:#8ba3bf; font-size:13px; }
     .meta { padding:12px 16px; background:#111827; border-top:1px solid #273244; }
     .title { font-size:18px; font-weight:700; margin-bottom:6px; }
     .subtitle { color:#c7d2e3; margin-bottom:6px; }
@@ -43,6 +51,7 @@
 
     <div class="stage">
       <img id="img" alt="slide" src="" />
+      <section id="textSlide" class="textSlide"></section>
     </div>
 
     <div class="meta">
@@ -56,27 +65,40 @@
   <script>
     const slides = [
       {slug:'home', file:'images/t1-home.png', title:'1. Home', subtitle:'Project overview surface used in video intro'},
-      {slug:'specialist-onboarding', file:'images/route-onboarding.png', title:'2. Specialist Onboarding', subtitle:'Endpoint and capability setup flow'},
-      {slug:'specialist-dashboard', file:'images/route-specialist.png', title:'3. Specialist Dashboard', subtitle:'Pricing and operations view'},
-      {slug:'attestor-dashboard', file:'images/route-attestation.png', title:'4. Attestor Dashboard', subtitle:'Quality and attestation workflow view'},
-      {slug:'consumer-dashboard', file:'images/route-consumer.png', title:'5. Consumer Dashboard', subtitle:'Discovery and execution view'},
-      {slug:'planner-demo', file:'images/route-demo.png', title:'6. Planner Demo Surface', subtitle:'Prompt-to-execution workflow'},
-      {slug:'workflow-controls', file:'images/dogfood-controls.png', title:'7. Workflow Controls', subtitle:'Deterministic test controls'},
-      {slug:'released-outcome', file:'images/dogfood-released.png', title:'8. Released Outcome', subtitle:'Escrow release proof state'},
-      {slug:'refunded-outcome', file:'images/dogfood-refunded.png', title:'9. Refunded Outcome', subtitle:'Escrow refund proof state'},
-      {slug:'x402-code', file:'images/t2-code-demo-ts.png', title:'10. x402 Code', subtitle:'Payment challenge to escrow implementation'},
-      {slug:'jupiter-code', file:'images/t4-code-jupiter-ts.png', title:'11. Jupiter Swap V2 Code', subtitle:'Cross-token routing integration'},
-      {slug:'surfpool-script', file:'images/t5-code-surfpool-script.png', title:'12. Surfpool Script', subtitle:'Critical reliability lane script'},
-      {slug:'torque-code', file:'images/t6-code-torque-client.png', title:'13. Torque Code', subtitle:'Event and leaderboard wiring'},
-      {slug:'tx-lock', file:'images/tx-lock-explorer.png', title:'14. Tx Proof, Lock Escrow', subtitle:'Loaded Solana Explorer transaction page'},
-      {slug:'tx-register', file:'images/tx-register-agentA-explorer.png', title:'15. Tx Proof, Register Agent', subtitle:'Loaded Solana Explorer transaction page'},
-      {slug:'tx-fund', file:'images/tx-fund-agentA-explorer.png', title:'16. Tx Proof, Fund Agent', subtitle:'Loaded Solana Explorer transaction page'},
-      {slug:'per-signature-log', file:'images/per-terminal-log.png', title:'17. PER Signature Evidence', subtitle:'TEE-routed private settlement signature from runtime log'}
+      {slug:'market-proof-span-xfra', title:'2. Market Proof: compute is moving to the edge', subtitle:'CNBC: NVIDIA + PulteGroup + SPAN are piloting residential mini data centers', html:`
+        <div class="eyebrow">External proof point · CNBC Property Play · May 2026</div>
+        <h1>The data center is moving into the neighborhood.</h1>
+        <div class="lede">NVIDIA, PulteGroup and SPAN are testing XFRA residential “mini data centers” that turn unused home/grid capacity into distributed AI compute.</div>
+        <ul>
+          <li><strong>Why now:</strong> AI inference demand is straining power, latency and interconnection timelines.</li>
+          <li><strong>Why it scales:</strong> SPAN says 8,000 XFRA units can be installed ~6× faster and ~5× cheaper than a comparable centralized 100MW data center.</li>
+          <li><strong>Why protocol rails matter:</strong> edge compute means many nodes, operators, agents, payments, attestations and disputes.</li>
+          <li><strong>Reddi’s role:</strong> identity + x402 payment intent + Quasar/Solana settlement + reputation + attestation + disclosure.</li>
+        </ul>
+        <div class="quote">“Fundamentally, it’s an infrastructure play.” — Arch Rao, SPAN CEO</div>
+        <div class="source">Source: CNBC, Diana Olick, “Nvidia and PulteGroup are helping this startup put mini data centers on homes,” May 5 2026. Research note: docs/research/SPAN-XFRA-MINI-DATA-CENTERS-2026-05-06.md</div>`},
+      {slug:'specialist-onboarding', file:'images/route-onboarding.png', title:'3. Specialist Onboarding', subtitle:'Endpoint and capability setup flow'},
+      {slug:'specialist-dashboard', file:'images/route-specialist.png', title:'4. Specialist Dashboard', subtitle:'Pricing and operations view'},
+      {slug:'attestor-dashboard', file:'images/route-attestation.png', title:'5. Attestor Dashboard', subtitle:'Quality and attestation workflow view'},
+      {slug:'consumer-dashboard', file:'images/route-consumer.png', title:'6. Consumer Dashboard', subtitle:'Discovery and execution view'},
+      {slug:'planner-demo', file:'images/route-demo.png', title:'7. Planner Demo Surface', subtitle:'Prompt-to-execution workflow'},
+      {slug:'workflow-controls', file:'images/dogfood-controls.png', title:'8. Workflow Controls', subtitle:'Deterministic test controls'},
+      {slug:'released-outcome', file:'images/dogfood-released.png', title:'9. Released Outcome', subtitle:'Escrow release proof state'},
+      {slug:'refunded-outcome', file:'images/dogfood-refunded.png', title:'10. Refunded Outcome', subtitle:'Escrow refund proof state'},
+      {slug:'x402-code', file:'images/t2-code-demo-ts.png', title:'11. x402 Code', subtitle:'Payment challenge to escrow implementation'},
+      {slug:'jupiter-code', file:'images/t4-code-jupiter-ts.png', title:'12. Jupiter Swap V2 Code', subtitle:'Cross-token routing integration'},
+      {slug:'surfpool-script', file:'images/t5-code-surfpool-script.png', title:'13. Surfpool Script', subtitle:'Critical reliability lane script'},
+      {slug:'torque-code', file:'images/t6-code-torque-client.png', title:'14. Torque Code', subtitle:'Event and leaderboard wiring'},
+      {slug:'tx-lock', file:'images/tx-lock-explorer.png', title:'15. Tx Proof, Lock Escrow', subtitle:'Loaded Solana Explorer transaction page'},
+      {slug:'tx-register', file:'images/tx-register-agentA-explorer.png', title:'16. Tx Proof, Register Agent', subtitle:'Loaded Solana Explorer transaction page'},
+      {slug:'tx-fund', file:'images/tx-fund-agentA-explorer.png', title:'17. Tx Proof, Fund Agent', subtitle:'Loaded Solana Explorer transaction page'},
+      {slug:'per-signature-log', file:'images/per-terminal-log.png', title:'18. PER Signature Evidence', subtitle:'TEE-routed private settlement signature from runtime log'}
     ];
 
     let i = 0;
     let timer = null;
     const img = document.getElementById('img');
+    const textSlide = document.getElementById('textSlide');
     const title = document.getElementById('title');
     const subtitle = document.getElementById('subtitle');
     const counter = document.getElementById('counter');
@@ -106,10 +128,20 @@
 
     function render(push = false) {
       const s = slides[i];
-      img.src = s.file;
+      if (s.html) {
+        img.style.display = 'none';
+        img.removeAttribute('src');
+        textSlide.style.display = 'block';
+        textSlide.innerHTML = s.html;
+      } else {
+        textSlide.style.display = 'none';
+        textSlide.innerHTML = '';
+        img.style.display = 'block';
+        img.src = s.file;
+      }
       title.textContent = s.title;
       subtitle.textContent = s.subtitle;
-      counter.textContent = `Slide ${i + 1} of ${slides.length} , ${s.file}`;
+      counter.textContent = `Slide ${i + 1} of ${slides.length} , ${s.file || 'text slide'}`;
       const link = currentPermalink();
       permalinkEl.textContent = link;
       if (push) history.replaceState({}, '', link);

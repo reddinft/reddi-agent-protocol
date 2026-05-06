@@ -12,13 +12,23 @@ Prior Quasar docs treated Quasar as fork-isolated/post-hackathon optimisation. N
 
 This document supersedes the older "Anchor now, Quasar later" submission posture for demo/submission readiness. Anchor may remain as a legacy/reference implementation until parity is complete, but it must not be presented as the hackathon demo proof after cutover.
 
+
+## Goal alignment update — 2026-05-06
+
+The plan remains aligned on the Quasar migration, but it was too narrow if read as “Quasar CI green = final submission ready.” The corrected goal is:
+
+> Final Colosseum Frontier demos must use Quasar-compiled Solana programs for demo-critical on-chain paths **and** must visibly use the bounty protocols/products identified for the submission story: MagicBlock, x402, Jupiter, OpenRouter, Surfpool, plus any later confirmed sponsor targets.
+
+Therefore Phase 4/5 must include a bounty/product evidence matrix, not only Quasar CI. Anchor can remain as legacy/reference coverage, but it must not be the final demo proof path. MagicBlock PER/TEE remains fail-closed/not claimed unless separately live-validated with approval.
+
 ## Current state audit
 
-- Canonical CI is still Anchor-named and Anchor-executing: `.github/workflows/anchor-test.yml` installs Anchor CLI 1.0.0 and runs `anchor build --ignore-keys`.
-- Canonical on-chain program code is still Anchor-based: `programs/escrow/Cargo.toml` depends on `anchor-lang = 1.0.0`.
-- Frontend program config still assumes Anchor instruction/account discriminators and layouts in `lib/program.ts`.
-- Quasar parity reports exist for escrow, registry, reputation, and attestation; PER parity is partial/conditional.
-- A stale `feature/wire-quasar-programs` branch exists, but it is not directly mergeable because it diverges heavily, deletes many current files, and includes vendored `node_modules`. Use it only as a research artifact.
+- Quasar PR guard exists: `.github/workflows/quasar-readiness-guard.yml` runs `npm run check:quasar:submission` for Quasar-relevant changes.
+- Legacy Anchor CI remains as historical/reference implementation evidence only; it is not final hackathon proof.
+- Runtime config can select Quasar via `NEXT_PUBLIC_DEMO_PROGRAM_TARGET=quasar`, `HACKATHON_DEMO_TARGET=quasar`, or `DEMO_PROGRAM_TARGET=quasar`.
+- Runtime compatibility inventory has zero blocker-status demo-critical paths for the scoped Quasar proof boundary.
+- Quasar parity reports exist for escrow, registry, reputation, attestation, and PER; live PER/TEE execution remains approval-gated and not claimed by the scoped packet.
+- The legacy `packages/demo-agents/src/demo.ts` full-flow/PER script is explicitly scoped out of Quasar proof and fails closed when selected with a Quasar target.
 
 ## Cutover principle
 

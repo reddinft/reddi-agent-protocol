@@ -1,0 +1,62 @@
+name: Quasar Program Tests
+
+on:
+  push:
+    branches: [main, feature/**, feat/**]
+    paths:
+      - "experiments/quasar-*/**"
+      - "third_party/quasar/**"
+      - "config/quasar/**"
+      - "lib/quasar/**"
+      - "packages/demo-agents/**"
+      - "scripts/run-quasar-program-tests.sh"
+      - ".github/workflows/quasar-program-tests.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "experiments/quasar-*/**"
+      - "third_party/quasar/**"
+      - "config/quasar/**"
+      - "lib/quasar/**"
+      - "packages/demo-agents/**"
+      - "scripts/run-quasar-program-tests.sh"
+      - ".github/workflows/quasar-program-tests.yml"
+  workflow_dispatch:
+
+jobs:
+  quasar-program-tests:
+    name: Quasar Program Tests (QuasarSVM / LiteSVM)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install Rust toolchain (matches rust-toolchain.toml)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: "1.89.0"
+          components: rustfmt, clippy
+
+      - name: Cache Cargo registry and Quasar targets
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            experiments/quasar-escrow/target
+            experiments/quasar-registry/target
+            experiments/quasar-reputation/target
+            experiments/quasar-attestation/target
+          key: ${{ runner.os }}-quasar-cargo-${{ hashFiles('experiments/quasar-*/Cargo.lock', 'third_party/quasar/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-quasar-cargo-
+            ${{ runner.os }}-cargo-
+
+      - name: Install Solana CLI
+        run: |
+          sh -c "$(curl -sSfL https://release.anza.xyz/v3.1.13/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
+
+      - name: Run Quasar program compile/test loop
+        run: bash scripts/run-quasar-program-tests.sh

@@ -1,11 +1,13 @@
 # Economic Demo Judge Packet
 
 _Date:_ 2026-05-05 AEST
-_Status:_ Public-safe Anchor-era packet; superseded for hackathon readiness by Quasar cutover Issue #236 until refreshed
+_Status:_ Final Quasar devnet proof packet; live PER/TEE and paid/live provider actions remain approval-gated
 _Demo route:_ `/economic-demo`
-_Quasar cutover target:_ Quasar-deployed Solana programs; candidate devnet program `VYCbMszux9seLK2aXFZMECMBFURvfuJLXsXPmJS5igW` from `config/quasar/deployments.json`
+_Quasar cutover target:_ Quasar-deployed Solana multi-program devnet deployment from `config/quasar/deployments.json`
 _Operator checklist:_ `docs/ECONOMIC-DEMO-OPERATOR-CHECKLIST-2026-05-05.md`
 _Local-only rehearsal report:_ `artifacts/economic-demo-rehearsal/20260505T091725Z/REHEARSAL-REPORT.md` (ignored; not part of public packet)
+
+_Final proof map:_ `docs/COLOSSEUM-FINAL-QUASAR-PROOF-MAP-2026-05-06.md`
 
 ## One-paragraph summary
 
@@ -19,7 +21,7 @@ Reddi Agent Protocol demonstrates an agentic workflow economy where a user reque
 
 ## Quasar cutover status
 
-Nissan has selected Quasar-deployed Solana programs as the hackathon demo target. This packet remains useful as an Anchor-era economic-demo evidence packet, but it is **not final hackathon submission proof** until the Quasar proof chain is refreshed. The candidate Quasar devnet program is `VYCbMszux9seLK2aXFZMECMBFURvfuJLXsXPmJS5igW`; the legacy Anchor reference is recorded only for comparison in `config/quasar/deployments.json`. Current approval-gated blocker set: no signing, deployment, wallet mutation, devnet transfer, Coolify/env mutation, or paid/live provider calls without Nissan approval. Runtime wiring, PER/privacy-aware settlement proof, and final judge-packet proof chain remain known gaps.
+Nissan has selected Quasar-compiled Solana programs as the final hackathon demo target. This packet is now refreshed as a **final Quasar devnet proof packet**, not a scoped Anchor-era fallback. The active devnet programs are Escrow `VYCbMszux9seLK2aXFZMECMBFURvfuJLXsXPmJS5igW`, Registry `Xk7jczJZ1HHJZuE1ZUWDqFmowxYhnom7mWzrNSGf9FU`, Reputation `nb9rLVjoHMibsgfRGgKuPqm6M8GVcH9r6bYNfg7Yiy6`, and Attestation `CRGsWWkptdxsH6N6aWAyahLbuMsT58yM624EopEsv1Ex`. Legacy Anchor is reference only. Nissan approved devnet transactions needed for the Quasar goal; mainnet, paid provider calls, production env/Coolify/Vercel mutation, real image generation, and live MagicBlock PER/TEE claims remain separately approval-gated. Runtime compatibility has zero blocker-status demo-critical paths; the final proof map is `docs/COLOSSEUM-FINAL-QUASAR-PROOF-MAP-2026-05-06.md`.
 
 ## What is proven by the current packet
 
@@ -38,8 +40,9 @@ Nissan has selected Quasar-deployed Solana programs as the hackathon demo target
    - The Phase 7 picture workflow is storyboard-only.
    - The image-generation adapter remains blocked unless Nissan explicitly approves provider, model, and budget cap.
 
-5. **The submission/readiness loop is now BDD-governed.**
-   - Issue #228 and the BDD plan require each phase to define expectation, scope, acceptance criteria, validation, evidence, retrospective, and plan adjustment before scope expands.
+5. **The Quasar submission/readiness loop is BDD-governed.**
+   - Issue #236 and `docs/QUASAR-BDD-ITERATIVE-PLAYBOOK-2026-05-05.md` require each Quasar phase to define expectation, scope, validation, retrospective, safety review, and plan adjustment before scope expands.
+   - `npm run check:quasar:submission` verifies runtime compatibility, deployment inventory, and demo-readiness metadata.
 
 ## What is local or simulated
 
@@ -61,10 +64,11 @@ Nissan has selected Quasar-deployed Solana programs as the hackathon demo target
 
 ## Public proof chain
 
-The historical rows below prove the Anchor-era/local economic-demo readiness loop. They must not be presented as Quasar final submission proof; Anchor CI alone is insufficient for the new hackathon target.
+The current rows below prove the final Quasar devnet cutover loop. Legacy Anchor rows are retained as historical implementation evidence only; Anchor CI alone is insufficient for the hackathon target.
 
 | PR | Purpose | Merge commit | CI/evidence |
 | --- | --- | --- | --- |
+| #244 | Final Quasar devnet proof: target wiring, builders, read/decode, onboarding/reputation, Quasar-native A→B→C demo-agent path, Surfpool Quasar gate, devnet Reputation upgrade, proof map, and Quasar readiness CI | pending merge | Local gates passed: `npm run test:surfpool:quasar-critical`; full devnet Quasar A→B→C PASS; `NEXT_PUBLIC_DEMO_PROGRAM_TARGET=quasar npm run build`; `npm run check:quasar:submission`; BDD index; `git diff --check` |
 | #225 | Compact `/economic-demo` local evidence UI links | `f36d4bb55b7f10bbc5177b3fda189c67f17d7cd3` | PR checks passed; post-merge Anchor run `25359075289` passed |
 | #229 | Phase 0 BDD iterative plan + BDD lock + retrospective | `f5499576c11b97b91dcf51d4d148b7d0a7e8302f` | PR checks passed; post-merge Anchor run `25360618730` passed |
 | #230 | Phase 1 local submission-prep checker + retrospective | `ee90eafc47d4c15b3ab6ea800a5552a011d6ed59` | PR checks passed; post-merge Anchor run `25361165874` passed |
@@ -77,16 +81,15 @@ The historical rows below prove the Anchor-era/local economic-demo readiness loo
 ```bash
 npm run check:economic-demo:submission-prep
 npm run build
+npx jest --runTestsByPath lib/__tests__/quasar-instructions.test.ts lib/__tests__/quasar-agent-account-decoder.test.ts lib/__tests__/quasar-demo-agent-guard.test.ts --runInBand
+npm run check:quasar:submission
 npm run test:bdd:index
 git diff --check
 ```
 
 ## Recommended submission wording
 
-**Do not use this wording as final hackathon copy until Quasar runtime wiring and proof chain are refreshed.**
-
-
-> Reddi Agent Protocol demonstrates an agentic workflow marketplace where agents can disclose their dependencies before purchase and report downstream calls after execution using `reddi.downstream-disclosure-ledger.v1`. The current demo is deliberately evidence-bounded: it shows controlled/local economic workflow proof, public manifest disclosure, local evidence pointers, and storyboard-only image planning without hidden live calls, provider spend, signing, wallet mutation, or production settlement claims.
+> Reddi Agent Protocol demonstrates a Quasar-native devnet agent economy: a human-triggered workflow routes through wallet-bearing agents, x402 payment boundaries, public Quasar escrow settlement, blind reputation commit/reveal, and attestation. The final on-chain proof uses Quasar-compiled Solana programs for Registry, Escrow, Reputation, and Attestation. Surfpool localnet is used as the pre-devnet confidence gate; OpenRouter/30 specialist profiles and x402 evidence show the agent marketplace/payment boundary; Jupiter is wired for cross-token settlement but live swap is not claimed without `JUPITER_API_KEY`; MagicBlock PER/TEE is explicitly not claimed in the final Quasar path unless separately validated.
 
 ## If reviewers ask what comes next
 
@@ -96,4 +99,4 @@ The next stronger proof category requires explicit approval because it changes t
 2. **Real image generation** — requires provider/model choice and budget cap for OpenAI or Fal.
 3. **Production settlement proof** — requires a separate settlement runbook and explicit signing/wallet/devnet or production-network authorization.
 
-Until those are approved, the honest endpoint is this packet: local/demo proof, transparent boundaries, and green CI-backed implementation history.
+Until those are approved, the honest endpoint is this packet: Quasar-native devnet proof, local Surfpool confidence, transparent ecosystem-product boundaries, and green CI-backed implementation history.

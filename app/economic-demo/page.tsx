@@ -1,8 +1,11 @@
 "use client";
 
+import dynamic from "next/dynamic";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { useMemo, useState } from "react";
 
 import {
+  buildEconomicRunReport,
   economicDemoScenarios,
   formatLamports,
   lamportsDelta,
@@ -19,11 +22,30 @@ import {
 import type { EconomicDemoLedgerReconciliation } from "@/lib/economic-demo/ledger-reconciliation";
 import type { ResearchWorkflowDesign } from "@/lib/economic-demo/research-workflow-design";
 import type { PictureStoryboardDesign } from "@/lib/economic-demo/picture-storyboard-design";
+import {
+  ESCROW_PROGRAM_ID,
+  REGISTRY_PROGRAM_ID,
+  REPUTATION_PROGRAM_ID,
+  ATTESTATION_PROGRAM_ID,
+  PROGRAM_COMPATIBILITY,
+  PROGRAM_FRAMEWORK,
+  PROGRAM_KNOWN_GAPS,
+  PROGRAM_SUBMISSION_READY,
+  PROGRAM_TARGET,
+} from "@/lib/program";
 
 function shortWallet(wallet: string) {
   return `${wallet.slice(0, 8)}…${wallet.slice(-6)}`;
 }
 
+function formatUsdc(amount: number) {
+  return `$${amount.toFixed(2)} USDC`;
+}
+
+const WalletMultiButton = dynamic(
+  async () => (await import("@solana/wallet-adapter-react-ui")).WalletMultiButton,
+  { ssr: false },
+);
 
 const localEvidenceArtifacts = [
   {
@@ -68,11 +90,15 @@ export default function EconomicDemoPage() {
   const [researchDesignStatus, setResearchDesignStatus] = useState<"idle" | "loading" | "loaded" | "error">("idle");
   const [pictureStoryboardDesign, setPictureStoryboardDesign] = useState<PictureStoryboardDesign | null>(null);
   const [pictureStoryboardStatus, setPictureStoryboardStatus] = useState<"idle" | "loading" | "loaded" | "error">("idle");
+  const [paymentAsset, setPaymentAsset] = useState<"USDC" | "SOL">("USDC");
+  const [runStarted, setRunStarted] = useState(false);
+  const { connected, publicKey } = useWallet();
   const scenario = useMemo(
     () => economicDemoScenarios.find((candidate) => candidate.id === scenarioId) ?? economicDemoScenarios[0],
     [scenarioId],
   );
   const totalPlanned = scenario.edges.reduce((sum, edge) => sum + edge.amountLamports, 0);
+  const runReport = useMemo(() => buildEconomicRunReport(scenario), [scenario]);
   const activeDryRunPlan = dryRunPlan?.scenarioId === scenario.id ? dryRunPlan : null;
   const activeBalanceReport = balanceReport?.scenarioId === scenario.id ? balanceReport : null;
   const activeSurfpoolReport = surfpoolReport?.scenarioId === scenario.id ? surfpoolReport : null;
@@ -218,6 +244,24 @@ export default function EconomicDemoPage() {
                 </button>
               ))}
             </div>
+            <div className="grid gap-3 pt-3 md:grid-cols-3">
+              {economicDemoScenarios.map((candidate) => (
+                <button
+                  key={`card-${candidate.id}`}
+                  type="button"
+                  onClick={() => {
+                    setScenarioId(candidate.id);
+                    setRunStarted(false);
+                  }}
+                  className={`rounded-2xl border p-4 text-left transition ${candidate.id === scenario.id ? "border-[#14F195]/50 bg-[#14F195]/10" : "border-white/10 bg-white/5 hover:border-white/25"}`}
+                >
+                  <p className="text-xs uppercase tracking-wide text-gray-500">Predefined action</p>
+                  <h3 className="mt-2 font-semibold text-white">{candidate.title}</h3>
+                  <p className="mt-2 text-sm leading-5 text-gray-400">{candidate.finalOutputSummary}</p>
+                  <p className="mt-3 font-mono text-sm text-[#14F195]">{formatUsdc(candidate.quote.totalUsdc)}</p>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -338,6 +382,69 @@ export default function EconomicDemoPage() {
                   Picture storyboard design failed. No image-generation provider, signing, or transfer was attempted.
                 </p>
               )}
+              <div data-testid="economic-upfront-quote" className="mt-6 rounded-xl border border-[#14F195]/25 bg-[#14F195]/10 p-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-[#14F195]">Upfront run budget</p>
+                    <h3 className="mt-1 text-xl font-semibold text-white">User funds the whole activity first</h3>
+                    <p className="mt-2 text-sm leading-6 text-gray-300">
+                      The first agent receives one funded run budget, keeps its markup, then spends the reserved budget on downstream consumer-agent calls.
+                    </p>
+                  </div>
+                  <div className="min-w-48 rounded-lg border border-white/10 bg-black/25 p-3 text-right">
+                    <p className="text-xs text-gray-400">total quote</p>
+                    <p className="font-mono text-2xl text-[#14F195]">{formatUsdc(scenario.quote.totalUsdc)}</p>
+                  </div>
+                </div>
+                <div className="mt-4 flex flex-wrap items-center gap-3">
+                  <WalletMultiButton />
+                  <span className={connected ? "rounded-full border border-[#14F195]/30 px-3 py-1 text-xs text-[#14F195]" : "rounded-full border border-yellow-400/40 px-3 py-1 text-xs text-yellow-100"}>
+                    {connected && publicKey ? `connected ${shortWallet(publicKey.toBase58())}` : "connect wallet to pay"}
+                  </span>
+                  {(["USDC", "SOL"] as const).map((asset) => (
+                    <button key={asset} type="button" onClick={() => setPaymentAsset(asset)} className={paymentAsset === asset ? "rounded-lg border border-accent-purple/40 bg-accent-purple/15 px-3 py-2 text-sm font-semibold text-accent-purple" : "rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm font-semibold text-gray-300"}>
+                      Pay with {asset}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setRunStarted(true)}
+                    disabled={!connected}
+                    className={connected ? "rounded-lg bg-[#14F195] px-4 py-2 text-sm font-bold text-black shadow-card" : "rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm font-bold text-gray-500"}
+                  >
+                    {paymentAsset === "SOL" ? "Swap SOL via Jupiter and run" : `Pay ${formatUsdc(scenario.quote.totalUsdc)} and run`}
+                  </button>
+                </div>
+                {!connected && <p className="mt-3 text-xs text-yellow-100">Connect a devnet wallet to start the signed demo action.</p>}
+                <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                  <div className="rounded-lg border border-white/10 bg-black/20 p-3"><p className="text-xs text-gray-500">downstream specialists</p><p className="mt-1 font-mono text-sm text-white">{formatUsdc(scenario.quote.downstreamFeesUsdc)}</p></div>
+                  <div className="rounded-lg border border-white/10 bg-black/20 p-3"><p className="text-xs text-gray-500">attestors</p><p className="mt-1 font-mono text-sm text-white">{formatUsdc(scenario.quote.attestorFeesUsdc)}</p></div>
+                  <div className="rounded-lg border border-white/10 bg-black/20 p-3"><p className="text-xs text-gray-500">orchestrator markup</p><p className="mt-1 font-mono text-sm text-[#14F195]">{formatUsdc(scenario.quote.orchestratorMarkupUsdc)}</p></div>
+                  <div className="rounded-lg border border-white/10 bg-black/20 p-3"><p className="text-xs text-gray-500">selected route</p><p className="mt-1 font-mono text-sm text-white">{paymentAsset === "SOL" ? `${scenario.quote.solEstimate.toFixed(3)} SOL via Jupiter` : "USDC direct"}</p></div>
+                </div>
+                {paymentAsset === "SOL" && (
+                  <div data-testid="jupiter-swap-proof" className="mt-4 rounded-lg border border-yellow-400/30 bg-yellow-400/10 p-3">
+                    <p className="text-xs uppercase tracking-wide text-yellow-100">Jupiter swap proof lane</p>
+                    <p className="mt-2 text-sm leading-6 text-yellow-50/90">
+                      Swap execution story: user starts with SOL, Jupiter converts {scenario.quote.solEstimate.toFixed(3)} SOL → {formatUsdc(scenario.quote.totalUsdc)}, then the orchestrator pays downstream agents from the USDC budget. Slippage cap: {scenario.quote.slippageBps} bps; allowance: {formatUsdc(scenario.quote.jupiterSwapAllowanceUsdc)}.
+                    </p>
+                    <div className="mt-3 rounded border border-white/10 bg-black/20 p-2 text-xs leading-5 text-yellow-50/90">
+                      <p>Composite proof: live Jupiter route quote + signed devnet swap-lane budget receipt.</p>
+                      <p className="break-all font-mono text-gray-400">swap tx: {runReport.jupiterSwapProof.transactionAddress}</p>
+                      <p className="text-yellow-100">Wallet-backed Jupiter attempt: quote + swap transaction + wallet signature succeeded; devnet RPC rejected Jupiter mainnet address-table material.</p>
+                    </div>
+                  </div>
+                )}
+                {runStarted && (
+                  <div data-testid="live-run-status" className="mt-4 rounded-lg border border-[#14F195]/30 bg-black/20 p-3">
+                    <p className="text-xs uppercase tracking-wide text-[#14F195]">Live run timeline started</p>
+                    <p className="mt-2 text-sm leading-6 text-gray-200">
+                      Wallet connected → quote accepted → {paymentAsset === "SOL" ? "Jupiter SOL→USDC devnet proof selected" : "USDC direct route selected"} → downstream payments and attestation evidence shown below.
+                    </p>
+                  </div>
+                )}
+              </div>
+
               <dl className="mt-5 grid grid-cols-2 gap-3 text-sm">
                 <div className="rounded-xl border border-white/10 bg-white/5 p-3">
                   <dt className="text-gray-500">Orchestrator</dt>
@@ -358,8 +465,66 @@ export default function EconomicDemoPage() {
               </dl>
             </div>
 
+            <div className={`rounded-2xl border p-6 shadow-card ${PROGRAM_TARGET === "quasar" ? "border-amber-400/25 bg-amber-500/10" : "border-white/10 bg-card/70"}`}>
+              <p className="section-label">Solana program target</p>
+              <h3 className="mt-2 text-xl font-semibold text-white">
+                {PROGRAM_TARGET === "quasar" ? "Quasar hackathon target active" : "Legacy Anchor reference target"}
+              </h3>
+              <p className="mt-3 text-sm leading-6 text-gray-300">
+                This panel separates economic workflow evidence from final Quasar on-chain proof. Controlled x402/OpenRouter evidence, Surfpool local rehearsal evidence, and storyboard dry-runs are not automatically final Quasar submission proof.
+              </p>
+              <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+                <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                  <dt className="text-gray-500">Quasar Escrow program</dt>
+                  <dd className="mt-1 break-all font-mono text-[#14F195]">{ESCROW_PROGRAM_ID.toBase58()}</dd>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                  <dt className="text-gray-500">Quasar Registry program</dt>
+                  <dd className="mt-1 break-all font-mono text-[#14F195]">{REGISTRY_PROGRAM_ID.toBase58()}</dd>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                  <dt className="text-gray-500">Quasar Reputation program</dt>
+                  <dd className="mt-1 break-all font-mono text-[#14F195]">{REPUTATION_PROGRAM_ID.toBase58()}</dd>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                  <dt className="text-gray-500">Quasar Attestation program</dt>
+                  <dd className="mt-1 break-all font-mono text-[#14F195]">{ATTESTATION_PROGRAM_ID.toBase58()}</dd>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                  <dt className="text-gray-500">Target / framework</dt>
+                  <dd className="mt-1 font-mono text-gray-200">{PROGRAM_TARGET} · {PROGRAM_FRAMEWORK}</dd>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                  <dt className="text-gray-500">Compatibility</dt>
+                  <dd className="mt-1 font-mono text-gray-200">{PROGRAM_COMPATIBILITY}</dd>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                  <dt className="text-gray-500">Submission readiness</dt>
+                  <dd className={PROGRAM_SUBMISSION_READY ? "mt-1 font-semibold text-[#14F195]" : "mt-1 font-semibold text-yellow-100"}>
+                    {PROGRAM_SUBMISSION_READY ? "ready" : "blocked"}
+                  </dd>
+                </div>
+              </dl>
+              {!PROGRAM_SUBMISSION_READY && PROGRAM_KNOWN_GAPS.length > 0 && (
+                <div className="mt-4 rounded-xl border border-yellow-400/30 bg-yellow-400/10 p-4 text-sm text-yellow-50/90">
+                  <p className="font-semibold text-yellow-50">Known Quasar proof gaps before judge-ready submission:</p>
+                  <ul className="mt-2 space-y-1">
+                    {PROGRAM_KNOWN_GAPS.map((gap) => (
+                      <li key={gap} className="flex gap-2">
+                        <span>•</span>
+                        <span>{gap}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <p className="mt-4 rounded-lg border border-white/10 bg-black/20 p-3 text-xs leading-5 text-gray-300">
+                Hard boundary: this page must not sign, mutate wallets, transfer devnet funds, deploy programs, mutate Coolify/Vercel/env settings, or perform paid/live specialist work unless Nissan explicitly approves that specific loop.
+              </p>
+            </div>
+
             <div className="rounded-2xl border border-white/10 bg-card/70 p-6 shadow-card">
-              <p className="section-label">Final output</p>
+              <p data-testid="economic-final-output" className="section-label">Final output</p>
               <h3 className="mt-2 text-xl font-semibold text-white">{scenario.finalOutputType}</h3>
               <p className="mt-3 text-sm leading-6 text-gray-300">{scenario.finalOutputSummary}</p>
               <div className="mt-5 rounded-xl border border-[#14F195]/20 bg-[#14F195]/10 p-4 text-sm text-[#14F195]">
@@ -442,6 +607,109 @@ export default function EconomicDemoPage() {
                 <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-gray-400">
                   fixture · zero spend
                 </span>
+              </div>
+
+              <div className="mt-6 grid gap-4 xl:grid-cols-2">
+                <div data-testid="communication-flow" className="rounded-xl border border-white/10 bg-black/20 p-4">
+                  <p className="text-xs uppercase tracking-wide text-gray-500">Communication flow</p>
+                  <div className="mt-3 space-y-2">
+                    {scenario.communicationFlow.map((edge) => (
+                      <div key={`${edge.from}-${edge.to}-${edge.label}`} className="rounded-lg border border-white/10 bg-white/5 p-3 text-sm">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-mono text-white">{edge.from}</span><span className="text-gray-500">→</span><span className="font-mono text-white">{edge.to}</span>
+                          <span className="rounded-full border border-white/10 px-2 py-0.5 text-xs text-gray-300">{edge.status}</span>
+                        </div>
+                        <p className="mt-1 text-xs text-gray-400">{edge.label}: {edge.payload}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div data-testid="payment-flow" className="rounded-xl border border-[#14F195]/20 bg-black/20 p-4">
+                  <p className="text-xs uppercase tracking-wide text-[#14F195]">Payment flow + budget reconciliation</p>
+                  <div className="mt-3 space-y-2">
+                    {scenario.budgetLedger.map((entry) => (
+                      <div key={`${entry.from}-${entry.to}-${entry.label}`} className="rounded-lg border border-white/10 bg-white/5 p-3 text-sm">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <span className="font-mono text-white">{entry.from} → {entry.to}</span><span className="font-mono text-[#14F195]">{formatUsdc(entry.amountUsdc)}</span>
+                        </div>
+                        <p className="mt-1 text-xs text-gray-400">{entry.category}: {entry.label}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div data-testid="run-report" className="mt-6 rounded-xl border border-[#14F195]/25 bg-[#14F195]/10 p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-[#14F195]">Run report · specialist calls, attestations, payments, reputation</p>
+                    <h3 className="mt-1 text-xl font-semibold text-white">{runReport.title}</h3>
+                    <p className="mt-2 text-sm leading-6 text-gray-300">{runReport.narrative}</p>
+                  </div>
+                  <span className="rounded-full border border-yellow-400/40 bg-yellow-400/10 px-2 py-0.5 text-xs text-yellow-100">
+                    fixture/local proof · live receipts gated
+                  </span>
+                </div>
+
+                <div className="mt-4 grid gap-3 lg:grid-cols-2">
+                  <div className="rounded-lg border border-yellow-400/25 bg-yellow-400/10 p-3 lg:col-span-2">
+                    <p className="text-xs uppercase tracking-wide text-yellow-100">Jupiter swap before downstream payments</p>
+                    <p className="mt-2 text-sm leading-6 text-yellow-50/90">
+                      {runReport.jupiterSwapProof.inputAmount?.toFixed(3)} {runReport.jupiterSwapProof.inputAsset} → {formatUsdc(runReport.jupiterSwapProof.amountUsdc)} {runReport.jupiterSwapProof.outputAsset}; downstream agents are paid only after this converted budget exists.
+                    </p>
+                    <p className="mt-2 break-all font-mono text-xs text-gray-400">swap receipt: {runReport.jupiterSwapProof.transactionAddress}</p>
+                    <p className="mt-1 text-xs text-yellow-100">status: {runReport.jupiterSwapProof.proofStatus} · wallet-backed Jupiter devnet attempt captured separately</p>
+                  </div>
+                  {runReport.specialistCalls.map((call) => (
+                    <div key={`${call.step}-${call.specialistProfileId}`} className="rounded-lg border border-white/10 bg-black/20 p-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="font-mono text-sm text-white">{call.step}. {call.specialistProfileId}</p>
+                        <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-xs text-gray-300">{call.capability}</span>
+                      </div>
+                      <p className="mt-2 text-sm leading-6 text-gray-300">{call.payloadSummary}</p>
+                      <div className="mt-3 rounded border border-[#14F195]/20 bg-[#14F195]/10 p-2 text-xs leading-5 text-gray-200">
+                        <p className="text-[#14F195]">Payment receipt: {call.paymentReceipt.purpose}</p>
+                        <p>Amount: {formatUsdc(call.paymentReceipt.amountUsdc)} · status: {call.paymentReceipt.proofStatus}</p>
+                        <p className="break-all font-mono text-gray-400">tx: {call.paymentReceipt.transactionAddress}</p>
+                      </div>
+                      {call.validation && (
+                        <div className="mt-3 rounded border border-accent-purple/25 bg-accent-purple/10 p-2 text-xs leading-5 text-gray-200">
+                          <p className="text-accent-purple">Attested by {call.validation.attestorProfileId}: {call.validation.result}</p>
+                          <p>{call.validation.validation}</p>
+                          <p className="break-all font-mono text-gray-400">attestation receipt: {call.validation.attestationReceipt}</p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <div data-testid="attestation-proof" className="mt-4 rounded-lg border border-accent-purple/25 bg-black/20 p-3">
+                  <p className="text-xs uppercase tracking-wide text-accent-purple">Attestor validation chain</p>
+                  <div className="mt-3 grid gap-2 md:grid-cols-2">
+                    {runReport.attestations.map((attestation) => (
+                      <div key={`${attestation.attestorProfileId}-${attestation.validatesProfileId}`} className="rounded border border-white/10 bg-white/5 p-2 text-xs leading-5 text-gray-300">
+                        <p className="font-mono text-white">{attestation.attestorProfileId} → validates {attestation.validatesProfileId}</p>
+                        <p className="mt-1 text-[#14F195]">{attestation.result}</p>
+                        <p className="mt-1">{attestation.validation}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div data-testid="reputation-commit-reveal" className="mt-4 rounded-lg border border-yellow-400/25 bg-black/20 p-3">
+                  <p className="text-xs uppercase tracking-wide text-yellow-100">Reputation commit-reveal impact</p>
+                  <div className="mt-3 grid gap-2 md:grid-cols-2">
+                    {runReport.reputationEvents.map((event) => (
+                      <div key={event.profileId} className="rounded border border-white/10 bg-white/5 p-2 text-xs leading-5 text-gray-300">
+                        <p className="font-mono text-white">{event.profileId}</p>
+                        <p className="mt-1">score: {event.beforeScore} → commit {event.committedScore}/5 → {event.afterScore}</p>
+                        <p className="mt-1 break-all font-mono text-gray-500">commit tx: {event.commitTx}</p>
+                        <p className="mt-1 break-all font-mono text-gray-500">reveal tx: {event.revealTx}</p>
+                        <p className="mt-1 text-yellow-100">{event.status}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -824,12 +1092,26 @@ export default function EconomicDemoPage() {
                   </div>
                   <div className="mt-4 grid gap-3 sm:grid-cols-3">
                     <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+                      <p className="text-xs text-gray-500">upfront funding</p>
+                      <p className="mt-1 font-mono text-sm text-[#14F195]">{formatUsdc(activeSurfpoolReport.upfrontFunding.amountUsdc)}</p>
+                      <p className="mt-1 text-xs text-gray-400">user → {activeSurfpoolReport.upfrontFunding.toProfileId}</p>
+                    </div>
+                    <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+                      <p className="text-xs text-gray-500">Jupiter SOL route</p>
+                      <p className="mt-1 font-mono text-sm text-yellow-100">{activeSurfpoolReport.jupiterSolRoute.estimatedInputSol.toFixed(3)} SOL → {formatUsdc(activeSurfpoolReport.jupiterSolRoute.outputUsdc)}</p>
+                      <p className="mt-1 text-xs text-gray-400">{activeSurfpoolReport.jupiterSolRoute.status}</p>
+                    </div>
+                    <div className="rounded-lg border border-white/10 bg-black/20 p-3">
                       <p className="text-xs text-gray-500">planned transfers</p>
                       <p className="mt-1 font-mono text-lg text-white">{activeSurfpoolReport.transfers.length}</p>
                     </div>
                     <div className="rounded-lg border border-white/10 bg-black/20 p-3">
                       <p className="text-xs text-gray-500">debited / credited</p>
                       <p className="mt-1 font-mono text-sm text-[#14F195]">{formatLamports(activeSurfpoolReport.positiveProof.totalDebitedLamports).replace(/^\+/, "")} / {formatLamports(activeSurfpoolReport.positiveProof.totalCreditedLamports).replace(/^\+/, "")}</p>
+                    </div>
+                    <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+                      <p className="text-xs text-gray-500">markup retained</p>
+                      <p className="mt-1 font-mono text-sm text-[#14F195]">{formatUsdc(activeSurfpoolReport.upfrontFunding.markupUsdc)}</p>
                     </div>
                     <div className="rounded-lg border border-white/10 bg-black/20 p-3">
                       <p className="text-xs text-gray-500">blocked delta</p>

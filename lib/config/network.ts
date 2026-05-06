@@ -16,6 +16,9 @@ export type NetworkProfile = {
   };
   programs: {
     escrowProgramId: string;
+    registryProgramId?: string;
+    reputationProgramId?: string;
+    attestationProgramId?: string;
     target: ProgramTarget;
     framework: "anchor" | "quasar";
     compatibility: "anchor-layout" | "quasar-layout-unverified";
@@ -78,7 +81,8 @@ export function getNetworkProfile(): NetworkProfile {
   const escrowOverride = pickEnv("NEXT_PUBLIC_ESCROW_PROGRAM_ID", "DEMO_ESCROW_PROGRAM_ID");
   const allowUnsafeDevnetOverride = pickEnv("ALLOW_UNSAFE_ESCROW_OVERRIDE") === "true";
 
-  const targetProgramId = target === "quasar" ? quasarDevnet.programId : base.programs.escrowProgramId;
+  const quasarPrograms = quasarDevnet.programIds ?? { escrow: quasarDevnet.programId };
+  const targetProgramId = target === "quasar" ? quasarPrograms.escrow : base.programs.escrowProgramId;
 
   const effectiveEscrowProgramId =
     name === "devnet" &&
@@ -99,6 +103,9 @@ export function getNetworkProfile(): NetworkProfile {
     programs: {
       ...base.programs,
       escrowProgramId: effectiveEscrowProgramId,
+      registryProgramId: target === "quasar" ? quasarPrograms.registry : effectiveEscrowProgramId,
+      reputationProgramId: target === "quasar" ? quasarPrograms.reputation : effectiveEscrowProgramId,
+      attestationProgramId: target === "quasar" ? quasarPrograms.attestation : effectiveEscrowProgramId,
       target,
       framework: target === "quasar" ? "quasar" : "anchor",
       compatibility: target === "quasar" ? "quasar-layout-unverified" : "anchor-layout",

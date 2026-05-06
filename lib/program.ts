@@ -11,8 +11,11 @@ import { getNetworkProfile } from "@/lib/config/network";
 
 const network = getNetworkProfile();
 
-/** Deployed program address (resolved from active network profile / env) */
+/** Deployed program addresses (resolved from active network profile / env) */
 export const ESCROW_PROGRAM_ID = new PublicKey(network.programs.escrowProgramId);
+export const REGISTRY_PROGRAM_ID = new PublicKey(network.programs.registryProgramId ?? network.programs.escrowProgramId);
+export const REPUTATION_PROGRAM_ID = new PublicKey(network.programs.reputationProgramId ?? network.programs.escrowProgramId);
+export const ATTESTATION_PROGRAM_ID = new PublicKey(network.programs.attestationProgramId ?? network.programs.escrowProgramId);
 
 /** Active on-chain implementation target. Quasar target selection does not imply Anchor layout compatibility. */
 export const PROGRAM_TARGET = network.programs.target;
@@ -64,6 +67,15 @@ export const ACCOUNT_DISC = {
   AttestationAccount: disc("account", "AttestationAccount"),
 } as const;
 
+export const QUASAR_ACCOUNT_DISC = {
+  AgentAccount: Buffer.from([20]),
+} as const;
+
+export const ANCHOR_AGENT_ACCOUNT_DATA_SIZE = 150;
+export const QUASAR_AGENT_ACCOUNT_DATA_SIZE = 153;
+export const ACTIVE_AGENT_ACCOUNT_DISC = PROGRAM_TARGET === "quasar" ? QUASAR_ACCOUNT_DISC.AgentAccount : ACCOUNT_DISC.AgentAccount;
+export const ACTIVE_AGENT_ACCOUNT_DATA_SIZE = PROGRAM_TARGET === "quasar" ? QUASAR_AGENT_ACCOUNT_DATA_SIZE : ANCHOR_AGENT_ACCOUNT_DATA_SIZE;
+
 // ── Agent type encoding (matches Anchor borsh enum) ───────────────────────────
 
 export const AGENT_TYPE_ENUM = {
@@ -104,13 +116,19 @@ export interface OnchainAgent {
   attestationAccuracy: number;
 }
 
+function agentTypeFromRaw(agentTypeRaw: number): AgentTypeEnum | null {
+  if (agentTypeRaw === 0) return "Primary";
+  if (agentTypeRaw === 1) return "Attestation";
+  if (agentTypeRaw === 2) return "Both";
+  return null;
+}
+
 export function decodeAgentAccount(data: Buffer): OnchainAgent | null {
   try {
-    let off = 8; // skip discriminator
+    let off = 8; // skip Anchor discriminator
     const owner = new PublicKey(data.subarray(off, off + 32)).toBase58(); off += 32;
-    const agentTypeRaw = data.readUInt8(off); off += 1;
-    const agentType: AgentTypeEnum =
-      agentTypeRaw === 0 ? "Primary" : agentTypeRaw === 1 ? "Attestation" : "Both";
+    const agentType = agentTypeFromRaw(data.readUInt8(off)); off += 1;
+    if (!agentType) return null;
     const modelLen = data.readUInt32LE(off); off += 4;
     const model = data.subarray(off, off + modelLen).toString("utf-8"); off += modelLen;
     const rateLamports = data.readBigUInt64LE(off); off += 8;
@@ -128,6 +146,43 @@ export function decodeAgentAccount(data: Buffer): OnchainAgent | null {
   } catch {
     return null;
   }
+}
+
+export function decodeQuasarAgentAccount(data: Buffer): OnchainAgent | null {
+  try {
+    if (data.length < QUASAR_AGENT_ACCOUNT_DATA_SIZE) return null;
+    if (data.readUInt8(0) !== QUASAR_ACCOUNT_DISC.AgentAccount[0]) return null;
+    let off = 1; // skip Quasar one-byte account discriminator
+    const owner = new PublicKey(data.subarray(off, off + 32)).toBase58(); off += 32;
+    const agentType = agentTypeFromRaw(data.readUInt8(off)); off += 1;
+    if (!agentType) return null;
+    const modelLen = data.readUInt8(off); off += 1;
+    if (modelLen > 64) return null;
+    off += 6; // alignment padding
+    const rateLamports = data.readBigUInt64LE(off); off += 8;
+    const minReputation = data.readUInt8(off); off += 1;
+    off += 1; // alignment padding
+    const reputationScore = data.readUInt16LE(off); off += 2;
+    off += 4; // alignment padding
+    const jobsCompleted = data.readBigUInt64LE(off); off += 8;
+    const jobsFailed = data.readBigUInt64LE(off); off += 8;
+    const createdAt = data.readBigInt64LE(off); off += 8;
+    const active = data.readUInt8(off) !== 0; off += 1;
+    off += 1; // bump
+    const attestationAccuracy = data.readUInt16LE(off); off += 2;
+    off += 4; // alignment padding
+    const model = data.subarray(off, off + modelLen).toString("utf-8");
+    return {
+      owner, agentType, model, rateLamports, minReputation,
+      reputationScore, jobsCompleted, jobsFailed, createdAt, active, attestationAccuracy,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export function decodeActiveAgentAccount(data: Buffer): OnchainAgent | null {
+  return PROGRAM_TARGET === "quasar" ? decodeQuasarAgentAccount(data) : decodeAgentAccount(data);
 }
 
 // ── register_agent instruction builder ───────────────────────────────────────
@@ -162,7 +217,7 @@ export function buildRegisterAgentData(
 export function agentPda(ownerPubkey: PublicKey): PublicKey {
   return PublicKey.findProgramAddressSync(
     [AGENT_SEED, ownerPubkey.toBytes()],
-    ESCROW_PROGRAM_ID
+    REGISTRY_PROGRAM_ID
   )[0];
 }
 

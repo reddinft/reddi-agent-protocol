@@ -1,0 +1,33 @@
+[package]
+name = "quasar-registry"
+version = "0.1.0"
+edition = "2021"
+description = "Quasar SOL-native agent registry — parity port of programs/escrow registry handlers (register/update/deregister)"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "quasar_registry"
+
+[features]
+default = []
+alloc = []
+debug = []
+
+[dependencies]
+quasar-lang = { path = "../../third_party/quasar/lang" }
+solana-address = { version = "2.2.0" }
+solana-instruction = { version = "3.2.0" }
+
+[dev-dependencies]
+quasar-svm = { git = "https://github.com/blueshift-gg/quasar-svm", rev = "cf3c06a08a9009631d42d7942a574da1eac6104d" }
+solana-keypair = { version = "3.0.1" }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }
+
+[workspace]
+
+[profile.release]
+overflow-checks = true
+lto = "fat"
+codegen-units = 1

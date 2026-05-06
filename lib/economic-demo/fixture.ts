@@ -1,5 +1,7 @@
 export type EconomicDemoScenarioId = "webpage" | "research" | "picture";
 
+export type PaymentAsset = "USDC" | "SOL";
+
 export type WalletBalance = {
   profileId: string;
   role: "end-user" | "orchestrator" | "specialist" | "attestor" | "adapter";
@@ -18,6 +20,34 @@ export type EconomicEdge = {
   receipt: string;
 };
 
+export type EconomicDemoQuote = {
+  currency: "USDC";
+  downstreamFeesUsdc: number;
+  attestorFeesUsdc: number;
+  orchestratorMarkupUsdc: number;
+  jupiterSwapAllowanceUsdc: number;
+  totalUsdc: number;
+  solEstimate: number;
+  slippageBps: number;
+};
+
+export type BudgetLedgerEntry = {
+  label: string;
+  from: string;
+  to: string;
+  amountUsdc: number;
+  category: "user-funding" | "swap" | "downstream" | "attestation" | "markup" | "refund";
+};
+
+export type VisualFlowEdge = {
+  from: string;
+  to: string;
+  label: string;
+  payload: string;
+  paymentUsdc: number;
+  status: "quoted" | "funded" | "reserved" | "paid" | "attested" | "returned" | "blocked";
+};
+
 export type EconomicDemoScenario = {
   id: EconomicDemoScenarioId;
   title: string;
@@ -26,13 +56,72 @@ export type EconomicDemoScenario = {
   mode: "fixture-zero-spend" | "planned-dry-run" | "adapter-required";
   finalOutputType: "webpage" | "article" | "image-brief";
   finalOutputSummary: string;
+  quote: EconomicDemoQuote;
+  budgetLedger: BudgetLedgerEntry[];
+  communicationFlow: VisualFlowEdge[];
   agents: Array<{ profileId: string; role: WalletBalance["role"]; description: string }>;
   edges: EconomicEdge[];
   balances: WalletBalance[];
   guardrails: string[];
 };
 
+export type EconomicRunReportPaymentReceipt = {
+  from: string;
+  to: string;
+  purpose: string;
+  amountUsdc: number;
+  inputAsset?: PaymentAsset;
+  outputAsset?: "USDC";
+  inputAmount?: number;
+  proofStatus: "fixture" | "local-surfpool" | "devnet-verified" | "pending-live-receipt";
+  transactionAddress: string;
+};
+
+export type EconomicRunReportAttestation = {
+  attestorProfileId: string;
+  validatesProfileId: string;
+  validation: string;
+  result: "release_recommended" | "needs_revision" | "blocked";
+  attestationReceipt: string;
+};
+
+export type EconomicRunReportReputationEvent = {
+  profileId: string;
+  beforeScore: number;
+  committedScore: number;
+  afterScore: number;
+  commitTx: string;
+  revealTx: string;
+  status: "fixture_commit_reveal" | "devnet_verified" | "pending_live_reveal";
+};
+
+export type EconomicRunReport = {
+  scenarioId: EconomicDemoScenarioId;
+  title: string;
+  narrative: string;
+  jupiterSwapProof: EconomicRunReportPaymentReceipt;
+  specialistCalls: Array<{
+    step: number;
+    specialistProfileId: string;
+    capability: string;
+    payloadSummary: string;
+    paymentReceipt: EconomicRunReportPaymentReceipt;
+    validation: EconomicRunReportAttestation | null;
+  }>;
+  paymentReceipts: EconomicRunReportPaymentReceipt[];
+  attestations: EconomicRunReportAttestation[];
+  reputationEvents: EconomicRunReportReputationEvent[];
+};
+
 const USER_WALLET = "UserDevnet111111111111111111111111111111111";
+
+const latestDevnetSignedAction = {
+  scenarioId: "webpage" as EconomicDemoScenarioId,
+  swapBudgetTx: "jenTEkjtfJz58v9az2sRVUpKYuNfMwsFtpCnstd7Epi8UomspqtPqQ1QVhANEVT1XBED1NhKsM3HozbHEGmrczh",
+  downstreamCopyTx: "3ufuhouTuG1Dkbd7Wq6XKsU8hBPN43ANT6VE8i32CASjP9fSoHXNkPLNCiucxv3ZYF6vNKxxgVckEZCam59L4Kyn",
+  downstreamCodeTx: "26W3wmSnLvmGcpD8XdUqeajrbozkuY8z4q7gfwvzpkB1p29r2K27Wvqn8tqjwhUnZSZyR9cFCSwq8Y6UGJopMCqB",
+  attestorPaymentTx: "5fURph3znUhs9zMuJCfEVAc9gpPgkVFbpYWfaVDzMoPv84bTjLiBPPWxYpcekpAB2Uo3ebWkDJziuTR9DqY9kCbx",
+};
 
 export const economicDemoScenarios: EconomicDemoScenario[] = [
   {
@@ -44,6 +133,22 @@ export const economicDemoScenarios: EconomicDemoScenario[] = [
     finalOutputType: "webpage",
     finalOutputSummary:
       "A responsive landing page plan with hero copy, menu sections, sustainability proof points, and implementation-ready component notes.",
+    quote: { currency: "USDC", downstreamFeesUsdc: 2, attestorFeesUsdc: 0.5, orchestratorMarkupUsdc: 0.75, jupiterSwapAllowanceUsdc: 0.08, totalUsdc: 3.33, solEstimate: 0.021, slippageBps: 75 },
+    budgetLedger: [
+      { label: "Upfront activity fee", from: "end-user", to: "agentic-workflow-system", amountUsdc: 3.33, category: "user-funding" },
+      { label: "Reserved copy specialist budget", from: "agentic-workflow-system", to: "content-creation-agent", amountUsdc: 1, category: "downstream" },
+      { label: "Reserved code specialist budget", from: "agentic-workflow-system", to: "code-generation-agent", amountUsdc: 1, category: "downstream" },
+      { label: "Reserved attestation budget", from: "agentic-workflow-system", to: "verification-validation-agent", amountUsdc: 0.5, category: "attestation" },
+      { label: "Orchestrator retained markup", from: "agentic-workflow-system", to: "agentic-workflow-system", amountUsdc: 0.75, category: "markup" },
+      { label: "SOL route swap/slippage allowance", from: "Jupiter", to: "agentic-workflow-system", amountUsdc: 0.08, category: "swap" },
+    ],
+    communicationFlow: [
+      { from: "end-user", to: "agentic-workflow-system", label: "fund and request", payload: "Goal, audience, tone, payment asset, and run budget.", paymentUsdc: 3.33, status: "funded" },
+      { from: "agentic-workflow-system", to: "content-creation-agent", label: "buy copy", payload: "Bakery positioning, section list, and CTA requirements.", paymentUsdc: 1, status: "paid" },
+      { from: "agentic-workflow-system", to: "code-generation-agent", label: "buy code", payload: "Approved copy plus responsive layout constraints.", paymentUsdc: 1, status: "paid" },
+      { from: "agentic-workflow-system", to: "verification-validation-agent", label: "buy attestation", payload: "Final page draft, acceptance criteria, and receipt chain.", paymentUsdc: 0.5, status: "attested" },
+      { from: "verification-validation-agent", to: "end-user", label: "return result", payload: "Release guidance, final output, and budget reconciliation.", paymentUsdc: 0, status: "returned" },
+    ],
     agents: [
       { profileId: "end-user", role: "end-user", description: "Submits the goal and funds the run budget." },
       { profileId: "agentic-workflow-system", role: "orchestrator", description: "Breaks the request into paid specialist jobs." },
@@ -107,6 +212,24 @@ export const economicDemoScenarios: EconomicDemoScenario[] = [
     finalOutputType: "article",
     finalOutputSummary:
       "A structured article outline with evidence-gathering, synthesis, drafting, explainability, and verification steps.",
+    quote: { currency: "USDC", downstreamFeesUsdc: 3, attestorFeesUsdc: 1, orchestratorMarkupUsdc: 1, jupiterSwapAllowanceUsdc: 0.12, totalUsdc: 5.12, solEstimate: 0.032, slippageBps: 75 },
+    budgetLedger: [
+      { label: "Upfront research activity fee", from: "end-user", to: "agentic-workflow-system", amountUsdc: 5.12, category: "user-funding" },
+      { label: "Knowledge retrieval budget", from: "agentic-workflow-system", to: "knowledge-retrieval-agent", amountUsdc: 1, category: "downstream" },
+      { label: "Scientific synthesis budget", from: "agentic-workflow-system", to: "scientific-research-agent", amountUsdc: 1, category: "downstream" },
+      { label: "Drafting budget", from: "agentic-workflow-system", to: "content-creation-agent", amountUsdc: 1, category: "downstream" },
+      { label: "Attestation/review budget", from: "agentic-workflow-system", to: "explainable-agent + verification-validation-agent", amountUsdc: 1, category: "attestation" },
+      { label: "Orchestrator retained markup", from: "agentic-workflow-system", to: "agentic-workflow-system", amountUsdc: 1, category: "markup" },
+      { label: "SOL route swap/slippage allowance", from: "Jupiter", to: "agentic-workflow-system", amountUsdc: 0.12, category: "swap" },
+    ],
+    communicationFlow: [
+      { from: "end-user", to: "agentic-workflow-system", label: "fund and request", payload: "Topic, evidence standard, audience, payment asset, and budget envelope.", paymentUsdc: 5.12, status: "funded" },
+      { from: "agentic-workflow-system", to: "knowledge-retrieval-agent", label: "buy retrieval", payload: "Search questions, source criteria, and citation requirements.", paymentUsdc: 1, status: "paid" },
+      { from: "agentic-workflow-system", to: "scientific-research-agent", label: "buy synthesis", payload: "Source map, claim hierarchy, gaps, and caveats.", paymentUsdc: 1, status: "paid" },
+      { from: "agentic-workflow-system", to: "content-creation-agent", label: "buy article", payload: "Evidence synthesis, angle, outline, and caveats.", paymentUsdc: 1, status: "paid" },
+      { from: "agentic-workflow-system", to: "verification-validation-agent", label: "buy verification", payload: "Final article and cited evidence map.", paymentUsdc: 0.5, status: "attested" },
+      { from: "verification-validation-agent", to: "end-user", label: "return article", payload: "Final article plus citation caveats and reconciliation.", paymentUsdc: 0, status: "returned" },
+    ],
     agents: [
       { profileId: "end-user", role: "end-user", description: "Requests a research-backed article." },
       { profileId: "agentic-workflow-system", role: "orchestrator", description: "Coordinates the research graph and budget envelope." },
@@ -144,6 +267,22 @@ export const economicDemoScenarios: EconomicDemoScenario[] = [
     finalOutputType: "image-brief",
     finalOutputSummary:
       "A visual brief/storyboard until an image-generation adapter is explicitly approved and allowlisted.",
+    quote: { currency: "USDC", downstreamFeesUsdc: 0.5, attestorFeesUsdc: 0.25, orchestratorMarkupUsdc: 0.5, jupiterSwapAllowanceUsdc: 0.05, totalUsdc: 1.3, solEstimate: 0.008, slippageBps: 75 },
+    budgetLedger: [
+      { label: "Upfront picture activity fee", from: "end-user", to: "tool-using-agent", amountUsdc: 1.3, category: "user-funding" },
+      { label: "Image adapter budget", from: "tool-using-agent", to: "image-generation-adapter", amountUsdc: 0, category: "downstream" },
+      { label: "Vision validation budget", from: "tool-using-agent", to: "vision-language-agent", amountUsdc: 0.5, category: "downstream" },
+      { label: "Attestation budget", from: "tool-using-agent", to: "verification-validation-agent", amountUsdc: 0.25, category: "attestation" },
+      { label: "Orchestrator retained markup", from: "tool-using-agent", to: "tool-using-agent", amountUsdc: 0.5, category: "markup" },
+      { label: "SOL route swap/slippage allowance", from: "Jupiter", to: "tool-using-agent", amountUsdc: 0.05, category: "swap" },
+    ],
+    communicationFlow: [
+      { from: "end-user", to: "tool-using-agent", label: "fund and request", payload: "Prompt, style, safety constraints, payment asset, and budget cap.", paymentUsdc: 1.3, status: "funded" },
+      { from: "tool-using-agent", to: "image-generation-adapter", label: "call image adapter", payload: "Adapter remains gated by env/provider approval.", paymentUsdc: 0, status: "blocked" },
+      { from: "tool-using-agent", to: "vision-language-agent", label: "buy validation", payload: "Generated image or storyboard plus prompt criteria.", paymentUsdc: 0.5, status: "paid" },
+      { from: "tool-using-agent", to: "verification-validation-agent", label: "buy release check", payload: "Validation result, image/storyboard receipt, and release/refund criteria.", paymentUsdc: 0.25, status: "attested" },
+      { from: "verification-validation-agent", to: "end-user", label: "return visual", payload: "Image/storyboard, release guidance, and budget reconciliation.", paymentUsdc: 0, status: "returned" },
+    ],
     agents: [
       { profileId: "end-user", role: "end-user", description: "Requests a visual output." },
       { profileId: "tool-using-agent", role: "orchestrator", description: "Would call an allowlisted image adapter after approval." },
@@ -174,4 +313,99 @@ export function lamportsDelta(balance: WalletBalance) {
 export function formatLamports(lamports: number) {
   const sign = lamports > 0 ? "+" : "";
   return `${sign}${(lamports / 1_000_000_000).toFixed(6)} SOL`;
+}
+
+function fixtureTx(label: string) {
+  return `fixture-local-tx:${label}`;
+}
+
+export function buildEconomicRunReport(scenario: EconomicDemoScenario): EconomicRunReport {
+  const devnetSignedAction = latestDevnetSignedAction.scenarioId === scenario.id ? latestDevnetSignedAction : null;
+  const attestors = scenario.agents.filter((agent) => agent.role === "attestor");
+  const specialistEdges = scenario.edges.filter((edge) => edge.to !== scenario.orchestrator && edge.status !== "blocked");
+  const jupiterSwapProof: EconomicRunReportPaymentReceipt = {
+    from: "end-user",
+    to: scenario.orchestrator,
+    purpose: "Jupiter SOL→USDC swap funds the run budget before downstream payments",
+    amountUsdc: scenario.quote.totalUsdc,
+    inputAsset: "SOL",
+    outputAsset: "USDC",
+    inputAmount: scenario.quote.solEstimate,
+    proofStatus: devnetSignedAction ? "devnet-verified" : "local-surfpool",
+    transactionAddress: devnetSignedAction
+      ? `https://explorer.solana.com/tx/${devnetSignedAction.swapBudgetTx}?cluster=devnet`
+      : fixtureTx(`${scenario.id}:jupiter-swap:sol-to-usdc-budget`),
+  };
+  const paymentReceipts = [jupiterSwapProof, ...scenario.budgetLedger
+    .filter((entry) => entry.category !== "markup" && entry.amountUsdc > 0)
+    .map((entry): EconomicRunReportPaymentReceipt => ({
+      from: entry.from,
+      to: entry.to,
+      purpose: entry.label,
+      amountUsdc: entry.amountUsdc,
+      proofStatus: "pending-live-receipt",
+      transactionAddress:
+        devnetSignedAction && entry.to === "content-creation-agent"
+          ? `https://explorer.solana.com/tx/${devnetSignedAction.downstreamCopyTx}?cluster=devnet`
+          : devnetSignedAction && entry.to === "code-generation-agent"
+            ? `https://explorer.solana.com/tx/${devnetSignedAction.downstreamCodeTx}?cluster=devnet`
+            : devnetSignedAction && entry.category === "attestation"
+              ? `https://explorer.solana.com/tx/${devnetSignedAction.attestorPaymentTx}?cluster=devnet`
+              : fixtureTx(`${scenario.id}:${entry.category}:${entry.from}->${entry.to}`),
+    }))];
+  const attestations = specialistEdges
+    .filter((edge) => edge.capability.includes("attestation") || edge.capability.includes("verification") || edge.status === "attested")
+    .map((edge, index): EconomicRunReportAttestation => ({
+      attestorProfileId: edge.to,
+      validatesProfileId: specialistEdges[Math.max(0, index - 1)]?.to ?? scenario.orchestrator,
+      validation: `${edge.payloadSummary} Attestor checks payload, receipt chain, budget reconciliation, and release/refund criteria.`,
+      result: edge.status === "blocked" ? "blocked" : "release_recommended",
+      attestationReceipt: edge.receipt,
+    }));
+  const fallbackAttestor = attestors[0]?.profileId ?? "verification-validation-agent";
+  const calls = specialistEdges
+    .filter((edge) => !edge.capability.includes("attestation") && !edge.capability.includes("verification") && !edge.capability.includes("review"))
+    .map((edge, index) => {
+      const matchingPayment = paymentReceipts.find((receipt) => receipt.to === edge.to) ?? paymentReceipts[index + 1] ?? paymentReceipts[0];
+      const validation = attestations.find((attestation) => attestation.validatesProfileId === edge.to) ?? {
+        attestorProfileId: fallbackAttestor,
+        validatesProfileId: edge.to,
+        validation: `Attestor validates ${edge.to} output against acceptance criteria, payment receipt, and disclosure-ledger completeness.`,
+        result: "release_recommended" as const,
+        attestationReceipt: `fixture:attestation:${scenario.id}:${edge.to}:release-recommended`,
+      };
+      return {
+        step: index + 1,
+        specialistProfileId: edge.to,
+        capability: edge.capability,
+        payloadSummary: edge.payloadSummary,
+        paymentReceipt: matchingPayment,
+        validation,
+      };
+    });
+
+  const reputationEvents = calls.map((call, index): EconomicRunReportReputationEvent => {
+    const beforeScore = 72 + index * 4;
+    const committedScore = call.validation?.result === "release_recommended" ? 5 : 2;
+    return {
+      profileId: call.specialistProfileId,
+      beforeScore,
+      committedScore,
+      afterScore: beforeScore + committedScore,
+      commitTx: fixtureTx(`${scenario.id}:reputation:${call.specialistProfileId}:commit`),
+      revealTx: fixtureTx(`${scenario.id}:reputation:${call.specialistProfileId}:reveal`),
+      status: "fixture_commit_reveal",
+    };
+  });
+
+  return {
+    scenarioId: scenario.id,
+    title: `${scenario.title} run report`,
+    narrative: "The user funds the activity, the orchestrator purchases specialist work, attestors validate outputs and receipts, then reputation changes are applied only after commit-reveal.",
+    jupiterSwapProof,
+    specialistCalls: calls,
+    paymentReceipts,
+    attestations,
+    reputationEvents,
+  };
 }

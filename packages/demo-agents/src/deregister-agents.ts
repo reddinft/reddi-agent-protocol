@@ -12,18 +12,13 @@ import {
   Keypair,
   PublicKey,
   Transaction,
-  TransactionInstruction,
 } from "@solana/web3.js";
-import crypto from "crypto";
 import { AGENT_A_KEYPAIR, AGENT_B_KEYPAIR, AGENT_C_KEYPAIR } from "./wallets";
-import { AGENT_SEED, DEVNET_RPC, ESCROW_PROGRAM_ID, explorerTxUrl } from "./config";
+import { AGENT_SEED, DEVNET_RPC, REGISTRY_PROGRAM_ID, PROGRAM_TARGET, explorerTxUrl } from "./config";
+import { buildDemoDeregisterAgentInstruction } from "./registration-instruction";
 
-const PROGRAM_ID = new PublicKey(ESCROW_PROGRAM_ID);
+const PROGRAM_ID = new PublicKey(REGISTRY_PROGRAM_ID);
 const connection = new Connection(DEVNET_RPC, "confirmed");
-
-function disc(ixName: string): Buffer {
-  return crypto.createHash("sha256").update(`global:${ixName}`).digest().subarray(0, 8);
-}
 
 function agentPda(owner: PublicKey): PublicKey {
   return PublicKey.findProgramAddressSync([AGENT_SEED, owner.toBytes()], PROGRAM_ID)[0];
@@ -41,13 +36,10 @@ async function deregisterAgent(owner: Keypair, label: string) {
     return;
   }
 
-  const ix = new TransactionInstruction({
+  const ix = buildDemoDeregisterAgentInstruction({
+    target: PROGRAM_TARGET,
     programId: PROGRAM_ID,
-    keys: [
-      { pubkey: agentPk, isSigner: false, isWritable: true },
-      { pubkey: owner.publicKey, isSigner: true, isWritable: true },
-    ],
-    data: disc("deregister_agent"),
+    owner: owner.publicKey,
   });
 
   const { blockhash } = await connection.getLatestBlockhash();
@@ -65,7 +57,8 @@ async function deregisterAgent(owner: Keypair, label: string) {
 
 async function main() {
   console.log("🚀 Deregistering demo agents...\n");
-  console.log(`Program: ${ESCROW_PROGRAM_ID}`);
+  console.log(`Program: ${REGISTRY_PROGRAM_ID}`);
+  console.log(`Target: ${PROGRAM_TARGET}`);
 
   await deregisterAgent(AGENT_A_KEYPAIR, "Agent A (Orchestrator)");
   await deregisterAgent(AGENT_B_KEYPAIR, "Agent B (Primary Specialist)");

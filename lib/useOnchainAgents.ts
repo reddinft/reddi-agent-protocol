@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 import { Connection } from "@solana/web3.js";
 import {
-  ESCROW_PROGRAM_ID,
+  REGISTRY_PROGRAM_ID,
   DEVNET_RPC,
-  ACCOUNT_DISC,
-  decodeAgentAccount,
+  ACTIVE_AGENT_ACCOUNT_DATA_SIZE,
+  ACTIVE_AGENT_ACCOUNT_DISC,
+  decodeActiveAgentAccount,
   type OnchainAgent,
 } from "@/lib/program";
 
@@ -40,18 +41,16 @@ export function useOnchainAgents(): {
       setError(null);
       try {
         const conn = new Connection(DEVNET_RPC, "confirmed");
-        const disc = ACCOUNT_DISC.AgentAccount;
-
-        const accounts = await conn.getProgramAccounts(ESCROW_PROGRAM_ID, {
+        const accounts = await conn.getProgramAccounts(REGISTRY_PROGRAM_ID, {
           commitment: "confirmed",
           filters: [
             {
-              // AgentAccount discriminator is the first 8 bytes
-              // memcmp.bytes must be base58-encoded per Solana JSON-RPC spec
-              memcmp: { offset: 0, bytes: toBase58(disc) },
+              // AgentAccount discriminator is target-aware:
+              // Anchor uses 8-byte account discriminators; Quasar uses a one-byte discriminator.
+              // memcmp.bytes must be base58-encoded per Solana JSON-RPC spec.
+              memcmp: { offset: 0, bytes: toBase58(ACTIVE_AGENT_ACCOUNT_DISC) },
             },
-            // Minimum size: discriminator(8) + fixed fields — filter out dust
-            { dataSize: 150 },
+            { dataSize: ACTIVE_AGENT_ACCOUNT_DATA_SIZE },
           ],
         });
 
@@ -59,7 +58,7 @@ export function useOnchainAgents(): {
 
         const decoded = accounts
           .map(({ pubkey, account }) => {
-            const agent = decodeAgentAccount(Buffer.from(account.data));
+            const agent = decodeActiveAgentAccount(Buffer.from(account.data));
             if (!agent) return null;
             return { ...agent, pda: pubkey.toBase58() };
           })

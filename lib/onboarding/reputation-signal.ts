@@ -4,10 +4,11 @@ import "server-only";
  * On-chain reputation signal wiring for planner feedback.
  *
  * Commit-reveal lifecycle:
- * 1. commit_rating   — blind sha256(score_u8 || salt_bytes32) commitment
+ * 1. commit_rating   — blind commitment
  * 2. reveal_rating   — reveal score + salt to finalise and apply reputation update
  *
- * Commitment hash: sha256([score_byte] + salt_bytes32)  (matches Rust: Sha256::update([score]) + update(salt))
+ * Legacy Anchor commitment hash: sha256(score_u8 || salt_bytes32)
+ * Quasar commitment hash: sha256(score_u8 || salt_bytes32 || job_id_bytes16 || reputation_program_id)
  * Rating PDA seeds: [b"rating", job_id_bytes16]
  */
 
@@ -18,7 +19,13 @@ import {
 import { createHash, randomBytes } from "crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
-import { DEVNET_RPC, ESCROW_PROGRAM_ID, RATING_SEED, AGENT_SEED, IX } from "@/lib/program";
+import { DEVNET_RPC, ESCROW_PROGRAM_ID, REGISTRY_PROGRAM_ID, REPUTATION_PROGRAM_ID, RATING_SEED, AGENT_SEED, IX, PROGRAM_TARGET } from "@/lib/program";
+import {
+  buildQuasarCommitRatingInstruction,
+  buildQuasarRevealRatingInstruction,
+  quasarAgentPda,
+  quasarRatingPda,
+} from "@/lib/quasar/instructions";
 import { emitTorqueEvent } from "@/lib/torque/client";
 import { TORQUE_EVENTS } from "@/lib/torque/events";
 
@@ -76,6 +83,9 @@ function jobIdFromRunId(runId: string): Uint8Array {
  * (matches programs/escrow/src/instructions/commit_rating.rs)
  */
 function ratingPdaFor(jobId: Uint8Array): PublicKey {
+  if (PROGRAM_TARGET === "quasar") {
+    return quasarRatingPda(jobId, REPUTATION_PROGRAM_ID);
+  }
   return PublicKey.findProgramAddressSync(
     [Buffer.from(RATING_SEED), Buffer.from(jobId)],
     ESCROW_PROGRAM_ID
@@ -84,6 +94,9 @@ function ratingPdaFor(jobId: Uint8Array): PublicKey {
 
 /** AgentAccount PDA: seeds = [b"agent", agent_pubkey(32)] */
 function agentPdaFor(agentPubkey: PublicKey): PublicKey {
+  if (PROGRAM_TARGET === "quasar") {
+    return quasarAgentPda(agentPubkey, REGISTRY_PROGRAM_ID);
+  }
   return PublicKey.findProgramAddressSync(
     [Buffer.from(AGENT_SEED), agentPubkey.toBytes()],
     ESCROW_PROGRAM_ID
@@ -177,8 +190,13 @@ export async function commitReputationRating(
   const jobId = jobIdFromRunId(runId);
   // salt: 32 random bytes
   const salt = randomBytes(32);
-  // commitment: sha256([score_byte] + salt_bytes)  — matches Rust: sha256(score || salt)
-  const commitHash = createHash("sha256").update(Buffer.from([score])).update(salt).digest();
+  // Quasar audit hardening binds commitments to job_id and the target program ID.
+  const hasher = createHash("sha256").update(Buffer.from([score])).update(salt);
+  if (PROGRAM_TARGET === "quasar") {
+    hasher.update(Buffer.from(jobId));
+    hasher.update(Buffer.from(REPUTATION_PROGRAM_ID.toBytes()));
+  }
+  const commitHash = hasher.digest();
   const commitHashHex = commitHash.toString("hex");
   const saltHex = salt.toString("hex");
 
@@ -189,23 +207,32 @@ export async function commitReputationRating(
   trace.push(`reputation:rating_pda=${rPda.toBase58()}`);
 
   // Role 0 = Consumer (orchestrator/operator commits as consumer side)
-  const ixData = buildCommitRatingData(
-    jobId,
-    commitHash,
-    0,
-    operator.publicKey,
-    specialistPubkey
-  );
-
-  const ix = new TransactionInstruction({
-    programId: ESCROW_PROGRAM_ID,
-    keys: [
-      { pubkey: rPda, isSigner: false, isWritable: true },
-      { pubkey: operator.publicKey, isSigner: true, isWritable: true },
-      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
-    ],
-    data: ixData,
-  });
+  const ix = PROGRAM_TARGET === "quasar"
+    ? buildQuasarCommitRatingInstruction({
+        programId: REPUTATION_PROGRAM_ID,
+        signer: operator.publicKey,
+        jobId,
+        commitment: commitHash,
+        role: 0,
+        consumer: operator.publicKey,
+        specialist: specialistPubkey,
+        ratingPda: rPda,
+      })
+    : new TransactionInstruction({
+        programId: ESCROW_PROGRAM_ID,
+        keys: [
+          { pubkey: rPda, isSigner: false, isWritable: true },
+          { pubkey: operator.publicKey, isSigner: true, isWritable: true },
+          { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+        ],
+        data: buildCommitRatingData(
+          jobId,
+          commitHash,
+          0,
+          operator.publicKey,
+          specialistPubkey
+        ),
+      });
 
   try {
     const conn = new Connection(DEVNET_RPC, "confirmed");
@@ -305,18 +332,27 @@ export async function revealReputationRating(runId: string): Promise<ReputationR
   const specialistAgentPda = agentPdaFor(specialistPubkey);
   const consumerAgentPda = agentPdaFor(consumerPubkey);
 
-  const ixData = buildRevealRatingData(jobId, score, salt);
-
-  const ix = new TransactionInstruction({
-    programId: ESCROW_PROGRAM_ID,
-    keys: [
-      { pubkey: rPda, isSigner: false, isWritable: true },
-      { pubkey: operator.publicKey, isSigner: true, isWritable: false },
-      { pubkey: specialistAgentPda, isSigner: false, isWritable: true },
-      { pubkey: consumerAgentPda, isSigner: false, isWritable: true },
-    ],
-    data: ixData,
-  });
+  const ix = PROGRAM_TARGET === "quasar"
+    ? buildQuasarRevealRatingInstruction({
+        programId: REPUTATION_PROGRAM_ID,
+        signer: operator.publicKey,
+        jobId,
+        score,
+        salt,
+        specialistAgentPda,
+        consumerAgentPda,
+        ratingPda: rPda,
+      })
+    : new TransactionInstruction({
+        programId: ESCROW_PROGRAM_ID,
+        keys: [
+          { pubkey: rPda, isSigner: false, isWritable: true },
+          { pubkey: operator.publicKey, isSigner: true, isWritable: false },
+          { pubkey: specialistAgentPda, isSigner: false, isWritable: true },
+          { pubkey: consumerAgentPda, isSigner: false, isWritable: true },
+        ],
+        data: buildRevealRatingData(jobId, score, salt),
+      });
 
   try {
     const conn = new Connection(DEVNET_RPC, "confirmed");

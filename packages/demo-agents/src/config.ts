@@ -23,6 +23,9 @@ type DemoNetworkProfile = {
 };
 
 const QUASAR_DEVNET_ESCROW_PROGRAM_ID = "VYCbMszux9seLK2aXFZMECMBFURvfuJLXsXPmJS5igW";
+const QUASAR_DEVNET_REGISTRY_PROGRAM_ID = "Xk7jczJZ1HHJZuE1ZUWDqFmowxYhnom7mWzrNSGf9FU";
+const QUASAR_DEVNET_REPUTATION_PROGRAM_ID = "nb9rLVjoHMibsgfRGgKuPqm6M8GVcH9r6bYNfg7Yiy6";
+const QUASAR_DEVNET_ATTESTATION_PROGRAM_ID = "CRGsWWkptdxsH6N6aWAyahLbuMsT58yM624EopEsv1Ex";
 
 export type DemoProgramTarget = "legacy-anchor" | "quasar";
 
@@ -66,10 +69,25 @@ export const PROGRAM_TARGET: DemoProgramTarget =
 export const PROGRAM_FRAMEWORK = PROGRAM_TARGET === "quasar" ? "quasar" : "anchor";
 export const PROGRAM_COMPATIBILITY = PROGRAM_TARGET === "quasar" ? "quasar-layout-unverified" : "anchor-layout";
 
-/** Deployed program ID (overrideable for local Surfpool/test lanes) */
+/** Deployed escrow program ID (overrideable for local Surfpool/test lanes) */
 export const ESCROW_PROGRAM_ID =
   pickEnv("DEMO_ESCROW_PROGRAM_ID", "NEXT_PUBLIC_ESCROW_PROGRAM_ID") ??
   (PROGRAM_TARGET === "quasar" ? QUASAR_DEVNET_ESCROW_PROGRAM_ID : activeProfile.defaultEscrowProgramId);
+
+/** Registry program ID. Quasar cutover uses a separate registry program, not the escrow program. */
+export const REGISTRY_PROGRAM_ID =
+  pickEnv("DEMO_REGISTRY_PROGRAM_ID", "NEXT_PUBLIC_REGISTRY_PROGRAM_ID") ??
+  (PROGRAM_TARGET === "quasar" ? QUASAR_DEVNET_REGISTRY_PROGRAM_ID : ESCROW_PROGRAM_ID);
+
+/** Reputation program ID. Quasar cutover uses a separate reputation program. */
+export const REPUTATION_PROGRAM_ID =
+  pickEnv("DEMO_REPUTATION_PROGRAM_ID", "NEXT_PUBLIC_REPUTATION_PROGRAM_ID") ??
+  (PROGRAM_TARGET === "quasar" ? QUASAR_DEVNET_REPUTATION_PROGRAM_ID : ESCROW_PROGRAM_ID);
+
+/** Attestation program ID. Quasar cutover uses a separate attestation program. */
+export const ATTESTATION_PROGRAM_ID =
+  pickEnv("DEMO_ATTESTATION_PROGRAM_ID", "NEXT_PUBLIC_ATTESTATION_PROGRAM_ID") ??
+  (PROGRAM_TARGET === "quasar" ? QUASAR_DEVNET_ATTESTATION_PROGRAM_ID : ESCROW_PROGRAM_ID);
 
 /** Solana RPC (overrideable for local Surfpool/test lanes) */
 export const DEVNET_RPC = pickEnv("DEMO_DEVNET_RPC", "NEXT_PUBLIC_RPC_ENDPOINT") ?? activeProfile.rpcHttp;

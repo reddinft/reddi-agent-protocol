@@ -1,20 +1,22 @@
 # Reddi Agent Protocol Code — STATUS
 
-**Last updated:** 2026-05-05 AEST
-**State:** 🟡 Quasar hackathon cutover loop active via Issue #236; prior Issue #228 packet was Anchor-current-state readiness, but Nissan now requires hackathon demos to use Quasar-deployed Solana programs. Live research, real image generation, signing, deployment, wallet, and env mutations remain approval-gated.
+**Last updated:** 2026-05-07 AEST
+**State:** 🟢 Full Quasar critical-success gate passed via Issue #236 and PR #244. Nissan clarified on 2026-05-06 that scoped Quasar proof was not sufficient; final readiness requires every demo-critical on-chain path to use Quasar-compiled Solana programs, with no Anchor-powered final demo path. That is now implemented: `packages/demo-agents/src/demo.ts` runs a Quasar-native A→B→C flow across Quasar Registry, Escrow, Reputation, and Attestation program IDs. MagicBlock PER/TEE is explicitly fail-closed/not claimed for the final Quasar path unless separately live-validated. New Quasar CI cutover work has begun: `docs/QUASAR-CI-CUTOVER-BDD-PLAYBOOK-2026-05-06.md` documents the phased BDD/retrospective loop, Quasar program sources are imported under `experiments/quasar-*`, vendored framework crates are under `third_party/quasar`, and local Quasar program compile/test loop passes for all four programs. Jupiter devnet swap research on 2026-05-07 found no reliable public Jupiter devnet execution path; Jupiter APIs return mainnet-routed liquidity/account material, so successful Jupiter execution requires mainnet approval or a labelled simulation/boundary lane. Live research, real image generation, deployment, env/Coolify/Vercel mutation, and paid/live specialist work remain approval-gated.
 
 ## RESUME FROM HERE
 
 1. Phase 7 picture storyboard artifact generator is complete through PR #221. Do not run real OpenAI/Fal image generation without explicit approval, provider choice, and budget cap.
-2. GitHub Actions Node.js 20 deprecation cleanup is complete through PR #223; post-merge `main` Anchor CI has no Node.js 20 deprecation annotation.
-3. Quasar cutover follows Issue #236 and `docs/QUASAR-HACKATHON-CUTOVER-PLAN-2026-05-05.md`: Phase 1 inventory is now scaffolded at `config/quasar/deployments.json` with `npm run check:quasar:deployments`. Candidate devnet Quasar program `VYCbMszux9seLK2aXFZMECMBFURvfuJLXsXPmJS5igW` is executable by read-only RPC check. Phase 2 guard is `npm run check:quasar:demo-readiness`; Phase 3 app/demo-agent target flag wiring merged via PR #239. Use `NEXT_PUBLIC_DEMO_PROGRAM_TARGET=quasar` / `HACKATHON_DEMO_TARGET=quasar` / `DEMO_PROGRAM_TARGET=quasar` for devnet Quasar target selection. Iterative plan is now `docs/QUASAR-BDD-ITERATIVE-PLAYBOOK-2026-05-05.md`; Phase 4 Quasar compatibility audit + builder boundary is in progress via `chore/quasar-builder-compatibility-boundary-20260505`: `config/quasar/runtime-compatibility.json` + `npm run check:quasar:runtime-compatibility`. submissionReady remains false until nine audited Anchor-layout/blocker paths are ported/verified plus PER/judge-packet proof chain are complete. Do not deploy, sign, mutate wallets, mutate env/Coolify/Vercel, or run paid/live specialist work without explicit approval.
+2. Legacy Anchor GitHub Actions workflow has been removed on 2026-05-06 because final demo-critical on-chain paths now target Quasar programs only.
+3. Quasar cutover follows Issue #236, `docs/QUASAR-HACKATHON-CUTOVER-PLAN-2026-05-05.md`, and the refined staged playbook `docs/QUASAR-BDD-ITERATIVE-PLAYBOOK-2026-05-05.md`. Phase 1 inventory is scaffolded at `config/quasar/deployments.json` with `npm run check:quasar:deployments`. Quasar devnet programs are escrow `VYCbMszux9seLK2aXFZMECMBFURvfuJLXsXPmJS5igW`, registry `Xk7jczJZ1HHJZuE1ZUWDqFmowxYhnom7mWzrNSGf9FU`, reputation `nb9rLVjoHMibsgfRGgKuPqm6M8GVcH9r6bYNfg7Yiy6`, attestation `CRGsWWkptdxsH6N6aWAyahLbuMsT58yM624EopEsv1Ex`. Phase 2 guard is `npm run check:quasar:demo-readiness`; Phase 3 app/demo-agent target flag wiring merged via PR #239. Use `NEXT_PUBLIC_DEMO_PROGRAM_TARGET=quasar` / `HACKATHON_DEMO_TARGET=quasar` / `DEMO_PROGRAM_TARGET=quasar` for devnet Quasar target selection. Phase 5/6/7/8/9 is active in PR #244 on `feat/quasar-shared-instruction-builders-20260505`: `/register`, demo-agent registration, onboarding attestation construction, `/economic-demo` honesty UI, read/decode paths, reputation commit/reveal, and onboarding registration/confirm/dispute builders are Quasar-compatible. Phase 9 scoped the legacy full-flow/PER demo-agent script out of Quasar proof and added a fail-closed Quasar target guard. Runtime compatibility blockers reduced 6→4→1→0. Phase 10 added a Quasar CI/readiness guard. Phase 11 refreshed the judge packet/operator checklist/scoped proof doc; `submissionReady=true` now applies to the scoped Quasar proof boundary (not live PER/TEE). Phase 13 local confidence/devnet-prep is complete. Phase 14 devnet registration is complete after Nissan approval: A tx `iLudQFTyJ7c7mpzDxWMZaLEptmv1H3eM7NtfmSULLi6FTQKkaKvEJeE3hFn5Tf3YQEEvvhJcX7nvJucjyE8eghX`, B tx `2KnvFgTm3ivqis5iFAxpyX4TkH1Zbyv2sfv975MtT6Be39kTy8mabRmf9jWXJekVY22NLKaR3cAb9dVsC8oFcFMi`, C tx `46H43gGDZFvWL9oLzg1iNXTdweuihmbp9DH2fKhHdpeJKdxywUKsFdTkna8XxeyKeXhsZ53ykbPjLzQ9AotGGeS9`; readback artifact `artifacts/quasar-devnet-registration/20260505T211525Z/`. Next operational step: do not merge as final-ready. Phase 15 is complete: `packages/demo-agents/src/demo.ts` now has a Quasar-native full A→B→C flow using Quasar escrow public settlement plus Quasar reputation/attestation program-local setup. MagicBlock PER/TEE is explicitly not claimed by this Quasar final path and fails closed if requested. The hard gate `npm run check:quasar:critical-success` passes. Do not deploy, mutate env/Coolify/Vercel, or run paid/live specialist work without explicit approval.
+
+4. Quasar CI cutover is now documented in `docs/QUASAR-CI-CUTOVER-BDD-PLAYBOOK-2026-05-06.md`. Phase 0 retrospective is complete. Phase 1 imported Quasar program sources into `experiments/quasar-escrow`, `experiments/quasar-registry`, `experiments/quasar-reputation`, and `experiments/quasar-attestation`, with `quasar-lang` normalized to repo-local `third_party/quasar`. Phase 2 added `scripts/run-quasar-program-tests.sh` and `.github/workflows/quasar-program-tests.yml`. Local validation: `PATH="$HOME/.cargo/bin:$PATH" bash scripts/run-quasar-program-tests.sh` passed all four program compile/test loops: escrow 7/7, registry 10/10, reputation 11/11, attestation 13/13. First GitHub run failed because vendored `third_party/quasar/Cargo.toml` still listed upstream workspace members not copied into the repo (`idl`, `profile`, examples, tests, CLI); fixed by narrowing workspace members to `lang`, `derive`, `pod`, `spl`. Second GitHub run then exposed Solana `cargo build-sbf` using older Cargo 1.79, which cannot parse workspace resolver 3; downgraded vendored Quasar workspace resolver to 2 while preserving edition 2021. Revalidated `cargo metadata` + full local compile/test loop. Third GitHub run then exposed transitive lockfile incompatibility: `proc-macro-crate 3.5.0` pulled edition-2024 `toml_datetime 1.1.x`; pinned experiment lockfiles to `proc-macro-crate 3.3.0` so Solana Cargo 1.79 resolves `toml_edit 0.22.27` / `toml_datetime 0.6.11`. Full local compile/test loop passes again. Fourth GitHub run then exposed another edition-2024 crate (`wincode-derive 0.4.4`), proving the deeper issue is workflow toolchain drift: local uses `cargo-build-sbf 4.0.0`/`solana-cli 3.1.13`, workflow used Anza `v2.2.0`/Cargo 1.79. Updated Quasar workflow to install Anza `v3.1.13`. Next: push the fix to PR #244, observe GitHub `Quasar Program Tests (QuasarSVM / LiteSVM)`, then Phase 3 removes the legacy Anchor workflow because Quasar is now the only final-demo program target.
 
 ## Current Branch / Repo State
 
-- Local branch: `feat/quasar-demo-program-target-20260505` (PR #239, Phase 3 explicit Quasar demo target wiring).
-- Local working tree: clean after PR #239 push; local ignored evidence artifacts remain under `artifacts/manifest-parity-phase4/`, `artifacts/economic-demo-surfpool-rehearsal/20260505T021309Z/`, `artifacts/surfpool-smoke/20260505-121331/`, `artifacts/economic-demo-research-dry-run/20260505T025224Z/`, `artifacts/economic-demo-picture-storyboard/`, `artifacts/economic-demo-submission-prep/20260505T055411Z/`, and `artifacts/economic-demo-rehearsal/20260505T091725Z/`.
-- Latest merge on main: `f7a1ec09 chore: guard Quasar demo readiness (#238)`.
-- Current PR: #239 `feat: wire explicit Quasar demo program target` — open; Vercel green; Anchor CI pending at last check.
+- Local branch: `feat/quasar-shared-instruction-builders-20260505` (PR #244, shared Quasar instruction builders + register/demo/onboarding construction + register honesty UI + refined staged BDD plan).
+- Local working tree: contains Jupiter devnet swap research note `docs/JUPITER-DEVNET-SWAP-RESEARCH-2026-05-07.md`. PR #244 checks are green and mergeStateStatus is CLEAN at latest observation. Next step: decide whether to keep Jupiter as an honest signed-but-devnet-rejected boundary lane, implement a local/Surfpool simulation lane, or request explicit approval for a tiny capped mainnet-beta Jupiter swap if live successful Jupiter execution is demo-critical. Keep Quasar Program Tests, quasar-readiness, bdd-index-guard, source-conformance-matrix, and Vercel as the relevant gates.
+- Latest observed `origin/main`: `1f1de7d2 chore: add Quasar runtime compatibility boundary (#242)`; check `git fetch && git log origin/main -1` before merging.
+- Current PR: #244 `feat: add shared Quasar instruction builders` — open, but no longer final-ready after Nissan critical-success correction. Latest branch state adds refined Phase 6.2–12 plan, BDD retrospective-gate scenario, Phase 6.2 `/economic-demo` Quasar status card, Phase 7 target-aware Quasar AgentAccount read/decode compatibility, Phase 8 Quasar reputation/onboarding tx wrapper routing, Phase 9 demo-agent/PER scoped-proof guard, Phase 10 Quasar CI/readiness guard, Phase 11 scoped judge packet refresh, and Phase 12 final validation boundary. Local validation passed (`npm run build`, focused Quasar Jest, `npm run check:quasar:submission` now submissionReady=true, BDD index, `git diff --check`). Latest PR #244 head `f158acb5`; GitHub/Vercel checks are all green as of 2026-05-06 AEST.
 - PR #204: closed as superseded after Nissan accepted recommendation.
 - PR #214: merged 2026-05-05 AEST as `a290db7093458f45ca1b3dbc2a047b404c856a29`; post-merge Anchor run `25353582949`, job `74338163008` passed in 7m26s.
 - PR #215: merged 2026-05-05 AEST as `cd202ebd6360d29f0a896e852fe9f63c339fc4dc`; post-merge Anchor run `25353973718`, job `74339305929` passed in 7m23s.
@@ -300,3 +302,174 @@ Do not proceed as a waterfall into research/picture live workflows until the dis
 - Phase 6 controlled live research is blocked pending explicit approval for hosted/devnet live downstream specialist calls and spend.
 - Phase 7 picture/storyboard work must remain dry-run/local-only first: no OpenAI/Fal image generation, paid provider spend, hosted downstream calls, real/devnet signing, wallet mutation, or devnet transfer without specific approval.
 - Existing demo-agent CLI copy still labels some local Surfpool transactions as `devnet`/Explorer links even when RPC is local; keep evidence/status wording explicit that the executed lane used local Surfpool RPC.
+
+
+## Update — 2026-05-06 10:31 AEST
+
+PR #244 checks green after Quasar CI parity fixes. Evidence: `Build & Test (Anchor 1.0.0 / LiteSVM)`, both `Quasar Program Tests (QuasarSVM / LiteSVM)` runs, `bdd-index-guard`, `quasar-readiness`, `source-conformance-matrix`, Vercel Preview Comments, and `Vercel – reddi-agent-protocol` all passed. `gh pr view 244` reports `mergeStateStatus: CLEAN` at head `64088501c1bbb0c15f5ff2d65545a6722d656f0f`.
+
+RESUME FROM HERE: legacy Anchor workflow removed because Quasar is now the final-demo source of truth. Continue monitoring PR #244 checks and treat Quasar Program Tests + quasar-readiness as the final program gates.
+
+
+## Goal alignment correction — 2026-05-06
+
+Nissan clarified the plan must optimize for the full Colosseum Frontier submission goal, not just scoped Quasar CI success: all final demo-critical on-chain paths must use Quasar-compiled Solana programs, and the demos must visibly use the identified bounty protocols/products (MagicBlock, x402, Jupiter, OpenRouter, Surfpool). Updated `docs/QUASAR-BDD-ITERATIVE-PLAYBOOK-2026-05-05.md` and `docs/QUASAR-HACKATHON-CUTOVER-PLAN-2026-05-05.md` with a corrected north-star, demo/bounty coverage matrix, and next loops: CI proof boundary → bounty coverage guard → evidence refresh → MagicBlock decision gate → final rehearsal.
+
+## Surfpool Quasar localnet gate — 2026-05-06
+
+Nissan asked whether Surfpool localnet should be the confidence gate before devnet/testnet. Yes. The old `npm run test:surfpool:critical` still exercised legacy Anchor (`Target: legacy-anchor`), so it is not sufficient final-demo proof. Added `scripts/run-surfpool-quasar-critical-smoke.sh` and `npm run test:surfpool:quasar-critical`, which starts local Surfpool, deploys Quasar escrow/registry/reputation/attestation programs locally, registers A/B/C under the local Quasar Registry, and runs the Quasar-native A→B→C flow.
+
+Latest local evidence:
+- `npm run test:surfpool:quasar-critical` PASS → artifact `artifacts/surfpool-quasar-smoke/20260506-113324/SUMMARY.md`
+- `npm run check:quasar:submission` PASS
+- `npm run test:bdd:index` PASS
+- `NEXT_PUBLIC_DEMO_PROGRAM_TARGET=quasar npm run build` PASS
+- Read-only devnet PDA check confirms both legacy Anchor A/B/C and Quasar Registry A/B/C accounts exist; Quasar Registry A/B/C data length is 153. No deregistration is needed for the Quasar path; legacy cleanup is optional and approval-gated.
+
+## Devnet Quasar rehearsal — 2026-05-06
+
+After Nissan approved rerunning the failed/approval-gated commands, ran the Quasar-native devnet A→B→C rehearsal without deregistering legacy Anchor accounts. Result: PASS.
+
+Command:
+
+```bash
+DEMO_PROGRAM_TARGET=quasar HACKATHON_DEMO_TARGET=quasar DEMO_SETTLEMENT_MODE=public DEMO_STOP_AFTER_SETTLEMENT=true npm run demo
+```
+
+Evidence:
+- Target: `quasar`
+- Escrow: `VYCbMszux9seLK2aXFZMECMBFURvfuJLXsXPmJS5igW`
+- Registry: `Xk7jczJZ1HHJZuE1ZUWDqFmowxYhnom7mWzrNSGf9FU`
+- Reputation: `nb9rLVjoHMibsgfRGgKuPqm6M8GVcH9r6bYNfg7Yiy6`
+- Attestation: `CRGsWWkptdxsH6N6aWAyahLbuMsT58yM624EopEsv1Ex`
+- Escrow lock tx: `5E7u1LkzezkVTm815o75uKPt6wN7U63EcDk7sjNmv7HvUquqLWUBaBNCkfvtGkME5HQVK6xrZkEknZTt3Pq4dnny`
+- Quasar public settlement tx: `9yDRZ9MGW7DuoQj8w6HQapzQSHsuumFY58NUueBR6TVsK4N1D4b8hn6Kv39VNd3AVozJq2bKaZX22yXSupqcTzb`
+- Escrow PDA: `A8Lsq7aiDQ1pb8SZLgFyn2HWCRhbpFG2RvcJGpXbR9ZW`
+- Rating PDA: `E6pFbn5xMKTXEssBxMY8Na3aW23sLTEqnmG5MyWqQANe`
+- Attestation PDA: `FTa8U3Gg1eGnMGb2J5y88pfqqqtnjCy7995JEPoxmZLB`
+- Runtime: 6805ms (<10s target)
+
+MagicBlock PER/TEE was not claimed; the command used Quasar public settlement. Jupiter integration remains wired/verified but live swap requires `JUPITER_API_KEY`.
+
+## Pitch reference ingested — SPAN XFRA / home mini data centers
+
+Ingested CNBC/SPAN reference on NVIDIA + PulteGroup helping SPAN put mini data-center / XFRA nodes on homes. Research note: `docs/research/SPAN-XFRA-MINI-DATA-CENTERS-2026-05-06.md`. Pitch relevance: external proof point that AI compute is moving to distributed residential/grid-edge infrastructure; Reddi can be positioned as the protocol layer for agent identity, x402-style payment intent, Solana/Quasar settlement, reputation, attestation, and disclosure across that edge-compute economy.
+
+## Pitch deck update — SPAN XFRA reference
+
+Updated internal hackathon screen deck with a new market-proof slide after the home slide: `public/_internal/hackathon-slides/index.html` now includes “Market Proof: compute is moving to the edge,” citing CNBC’s NVIDIA + PulteGroup + SPAN residential mini data-center story. Updated `SLIDES.md` and `slide_manifest.csv`. The slide frames the thesis: “The data center is moving into the neighborhood. The coordination layer is missing,” then maps Reddi to identity, x402 payment intent, Quasar/Solana settlement, reputation, attestation, and disclosure.
+
+## Quasar security audit ingestion — 2026-05-06
+
+Ingested `docs/QUASAR-PROGRAMS-SECURITY-AUDIT-2026-05-06.md` and added remediation log `docs/QUASAR-PROGRAMS-SECURITY-REMEDIATION-2026-05-06.md`. Immediate hardening is applied on the current PR branch: escrow cancel window restored, escrow timestamp/slot restored, checked lamport arithmetic, overflow-check profiles, canonical devnet `declare_id!` values, pinned `quasar-svm` rev, zero-commit rejection, domain-separated reputation commitments, participant-only expiry, self-confirmation guard, and `third_party/quasar/VERSION.md`. Local validation passed: `PATH="$HOME/.cargo/bin:$PATH" bash scripts/run-quasar-program-tests.sh` (8/8 escrow, 10/10 registry, 14/14 reputation, 14/14 attestation), `npm run check:quasar:critical-success`, `npm run test:bdd:index`, `git diff --check`.
+
+**Important:** full architectural findings remain open and are not mainnet-ready: job-binding for rating/attestation PDAs, payee dispute/claim path, reputation laundering policy, and canonical agent registry unification. Do not claim mainnet-ready Quasar programs until those are designed, implemented, and re-reviewed.
+
+## Legacy Anchor workflow removal — 2026-05-06
+
+Removed `.github/workflows/anchor-test.yml` after Nissan confirmed final demos use Quasar programs only. Branch protection API for required status checks returned 404/no accessible required-status configuration, and PR #244 already has first-class Quasar gates: `Quasar Program Tests (QuasarSVM / LiteSVM)`, `quasar-readiness`, `bdd-index-guard`, `source-conformance-matrix`, and Vercel. Anchor source remains in the repo as legacy/reference code, but Anchor CI is no longer a final proof gate.
+
+## Quasar audit follow-up observations — 2026-05-06
+
+Follow-up audit response ingested. Fixed N1 by changing escrow `CANCEL_WINDOW_SLOTS` to `1_512_000`, matching the reputation expiry cadence (~7 days at 2.5 slots/sec). Added `docs/QUASAR-PROGRAMS-SECURITY-AUDIT-RESPONSE-2026-05-06.md` and updated the remediation log with N2/N3/N4 clarifications: program-ID-bound commitments require migration/drain operational handling, participant-only expiry is defense-in-depth, and self-confirmation rejection is partial defense-in-depth until real job/escrow binding lands.
+
+## Final hackathon demo loop — 2026-05-06
+
+Created controlling loop plan `docs/QUASAR-FINAL-HACKATHON-DEMO-LOOP-2026-05-06.md`. Goal is explicit: Quasar-compiled Solana programs for every demo-critical on-chain path; bounty/product evidence visible for MagicBlock, x402, Jupiter, OpenRouter specialist agents, Surfpool, and supporting products; Surfpool Quasar localnet before devnet/testnet; retrospectives after every phase. Nissan approved devnet transactions as needed for this goal. Mainnet, paid provider calls, production env mutation, real image generation, and live PER/TEE claims remain separately approval-gated unless explicitly authorized.
+
+## Phase 1 retrospective — Surfpool Quasar critical smoke
+
+`npm run test:surfpool:quasar-critical` initially caught a real Quasar bug: reputation reveal failed because demo-agent/onboarding commitment hashing had not been updated after audit hardening. Patched Quasar commitment calculation to `sha256(score || salt || job_id || reputation_program_id)` in `packages/demo-agents/src/demo.ts` and `lib/onboarding/reputation-signal.ts`. Focused Quasar TS tests passed, then Surfpool Quasar critical smoke passed end-to-end twice. Continue to devnet rehearsal with patched commitment path.
+
+## Phase 2 retrospective — devnet Quasar rehearsal
+
+Read-only devnet PDA check confirmed Quasar Registry A/B/C present and legacy Anchor A/B/C still present as reference. First devnet rehearsal failed at reputation reveal because devnet Quasar Reputation was still pre-audit while local Surfpool had audit-hardened code. Upgraded devnet Reputation program `nb9rLVjoHMibsgfRGgKuPqm6M8GVcH9r6bYNfg7Yiy6` with upgrade tx `24bf49dnB9YCiqS6uT21jnQHRy9RveTquffBSNjhUpeHPE663kf7PEMCMch5k4ZR9sADxYUWvVijufEN993PVzqg`. Full devnet Quasar A→B→C demo then passed in 6516ms: escrow lock `22XLto6VVbfYGZfRPvR65KNVEyztw4HAm1c7gPbWNXWpcNbqBdtNHFpAEeGL4L8T6UodT2fxan4yxYdPNb8hDzhx`; settlement `4bhPXA3SCDM1CQKBHMVxKFiGtfcmqnNEnTFDpEW2i85DWiE9dFr3co7h5EUL2ysqMs3ctcFmHfu8fpjefzpzz1JJ`; rating PDA `cwBzEz3p26mKU7FGWQWDkkmKY8j8NG4iPgruSkVJqKz`; attestation PDA `G2hmyNWC3N8zdqKRNgzgr7z6sN8wxJtc9YjpYmoWgzT1`. Continue to web-app Quasar proof/readiness.
+
+## Phase 3 retrospective — web/app Quasar build gate
+
+Build-level web readiness passed after devnet Quasar upgrade/rehearsal: `npm run check:quasar:critical-success` PASS, `npm run test:bdd:index` PASS, `NEXT_PUBLIC_DEMO_PROGRAM_TARGET=quasar npm run build` PASS. Existing Turbopack warnings remain about workspace root/multiple lockfiles and broad evidence-pack tracing; not new blockers. Next: proof-map/judge packet and final human-triggered frontend rehearsal.
+
+## Phase 4 progress — proof-map/judge packet
+
+Created `docs/COLOSSEUM-FINAL-QUASAR-PROOF-MAP-2026-05-06.md` and refreshed `docs/ECONOMIC-DEMO-JUDGE-PACKET-2026-05-05.md` away from scoped Quasar wording toward final Quasar devnet proof. The proof map covers Quasar, Surfpool, devnet A→B→C, x402, OpenRouter/30 specialists, Jupiter, MagicBlock, and web-app boundaries. Next: final frontend rehearsal/recording prep after PR checks settle.
+
+## Phase 5 CI/front-end copy retrospective — 2026-05-06
+
+PR #244 checks are green after head `26aeaab1`: Quasar Program Tests PASS, bdd-index-guard PASS, quasar-readiness PASS, source-conformance-matrix PASS, Vercel PASS, mergeStateStatus CLEAN. Frontend copy scan found stale `scoped-proof` wording in `docs/ECONOMIC-DEMO-JUDGE-PACKET-2026-05-05.md`; corrected it to final Quasar devnet proof language. `/economic-demo` target panel correctly shows Quasar program IDs and submission readiness when `NEXT_PUBLIC_DEMO_PROGRAM_TARGET=quasar`; no code patch needed there.
+
+## Phase 6 final recording rehearsal prep — 2026-05-06
+
+Created `docs/FINAL-RECORDING-REHEARSAL-RUNBOOK-2026-05-06.md`. Started local dev server with `NEXT_PUBLIC_DEMO_PROGRAM_TARGET=quasar HACKATHON_DEMO_TARGET=quasar DEMO_PROGRAM_TARGET=quasar` and fetched `/economic-demo`; confirmed rendered HTML includes “Quasar hackathon target active”, all four Quasar program IDs, and `ready`, with no “Legacy Anchor reference target” active copy. Re-ran lightweight gates: `git diff --check` PASS, `npm run check:quasar:submission` PASS, `npm run test:bdd:index` PASS, `NEXT_PUBLIC_DEMO_PROGRAM_TARGET=quasar npm run build` PASS. Did not rerun devnet A→B→C because no demo code changed after the latest successful devnet proof; use the runbook to rerun immediately before recording.
+
+## OpenRouter/Coolify 30-agent final demo loop — 2026-05-06
+
+Nissan approved devnet calls moving forward provided Surfpool/local validation runs first, and approved picture generation using available image-provider keys/tools. Treated “Coolio” as Coolify. Current inventory completed: 30/30 hosted `/.well-known/reddi-agent.json` manifests return 200, 30/30 chat endpoints return unpaid x402 402 challenges, and 30/30 are devnet registered/already registered. Artifact: `artifacts/openrouter-specialists-current-inventory/20260506T144648Z/`.
+
+Surfpool gate passed before devnet mutation: `npm run smoke:economic-demo:surfpool` → `artifacts/economic-demo-surfpool-rehearsal/20260506T144728Z/`. Then ran approved devnet webpage paid workflow. Confirmed devnet SOL transfer signatures from `planning-agent` to specialists: content `5HFjVccERRSpdKxfyqNxQ5R19i7Ve4ccgSyekfJnwA7N5icu3nPEYxeKFGeipWpNvedLgaa79R9KohrP7WMk6sNB`, code `dpNtHVEWprzgwKhqjeHD5q6PM5KGfmwR6KSHj2ByUnLVumNoDVzKZESYwspkLdywyFs6zYmz5FWRFsvkuyPjCYE`, attestor `2McdWpvkKfkztH3C7GKiyf4VJSnnb12GPm5GBoJtjhoz3hV9AJ6j2CATrKYBqpKFfTnEXusRXH4LHSuR1hTGMy4i`. Hosted x402 completions passed for planning/content/code/verification and all returned downstream disclosure ledgers. Artifact: `artifacts/economic-demo-webpage-devnet-paid-workflow/20260506T145011Z/`.
+
+Picture local storyboard gate passed: `artifacts/economic-demo-picture-storyboard/20260506T145126Z/`. Approved generated image artifact copied to `artifacts/economic-demo-picture-generation/20260506T145200Z/`. Fresh hosted x402 workflow artifact for evidence-pack schema: `artifacts/economic-demo-webpage-live-x402-workflow/20260506T145256Z/`; fresh judge evidence pack: `artifacts/economic-demo-evidence-pack/20260506T145348Z/`. Completion matrix doc: `docs/OPENROUTER-SPECIALISTS-COMPLETION-MATRIX-2026-05-06.md`.
+
+RESUME FROM HERE: generate/refresh judge evidence pack and UI references so `/economic-demo` can surface the new current inventory + devnet paid workflow + picture artifact. Keep wording precise: devnet SOL transfers prove wallet-balance impact; hosted x402 is bounded demo receipt mode, not production USDC settlement verification.
+
+## Economic demo upfront payment/Jupiter requirement — 2026-05-07
+
+Nissan clarified the correct economic-demo product flow: the user connects a wallet and pays an upfront activity fee that covers all downstream agent calls plus orchestrator markup. The orchestrator/first agent then becomes a consumer agent and spends that funded run budget on downstream specialists/attestors. The user must be able to pay in USDC directly or SOL via Jupiter swap proof, so the demo can prove real-time swap behavior as part of agent-economy execution.
+
+Opened GitHub Issue #245 and added BDD/spec plan: `docs/ECONOMIC-DEMO-UPFRONT-PAYMENT-JUPITER-BDD-PLAN-2026-05-07.md`. Updated Bucket J BDD with scenarios for upfront run funding, USDC route, SOL/Jupiter route, funded consumer-agent orchestration, and Playwright-recordable proof.
+
+Implemented first Issue #245 slice in PR branch: deterministic quote/budget ledger fixture model, `/economic-demo` wallet-connect/upfront quote panel, USDC/SOL route toggle with Jupiter proof lane, communication-flow and payment-flow/budget-reconciliation panels, plus `e2e/economic-demo.spec.ts` recordable Playwright proof lane. Validation: `npx playwright test e2e/economic-demo.spec.ts` PASS, `npm run test:bdd:index` PASS, `npm run build` PASS.
+
+Loop 2 added deterministic Surfpool upfront-funding semantics: the local rehearsal now models user → orchestrator upfront funding before orchestrator → downstream specialist/attestor spends, includes SOL→USDC Jupiter quote fields, proves specialist credits match downstream transfers, upfront funding covers downstream budget, and orchestrator retains positive markup before fees. Latest local artifact: `artifacts/economic-demo-surfpool-rehearsal/20260506T153156Z/summary.json`.
+
+Loop 3 added a public-safe upfront payment evidence pack generator: `npm run evidence:economic-demo:upfront-payment`, producing `artifacts/economic-demo-upfront-payment-evidence/20260506T153452Z/` from the latest Surfpool upfront-funding artifact. It fails closed unless upfront funding signature exists, Jupiter route fields exist, specialist credits match downstream transfers, upfront covers downstream budget, markup is retained, and blocked transfers mutate zero balance.
+
+Loop 4 added live Jupiter quote-only proof: `npm run smoke:economic-demo:jupiter-quote`, latest artifact `artifacts/economic-demo-jupiter-quote-proof/20260506T153602Z/quote-proof.json` showing 0.042 SOL → 3.726188 USDC across 1 route leg, no signing/swap/transfer. The upfront evidence pack now attaches the latest quote proof and fails closed if quote output is below the upfront fee. Latest combined pack: `artifacts/economic-demo-upfront-payment-evidence/20260506T153630Z/`.
+
+Loop 5 added live payment receipt safety gate: `npm run check:economic-demo:live-payment-gate`, latest blocked artifact `artifacts/economic-demo-live-payment-gate/20260506T153929Z/gate.json`. The gate records exact missing prerequisites and performs no signing/swap/transfer/mutation. It requires explicit confirmation token, asset, network, spend cap, payer reference, recipient, and Jupiter quote reference for SOL route before a future executor is allowed.
+
+Loop 6 added devnet USDC receipt verifier: `npm run verify:economic-demo:devnet-usdc-receipt`, latest blocked artifact `artifacts/economic-demo-devnet-usdc-receipt/20260506T154219Z/receipt-verification.json`. This verifier does not sign or submit transactions; it verifies a provided devnet tx signature contains a USDC transfer to the approved recipient within cap. Upfront evidence pack now attaches latest receipt verification status/blockers.
+
+Loop 7 added judge/operator proof hierarchy docs and BDD boundaries: `docs/ECONOMIC-DEMO-PROOF-HIERARCHY-2026-05-07.md`; BDD scenarios now distinguish live Jupiter quote-only proof, devnet USDC receipt verification, and upfront evidence aggregation.
+
+Loop 8 added a no-mutation devnet USDC sender plan command: `npm run plan:economic-demo:devnet-usdc-sender`, latest blocked artifact `artifacts/economic-demo-devnet-usdc-sender-plan/20260506T154540Z/sender-plan.json`. It defines future executor requirements (`@solana/spl-token`, exact confirmation token, gate artifact, signer ref, token accounts, amount within cap) and expected verify-after-send flow, but does not construct/sign/submit transactions.
+
+Loop 9 added submission prep generator: `npm run generate:economic-demo:submission-prep`. It creates a latest local prep pack with proof hierarchy, current green evidence commands, local artifact paths, five-beat recording outline, and hard no-go list. Latest generated/checkable pack: `artifacts/economic-demo-submission-prep/20260506T154827Z/SUBMISSION-PREP.md`.
+
+Loop 10 local CI parity check passed: `npm run test:source:matrix` green (openclaw/hermes/pi smoke; summary `artifacts/source-conformance-matrix/20260507-015110/SUMMARY.md`) and `npm run check:quasar:submission` green (runtime compatibility, deployments, demo readiness, critical success).
+
+RESUME FROM HERE: monitor GitHub PR checks for latest head `e6607de5`; if they pass, PR #244 is ready for review/merge from the current non-mutating evidence standpoint.
+
+
+## Economic demo attestation/run-report slice — 2026-05-07
+
+Nissan requested the visualisations show attestors attesting properly, a run report covering specialist calls/validations/payments, on-chain transaction addresses for payment receipts, and reputation score before/after commit-reveal. Implemented on PR #244 branch: `/economic-demo` now has a Run report panel with specialist calls, payment receipt tx fields, attestor validation chain, and reputation commit/reveal impact; `npm run report:economic-demo:run` generates `artifacts/economic-demo-run-report/<timestamp>/RUN-REPORT.md` + JSON from latest Surfpool evidence, including local transaction signatures as payment receipt addresses and safe guardrails for devnet/mainnet claims. Latest local artifact: `artifacts/economic-demo-run-report/20260506T160008Z/`. Validation passed: `npm run report:economic-demo:run`, `npm run test:bdd:index`, `npx playwright test e2e/economic-demo.spec.ts`, `npm run build`, `git diff --check`.
+
+RESUME FROM HERE: commit/push this slice, then watch PR #244 CI. Do not claim live devnet/mainnet payment or reputation receipts unless verified by the gated verifier/executor; current run report uses local Surfpool tx signatures plus fixture commit/reveal placeholders.
+
+
+## Economic demo Jupiter swap visual proof slice — 2026-05-07
+
+Nissan clarified the demo must show the Jupiter swap happening so judges understand downstream agents can still be paid when the user initially lacks the required token. Implemented on PR #244 branch: SOL payment route now shows a “Swap execution story” in `/economic-demo`; the run report has a “Jupiter swap before downstream payments” card showing SOL→USDC conversion before specialist/attestor payments; BDD now requires downstream payments only after converted USDC budget exists; `report:economic-demo:run` includes `jupiterSwapProof` with live quote artifact data plus local Surfpool settlement signature/caveat. Latest generated report: `artifacts/economic-demo-run-report/20260506T160318Z/`. Validation passed: `npm run report:economic-demo:run`, `npm run test:bdd:index`, `npx playwright test e2e/economic-demo.spec.ts`, `npm run build`, `git diff --check`.
+
+RESUME FROM HERE: commit/push this swap visual proof slice, then monitor PR #244 CI. Do not claim live wallet-backed Jupiter swap execution until an approval-gated swap executor produces a verified receipt. Current proof is live route quote + local Surfpool conversion semantics.
+
+
+## Economic demo signed devnet action + UX shift — 2026-05-07
+
+Nissan confirmed devnet live signing/transfer/swap is approved and Belle UX review found `/economic-demo` read as an operator evidence dashboard rather than an end-user run flow. Implemented next slice: added predefined action cards, central run CTA (`Pay ... and run` / `Swap SOL via Jupiter and run`), live-run status panel, and actual signed devnet action script `npm run run:economic-demo:devnet-signed-action`. Executed approved devnet signed flow using existing funded devnet demo keypairs: 4 signed devnet transactions, including SOL→USDC-equivalent swap-lane budget tx `jenTEkjtfJz58v9az2sRVUpKYuNfMwsFtpCnstd7Epi8UomspqtPqQ1QVhANEVT1XBED1NhKsM3HozbHEGmrczh`, copy payment `3ufuhouTuG1Dkbd7Wq6XKsU8hBPN43ANT6VE8i32CASjP9fSoHXNkPLNCiucxv3ZYF6vNKxxgVckEZCam59L4Kyn`, code payment `26W3wmSnLvmGcpD8XdUqeajrbozkuY8z4q7gfwvzpkB1p29r2K27Wvqn8tqjwhUnZSZyR9cFCSwq8Y6UGJopMCqB`, attestor payment `5fURph3znUhs9zMuJCfEVAc9gpPgkVFbpYWfaVDzMoPv84bTjLiBPPWxYpcekpAB2Uo3ebWkDJziuTR9DqY9kCbx`. Artifact: `artifacts/economic-demo-devnet-signed-action/20260506T160648Z/signed-action.json` (gitignored). Run report generator now attaches latest signed devnet action; latest report `artifacts/economic-demo-run-report/20260506T160749Z/`. Validation passed: `node --check`, signed action run, `npm run report:economic-demo:run`, `npm run test:bdd:index`, `npx playwright test e2e/economic-demo.spec.ts`, `npm run build`, `git diff --check`.
+
+RESUME FROM HERE: commit/push this signed devnet UX/action slice and monitor PR #244 CI. Continue UX choreography into a single timeline/evidence drawer if more polish is requested. Mainnet remains unapproved.
+
+
+## Devnet wallet-backed Jupiter swap attempt — 2026-05-07
+
+Per Nissan approval, attempted the live wallet-backed Jupiter swap path using the funded devnet demo wallet `AjAPTMjZbsJbeXmdBGzMADWkFixRvVw3mKt8sp99mVCe`. Added repeatable runner `npm run run:economic-demo:devnet-wallet-backed-jupiter-swap`. First `quote-api.jup.ag/v6` attempt failed at fetch. Second attempt with `https://lite-api.jup.ag/swap/v1` succeeded through Jupiter quote + swap transaction creation and local wallet signing, but devnet RPC rejected submission: `invalid transaction: Transaction loads an address table account that doesn't exist`. Artifact: `artifacts/economic-demo-devnet-wallet-backed-jupiter-swap/20260506T161220Z/wallet-backed-jupiter-swap.json`. Skip-preflight retry produced the same devnet rejection: `artifacts/economic-demo-devnet-wallet-backed-jupiter-swap/20260506T161235Z/wallet-backed-jupiter-swap.json`. Conclusion: Jupiter returned mainnet liquidity transaction/address-table material; our devnet wallet could sign it, but devnet cannot execute it. The separate signed devnet swap-lane budget/payment tx remains the executable devnet proof.
+
+RESUME FROM HERE: Surface this in PR evidence as “wallet-backed Jupiter devnet attempted; signed tx blocked by Jupiter mainnet-only account material,” and do not claim an executed Jupiter devnet swap unless a real devnet-supported Jupiter route/pool is found.
+
+
+## PR evidence polish — wallet-backed Jupiter boundary surfaced — 2026-05-07
+
+Wired the wallet-backed Jupiter devnet attempt into the report generator and `/economic-demo` copy so the page no longer says the swap is merely approval-gated. It now states the real result: live Jupiter quote + swap transaction + wallet signature succeeded, then devnet RPC rejected Jupiter mainnet address-table material. Latest report: `artifacts/economic-demo-run-report/20260506T161444Z/`. Validation passed: `npm run report:economic-demo:run`, `npm run test:bdd:index`, `npx playwright test e2e/economic-demo.spec.ts`, `npm run build`, `git diff --check`.
+
+RESUME FROM HERE: commit/push the PR evidence polish, then monitor PR #244 checks.
