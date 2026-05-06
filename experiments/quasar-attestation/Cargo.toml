@@ -1,0 +1,30 @@
+[package]
+name = "quasar-attestation"
+version = "0.1.0"
+edition = "2021"
+description = "Quasar SOL-native attestation judges — parity port of programs/escrow attestation handlers (attest_quality/confirm_attestation/dispute_attestation)"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "quasar_attestation"
+
+[features]
+default = []
+alloc = []
+debug = []
+
+[dependencies]
+quasar-lang = { path = "../../third_party/quasar/lang" }
+solana-address = { version = "2.2.0" }
+solana-instruction = { version = "3.2.0" }
+
+[dev-dependencies]
+quasar-svm = { git = "https://github.com/blueshift-gg/quasar-svm" }
+solana-keypair = { version = "3.0.1" }
+sha2 = { version = "0.10", default-features = false }
+digest = { version = "0.10", default-features = false }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }
+
+[workspace]
