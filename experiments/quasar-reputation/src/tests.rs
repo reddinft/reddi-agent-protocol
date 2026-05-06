@@ -785,3 +785,137 @@ fn test_invalid_score_rejected() {
     );
     assert!(bad_11.is_err(), "score=11 should be rejected (InvalidScore)");
 }
+
+/// Audit regression: MEDIUM-1 — all-zero commitment is rejected because it is the
+/// uncommitted sentinel used by RatingAccount.
+#[test]
+fn test_audit_zero_commitment_rejected() {
+    let mut svm = setup();
+    let consumer = Pubkey::new_unique();
+    let specialist = Pubkey::new_unique();
+
+    register_agent(&mut svm, consumer);
+    register_agent(&mut svm, specialist);
+
+    let job_id = job_id_to_u128([11u8; 16]);
+    let rating = rating_pda(job_id);
+
+    let result = svm.process_instruction(
+        &commit_ix(job_id, [0u8; 32], 0, consumer, consumer, specialist, rating),
+        &[empty(rating), funded(consumer)],
+    );
+
+    assert!(
+        result.is_err(),
+        "audit MEDIUM-1 regression: zero commitment must fail"
+    );
+}
+
+/// Audit regression: MEDIUM-2 — commitments are domain-separated by job and
+/// program, so a commitment generated for another job cannot be revealed here.
+#[test]
+fn test_audit_cross_job_commitment_reuse_rejected() {
+    let mut svm = setup();
+    let consumer = Pubkey::new_unique();
+    let specialist = Pubkey::new_unique();
+
+    let (consumer_agent, consumer_agent_acct, consumer_acct) = register_agent(&mut svm, consumer);
+    let (specialist_agent, specialist_agent_acct, _) = register_agent(&mut svm, specialist);
+
+    let job_id = job_id_to_u128([12u8; 16]);
+    let other_job_id = job_id_to_u128([13u8; 16]);
+    let rating = rating_pda(job_id);
+    let c_salt = [0xCAu8; 32];
+    let s_salt = [0xCBu8; 32];
+
+    let r1 = svm.process_instruction(
+        &commit_ix(
+            job_id,
+            sha256_commitment(other_job_id, 8, &c_salt),
+            0,
+            consumer,
+            consumer,
+            specialist,
+            rating,
+        ),
+        &[empty(rating), funded(consumer)],
+    );
+    r1.assert_success();
+
+    let r2 = svm.process_instruction(
+        &commit_ix(
+            job_id,
+            sha256_commitment(job_id, 8, &s_salt),
+            1,
+            specialist,
+            consumer,
+            specialist,
+            rating,
+        ),
+        &[r1.account(&rating).unwrap().clone(), funded(specialist)],
+    );
+    r2.assert_success();
+
+    let reveal = svm.process_instruction(
+        &reveal_ix(job_id, 8, c_salt, consumer, rating, specialist_agent, consumer_agent),
+        &[
+            r2.account(&rating).unwrap().clone(),
+            consumer_acct.clone(),
+            specialist_agent_acct.clone(),
+            consumer_agent_acct.clone(),
+        ],
+    );
+
+    assert!(
+        reveal.is_err(),
+        "audit MEDIUM-2 regression: cross-job commitment reuse must fail"
+    );
+}
+
+/// Audit regression: MEDIUM-4 — expiry can only be triggered by the recorded
+/// consumer or specialist, not an arbitrary third-party caller.
+#[test]
+fn test_audit_expire_third_party_rejected() {
+    let mut svm = setup();
+    let consumer = Pubkey::new_unique();
+    let specialist = Pubkey::new_unique();
+    let attacker = Pubkey::new_unique();
+
+    let (consumer_agent, consumer_agent_acct, _) = register_agent(&mut svm, consumer);
+    let (specialist_agent, specialist_agent_acct, _) = register_agent(&mut svm, specialist);
+
+    let job_id = job_id_to_u128([14u8; 16]);
+    let rating = rating_pda(job_id);
+    let salt = [0xCCu8; 32];
+
+    let r1 = svm.process_instruction(
+        &commit_ix(
+            job_id,
+            sha256_commitment(job_id, 8, &salt),
+            0,
+            consumer,
+            consumer,
+            specialist,
+            rating,
+        ),
+        &[empty(rating), funded(consumer)],
+    );
+    r1.assert_success();
+
+    svm.sysvars.warp_to_slot(1_512_001);
+
+    let result = svm.process_instruction(
+        &expire_ix(job_id, attacker, rating, specialist_agent, consumer_agent),
+        &[
+            r1.account(&rating).unwrap().clone(),
+            funded(attacker),
+            specialist_agent_acct.clone(),
+            consumer_agent_acct.clone(),
+        ],
+    );
+
+    assert!(
+        result.is_err(),
+        "audit MEDIUM-4 regression: third-party expiry must fail"
+    );
+}

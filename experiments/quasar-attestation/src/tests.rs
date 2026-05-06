@@ -570,3 +570,25 @@ fn test_score_eleven_rejected() {
     assert!(result.is_err(), "Score 11 should be rejected");
     println!("✅ Score 11 correctly rejected");
 }
+
+/// Audit regression: CRITICAL-2 — judge cannot attest with themselves as consumer
+/// and then self-confirm to inflate reputation.
+#[test]
+fn test_audit_self_confirmation_attest_rejected() {
+    let mut svm = setup();
+
+    let judge = Pubkey::new_unique();
+    let judge_agent = register_judge(&mut svm, &judge, 1); // Attestation
+    let job_id: u128 = 9_002;
+    let att_pk = attestation_pda(job_id);
+
+    let result = svm.process_instruction(
+        &attest_ix(&judge, &judge_agent, job_id, [10u8; 5], &judge),
+        &[empty_account(att_pk)],
+    );
+
+    assert!(
+        result.is_err(),
+        "audit CRITICAL-2 regression: judge self-consumer attestation must fail"
+    );
+}

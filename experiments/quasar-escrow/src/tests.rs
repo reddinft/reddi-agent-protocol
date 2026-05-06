@@ -345,3 +345,35 @@ fn test_multiple_escrows_per_payer() {
     assert!(second.account(&escrow0).is_some(), "escrow #0 still exists");
     assert!(second.account(&escrow1).is_some(), "escrow #1 exists");
 }
+
+/// Audit regression: HIGH-1 — payer cannot cancel before the seven-day window.
+#[test]
+fn test_audit_cancel_before_window_rejected() {
+    let mut svm = setup();
+
+    let payer = Pubkey::new_unique();
+    let payee = Pubkey::new_unique();
+    let counter = counter_pda(&payer);
+    let escrow_id = 0u64;
+    let escrow = escrow_pda(&payer, escrow_id);
+    let amount: u64 = 250_000_000;
+
+    let lock_result = svm.process_instruction(
+        &lock_ix(payer, payee, counter, escrow, amount, escrow_id),
+        &[funded(payer), empty(payee), empty(counter), empty(escrow)],
+    );
+    lock_result.assert_success();
+
+    let cancel_result = svm.process_instruction(
+        &cancel_ix(payer, escrow, escrow_id),
+        &[
+            lock_result.account(&payer).unwrap().clone(),
+            lock_result.account(&escrow).unwrap().clone(),
+        ],
+    );
+
+    assert!(
+        cancel_result.is_err(),
+        "audit HIGH-1 regression: cancel before CANCEL_WINDOW_SLOTS must fail"
+    );
+}
