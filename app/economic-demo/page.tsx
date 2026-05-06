@@ -430,8 +430,8 @@ export default function EconomicDemoPage() {
                     </p>
                     <div className="mt-3 rounded border border-white/10 bg-black/20 p-2 text-xs leading-5 text-yellow-50/90">
                       <p>Composite proof: live Jupiter route quote + wallet-specific transaction build/signature attempt; successful Jupiter execution is not claimed on devnet.</p>
-                      <p className="break-all font-mono text-gray-400">swap tx: {runReport.jupiterSwapProof.transactionAddress}</p>
-                      <p className="text-yellow-100">Wallet-backed Jupiter attempt: quote + swap transaction + wallet signature succeeded; devnet RPC rejected Jupiter mainnet address-table material.</p>
+                      <p className="break-all font-mono text-gray-400">signed devnet budget-lane tx, not Jupiter swap receipt: {runReport.jupiterSwapProof.transactionAddress}</p>
+                      <p className="text-yellow-100">Wallet-backed Jupiter attempt: quote + swap transaction + wallet signature succeeded; devnet RPC rejected Jupiter mainnet address-table material, so the tx below only proves the signed demo budget lane.</p>
                     </div>
                   </div>
                 )}
@@ -657,7 +657,7 @@ export default function EconomicDemoPage() {
                     <p className="mt-2 text-sm leading-6 text-yellow-50/90">
                       {runReport.jupiterSwapProof.inputAmount?.toFixed(3)} {runReport.jupiterSwapProof.inputAsset} → {formatUsdc(runReport.jupiterSwapProof.amountUsdc)} {runReport.jupiterSwapProof.outputAsset}; this is the intended cross-token budget path, while public Jupiter devnet execution remains an explicit boundary.
                     </p>
-                    <p className="mt-2 break-all font-mono text-xs text-gray-400">swap receipt: {runReport.jupiterSwapProof.transactionAddress}</p>
+                    <p className="mt-2 break-all font-mono text-xs text-gray-400">signed demo budget-lane tx, not a Jupiter swap receipt: {runReport.jupiterSwapProof.transactionAddress}</p>
                     <p className="mt-1 text-xs text-yellow-100">status: {runReport.jupiterSwapProof.proofStatus} · wallet-backed Jupiter quote/build/sign attempt captured separately; no successful devnet Jupiter swap claimed</p>
                   </div>
                   {runReport.specialistCalls.map((call) => (
