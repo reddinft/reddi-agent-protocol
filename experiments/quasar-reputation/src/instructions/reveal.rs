@@ -51,7 +51,7 @@ impl<'info> Reveal<'info> {
     #[inline(always)]
     pub fn reveal(
         &mut self,
-        _job_id: u128,
+        job_id: u128,
         score: u8,
         salt: [u8; 32],
     ) -> Result<(), ProgramError> {
@@ -67,10 +67,13 @@ impl<'info> Reveal<'info> {
             return Err(ProgramError::InvalidArgument); // InvalidScore
         }
 
-        // Compute sha256(score || salt) — mirrors Anchor logic exactly
+        // Compute a domain-separated commitment: score || salt || job_id || program_id.
+        // This prevents cross-job commitment reuse and binds the reveal to this program.
         let mut hasher = Sha256::new();
         hasher.update([score]);
         hasher.update(salt);
+        hasher.update(job_id.to_le_bytes());
+        hasher.update(crate::ID.as_ref());
         let computed: [u8; 32] = hasher.finalize().into();
 
         let is_consumer = signer_addr == self.rating.consumer;

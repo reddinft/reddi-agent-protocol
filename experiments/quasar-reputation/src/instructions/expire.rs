@@ -59,6 +59,12 @@ impl<'info> Expire<'info> {
             return Err(ProgramError::InvalidArgument); // AlreadyFinalised
         }
 
+        // Guard: only one of the recorded parties may trigger expiry.
+        let caller_addr = *self.caller.address();
+        if caller_addr != self.rating.consumer && caller_addr != self.rating.specialist {
+            return Err(ProgramError::InvalidArgument);
+        }
+
         // Time-lock: must have waited at least RATING_EXPIRE_SLOTS
         let elapsed = clock.slot.get().saturating_sub(self.rating.created_slot.get());
         if elapsed < RATING_EXPIRE_SLOTS {

@@ -73,11 +73,13 @@ fn rating_pda(job_id: u128) -> Pubkey {
     .0
 }
 
-fn sha256_commitment(score: u8, salt: &[u8; 32]) -> [u8; 32] {
+fn sha256_commitment(job_id: u128, score: u8, salt: &[u8; 32]) -> [u8; 32] {
     use sha2::{Digest, Sha256};
     let mut h = Sha256::new();
     h.update([score]);
     h.update(salt);
+    h.update(job_id.to_le_bytes());
+    h.update(crate::ID.as_ref());
     h.finalize().into()
 }
 
@@ -295,7 +297,7 @@ fn test_commit_and_reveal_both() {
 
     // Consumer commits (first call — creates RatingAccount)
     let r1 = svm.process_instruction(
-        &commit_ix(job_id, sha256_commitment(c_score, &c_salt), 0, consumer,
+        &commit_ix(job_id, sha256_commitment(job_id, c_score, &c_salt), 0, consumer,
                    consumer, specialist, rating),
         &[empty(rating), funded(consumer)],
     );
@@ -304,7 +306,7 @@ fn test_commit_and_reveal_both() {
 
     // Specialist commits (second call — reuses RatingAccount)
     let r2 = svm.process_instruction(
-        &commit_ix(job_id, sha256_commitment(s_score, &s_salt), 1, specialist,
+        &commit_ix(job_id, sha256_commitment(job_id, s_score, &s_salt), 1, specialist,
                    consumer, specialist, rating),
         &[
             r1.account(&rating).unwrap().clone(),
@@ -378,7 +380,7 @@ fn test_commit_and_expire() {
 
     // Consumer commits (specialist ghosts)
     let r1 = svm.process_instruction(
-        &commit_ix(job_id, sha256_commitment(9, &c_salt), 0, consumer,
+        &commit_ix(job_id, sha256_commitment(job_id, 9, &c_salt), 0, consumer,
                    consumer, specialist, rating),
         &[empty(rating), funded(consumer)],
     );
@@ -445,7 +447,7 @@ fn test_reveal_rejected_before_both_commit() {
 
     // Only consumer commits
     let r1 = svm.process_instruction(
-        &commit_ix(job_id, sha256_commitment(c_score, &c_salt), 0, consumer,
+        &commit_ix(job_id, sha256_commitment(job_id, c_score, &c_salt), 0, consumer,
                    consumer, specialist, rating),
         &[empty(rating), funded(consumer)],
     );
@@ -484,14 +486,14 @@ fn test_tampered_reveal_rejected() {
     let s_score: u8 = 5;
 
     let r1 = svm.process_instruction(
-        &commit_ix(job_id, sha256_commitment(c_score, &real_salt), 0, consumer,
+        &commit_ix(job_id, sha256_commitment(job_id, c_score, &real_salt), 0, consumer,
                    consumer, specialist, rating),
         &[empty(rating), funded(consumer)],
     );
     r1.assert_success();
 
     let r2 = svm.process_instruction(
-        &commit_ix(job_id, sha256_commitment(s_score, &real_salt), 1, specialist,
+        &commit_ix(job_id, sha256_commitment(job_id, s_score, &real_salt), 1, specialist,
                    consumer, specialist, rating),
         &[r1.account(&rating).unwrap().clone(), funded(specialist)],
     );
@@ -529,14 +531,14 @@ fn test_unauthorized_reveal_rejected() {
     let s_score: u8 = 8;
 
     let r1 = svm.process_instruction(
-        &commit_ix(job_id, sha256_commitment(c_score, &c_salt), 0, consumer,
+        &commit_ix(job_id, sha256_commitment(job_id, c_score, &c_salt), 0, consumer,
                    consumer, specialist, rating),
         &[empty(rating), funded(consumer)],
     );
     r1.assert_success();
 
     let r2 = svm.process_instruction(
-        &commit_ix(job_id, sha256_commitment(s_score, &s_salt), 1, specialist,
+        &commit_ix(job_id, sha256_commitment(job_id, s_score, &s_salt), 1, specialist,
                    consumer, specialist, rating),
         &[r1.account(&rating).unwrap().clone(), funded(specialist)],
     );
@@ -571,7 +573,7 @@ fn test_duplicate_commit_rejected() {
     let salt = [0x55u8; 32];
 
     let r1 = svm.process_instruction(
-        &commit_ix(job_id, sha256_commitment(8, &salt), 0, consumer,
+        &commit_ix(job_id, sha256_commitment(job_id, 8, &salt), 0, consumer,
                    consumer, specialist, rating),
         &[empty(rating), funded(consumer)],
     );
@@ -579,7 +581,7 @@ fn test_duplicate_commit_rejected() {
 
     // Consumer tries to commit again — AlreadyCommitted
     let r2 = svm.process_instruction(
-        &commit_ix(job_id, sha256_commitment(9, &salt), 0, consumer,
+        &commit_ix(job_id, sha256_commitment(job_id, 9, &salt), 0, consumer,
                    consumer, specialist, rating),
         &[
             r1.account(&rating).unwrap().clone(),
@@ -604,7 +606,7 @@ fn test_expire_rejected_before_window() {
     let c_salt = [0xDDu8; 32];
 
     let r1 = svm.process_instruction(
-        &commit_ix(job_id, sha256_commitment(8, &c_salt), 0, consumer,
+        &commit_ix(job_id, sha256_commitment(job_id, 8, &c_salt), 0, consumer,
                    consumer, specialist, rating),
         &[empty(rating), funded(consumer)],
     );
@@ -638,7 +640,7 @@ fn test_expire_succeeds_after_window() {
     let c_salt = [0xEEu8; 32];
 
     let r1 = svm.process_instruction(
-        &commit_ix(job_id, sha256_commitment(6, &c_salt), 0, consumer,
+        &commit_ix(job_id, sha256_commitment(job_id, 6, &c_salt), 0, consumer,
                    consumer, specialist, rating),
         &[empty(rating), funded(consumer)],
     );
@@ -680,14 +682,14 @@ fn test_commit_to_revealed_rating_rejected() {
 
     // Full commit-reveal cycle
     let r1 = svm.process_instruction(
-        &commit_ix(job_id, sha256_commitment(c_score, &c_salt), 0, consumer,
+        &commit_ix(job_id, sha256_commitment(job_id, c_score, &c_salt), 0, consumer,
                    consumer, specialist, rating),
         &[empty(rating), funded(consumer)],
     );
     r1.assert_success();
 
     let r2 = svm.process_instruction(
-        &commit_ix(job_id, sha256_commitment(s_score, &s_salt), 1, specialist,
+        &commit_ix(job_id, sha256_commitment(job_id, s_score, &s_salt), 1, specialist,
                    consumer, specialist, rating),
         &[r1.account(&rating).unwrap().clone(), funded(specialist)],
     );
@@ -717,7 +719,7 @@ fn test_commit_to_revealed_rating_rejected() {
 
     // Try to commit again on a Revealed rating — should fail (AlreadyFinalised)
     let r5 = svm.process_instruction(
-        &commit_ix(job_id, sha256_commitment(c_score, &c_salt), 0, consumer,
+        &commit_ix(job_id, sha256_commitment(job_id, c_score, &c_salt), 0, consumer,
                    consumer, specialist, rating),
         &[
             r4.account(&rating).unwrap().clone(),
@@ -746,14 +748,14 @@ fn test_invalid_score_rejected() {
     let s_score: u8 = 7;
 
     let r1 = svm.process_instruction(
-        &commit_ix(job_id, sha256_commitment(c_score, &c_salt), 0, consumer,
+        &commit_ix(job_id, sha256_commitment(job_id, c_score, &c_salt), 0, consumer,
                    consumer, specialist, rating),
         &[empty(rating), funded(consumer)],
     );
     r1.assert_success();
 
     let r2 = svm.process_instruction(
-        &commit_ix(job_id, sha256_commitment(s_score, &s_salt), 1, specialist,
+        &commit_ix(job_id, sha256_commitment(job_id, s_score, &s_salt), 1, specialist,
                    consumer, specialist, rating),
         &[r1.account(&rating).unwrap().clone(), funded(specialist)],
     );

@@ -34,7 +34,7 @@ use instructions::*;
 #[cfg(test)]
 mod tests;
 
-declare_id!("66666666666666666666666666666666666666666666");
+declare_id!("nb9rLVjoHMibsgfRGgKuPqm6M8GVcH9r6bYNfg7Yiy6");
 
 #[program]
 mod quasar_reputation {

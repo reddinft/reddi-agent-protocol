@@ -58,6 +58,13 @@ impl<'info> Commit<'info> {
             return Err(ProgramError::InvalidArgument);
         }
 
+        // Guard: zero commitment is the uncommitted sentinel in RatingAccount.
+        // Accepting it lets a user believe they committed while expiry logic
+        // still treats them as absent.
+        if commitment == [0u8; 32] {
+            return Err(ProgramError::InvalidArgument);
+        }
+
         // Guard: reject if already finalised (Revealed or Expired)
         let current_state = self.rating.rating_state();
         if current_state == RatingState::Revealed || current_state == RatingState::Expired {

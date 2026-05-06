@@ -10,6 +10,7 @@ extern crate std;
 
 use {
     quasar_lang::traits::HasSeeds,
+    crate::state::CANCEL_WINDOW_SLOTS,
     quasar_svm::{Account, AccountMeta, Instruction, Pubkey, QuasarSvm},
     std::{println, vec},
 };
@@ -182,6 +183,8 @@ fn test_lock_and_cancel() {
 
     let payer_after_lock = lock_result.account(&payer).unwrap().lamports;
 
+    svm.sysvars.warp_to_slot(CANCEL_WINDOW_SLOTS + 1);
+
     let cancel_result = svm.process_instruction(
         &cancel_ix(payer, escrow, escrow_id),
         &[
@@ -278,6 +281,8 @@ fn test_release_after_cancel_fails() {
         &[funded(payer), empty(payee), empty(counter), empty(escrow)],
     );
     lock_result.assert_success();
+
+    svm.sysvars.warp_to_slot(CANCEL_WINDOW_SLOTS + 1);
 
     let cancel_result = svm.process_instruction(
         &cancel_ix(payer, escrow, escrow_id),

@@ -358,3 +358,9 @@ Ingested CNBC/SPAN reference on NVIDIA + PulteGroup helping SPAN put mini data-c
 ## Pitch deck update — SPAN XFRA reference
 
 Updated internal hackathon screen deck with a new market-proof slide after the home slide: `public/_internal/hackathon-slides/index.html` now includes “Market Proof: compute is moving to the edge,” citing CNBC’s NVIDIA + PulteGroup + SPAN residential mini data-center story. Updated `SLIDES.md` and `slide_manifest.csv`. The slide frames the thesis: “The data center is moving into the neighborhood. The coordination layer is missing,” then maps Reddi to identity, x402 payment intent, Quasar/Solana settlement, reputation, attestation, and disclosure.
+
+## Quasar security audit ingestion — 2026-05-06
+
+Ingested `docs/QUASAR-PROGRAMS-SECURITY-AUDIT-2026-05-06.md` and added remediation log `docs/QUASAR-PROGRAMS-SECURITY-REMEDIATION-2026-05-06.md`. Immediate hardening is applied on the current PR branch: escrow cancel window restored, escrow timestamp/slot restored, checked lamport arithmetic, overflow-check profiles, canonical devnet `declare_id!` values, pinned `quasar-svm` rev, zero-commit rejection, domain-separated reputation commitments, participant-only expiry, self-confirmation guard, and `third_party/quasar/VERSION.md`. Local validation passed: `PATH="$HOME/.cargo/bin:$PATH" bash scripts/run-quasar-program-tests.sh` (7/7 escrow, 10/10 registry, 11/11 reputation, 13/13 attestation), `npm run check:quasar:critical-success`, `npm run test:bdd:index`, `git diff --check`.
+
+**Important:** full architectural findings remain open and are not mainnet-ready: job-binding for rating/attestation PDAs, payee dispute/claim path, reputation laundering policy, and canonical agent registry unification. Do not claim mainnet-ready Quasar programs until those are designed, implemented, and re-reviewed.

@@ -17,7 +17,10 @@ use {
         events::EscrowLocked,
         state::{EscrowAccount, EscrowAccountInner, EscrowStatus, UserEscrowCounter, UserEscrowCounterInner},
     },
-    quasar_lang::prelude::*,
+    quasar_lang::{
+        prelude::*,
+        sysvars::{clock::Clock, Sysvar as _},
+    },
 };
 
 #[derive(Accounts)]
@@ -72,6 +75,8 @@ impl<'info> Lock<'info> {
             return Err(ProgramError::InvalidArgument);
         }
 
+        let clock = Clock::get()?;
+
         // Transfer lamports payer → escrow
         self.system_program
             .transfer(self.payer, self.escrow, amount)
@@ -84,8 +89,8 @@ impl<'info> Lock<'info> {
             escrow_id,
             amount,
             status: EscrowStatus::Locked as u8,
-            created_at: 0, // Clock sysvar omitted from POC for simplicity
-            created_slot: 0,
+            created_at: clock.unix_timestamp.get(),
+            created_slot: clock.slot.get(),
             bump: bumps.escrow,
         });
 

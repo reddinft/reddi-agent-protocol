@@ -1455,7 +1455,7 @@ dependencies = [
 [[package]]
 name = "quasar-svm"
 version = "0.1.0"
-source = "git+https://github.com/blueshift-gg/quasar-svm#cf3c06a08a9009631d42d7942a574da1eac6104d"
+source = "git+https://github.com/blueshift-gg/quasar-svm?rev=cf3c06a08a9009631d42d7942a574da1eac6104d#cf3c06a08a9009631d42d7942a574da1eac6104d"
 dependencies = [
  "agave-feature-set",
  "agave-syscalls",

@@ -1,5 +1,8 @@
 use quasar_lang::prelude::*;
 
+/// Seven-day payer cancellation window, matching the Anchor implementation.
+pub const CANCEL_WINDOW_SLOTS: u64 = 7 * 24 * 60 * 60 * 2;
+
 /// Escrow status — mirrors Anchor EscrowStatus enum.
 #[repr(u8)]
 #[derive(Copy, Clone, PartialEq, Eq)]

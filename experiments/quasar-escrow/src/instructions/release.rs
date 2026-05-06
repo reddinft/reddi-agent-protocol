@@ -55,8 +55,17 @@ impl<'info> Release<'info> {
         let escrow_view = self.escrow.to_account_view();
         let payee_view = self.payee.to_account_view();
 
-        set_lamports(escrow_view, escrow_view.lamports() - amount);
-        set_lamports(payee_view, payee_view.lamports() + amount);
+        let new_escrow_lamports = escrow_view
+            .lamports()
+            .checked_sub(amount)
+            .ok_or(ProgramError::ArithmeticOverflow)?;
+        let new_payee_lamports = payee_view
+            .lamports()
+            .checked_add(amount)
+            .ok_or(ProgramError::ArithmeticOverflow)?;
+
+        set_lamports(escrow_view, new_escrow_lamports);
+        set_lamports(payee_view, new_payee_lamports);
 
         // Mark released (close = payer clears the rest)
         self.escrow.status = EscrowStatus::Released as u8;

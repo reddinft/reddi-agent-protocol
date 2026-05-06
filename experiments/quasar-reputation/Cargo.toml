@@ -21,10 +21,15 @@ sha2 = { version = "0.10", default-features = false }
 digest = { version = "0.10", default-features = false }
 
 [dev-dependencies]
-quasar-svm = { git = "https://github.com/blueshift-gg/quasar-svm" }
+quasar-svm = { git = "https://github.com/blueshift-gg/quasar-svm", rev = "cf3c06a08a9009631d42d7942a574da1eac6104d" }
 solana-keypair = { version = "3.0.1" }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }
 
 [workspace]
+
+[profile.release]
+overflow-checks = true
+lto = "fat"
+codegen-units = 1

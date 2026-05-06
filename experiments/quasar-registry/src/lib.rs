@@ -31,7 +31,7 @@ use instructions::*;
 #[cfg(test)]
 mod tests;
 
-declare_id!("55555555555555555555555555555555555555555555");
+declare_id!("Xk7jczJZ1HHJZuE1ZUWDqFmowxYhnom7mWzrNSGf9FU");
 
 #[program]
 mod quasar_registry {

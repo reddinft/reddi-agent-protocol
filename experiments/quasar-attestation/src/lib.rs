@@ -33,7 +33,7 @@ use instructions::*;
 #[cfg(test)]
 mod tests;
 
-declare_id!("77777777777777777777777777777777777777777777");
+declare_id!("CRGsWWkptdxsH6N6aWAyahLbuMsT58yM624EopEsv1Ex");
 
 #[program]
 mod quasar_attestation {

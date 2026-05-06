@@ -66,6 +66,13 @@ impl<'info> Attest<'info> {
             }
         }
 
+        // Defense-in-depth for the audit's self-confirmation finding: until
+        // attestations are bound to a canonical job/escrow account, never allow
+        // the attesting judge to name themselves as the consumer.
+        if consumer == *self.judge.address() {
+            return Err(ProgramError::InvalidArgument);
+        }
+
         let clock = Clock::get()?;
         let job_id_bytes = job_id.to_le_bytes();
 
