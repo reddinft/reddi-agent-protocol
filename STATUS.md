@@ -368,3 +368,7 @@ Ingested `docs/QUASAR-PROGRAMS-SECURITY-AUDIT-2026-05-06.md` and added remediati
 ## Legacy Anchor workflow removal — 2026-05-06
 
 Removed `.github/workflows/anchor-test.yml` after Nissan confirmed final demos use Quasar programs only. Branch protection API for required status checks returned 404/no accessible required-status configuration, and PR #244 already has first-class Quasar gates: `Quasar Program Tests (QuasarSVM / LiteSVM)`, `quasar-readiness`, `bdd-index-guard`, `source-conformance-matrix`, and Vercel. Anchor source remains in the repo as legacy/reference code, but Anchor CI is no longer a final proof gate.
+
+## Quasar audit follow-up observations — 2026-05-06
+
+Follow-up audit response ingested. Fixed N1 by changing escrow `CANCEL_WINDOW_SLOTS` to `1_512_000`, matching the reputation expiry cadence (~7 days at 2.5 slots/sec). Added `docs/QUASAR-PROGRAMS-SECURITY-AUDIT-RESPONSE-2026-05-06.md` and updated the remediation log with N2/N3/N4 clarifications: program-ID-bound commitments require migration/drain operational handling, participant-only expiry is defense-in-depth, and self-confirmation rejection is partial defense-in-depth until real job/escrow binding lands.

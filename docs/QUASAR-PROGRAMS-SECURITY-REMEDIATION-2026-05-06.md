@@ -65,3 +65,12 @@ git diff --check
 ## Mainnet gate
 
 Do not present these Quasar programs as mainnet-ready until the open architectural items above are closed and independently re-reviewed.
+
+## Follow-up audit observations
+
+A follow-up review after the first remediation pass raised four minor/clarifying observations. Status:
+
+- **N1 (Low) — fixed:** `CANCEL_WINDOW_SLOTS` originally used `7×24×3600×2`, assuming 2 slots/sec. The reputation code uses `1_512_000` slots for ~7 days at 2.5 slots/sec. Escrow now uses `1_512_000` too, keeping cancel and rating-expiry windows aligned.
+- **N2 (Informational) — documented:** reputation commitments bind to `crate::ID` / compile-time `declare_id!`. Changing a program ID invalidates in-flight commits; clients/operators must drain or settle open ratings before a program-ID migration and must compute commitments against the exact target program ID.
+- **N3 (Informational) — confirmed:** participant-only `expire` is defense-in-depth. It does not fully close CRITICAL-4 unless job/rating PDA binding is also implemented.
+- **N4 (Informational) — confirmed:** rejecting `consumer == judge` blocks the trivial self-confirmation loop, but it is still a partial defense-in-depth mitigation. Full CRITICAL-2 closure requires binding attestations to a real job/escrow account and deriving the consumer from that binding.

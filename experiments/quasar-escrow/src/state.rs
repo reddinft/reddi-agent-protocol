@@ -1,7 +1,8 @@
 use quasar_lang::prelude::*;
 
-/// Seven-day payer cancellation window, matching the Anchor implementation.
-pub const CANCEL_WINDOW_SLOTS: u64 = 7 * 24 * 60 * 60 * 2;
+/// Seven-day payer cancellation window, matching the reputation expiry cadence
+/// used elsewhere in this codebase: 1,512,000 slots ≈ 7 days at 2.5 slots/sec.
+pub const CANCEL_WINDOW_SLOTS: u64 = 1_512_000;
 
 /// Escrow status — mirrors Anchor EscrowStatus enum.
 #[repr(u8)]
