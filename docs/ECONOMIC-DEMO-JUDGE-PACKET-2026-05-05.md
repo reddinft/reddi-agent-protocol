@@ -1,11 +1,13 @@
 # Economic Demo Judge Packet
 
 _Date:_ 2026-05-05 AEST
-_Status:_ Scoped Quasar hackathon packet; live PER/TEE and paid/live provider actions remain approval-gated
+_Status:_ Final Quasar devnet proof packet; live PER/TEE and paid/live provider actions remain approval-gated
 _Demo route:_ `/economic-demo`
-_Quasar cutover target:_ Quasar-deployed Solana programs; candidate devnet program `VYCbMszux9seLK2aXFZMECMBFURvfuJLXsXPmJS5igW` from `config/quasar/deployments.json`
+_Quasar cutover target:_ Quasar-deployed Solana multi-program devnet deployment from `config/quasar/deployments.json`
 _Operator checklist:_ `docs/ECONOMIC-DEMO-OPERATOR-CHECKLIST-2026-05-05.md`
 _Local-only rehearsal report:_ `artifacts/economic-demo-rehearsal/20260505T091725Z/REHEARSAL-REPORT.md` (ignored; not part of public packet)
+
+_Final proof map:_ `docs/COLOSSEUM-FINAL-QUASAR-PROOF-MAP-2026-05-06.md`
 
 ## One-paragraph summary
 
@@ -19,7 +21,7 @@ Reddi Agent Protocol demonstrates an agentic workflow economy where a user reque
 
 ## Quasar cutover status
 
-Nissan has selected Quasar-deployed Solana programs as the hackathon demo target. This packet is now refreshed as a **scoped Quasar proof packet**. The candidate Quasar devnet program is `VYCbMszux9seLK2aXFZMECMBFURvfuJLXsXPmJS5igW`; the legacy Anchor reference is recorded only for comparison in `config/quasar/deployments.json`. Current approval-gated blocker set: no signing, deployment, wallet mutation, devnet transfer, Coolify/env mutation, paid/live provider calls, or live PER/TEE execution without Nissan approval. Runtime compatibility has zero blocker-status demo-critical paths; the proof boundary and live-PER limitation are recorded in `docs/QUASAR-SCOPED-JUDGE-PROOF-2026-05-06.md`.
+Nissan has selected Quasar-compiled Solana programs as the final hackathon demo target. This packet is now refreshed as a **final Quasar devnet proof packet**, not a scoped Anchor-era fallback. The active devnet programs are Escrow `VYCbMszux9seLK2aXFZMECMBFURvfuJLXsXPmJS5igW`, Registry `Xk7jczJZ1HHJZuE1ZUWDqFmowxYhnom7mWzrNSGf9FU`, Reputation `nb9rLVjoHMibsgfRGgKuPqm6M8GVcH9r6bYNfg7Yiy6`, and Attestation `CRGsWWkptdxsH6N6aWAyahLbuMsT58yM624EopEsv1Ex`. Legacy Anchor is reference only. Nissan approved devnet transactions needed for the Quasar goal; mainnet, paid provider calls, production env/Coolify/Vercel mutation, real image generation, and live MagicBlock PER/TEE claims remain separately approval-gated. Runtime compatibility has zero blocker-status demo-critical paths; the final proof map is `docs/COLOSSEUM-FINAL-QUASAR-PROOF-MAP-2026-05-06.md`.
 
 ## What is proven by the current packet
 
@@ -87,7 +89,7 @@ git diff --check
 
 ## Recommended submission wording
 
-> Reddi Agent Protocol demonstrates an agentic workflow marketplace targeting Quasar-deployed Solana programs. The scoped proof shows Quasar program target selection, Quasar-compatible registry/reputation/attestation transaction construction, target-aware registry account decoding, and guardrails that prevent accidental fallback to legacy Anchor proof. The economic demo remains evidence-bounded: it shows controlled/local workflow proof, public manifest disclosure, local evidence pointers, and storyboard-only image planning without hidden live calls, provider spend, signing, wallet mutation, production settlement, or live PER/TEE claims.
+> Reddi Agent Protocol demonstrates a Quasar-native devnet agent economy: a human-triggered workflow routes through wallet-bearing agents, x402 payment boundaries, public Quasar escrow settlement, blind reputation commit/reveal, and attestation. The final on-chain proof uses Quasar-compiled Solana programs for Registry, Escrow, Reputation, and Attestation. Surfpool localnet is used as the pre-devnet confidence gate; OpenRouter/30 specialist profiles and x402 evidence show the agent marketplace/payment boundary; Jupiter is wired for cross-token settlement but live swap is not claimed without `JUPITER_API_KEY`; MagicBlock PER/TEE is explicitly not claimed in the final Quasar path unless separately validated.
 
 ## If reviewers ask what comes next
 

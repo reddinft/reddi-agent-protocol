@@ -388,3 +388,7 @@ Read-only devnet PDA check confirmed Quasar Registry A/B/C present and legacy An
 ## Phase 3 retrospective — web/app Quasar build gate
 
 Build-level web readiness passed after devnet Quasar upgrade/rehearsal: `npm run check:quasar:critical-success` PASS, `npm run test:bdd:index` PASS, `NEXT_PUBLIC_DEMO_PROGRAM_TARGET=quasar npm run build` PASS. Existing Turbopack warnings remain about workspace root/multiple lockfiles and broad evidence-pack tracing; not new blockers. Next: proof-map/judge packet and final human-triggered frontend rehearsal.
+
+## Phase 4 progress — proof-map/judge packet
+
+Created `docs/COLOSSEUM-FINAL-QUASAR-PROOF-MAP-2026-05-06.md` and refreshed `docs/ECONOMIC-DEMO-JUDGE-PACKET-2026-05-05.md` away from scoped Quasar wording toward final Quasar devnet proof. The proof map covers Quasar, Surfpool, devnet A→B→C, x402, OpenRouter/30 specialists, Jupiter, MagicBlock, and web-app boundaries. Next: final frontend rehearsal/recording prep after PR checks settle.
