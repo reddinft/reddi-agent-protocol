@@ -976,12 +976,26 @@ export default function EconomicDemoPage() {
                   </div>
                   <div className="mt-4 grid gap-3 sm:grid-cols-3">
                     <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+                      <p className="text-xs text-gray-500">upfront funding</p>
+                      <p className="mt-1 font-mono text-sm text-[#14F195]">{formatUsdc(activeSurfpoolReport.upfrontFunding.amountUsdc)}</p>
+                      <p className="mt-1 text-xs text-gray-400">user → {activeSurfpoolReport.upfrontFunding.toProfileId}</p>
+                    </div>
+                    <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+                      <p className="text-xs text-gray-500">Jupiter SOL route</p>
+                      <p className="mt-1 font-mono text-sm text-yellow-100">{activeSurfpoolReport.jupiterSolRoute.estimatedInputSol.toFixed(3)} SOL → {formatUsdc(activeSurfpoolReport.jupiterSolRoute.outputUsdc)}</p>
+                      <p className="mt-1 text-xs text-gray-400">{activeSurfpoolReport.jupiterSolRoute.status}</p>
+                    </div>
+                    <div className="rounded-lg border border-white/10 bg-black/20 p-3">
                       <p className="text-xs text-gray-500">planned transfers</p>
                       <p className="mt-1 font-mono text-lg text-white">{activeSurfpoolReport.transfers.length}</p>
                     </div>
                     <div className="rounded-lg border border-white/10 bg-black/20 p-3">
                       <p className="text-xs text-gray-500">debited / credited</p>
                       <p className="mt-1 font-mono text-sm text-[#14F195]">{formatLamports(activeSurfpoolReport.positiveProof.totalDebitedLamports).replace(/^\+/, "")} / {formatLamports(activeSurfpoolReport.positiveProof.totalCreditedLamports).replace(/^\+/, "")}</p>
+                    </div>
+                    <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+                      <p className="text-xs text-gray-500">markup retained</p>
+                      <p className="mt-1 font-mono text-sm text-[#14F195]">{formatUsdc(activeSurfpoolReport.upfrontFunding.markupUsdc)}</p>
                     </div>
                     <div className="rounded-lg border border-white/10 bg-black/20 p-3">
                       <p className="text-xs text-gray-500">blocked delta</p>

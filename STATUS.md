@@ -419,4 +419,6 @@ Opened GitHub Issue #245 and added BDD/spec plan: `docs/ECONOMIC-DEMO-UPFRONT-PA
 
 Implemented first Issue #245 slice in PR branch: deterministic quote/budget ledger fixture model, `/economic-demo` wallet-connect/upfront quote panel, USDC/SOL route toggle with Jupiter proof lane, communication-flow and payment-flow/budget-reconciliation panels, plus `e2e/economic-demo.spec.ts` recordable Playwright proof lane. Validation: `npx playwright test e2e/economic-demo.spec.ts` PASS, `npm run test:bdd:index` PASS, `npm run build` PASS.
 
-RESUME FROM HERE: next slice is Surfpool-first then approval-gated devnet/live USDC/SOL/Jupiter proof plumbing and evidence-pack schema updates for actual upfront payment/swap receipts.
+Loop 2 added deterministic Surfpool upfront-funding semantics: the local rehearsal now models user → orchestrator upfront funding before orchestrator → downstream specialist/attestor spends, includes SOL→USDC Jupiter quote fields, proves specialist credits match downstream transfers, upfront funding covers downstream budget, and orchestrator retains positive markup before fees. Latest local artifact: `artifacts/economic-demo-surfpool-rehearsal/20260506T153156Z/summary.json`.
+
+RESUME FROM HERE: next slice is approval-gated devnet/live USDC payment and SOL→USDC Jupiter swap receipt plumbing, plus evidence-pack schema updates for actual upfront payment/swap receipts.
