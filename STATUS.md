@@ -354,3 +354,7 @@ MagicBlock PER/TEE was not claimed; the command used Quasar public settlement. J
 ## Pitch reference ingested — SPAN XFRA / home mini data centers
 
 Ingested CNBC/SPAN reference on NVIDIA + PulteGroup helping SPAN put mini data-center / XFRA nodes on homes. Research note: `docs/research/SPAN-XFRA-MINI-DATA-CENTERS-2026-05-06.md`. Pitch relevance: external proof point that AI compute is moving to distributed residential/grid-edge infrastructure; Reddi can be positioned as the protocol layer for agent identity, x402-style payment intent, Solana/Quasar settlement, reputation, attestation, and disclosure across that edge-compute economy.
+
+## Pitch deck update — SPAN XFRA reference
+
+Updated internal hackathon screen deck with a new market-proof slide after the home slide: `public/_internal/hackathon-slides/index.html` now includes “Market Proof: compute is moving to the edge,” citing CNBC’s NVIDIA + PulteGroup + SPAN residential mini data-center story. Updated `SLIDES.md` and `slide_manifest.csv`. The slide frames the thesis: “The data center is moving into the neighborhood. The coordination layer is missing,” then maps Reddi to identity, x402 payment intent, Quasar/Solana settlement, reputation, attestation, and disclosure.
