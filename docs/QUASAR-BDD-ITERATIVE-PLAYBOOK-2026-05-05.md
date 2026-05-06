@@ -697,3 +697,16 @@ Phase 14’s scoped-proof fallback is superseded as a final readiness strategy. 
 - **Validation:** `DEMO_PROGRAM_TARGET=quasar DEMO_SETTLEMENT_MODE=public npm run demo --prefix packages/demo-agents` PASS in 8106ms. Escrow lock tx `njfAs12qtYD9P1Y1FpdPpwBPPwYgaihSNpWNGVVU7xT5oJDCFbBQmk9eqPHdRoYSrq8vaiw6pXs48oiXnadu7qQ`; settlement tx `29Hp6YKgBsWHnA9SwtEky4dc6UvKQcu4e7msSTkRPd3e3j1pxibzCz5pyXhVj4L1BDCLAqZm6YBrnyCYNH6iz8JS`; rating PDA `39M7XcFaTXmEmkrBLxRZpmVHRXD79GwbpRPVWbAkftgu`; attestation PDA `9YaMF1Wd2N9o2AxQeGsvdB8Yv7RH7WqiVpMTdHvexNTK`. `npm run check:quasar:submission` PASS. `npm run build` PASS.
 - **Retrospective:** The earlier scoped-proof boundary was too weak for the user’s actual goal. The hard gate caught the issue and prevented a premature “ready” claim. The honest final boundary is now: Quasar-native registry/escrow/reputation/attestation demo is ready; MagicBlock PER/TEE is not claimed in the final Quasar path without a separate live validation loop.
 - **Plan changes for next phase:** PR #244 can be reviewed as final Quasar critical-success work once GitHub checks are green. Do not reintroduce Anchor as a final-demo proof path; preserve legacy Anchor only as historical comparison.
+
+
+### Retrospective — Surfpool Quasar localnet gate
+
+- **Expected:** Existing Surfpool localnet tests would prove the final Quasar-native demo path before devnet rehearsal.
+- **Observed:** The existing `test:surfpool:critical` smoke still deployed and exercised the legacy Anchor escrow path (`Target: legacy-anchor`). That was useful regression coverage but not aligned with the final Colosseum goal.
+- **Implementation adjustment:** Added `scripts/run-surfpool-quasar-critical-smoke.sh` and `npm run test:surfpool:quasar-critical`. The new gate starts Surfpool, locally deploys Quasar escrow/registry/reputation/attestation programs, patches local `declare_id!` values only for the local build/deploy artifact, restores sources on exit, registers A/B/C with the local Quasar Registry, and runs the A→B→C demo with `DEMO_PROGRAM_TARGET=quasar`.
+- **Validation:** `npm run test:surfpool:quasar-critical` PASS; `npm run check:quasar:submission` PASS; `npm run test:bdd:index` PASS; `NEXT_PUBLIC_DEMO_PROGRAM_TARGET=quasar npm run build` PASS.
+- **What worked:** Surfpool caught a real local-only bug: deploying Quasar programs under generated local program IDs while leaving source `declare_id!` values unchanged caused owner-check failure during escrow release. The new script now catches and avoids that by aligning local declared IDs with local deploy keypairs.
+- **What failed / surprised us:** The legacy Surfpool smoke was named “critical” but was not Quasar-critical; final-demo confidence must use the new Quasar-specific gate.
+- **Safety / approval review:** Local validator only. No devnet signing, deregistration, deployment, env mutation, paid call, or live PER/TEE claim.
+- **Decision:** continue. Devnet A/B/C Quasar Registry accounts already exist; legacy Anchor registrations can remain as reference unless Nissan explicitly approves cleanup.
+- **Plan changes for next phase:** Before live demo recording, run the Quasar Surfpool gate, read-only devnet PDA check, Quasar submission guard, and Quasar-target web build. Then proceed to approval-gated devnet/testnet rehearsal only if needed.

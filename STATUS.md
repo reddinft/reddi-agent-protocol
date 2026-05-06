@@ -314,3 +314,14 @@ RESUME FROM HERE: start Phase 3 by writing the CI cutover retrospective and deci
 ## Goal alignment correction — 2026-05-06
 
 Nissan clarified the plan must optimize for the full Colosseum Frontier submission goal, not just scoped Quasar CI success: all final demo-critical on-chain paths must use Quasar-compiled Solana programs, and the demos must visibly use the identified bounty protocols/products (MagicBlock, x402, Jupiter, OpenRouter, Surfpool). Updated `docs/QUASAR-BDD-ITERATIVE-PLAYBOOK-2026-05-05.md` and `docs/QUASAR-HACKATHON-CUTOVER-PLAN-2026-05-05.md` with a corrected north-star, demo/bounty coverage matrix, and next loops: CI proof boundary → bounty coverage guard → evidence refresh → MagicBlock decision gate → final rehearsal.
+
+## Surfpool Quasar localnet gate — 2026-05-06
+
+Nissan asked whether Surfpool localnet should be the confidence gate before devnet/testnet. Yes. The old `npm run test:surfpool:critical` still exercised legacy Anchor (`Target: legacy-anchor`), so it is not sufficient final-demo proof. Added `scripts/run-surfpool-quasar-critical-smoke.sh` and `npm run test:surfpool:quasar-critical`, which starts local Surfpool, deploys Quasar escrow/registry/reputation/attestation programs locally, registers A/B/C under the local Quasar Registry, and runs the Quasar-native A→B→C flow.
+
+Latest local evidence:
+- `npm run test:surfpool:quasar-critical` PASS → artifact `artifacts/surfpool-quasar-smoke/20260506-113324/SUMMARY.md`
+- `npm run check:quasar:submission` PASS
+- `npm run test:bdd:index` PASS
+- `NEXT_PUBLIC_DEMO_PROGRAM_TARGET=quasar npm run build` PASS
+- Read-only devnet PDA check confirms both legacy Anchor A/B/C and Quasar Registry A/B/C accounts exist; Quasar Registry A/B/C data length is 153. No deregistration is needed for the Quasar path; legacy cleanup is optional and approval-gated.
