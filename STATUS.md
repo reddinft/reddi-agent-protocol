@@ -486,3 +486,17 @@ RESUME FROM HERE: commit/push the PR evidence polish, then monitor PR #244 check
 - **Actions:** Found the runbook and submission-prep generator still framed Jupiter mostly as “live swap unless JUPITER_API_KEY” / quote-only, without the newer three-part framing: Quasar devnet real proof, Surfpool/mock-Jupiter successful no-real-funds visual, public Jupiter devnet quote/build/sign boundary. Updated `docs/FINAL-RECORDING-REHEARSAL-RUNBOOK-2026-05-06.md`, `docs/ECONOMIC-DEMO-PROOF-HIERARCHY-2026-05-07.md`, and `scripts/generate-economic-demo-submission-prep.mjs`.
 - **Validation:** `node --check scripts/generate-economic-demo-submission-prep.mjs` PASS; `npm run generate:economic-demo:submission-prep` PASS and generated `artifacts/economic-demo-submission-prep/20260506T164423Z/SUBMISSION-PREP.md`; `npm run test:bdd:index` PASS; `git diff --check` PASS.
 - **Review/retrospective:** The proof hierarchy had lagged behind the newly validated Surfpool/mock-Jupiter path. Plan adjustment: the recording packet now explicitly uses Surfpool/mock-Jupiter as the successful no-real-funds swap visual and public Jupiter devnet only as boundary evidence.
+
+## Autonomous Loop 4 after PR #244 merge — Oli blocker fix
+- **Time:** 2026-05-07 AEST
+- **Loop:** Fix QA blocker on PR #246.
+- **Actions:** Patched `/economic-demo` and fixture labels so the signed devnet budget-lane tx can no longer be read as a successful Jupiter devnet swap receipt. `proofStatus` changed from `devnet-verified` to `devnet-signed-boundary`; UI labels now say `signed demo budget-lane tx, not a Jupiter swap receipt`.
+- **Validation:** `npx eslint app/economic-demo/page.tsx lib/economic-demo/fixture.ts` PASS; `npm run test:bdd:index` PASS; `npm run build` PASS with pre-existing workspace-root/NFT warnings only; `git diff --check` PASS. Pushed commit `27560afc`.
+- **Review/retrospective:** Oli’s blocker was correct; copy-only caveats were insufficient while structured status still implied verification. Plan adjustment: require a fresh Oli re-review on PR head `27560afc` before merge, and only then merge.
+
+## Autonomous Loop 5 after PR #244 merge — final safe submission gate + QA dispatch
+- **Time:** 2026-05-07 AEST
+- **Loop:** Final non-mutating submission readiness gate before merge decision.
+- **Actions:** Re-checked PR #246 head `893fd00c`; GitHub checks are green and merge state is CLEAN. Ran the local final Quasar submission gate.
+- **Validation:** `npm run check:quasar:submission` PASS (`runtime-compatibility`, `deployments`, `demo-readiness`, `critical-success`).
+- **Review/retrospective:** The branch is technically mergeable, but the prior status explicitly requires fresh Oli re-review after the payment/Jupiter boundary fix. Plan adjustment: do not merge yet; dispatched Oli re-review session `agent:oli:subagent:eabd81bd-c4f0-40d0-9cff-aec6bb0deb09`. If Oli returns APPROVE, merge PR #246; if REQUEST_CHANGES, patch and loop.
