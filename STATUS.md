@@ -350,3 +350,7 @@ Evidence:
 - Runtime: 6805ms (<10s target)
 
 MagicBlock PER/TEE was not claimed; the command used Quasar public settlement. Jupiter integration remains wired/verified but live swap requires `JUPITER_API_KEY`.
+
+## Pitch reference ingested — SPAN XFRA / home mini data centers
+
+Ingested CNBC/SPAN reference on NVIDIA + PulteGroup helping SPAN put mini data-center / XFRA nodes on homes. Research note: `docs/research/SPAN-XFRA-MINI-DATA-CENTERS-2026-05-06.md`. Pitch relevance: external proof point that AI compute is moving to distributed residential/grid-edge infrastructure; Reddi can be positioned as the protocol layer for agent identity, x402-style payment intent, Solana/Quasar settlement, reputation, attestation, and disclosure across that edge-compute economy.
