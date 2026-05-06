@@ -54,15 +54,17 @@ npm run test:surfpool:quasar-critical
 1. Open `/economic-demo` with `NEXT_PUBLIC_DEMO_PROGRAM_TARGET=quasar`.
 2. Show the Solana program target card: “Quasar hackathon target active”.
 3. Show the four Quasar program IDs and `submission readiness: ready`.
-4. Trigger the human-action economic demo panels:
+4. Show the homepage ecosystem proof map briefly: Quasar, x402, OpenRouter, Jupiter, Surfpool, Torque, MagicBlock, and ElizaOS/SendAI are all visible with status labels.
+5. Trigger the human-action economic demo panels:
    - dry-run workflow plan
    - balance snapshot
    - Surfpool rehearsal plan/evidence
    - x402 readiness / disclosure evidence
    - 30-agent OpenRouter metadata/use-case triggers
-5. Switch to terminal proof and run/show the Quasar A→B→C devnet demo output.
-6. Highlight latest proof map: `docs/COLOSSEUM-FINAL-QUASAR-PROOF-MAP-2026-05-06.md`.
-7. Close with honest boundaries:
+6. Optional supporting beat: open `/leaderboard` for Torque retention/leaderboard evidence and `/testers` for ElizaOS/SendAI-style x402 adapter distribution evidence.
+7. Switch to terminal proof and run/show the Quasar A→B→C devnet demo output.
+8. Highlight latest proof map: `docs/COLOSSEUM-FINAL-QUASAR-PROOF-MAP-2026-05-06.md` and `docs/HACKATHON-BOUNTY-SHOWCASE-AUDIT-2026-05-07.md`.
+9. Close with honest boundaries:
    - Quasar-native devnet proof is live.
    - Surfpool localnet confidence passed.
    - x402/OpenRouter/Jupiter evidence is visible with exact boundaries.

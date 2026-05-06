@@ -17,7 +17,9 @@ Legacy Anchor artifacts and devnet registrations may remain as historical/refere
 | OpenRouter / 30 specialists | Marketplace of specialist agents for human-triggered workflows | `/economic-demo` uses deployed 30-agent profile metadata and specific use-case triggers | No hidden downstream paid calls on page load |
 | Jupiter | Cross-token settlement/boundary lane | Jupiter quote + wallet-specific transaction + devnet signature attempt are evidenced; local Surfpool/mock-Jupiter invoke lane passed at `artifacts/surfpool-jupiter-invoke/20260507-023023/SUMMARY.md`; research note `docs/JUPITER-DEVNET-SWAP-RESEARCH-2026-05-07.md` shows public Jupiter APIs route against mainnet liquidity/account material | Do not claim successful Jupiter devnet execution. Claim only: local successful swap-shaped invoke proof, plus devnet quote/build/sign boundary, unless explicit approved tiny mainnet-beta swap is run |
 | MagicBlock | Ecosystem product boundary | Demo explicitly fail-closes/not-claims PER/TEE for final Quasar path unless separately validated | No PER/TEE claim in final Quasar demo today |
-| Web app | Human-triggered demo surface | `NEXT_PUBLIC_DEMO_PROGRAM_TARGET=quasar npm run build` PASS; `/economic-demo` separates Quasar proof from supporting economic evidence | Inspect before recording for visual Anchor ambiguity |
+| Torque | Retention/leaderboard support layer | `/leaderboard`, `/api/torque/event`, `lib/torque/*`, and Bucket G tests show event/leaderboard plumbing | Supporting layer; not core Quasar on-chain proof |
+| ElizaOS / SendAI | Framework adapter distribution | `packages/eliza-plugin-x402`, `packages/sendai-x402`, and planner tool manifest show x402 adapter surfaces | Adapter evidence; not final on-chain proof |
+| Web app | Human-triggered demo surface | `NEXT_PUBLIC_DEMO_PROGRAM_TARGET=quasar npm run build` PASS; homepage ecosystem proof map + `/economic-demo` separate Quasar proof from supporting economic evidence | Inspect before recording for visual Anchor ambiguity |
 
 ## Latest devnet evidence
 

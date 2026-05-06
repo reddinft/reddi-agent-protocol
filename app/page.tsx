@@ -10,6 +10,57 @@ import type { SpecialistListing } from "@/lib/registry/bridge"
 
 const FALLBACK = { agents: 42, transactions: 128, volume: 18.4 }
 
+const ECOSYSTEM_PROOFS = [
+  {
+    name: "Quasar",
+    status: "Live devnet proof",
+    desc: "Final on-chain path uses Quasar-compiled Registry, Escrow, Reputation, and Attestation programs.",
+    href: "/economic-demo",
+  },
+  {
+    name: "x402",
+    status: "Visible payment boundary",
+    desc: "Planner, onboarding, tester guides, and economic demo show 402 challenges, receipts, and fail-closed paid calls.",
+    href: "/planner",
+  },
+  {
+    name: "OpenRouter specialists",
+    status: "Marketplace surface",
+    desc: "30 specialist profiles power the human-triggered workflow story without hidden paid calls on page load.",
+    href: "/agents",
+  },
+  {
+    name: "Jupiter",
+    status: "Boundary proof",
+    desc: "SOL→USDC quote/build/sign is evidenced; public devnet execution is not claimed. Surfpool provides the successful no-real-funds visual.",
+    href: "/economic-demo",
+  },
+  {
+    name: "Surfpool",
+    status: "Local rehearsal",
+    desc: "Local validator rehearsal proves payment ordering, budget reconciliation, and Quasar confidence before devnet.",
+    href: "/economic-demo",
+  },
+  {
+    name: "Torque",
+    status: "Retention layer",
+    desc: "Leaderboard and custom-event plumbing show how completed jobs can become retention and reward signals.",
+    href: "/leaderboard",
+  },
+  {
+    name: "MagicBlock",
+    status: "Honest boundary",
+    desc: "PER/TEE is presented as approval-gated supporting evidence; the final Quasar path does not claim live PER execution.",
+    href: "/economic-demo",
+  },
+  {
+    name: "ElizaOS + SendAI",
+    status: "Adapter evidence",
+    desc: "Framework packages expose x402 agent-commerce adapters for distribution beyond the web demo.",
+    href: "/testers",
+  },
+]
+
 type HeartbeatData = {
   ok: boolean
   total?: number
@@ -151,6 +202,37 @@ export default function Home() {
           ]}
         />
       </div>
+
+      <section className="mx-auto max-w-6xl px-4 pt-10 sm:px-6 lg:px-8">
+        <div className="rounded-xl border border-indigo-300/20 bg-card/30 p-6 glow-border">
+          <div className="mb-5 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="section-label">Hackathon ecosystem proof map</p>
+              <h2 className="font-display text-2xl font-bold text-white">Every sponsor surface, honestly labelled</h2>
+            </div>
+            <Link href="/economic-demo" className="text-sm text-indigo-300 hover:text-indigo-200">
+              Open final demo →
+            </Link>
+          </div>
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+            {ECOSYSTEM_PROOFS.map((proof) => (
+              <Link
+                key={proof.name}
+                href={proof.href}
+                className="rounded-lg border border-white/10 bg-white/[0.03] p-4 transition hover:border-indigo-300/40 hover:bg-white/[0.06]"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <h3 className="text-sm font-semibold text-white">{proof.name}</h3>
+                  <span className="rounded-full border border-white/10 bg-black/20 px-2 py-0.5 text-[10px] uppercase tracking-wide text-gray-300">
+                    {proof.status}
+                  </span>
+                </div>
+                <p className="mt-3 text-xs leading-5 text-gray-400">{proof.desc}</p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
 
       <section className="mx-auto max-w-6xl px-4 pt-10 sm:px-6 lg:px-8">
         <div className="rounded-xl border border-emerald-300/20 bg-emerald-400/10 p-6 glow-border">
