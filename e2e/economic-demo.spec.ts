@@ -42,7 +42,7 @@ test.describe("/economic-demo upfront funded consumer-agent flow", () => {
     await expect(page.getByTestId("jupiter-swap-proof")).toBeVisible();
     await expect(page.getByTestId("jupiter-swap-proof")).toContainText("Jupiter swap proof lane");
     await expect(page.getByTestId("jupiter-swap-proof")).toContainText("Intended execution story");
-    await expect(page.getByTestId("jupiter-swap-proof")).toContainText("swap tx");
+    await expect(page.getByTestId("jupiter-swap-proof")).toContainText("signed devnet budget-lane tx, not Jupiter swap receipt");
     await expect(page.getByTestId("jupiter-swap-proof")).toContainText("Wallet-backed Jupiter attempt");
     await expect(page.getByTestId("jupiter-swap-proof")).toContainText(/slippage cap/i);
     await expect(runReport).toContainText("Jupiter swap before downstream payments");
