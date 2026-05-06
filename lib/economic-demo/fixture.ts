@@ -70,6 +70,9 @@ export type EconomicRunReportPaymentReceipt = {
   to: string;
   purpose: string;
   amountUsdc: number;
+  inputAsset?: PaymentAsset;
+  outputAsset?: "USDC";
+  inputAmount?: number;
   proofStatus: "fixture" | "local-surfpool" | "devnet-verified" | "pending-live-receipt";
   transactionAddress: string;
 };
@@ -96,6 +99,7 @@ export type EconomicRunReport = {
   scenarioId: EconomicDemoScenarioId;
   title: string;
   narrative: string;
+  jupiterSwapProof: EconomicRunReportPaymentReceipt;
   specialistCalls: Array<{
     step: number;
     specialistProfileId: string;
@@ -310,7 +314,18 @@ function fixtureTx(label: string) {
 export function buildEconomicRunReport(scenario: EconomicDemoScenario): EconomicRunReport {
   const attestors = scenario.agents.filter((agent) => agent.role === "attestor");
   const specialistEdges = scenario.edges.filter((edge) => edge.to !== scenario.orchestrator && edge.status !== "blocked");
-  const paymentReceipts = scenario.budgetLedger
+  const jupiterSwapProof: EconomicRunReportPaymentReceipt = {
+    from: "end-user",
+    to: scenario.orchestrator,
+    purpose: "Jupiter SOL→USDC swap funds the run budget before downstream payments",
+    amountUsdc: scenario.quote.totalUsdc,
+    inputAsset: "SOL",
+    outputAsset: "USDC",
+    inputAmount: scenario.quote.solEstimate,
+    proofStatus: "local-surfpool",
+    transactionAddress: fixtureTx(`${scenario.id}:jupiter-swap:sol-to-usdc-budget`),
+  };
+  const paymentReceipts = [jupiterSwapProof, ...scenario.budgetLedger
     .filter((entry) => entry.category !== "markup" && entry.amountUsdc > 0)
     .map((entry): EconomicRunReportPaymentReceipt => ({
       from: entry.from,
@@ -319,7 +334,7 @@ export function buildEconomicRunReport(scenario: EconomicDemoScenario): Economic
       amountUsdc: entry.amountUsdc,
       proofStatus: "pending-live-receipt",
       transactionAddress: fixtureTx(`${scenario.id}:${entry.category}:${entry.from}->${entry.to}`),
-    }));
+    }))];
   const attestations = specialistEdges
     .filter((edge) => edge.capability.includes("attestation") || edge.capability.includes("verification") || edge.status === "attested")
     .map((edge, index): EconomicRunReportAttestation => ({
@@ -369,6 +384,7 @@ export function buildEconomicRunReport(scenario: EconomicDemoScenario): Economic
     scenarioId: scenario.id,
     title: `${scenario.title} run report`,
     narrative: "The user funds the activity, the orchestrator purchases specialist work, attestors validate outputs and receipts, then reputation changes are applied only after commit-reveal.",
+    jupiterSwapProof,
     specialistCalls: calls,
     paymentReceipts,
     attestations,

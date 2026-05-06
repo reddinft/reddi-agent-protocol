@@ -37,7 +37,11 @@ test.describe("/economic-demo upfront funded consumer-agent flow", () => {
     await page.getByRole("button", { name: /pay with sol/i }).click();
     await expect(page.getByTestId("jupiter-swap-proof")).toBeVisible();
     await expect(page.getByTestId("jupiter-swap-proof")).toContainText("Jupiter swap proof lane");
-    await expect(page.getByTestId("jupiter-swap-proof")).toContainText("slippage cap");
+    await expect(page.getByTestId("jupiter-swap-proof")).toContainText("Swap execution story");
+    await expect(page.getByTestId("jupiter-swap-proof")).toContainText("swap tx");
+    await expect(page.getByTestId("jupiter-swap-proof")).toContainText(/slippage cap/i);
+    await expect(runReport).toContainText("Jupiter swap before downstream payments");
+    await expect(runReport).toContainText("downstream agents are paid only after this converted budget exists");
 
     await expect(page.getByTestId("economic-final-output")).toBeVisible();
     await expect(page.getByText(/Wallet balance ledger/i)).toBeVisible();

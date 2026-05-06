@@ -35,6 +35,15 @@ Feature: End-user economic workflow demo
     And the page distinguishes swap cost, downstream agent fees, and orchestrator markup
     And if the quote expires, slippage exceeds the cap, or output is insufficient, no downstream agent call is executed
 
+  Scenario: SOL payment path shows conversion before downstream agent payments
+    Given the user does not initially hold the USDC budget required by downstream agents
+    And the user chooses to fund the run with SOL
+    When the economic demo visualises the Jupiter conversion lane
+    Then it shows SOL entering Jupiter and USDC funding the orchestrator run budget
+    And it shows a swap receipt transaction address or explicit fail-closed swap status
+    And downstream specialist and attestor payments are shown only after the converted USDC budget exists
+    And the run report distinguishes local Surfpool swap proof, live quote proof, and future live swap receipt proof
+
   Scenario: Live Jupiter quote proof is not described as an executed swap
     Given the economic demo fetches a public Jupiter SOL to USDC quote
     When the quote proof artifact records input SOL, output USDC, slippage, and route legs

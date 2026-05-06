@@ -25,11 +25,13 @@ function readJson(path) {
 const surfpoolPath = latestArtifact("artifacts/economic-demo-surfpool-rehearsal", "summary.json");
 const upfrontPackPath = latestArtifact("artifacts/economic-demo-upfront-payment-evidence", "upfront-payment-evidence.json");
 const devnetReceiptPath = latestArtifact("artifacts/economic-demo-devnet-usdc-receipt", "receipt-verification.json");
+const jupiterQuotePath = latestArtifact("artifacts/economic-demo-jupiter-quote-proof", "quote-proof.json");
 
 if (!surfpoolPath) throw new Error("missing_surfpool_rehearsal_summary");
 const surfpool = readJson(surfpoolPath);
 const upfrontPack = upfrontPackPath ? readJson(upfrontPackPath) : null;
 const devnetReceipt = devnetReceiptPath ? readJson(devnetReceiptPath) : null;
+const jupiterQuote = jupiterQuotePath ? readJson(jupiterQuotePath) : null;
 
 const downstreamPayments = surfpool.executedTransfers.filter((transfer) => transfer.category === "downstream_agent_payment");
 const attestationTransfers = downstreamPayments.filter((transfer) => /verification|attest|explain/i.test(transfer.toProfileId));
@@ -66,13 +68,27 @@ const report = {
     surfpool: relative(rootDir, surfpoolPath),
     upfrontPack: upfrontPackPath ? relative(rootDir, upfrontPackPath) : null,
     devnetUsdcReceipt: devnetReceiptPath ? relative(rootDir, devnetReceiptPath) : null,
+    jupiterQuote: jupiterQuotePath ? relative(rootDir, jupiterQuotePath) : null,
   },
   story: [
-    "User funds the orchestrator upfront.",
+    "User starts with SOL when they do not have the required downstream USDC budget.",
+    "Jupiter converts SOL into the USDC run budget before downstream payments are released.",
+    "User funds the orchestrator upfront with the converted budget.",
     "Orchestrator pays specialist agents from the funded run budget.",
     "Attestors validate output quality, disclosure-ledger completeness, and payment receipt chain before release.",
     "Reputation updates are represented as commit-reveal events and are not final unless reveal receipt status is verified.",
   ],
+  jupiterSwapProof: {
+    inputAsset: "SOL",
+    outputAsset: "USDC",
+    inputSol: jupiterQuote?.request?.inputSol ?? surfpool.jupiterSolRoute?.estimatedInputSol ?? null,
+    outputUsdc: jupiterQuote?.response?.outUsdc ?? surfpool.jupiterSolRoute?.outputUsdc ?? null,
+    routePlanLength: jupiterQuote?.response?.routePlanLength ?? null,
+    slippageBps: jupiterQuote?.request?.slippageBps ?? surfpool.jupiterSolRoute?.slippageBps ?? null,
+    localSettlementSignature: surfpool.upfrontFunding?.signature ?? null,
+    proofStatus: "live_quote_plus_local_surfpool_conversion",
+    caveat: "This proves route availability plus local budget conversion semantics; live wallet-backed swap receipt remains approval-gated.",
+  },
   paymentReceipts: surfpool.executedTransfers.map((transfer) => ({
     fromProfileId: transfer.fromProfileId,
     toProfileId: transfer.toProfileId,
@@ -100,6 +116,7 @@ const report = {
       }
     : null,
   guardrails: [
+    "Jupiter swap proof is live quote plus local Surfpool conversion unless a future live swap receipt is attached.",
     "Surfpool signatures are local/offline transaction addresses, not devnet or mainnet settlement receipts.",
     "Devnet USDC receipt status is attached separately and must be verified before claiming real devnet payment.",
     "Reputation commit/reveal entries are fixture-only until a live Quasar reputation commit and reveal receipt are supplied.",
@@ -122,6 +139,12 @@ writeFileSync(
     "## Story",
     "",
     ...report.story.map((item) => `- ${item}`),
+    "",
+    "## Jupiter swap proof",
+    "",
+    `- ${report.jupiterSwapProof.inputSol} SOL → ${report.jupiterSwapProof.outputUsdc} USDC · route legs ${report.jupiterSwapProof.routePlanLength ?? "local"} · status ${report.jupiterSwapProof.proofStatus}`,
+    `- local settlement/signature: ${report.jupiterSwapProof.localSettlementSignature}`,
+    `- caveat: ${report.jupiterSwapProof.caveat}`,
     "",
     "## Payment receipts",
     "",

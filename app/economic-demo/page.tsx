@@ -398,8 +398,13 @@ export default function EconomicDemoPage() {
                   <div data-testid="jupiter-swap-proof" className="mt-4 rounded-lg border border-yellow-400/30 bg-yellow-400/10 p-3">
                     <p className="text-xs uppercase tracking-wide text-yellow-100">Jupiter swap proof lane</p>
                     <p className="mt-2 text-sm leading-6 text-yellow-50/90">
-                      Deterministic demo route: quote {scenario.quote.solEstimate.toFixed(3)} SOL → {formatUsdc(scenario.quote.totalUsdc)} with {scenario.quote.slippageBps} bps slippage cap and {formatUsdc(scenario.quote.jupiterSwapAllowanceUsdc)} allowance. Live swap execution remains Surfpool-first and approval-gated.
+                      Swap execution story: user starts with SOL, Jupiter converts {scenario.quote.solEstimate.toFixed(3)} SOL → {formatUsdc(scenario.quote.totalUsdc)}, then the orchestrator pays downstream agents from the USDC budget. Slippage cap: {scenario.quote.slippageBps} bps; allowance: {formatUsdc(scenario.quote.jupiterSwapAllowanceUsdc)}.
                     </p>
+                    <div className="mt-3 rounded border border-white/10 bg-black/20 p-2 text-xs leading-5 text-yellow-50/90">
+                      <p>Composite proof: live Jupiter route quote + local Surfpool budget-conversion receipt.</p>
+                      <p className="break-all font-mono text-gray-400">swap tx: {runReport.jupiterSwapProof.transactionAddress}</p>
+                      <p className="text-yellow-100">Live wallet-backed swap remains approval-gated before we claim devnet/mainnet execution.</p>
+                    </div>
                   </div>
                 )}
               </div>
@@ -611,6 +616,14 @@ export default function EconomicDemoPage() {
                 </div>
 
                 <div className="mt-4 grid gap-3 lg:grid-cols-2">
+                  <div className="rounded-lg border border-yellow-400/25 bg-yellow-400/10 p-3 lg:col-span-2">
+                    <p className="text-xs uppercase tracking-wide text-yellow-100">Jupiter swap before downstream payments</p>
+                    <p className="mt-2 text-sm leading-6 text-yellow-50/90">
+                      {runReport.jupiterSwapProof.inputAmount?.toFixed(3)} {runReport.jupiterSwapProof.inputAsset} → {formatUsdc(runReport.jupiterSwapProof.amountUsdc)} {runReport.jupiterSwapProof.outputAsset}; downstream agents are paid only after this converted budget exists.
+                    </p>
+                    <p className="mt-2 break-all font-mono text-xs text-gray-400">swap receipt: {runReport.jupiterSwapProof.transactionAddress}</p>
+                    <p className="mt-1 text-xs text-yellow-100">status: {runReport.jupiterSwapProof.proofStatus} · live execution requires approval-gated receipt</p>
+                  </div>
                   {runReport.specialistCalls.map((call) => (
                     <div key={`${call.step}-${call.specialistProfileId}`} className="rounded-lg border border-white/10 bg-black/20 p-3">
                       <div className="flex flex-wrap items-center justify-between gap-2">
