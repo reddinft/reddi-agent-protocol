@@ -16,7 +16,7 @@
 
 - Current main: `bbfa0a92` — Merge PR #244 `feat: add shared Quasar instruction builders`.
 - PR #244: merged 2026-05-07 AEST. Merge commit `bbfa0a92df349b726c1a514e7acd0f45ae01b486`; head `361dd8ade75c455b72739e1cfbc051dc7fbaf199`. Post-merge main Quasar Program Tests run `25447650320` is in progress at latest observation.
-- Next step: move to Phase 7 evidence packaging / maintainer-repro prep on `feat/magicblock-live-validation-20260507`: document proven Quasar-native MagicBlock delegation, explicitly mark TEE settlement as blocked by Quasar program execution on MagicBlock TEE, and avoid further live PER smokes unless we decide to build a full native delegation-control probe. Keep Quasar Program Tests, quasar-readiness, bdd-index-guard, source-conformance-matrix, and Vercel as relevant evidence gates.
+- Next step: PR #252 is green and ready for Nissan merge decision. It documents proven Quasar-native MagicBlock delegation, explicitly marks TEE settlement as blocked by Quasar program execution on MagicBlock TEE, and avoids further live PER smokes unless we decide to build a full native delegation-control probe. All PR checks passed: Vercel, bdd-index-guard, quasar-readiness, source-conformance-matrix, and Quasar Program Tests.
 - PR #204: closed as superseded after Nissan accepted recommendation.
 - PR #214: merged 2026-05-05 AEST as `a290db7093458f45ca1b3dbc2a047b404c856a29`; post-merge Anchor run `25353582949`, job `74338163008` passed in 7m26s.
 - PR #215: merged 2026-05-05 AEST as `cd202ebd6360d29f0a896e852fe9f63c339fc4dc`; post-merge Anchor run `25353973718`, job `74339305929` passed in 7m23s.
