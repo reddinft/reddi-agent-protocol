@@ -6,17 +6,18 @@ type StoreData = {
   quotes: ReddiQuote[];
   idempotency: Record<string, { quoteId: string; requestHash: string }>;
   devnetReceipts: DevnetReceipt[];
-  devnetIdempotency: Record<string, { quoteId: string; requestHash: string }>;
+  devnetIdempotency: Record<string, { receiptId: string; quoteId: string; requestHash: string }>;
 };
 
 export type DevnetReceipt = {
   schemaVersion: "reddi.rap-mcp-bridge.devnet-payment-receipt.v1";
+  receiptId: string;
   quoteId: string;
   createdAt: string;
   boundary: "solana-devnet-only-no-mainnet-no-specialist-http-invocation";
   quoteTermsHash: string;
   spendCapLamports: number;
-  amounts: { downstreamAmountLamports: number; protocolFeeBps: 5; protocolFeeLamports: number; totalDebitLamports: number };
+  amounts: { downstreamAmountLamports: number; protocolFeeBps: 5; protocolFeeLamports: number; totalDebitLamports: number; payerTopUpLamports: number; specialistTopUpLamports: number; treasuryTopUpLamports: number; totalFunderAndPaymentSpendLamports: number };
   funding: Record<string, unknown>;
   wallets: { payer: string; specialist: string; protocolTreasury: string; funder: string };
   balances: Record<string, unknown>;
@@ -79,14 +80,17 @@ export class BridgeStore {
     const data = this.read();
     const prior = data.devnetIdempotency[idempotencyKey];
     if (!prior) return undefined;
-    const receipt = data.devnetReceipts.find((candidate) => candidate.quoteId === prior.quoteId);
+    const receipt = data.devnetReceipts.find((candidate) => candidate.receiptId === prior.receiptId);
     return receipt ? { requestHash: prior.requestHash, receipt } : undefined;
   }
 
   upsertDevnetReceipt(idempotencyKey: string, requestHash: string, receipt: DevnetReceipt): DevnetReceipt {
     const data = this.read();
+    if (data.devnetReceipts.some((candidate) => candidate.quoteId === receipt.quoteId)) {
+      throw new Error("quote_already_paid");
+    }
     data.devnetReceipts.push(receipt);
-    data.devnetIdempotency[idempotencyKey] = { quoteId: receipt.quoteId, requestHash };
+    data.devnetIdempotency[idempotencyKey] = { receiptId: receipt.receiptId, quoteId: receipt.quoteId, requestHash };
     this.write(data);
     return receipt;
   }

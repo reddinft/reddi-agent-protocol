@@ -26,7 +26,8 @@ function jsonContent(value: unknown) {
 
 export function createServer(env: NodeJS.ProcessEnv = process.env) {
   const config = loadConfig(env);
-  const policy = currentPolicy(config.policyMode);
+  const devnetToolsEnabled = config.policyMode === "devnet" && config.devnetProofApproved && Boolean(config.devnetFunderKeypairPath);
+  const policy = currentPolicy(config.policyMode, devnetToolsEnabled);
   const client = new RapClient(config);
   const store = new BridgeStore(config.storeDir);
   const server = new McpServer({ name: "reddi-rap-mcp-bridge", version: "0.1.0" });
@@ -51,7 +52,7 @@ export function createServer(env: NodeJS.ProcessEnv = process.env) {
     inputSchema: exportDisclosureLedgerInputSchema,
   }, async (args) => jsonContent(exportDisclosureLedger(args, store)));
 
-  if (config.policyMode === "devnet") {
+  if (devnetToolsEnabled) {
     server.registerTool("reddi.prepare_devnet_payment", {
       description: "Prepare a bounded Solana devnet payment for a bridge quote. Non-mutating readiness check; no mainnet and no specialist invocation.",
       inputSchema: prepareDevnetPaymentInputSchema,
@@ -70,7 +71,7 @@ export function createServer(env: NodeJS.ProcessEnv = process.env) {
 
   server.registerResource("reddi-policy-current", "reddi://policy/current", {
     title: "Current RAP MCP Bridge policy",
-    description: "Dry-run policy state for the RAP MCP Bridge.",
+    description: "Current policy state for the RAP MCP Bridge.",
     mimeType: "application/json",
   }, async (uri) => ({
     contents: [{ uri: uri.href, mimeType: "application/json", text: JSON.stringify({ config: { rapBaseUrl: config.rapBaseUrl, hostFramework: config.hostFramework, agentName: config.agentName, policyMode: config.policyMode, devnetProofApproved: config.devnetProofApproved, devnetFunderConfigured: Boolean(config.devnetFunderKeypairPath) }, policy }, null, 2) }],
