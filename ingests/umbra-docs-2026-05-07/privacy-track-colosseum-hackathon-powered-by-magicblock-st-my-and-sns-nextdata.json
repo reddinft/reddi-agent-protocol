@@ -1,0 +1,201 @@
+{
+  "props": {
+    "pageProps": {
+      "listing": {
+        "id": "8c64c260-c232-4b34-b8c6-70483e6a3586",
+        "title": "\ud83d\udd10\u26a1 Privacy Track \u2014 Colosseum Hackathon (Powered by MagicBlock, ST MY & SNS)",
+        "slug": "privacy-track-colosseum-hackathon-powered-by-magicblock-st-my-and-sns",
+        "description": "<p class=\"text-node\">Privacy is the primitive for the next generation of on-chain applications \u2014 especially in a world of autonomous agents.<br><br>This track challenges you to build privacy-first systems on Solana, powered by <strong>MagicBlock's (Private) Ephemeral Rollups &amp; Payment API</strong>:</p><ul class=\"list-node\"><li><p class=\"text-node\"><a target=\"_blank\" rel=\"noopener noreferrer nofollow\" class=\"link\" href=\"https://docs.magicblock.gg/pages/ephemeral-rollups-ers/how-to-guide/quickstart\">Ephemeral Rollup</a> (ER)</p></li></ul><ul class=\"list-node\"><li><p class=\"text-node\"><a target=\"_blank\" rel=\"noopener noreferrer nofollow\" class=\"link\" href=\"https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/how-to-guide/quickstart\">Private Ephemeral Rollup</a> (PER)</p></li><li><p class=\"text-node\"><a target=\"_blank\" rel=\"noopener noreferrer nofollow\" class=\"link\" href=\"https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/introduction\">Private Payments API</a></p></li></ul><p class=\"text-node\"><br>\ud83d\udc49 Think beyond wallets and balances \u2014 build systems where data, intent, and interactions remain private by default, while still being composable and verifiable.<br><br>\u2e3b<br><br><strong>\ud83e\udde0 What we're looking for: Frontier Projects</strong></p><ul class=\"list-node\"><li><p class=\"text-node\">Private payments &amp; shielded transactions</p></li><li><p class=\"text-node\">Private DeFi (Auctions, Lending, Trading primitives)</p></li><li><p class=\"text-node\">Agentic commerce, Agent-to-agent, x402 APIs, MPP etc</p></li><li><p class=\"text-node\">and more ... find more ideas in our database for <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" class=\"link\" href=\"https://www.notion.so/24fc5a1ab4d68034988ae014fed28600?v=24fc5a1ab4d680b7b11d000c877544ec\">RFPs</a>.</p></li></ul><p class=\"text-node\"><br>\u2e3b<br><br><strong>\u26a1 Why Solana and Magicblock</strong></p><ul class=\"list-node\"><li><p class=\"text-node\"><a target=\"_blank\" rel=\"noopener noreferrer nofollow\" class=\"link\" href=\"https://docs.magicblock.gg/pages/ephemeral-rollups-ers/introduction/why\">Low latency, zero fees at scale</a></p></li><li><p class=\"text-node\"><a target=\"_blank\" rel=\"noopener noreferrer nofollow\" class=\"link\" href=\"https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/introduction/onchain-privacy\">Privacy, composability and security</a></p></li><li><p class=\"text-node\">Regulatory <a target=\"\" rel=\"noopener noreferrer nofollow\" class=\"link\" href=\"https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/introduction/compliance-framework\">compliance</a> and control</p></li><li><p class=\"text-node\">Built-in onchain <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" class=\"link\" href=\"https://docs.magicblock.gg/pages/tools/crank/introduction\">automation</a> and <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" class=\"link\" href=\"https://docs.magicblock.gg/pages/templates/random-character-generator\">randomness</a></p></li><li><p class=\"text-node\">Ready-to-Use <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" class=\"link\" href=\"https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/introduction\">Private Payment API</a></p></li></ul><p class=\"text-node\"><br>\u2e3b<br><br><strong>\ud83c\udfc6 Prize Breakdown (Total: $5,000)</strong></p><ul class=\"list-node\"><li><p class=\"text-node\">\ud83e\udd47 1st Place \u2014 $2,500</p></li><li><p class=\"text-node\">\ud83e\udd48 2nd Place \u2014 $1,500</p></li><li><p class=\"text-node\">\ud83e\udd49 3rd Place \u2014 $1,000</p></li></ul><p class=\"text-node\"><br>\u2e3b<br><br><strong>\ud83d\udee0\ufe0f Judging Criteria</strong></p><p class=\"text-node\"><strong>Technology (40%)</strong></p><ul class=\"list-node\"><li><p class=\"text-node\">Effective use of ER, PER, or Private Payments API</p></li><li><p class=\"text-node\">Working demo</p></li><li><p class=\"text-node\">Quality of architecture and smart contract design</p></li></ul><p class=\"text-node\"><strong>Impact (30%)</strong></p><ul class=\"list-node\"><li><p class=\"text-node\">Solves a real-world problem</p></li><li><p class=\"text-node\">Clear market need</p></li><li><p class=\"text-node\">Potential for adoption and monetization</p></li></ul><p class=\"text-node\"><strong>Creativity &amp; UX (30%)</strong></p><ul class=\"list-node\"><li><p class=\"text-node\">Novel primitives, mechanisms, or UX</p></li><li><p class=\"text-node\">Smooth user experience</p></li><li><p class=\"text-node\">Clarity of how the system works</p></li></ul><p class=\"text-node\"></p><p class=\"text-node\">\u2e3b</p><p class=\"text-node\"></p><p class=\"text-node\"><strong>\u2705 Submission Requirements</strong></p><ul class=\"list-node\"><li><p class=\"text-node\"><strong>Working demo: </strong>Live deployment with successful MagicBlock integration</p></li><li><p class=\"text-node\"><strong>Code repository (GitHub):</strong> Publicly accessible</p></li><li><p class=\"text-node\"><strong>Short demo video (3 min)</strong>: Problem \u2192 Solution \u2192 Demo</p></li></ul><p class=\"text-node\"><br>\u2e3b</p><p class=\"text-node\"><br><strong>\ud83d\udc49 Bring privacy to Solana \u2014 with MagicBlock.</strong></p><p class=\"text-node\"></p>",
+        "deadline": "2026-05-12T11:59:59.999Z",
+        "commitmentDate": "2026-05-27T15:59:59.999Z",
+        "eligibility": [
+          {
+            "type": "text",
+            "order": 1,
+            "optional": false,
+            "question": "Project Title"
+          },
+          {
+            "type": "text",
+            "order": 2,
+            "optional": false,
+            "question": "Project Description"
+          },
+          {
+            "type": "link",
+            "order": 3,
+            "optional": false,
+            "question": "Project Github Link"
+          },
+          {
+            "type": "link",
+            "order": 4,
+            "optional": false,
+            "question": "Deployment Link"
+          },
+          {
+            "type": "link",
+            "order": 7,
+            "optional": false,
+            "question": "Demo Link"
+          },
+          {
+            "type": "link",
+            "order": 9,
+            "optional": false,
+            "question": "Project X Profile Link"
+          },
+          {
+            "type": "text",
+            "order": 7,
+            "optional": false,
+            "question": "Your Program Pubkey (if program available)"
+          }
+        ],
+        "status": "OPEN",
+        "token": "USDC",
+        "rewardAmount": 5000,
+        "rewards": {
+          "1": 2500,
+          "2": 1500,
+          "3": 1000
+        },
+        "maxBonusSpots": 0,
+        "usdValue": 5000,
+        "tokenUsdAtPublish": 1,
+        "sponsorId": "029add4c-780c-4cc5-9d8d-bf6fc76ce7d6",
+        "pocId": "3badad26-ce28-45d7-bea6-1fb187ab96ba",
+        "source": "NATIVE",
+        "isPublished": true,
+        "isFeatured": false,
+        "isActive": true,
+        "isArchived": false,
+        "createdAt": "2026-03-28T07:45:27.162Z",
+        "updatedAt": "2026-05-04T00:08:42.642Z",
+        "applicationLink": null,
+        "skills": [
+          {
+            "skills": "Blockchain",
+            "subskills": [
+              "Rust"
+            ]
+          }
+        ],
+        "type": "hackathon",
+        "requirements": null,
+        "isWinnersAnnounced": false,
+        "templateId": null,
+        "region": "Global",
+        "pocSocials": "https://t.me/+-ySsZuMsxl85NWUy",
+        "hackathonprize": false,
+        "applicationType": "fixed",
+        "timeToComplete": null,
+        "references": null,
+        "referredBy": "Superteam Malaysia",
+        "publishedAt": "2026-04-03T05:30:56.674Z",
+        "isPrivate": false,
+        "agentAccess": "AGENT_ALLOWED",
+        "hackathonId": "df89585d-1a7a-433a-bf4a-bdcc7a6e0068",
+        "compensationType": "fixed",
+        "maxRewardAsk": null,
+        "minRewardAsk": null,
+        "language": "eng",
+        "shouldSendEmail": true,
+        "isFndnPaying": false,
+        "winnersAnnouncedAt": null,
+        "discordMessageIds": null,
+        "telegramMessageIds": {
+          "ListingVerification": {
+            "msgId": 906,
+            "chatId": -1002869414491,
+            "reason": "Hackathon Listing",
+            "threadId": 402
+          }
+        },
+        "ai": null,
+        "publishedBy": "3badad26-ce28-45d7-bea6-1fb187ab96ba",
+        "XWeeklyThread": null,
+        "XStandalonePost": null,
+        "isPro": false,
+        "sponsor": {
+          "name": "MagicBlock",
+          "logo": "https://res.cloudinary.com/dgvnuwspr/image/upload/v1745473721/wt1v2etta1ulced9jgmm.png",
+          "slug": "magicblocklabs",
+          "entityName": "MagicBlock Labs",
+          "isVerified": false,
+          "isCaution": false
+        },
+        "poc": {
+          "id": "3badad26-ce28-45d7-bea6-1fb187ab96ba",
+          "firstName": "Jonas",
+          "lastName": "Chen",
+          "username": "jonasXchen_gg",
+          "photo": ""
+        },
+        "Hackathon": {
+          "logo": "https://res.cloudinary.com/dgvnuwspr/image/upload/v1758300382/assets/hackathon/frontier/logo.png",
+          "altLogo": "https://res.cloudinary.com/dgvnuwspr/image/upload/v1758300382/assets/hackathon/frontier/logo.png",
+          "startDate": "2026-04-06T05:30:00.000Z",
+          "name": "Frontier",
+          "description": "This is a special Frontier Hackathon track hosted exclusively on Superteam Earn.",
+          "slug": "frontier",
+          "announceDate": "2026-05-20T07:59:00.000Z",
+          "sponsorId": "44624377-ecbb-45b1-8620-e08790628d9f",
+          "Sponsor": {
+            "name": "Frontier Hackathon",
+            "logo": "https://res.cloudinary.com/dgvnuwspr/image/upload/v1758300382/assets/hackathon/frontier/logo.png",
+            "entityName": null,
+            "isVerified": true,
+            "isCaution": false
+          }
+        }
+      },
+      "dehydratedState": {
+        "mutations": [],
+        "queries": [
+          {
+            "dehydratedAt": 1778132605352,
+            "state": {
+              "data": 17,
+              "dataUpdateCount": 1,
+              "dataUpdatedAt": 1778132605352,
+              "error": null,
+              "errorUpdateCount": 0,
+              "errorUpdatedAt": 0,
+              "fetchFailureCount": 0,
+              "fetchFailureReason": null,
+              "fetchMeta": null,
+              "isInvalidated": false,
+              "status": "success",
+              "fetchStatus": "idle"
+            },
+            "queryKey": [
+              "submissionCount",
+              "8c64c260-c232-4b34-b8c6-70483e6a3586"
+            ],
+            "queryHash": "[\"submissionCount\",\"8c64c260-c232-4b34-b8c6-70483e6a3586\"]"
+          }
+        ]
+      }
+    },
+    "__N_SSP": true
+  },
+  "page": "/earn/listing/[slug]",
+  "query": {
+    "slug": "privacy-track-colosseum-hackathon-powered-by-magicblock-st-my-and-sns"
+  },
+  "buildId": "build-TfctsWXpff2fKS",
+  "isFallback": false,
+  "isExperimentalCompile": false,
+  "dynamicIds": [
+    794280,
+    213071,
+    710202,
+    740037,
+    684109,
+    40550,
+    187193
+  ],
+  "gssp": true,
+  "scriptLoader": []
+}

@@ -1,0 +1,529 @@
+{
+  "seed": "https://sdk.umbraprivacy.com/introduction",
+  "count": 64,
+  "errors": [
+    {
+      "url": "https://utxo-indexer.api.umbraprivacy.com",
+      "error": "<HTTPError 404: 'Not Found'>"
+    },
+    {
+      "url": "https://relayer.api.umbraprivacy.com",
+      "error": "<HTTPError 404: 'Not Found'>"
+    }
+  ],
+  "pages": [
+    {
+      "url": "https://sdk.umbraprivacy.com/llms-full.txt",
+      "final": "https://sdk.umbraprivacy.com/llms-full.txt",
+      "status": 200,
+      "content_type": "text/plain; charset=utf-8",
+      "path": "ingests/umbra-docs-2026-05-07/two-deep-sdk/raw-md/llms_full_txt.md",
+      "chars": 319447
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/concepts/how-umbra-works",
+      "final": "https://sdk.umbraprivacy.com/concepts/how-umbra-works",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 287534,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/concepts/encrypted-balances",
+      "final": "https://sdk.umbraprivacy.com/concepts/encrypted-balances",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 343882,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/concepts/utxos-and-mixer",
+      "final": "https://sdk.umbraprivacy.com/concepts/utxos-and-mixer",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 277958,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/sdk/installation",
+      "final": "https://sdk.umbraprivacy.com/sdk/installation",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 294320,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/quickstart",
+      "final": "https://sdk.umbraprivacy.com/quickstart",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 683527,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/sdk/creating-a-client",
+      "final": "https://sdk.umbraprivacy.com/sdk/creating-a-client",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 463061,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/sdk/wallet-adapters",
+      "final": "https://sdk.umbraprivacy.com/sdk/wallet-adapters",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 505018,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/supported-tokens",
+      "final": "https://sdk.umbraprivacy.com/supported-tokens",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 280228,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/sdk/registration",
+      "final": "https://sdk.umbraprivacy.com/sdk/registration",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 451686,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/sdk/account-state",
+      "final": "https://sdk.umbraprivacy.com/sdk/account-state",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 331201,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/sdk/deposit",
+      "final": "https://sdk.umbraprivacy.com/sdk/deposit",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 445281,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/sdk/withdraw",
+      "final": "https://sdk.umbraprivacy.com/sdk/withdraw",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 428285,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/sdk/query",
+      "final": "https://sdk.umbraprivacy.com/sdk/query",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 687179,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/sdk/conversion",
+      "final": "https://sdk.umbraprivacy.com/sdk/conversion",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 517822,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/sdk/mixer/overview",
+      "final": "https://sdk.umbraprivacy.com/sdk/mixer/overview",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 295630,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/sdk/mixer/creating-utxos",
+      "final": "https://sdk.umbraprivacy.com/sdk/mixer/creating-utxos",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 528723,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/sdk/mixer/fetching-utxos",
+      "final": "https://sdk.umbraprivacy.com/sdk/mixer/fetching-utxos",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 490499,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/sdk/mixer/claiming-utxos",
+      "final": "https://sdk.umbraprivacy.com/sdk/mixer/claiming-utxos",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 576145,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/sdk/mixer/privacy-analysis",
+      "final": "https://sdk.umbraprivacy.com/sdk/mixer/privacy-analysis",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 311385,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/sdk/compliance",
+      "final": "https://sdk.umbraprivacy.com/sdk/compliance",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 302140,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/sdk/compliance-viewing-keys",
+      "final": "https://sdk.umbraprivacy.com/sdk/compliance-viewing-keys",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 574212,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/sdk/compliance-x25519-grants",
+      "final": "https://sdk.umbraprivacy.com/sdk/compliance-x25519-grants",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 640220,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/sdk/understanding-the-sdk/overview",
+      "final": "https://sdk.umbraprivacy.com/sdk/understanding-the-sdk/overview",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 311559,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/sdk/understanding-the-sdk/types",
+      "final": "https://sdk.umbraprivacy.com/sdk/understanding-the-sdk/types",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 278425,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/sdk/understanding-the-sdk/branded-types",
+      "final": "https://sdk.umbraprivacy.com/sdk/understanding-the-sdk/branded-types",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 637150,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/sdk/understanding-the-sdk/dependency-injection",
+      "final": "https://sdk.umbraprivacy.com/sdk/understanding-the-sdk/dependency-injection",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 461115,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/sdk/understanding-the-sdk/key-generators",
+      "final": "https://sdk.umbraprivacy.com/sdk/understanding-the-sdk/key-generators",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 615085,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/sdk/understanding-the-sdk/zk-provers",
+      "final": "https://sdk.umbraprivacy.com/sdk/understanding-the-sdk/zk-provers",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 483629,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/sdk/understanding-the-sdk/callbacks",
+      "final": "https://sdk.umbraprivacy.com/sdk/understanding-the-sdk/callbacks",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 440411,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/sdk/understanding-the-sdk/key-rotation",
+      "final": "https://sdk.umbraprivacy.com/sdk/understanding-the-sdk/key-rotation",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 346743,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/sdk/advanced/key-derivation",
+      "final": "https://sdk.umbraprivacy.com/sdk/advanced/key-derivation",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 330386,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/sdk/advanced/recovery",
+      "final": "https://sdk.umbraprivacy.com/sdk/advanced/recovery",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 493775,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/sdk/advanced/zk-provers",
+      "final": "https://sdk.umbraprivacy.com/sdk/advanced/zk-provers",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 561417,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/advanced/token-2022",
+      "final": "https://sdk.umbraprivacy.com/advanced/token-2022",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 313310,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/reference/client",
+      "final": "https://sdk.umbraprivacy.com/reference/client",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 342466,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/reference/registration",
+      "final": "https://sdk.umbraprivacy.com/reference/registration",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 506526,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/reference/deposit",
+      "final": "https://sdk.umbraprivacy.com/reference/deposit",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 529542,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/reference/withdraw",
+      "final": "https://sdk.umbraprivacy.com/reference/withdraw",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 327941,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/reference/query",
+      "final": "https://sdk.umbraprivacy.com/reference/query",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 410826,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/reference/conversion",
+      "final": "https://sdk.umbraprivacy.com/reference/conversion",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 388556,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/reference/mixer",
+      "final": "https://sdk.umbraprivacy.com/reference/mixer",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 524219,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/reference/compliance",
+      "final": "https://sdk.umbraprivacy.com/reference/compliance",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 571200,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/reference/errors",
+      "final": "https://sdk.umbraprivacy.com/reference/errors",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 742796,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/pricing",
+      "final": "https://sdk.umbraprivacy.com/pricing",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 317252,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/indexer/overview",
+      "final": "https://sdk.umbraprivacy.com/indexer/overview",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 265398,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/indexer/api-reference/stats",
+      "final": "https://sdk.umbraprivacy.com/indexer/api-reference/stats",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 251821,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/indexer/api-reference/health/basic",
+      "final": "https://sdk.umbraprivacy.com/indexer/api-reference/health/basic",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 246724,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/indexer/api-reference/tree-metadata",
+      "final": "https://sdk.umbraprivacy.com/indexer/api-reference/tree-metadata",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 276962,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/indexer/api-reference/tree-utxos",
+      "final": "https://sdk.umbraprivacy.com/indexer/api-reference/tree-utxos",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 349567,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/indexer/api-reference/merkle-proofs",
+      "final": "https://sdk.umbraprivacy.com/indexer/api-reference/merkle-proofs",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 297595,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/indexer/api-reference/batch-proofs",
+      "final": "https://sdk.umbraprivacy.com/indexer/api-reference/batch-proofs",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 240347,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/indexer/api-reference/utxos",
+      "final": "https://sdk.umbraprivacy.com/indexer/api-reference/utxos",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 345791,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/indexer/api-reference/utxo-single",
+      "final": "https://sdk.umbraprivacy.com/indexer/api-reference/utxo-single",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 286912,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/relayer/overview",
+      "final": "https://sdk.umbraprivacy.com/relayer/overview",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 261485,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/relayer/api-reference/info",
+      "final": "https://sdk.umbraprivacy.com/relayer/api-reference/info",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 251258,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/relayer/api-reference/submit-claim",
+      "final": "https://sdk.umbraprivacy.com/relayer/api-reference/submit-claim",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 314718,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/relayer/api-reference/claim-status",
+      "final": "https://sdk.umbraprivacy.com/relayer/api-reference/claim-status",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 290389,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/relayer/api-reference/health",
+      "final": "https://sdk.umbraprivacy.com/relayer/api-reference/health",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 235314,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/sdk/advanced/cryptography/overview",
+      "final": "https://sdk.umbraprivacy.com/sdk/advanced/cryptography/overview",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 240547,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/sdk/advanced/cryptography/rescue-cipher",
+      "final": "https://sdk.umbraprivacy.com/sdk/advanced/cryptography/rescue-cipher",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 252450,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/sdk/advanced/cryptography/poseidon",
+      "final": "https://sdk.umbraprivacy.com/sdk/advanced/cryptography/poseidon",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 240030,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/sdk/advanced/cryptography/indexed-merkle-tree",
+      "final": "https://sdk.umbraprivacy.com/sdk/advanced/cryptography/indexed-merkle-tree",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 247794,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    },
+    {
+      "url": "https://sdk.umbraprivacy.com/introduction",
+      "final": "https://sdk.umbraprivacy.com/introduction",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "chars": 274164,
+      "path_omitted": "raw HTML omitted; see llms_full_txt.md"
+    }
+  ],
+  "note": "Raw HTML snapshots were intentionally omitted from commit; use raw-md/llms_full_txt.md plus llms.txt for complete docs analysis. Original crawl fetched 64 pages."
+}

@@ -1,0 +1,226 @@
+{
+  "props": {
+    "pageProps": {
+      "listing": {
+        "id": "9d8c7418-7816-4120-bd00-13c113998253",
+        "title": "Build with Umbra Side Track for $10,000",
+        "slug": "umbra-side-track",
+        "description": "<h1 class=\"heading-node\"><span style=\"color: rgb(26, 26, 26);\"><strong>About Umbra</strong></span></h1><p class=\"text-node\"><span style=\"color: rgb(51, 51, 51);\">Umbra is the privacy infrastructure layer for Solana. We make it possible for anyone, anywhere, to move money onchain without broadcasting their financial life to the world. Confidential transfers, private balances, viewing keys for compliance, shield any asset on solana, private swaps, etc.</span></p><p class=\"text-node\"><span style=\"color: rgb(51, 51, 51);\">We built the </span><a target=\"_blank\" rel=\"noopener noreferrer nofollow\" class=\"link\" href=\"https://sdk.umbraprivacy.com/\"><span style=\"color: rgb(5, 99, 193);\"><u>Umbra SDK</u></span></a><span style=\"color: rgb(51, 51, 51);\">, a developer toolkit that lets anyone integrate transactional privacy into their Solana applications. The SDK handles the heavy lifting so developers can focus on building products.</span></p><h1 class=\"heading-node\"><span style=\"color: rgb(26, 26, 26);\"><strong>Your Mission</strong></span></h1><p class=\"text-node\"><span style=\"color: rgb(51, 51, 51);\">Build a product or prototype using the Umbra SDK that brings real financial privacy to Solana. We're looking for applications that use Umbra's privacy primitives (confidential transfers, encrypted balances, viewing keys, private swaps and more) to solve actual problems people have today. Umbra has a private wallet so we want you to think out of the box.</span></p><h1 class=\"heading-node\"><span style=\"color: rgb(26, 26, 26);\"><strong>Hackathon Track Scope</strong></span></h1><p class=\"text-node\"><span style=\"color: rgb(51, 51, 51);\">We want to see builders take Umbra's privacy infrastructure and turn it into real, usable financial products. Here are some ideas and examples to get you started, but feel free to think beyond these:</span></p><h2 class=\"heading-node\"><span style=\"color: rgb(26, 26, 26);\"><strong>Private Payments:</strong></span></h2><ul class=\"list-node\"><li><p class=\"text-node\"><span style=\"color: rgb(51, 51, 51);\"><strong>Private Solana Pay. </strong>A privacy-first version of Solana Pay where merchants get paid and customers stay private. Transaction amounts and sender addresses stay confidential onchain.</span></p></li><li><p class=\"text-node\"><span style=\"color: rgb(51, 51, 51);\"><strong>X402 Private Payments. </strong>Private machine-to-machine payment flows using the X402 protocol with Umbra's confidential transfer layer underneath.</span></p></li><li><p class=\"text-node\"><span style=\"color: rgb(51, 51, 51);\"><strong>Payment Links. </strong>Shareable payment links where the recipient receives funds without revealing their wallet address to the sender or anyone watching onchain.</span></p></li><li><p class=\"text-node\"><span style=\"color: rgb(51, 51, 51);\"><strong>Private Gift Cards. </strong>User A sends a gift card to User B via a link. User B claims it into their wallet without revealing their final address.</span></p></li></ul><h2 class=\"heading-node\"><span style=\"color: rgb(26, 26, 26);\"><strong>Private Financial Infrastructure:</strong></span></h2><ul class=\"list-node\"><li><p class=\"text-node\"><span style=\"color: rgb(51, 51, 51);\"><strong>Private Payroll. </strong>Salary payments where amounts and recipient addresses are confidential. Employers pay onchain without broadcasting what they pay each employee to the world.</span></p></li><li><p class=\"text-node\"><span style=\"color: rgb(51, 51, 51);\"><strong>Private Neobank. </strong>A banking interface where the user's main balance is private by default. Your account balance isn't visible to anyone but you. Allow for shielded ownership of various assets. Start with available pools and stablecoins.</span></p></li><li><p class=\"text-node\"><span style=\"color: rgb(51, 51, 51);\"><strong>Private Billing Software. </strong>Invoices, memos, line items, all with confidential amounts and parties. Real business billing on private rails.</span></p></li></ul><h2 class=\"heading-node\"><span style=\"color: rgb(26, 26, 26);\"><strong>Compliance and Tax Tooling:</strong></span></h2><ul class=\"list-node\"><li><p class=\"text-node\"><span style=\"color: rgb(51, 51, 51);\"><strong>Compliance Platform. </strong>A tool where someone inputs a transaction signature and the viewing key for that transaction, and gets the full decrypted details. Report generation, audit trails, selective disclosure for regulators or accountants.</span></p></li><li><p class=\"text-node\"><span style=\"color: rgb(51, 51, 51);\"><strong>Private Taxation Platform. </strong>Tax reporting built on viewing key decryption. Users generate tax reports from their private transactions without making their full history public. Decrypts what's needed, nothing more.</span></p></li></ul><h2 class=\"heading-node\"><span style=\"color: rgb(26, 26, 26);\"><strong>Bring Your Own Idea:</strong></span></h2><ul class=\"list-node\"><li><p class=\"text-node\"><span style=\"color: rgb(51, 51, 51);\">The above is a starting point. If you have a product idea that uses Umbra SDK to solve a financial privacy problem we haven't listed, go for it. We care about real utility and good execution.</span></p></li></ul><h1 class=\"heading-node\"><span style=\"color: rgb(26, 26, 26);\"><strong>Submission Requirements</strong></span></h1><ul class=\"list-node\"><li><p class=\"text-node\"><span style=\"color: rgb(51, 51, 51);\">A link to your public GitHub repository containing your project's code.</span></p></li><li><p class=\"text-node\"><span style=\"color: rgb(51, 51, 51);\">A clear and concise </span><a target=\"_blank\" rel=\"noopener noreferrer nofollow\" class=\"link\" href=\"http://README.md\"><span style=\"color: rgb(51, 51, 51);\">README.md</span></a><span style=\"color: rgb(51, 51, 51);\"> in your repository explaining:</span></p></li></ul><ul class=\"list-node\"><li><p class=\"text-node\"><span style=\"color: rgb(51, 51, 51);\">The problem your project solves, target users, and use cases.</span></p></li><li><p class=\"text-node\"><span style=\"color: rgb(51, 51, 51);\">How your project uses the Umbra SDK.</span></p></li><li><p class=\"text-node\"><span style=\"color: rgb(51, 51, 51);\">Instructions on how to build, test, and use your application.</span></p></li><li><p class=\"text-node\"><span style=\"color: rgb(51, 51, 51);\">Any deployed program IDs or frontend links if applicable.</span></p></li></ul><ul class=\"list-node\"><li><p class=\"text-node\"><span style=\"color: rgb(51, 51, 51);\">A short video (under 5 minutes) demonstrating your project's functionality and explaining your design choices.</span></p></li></ul><h1 class=\"heading-node\"><span style=\"color: rgb(26, 26, 26);\"><strong>Judging Criteria</strong></span></h1><ul class=\"list-node\"><li><p class=\"text-node\"><span style=\"color: rgb(51, 51, 51);\"><strong>Core Integration of Umbra SDK: </strong>How fundamentally does the project rely on the Umbra SDK? Is it essential to the product's core functionality, or used only superficially?</span></p></li><li><p class=\"text-node\"><span style=\"color: rgb(51, 51, 51);\"><strong>Innovation: </strong>How novel and differentiated is the use of Umbra SDK compared to existing solutions?</span></p></li><li><p class=\"text-node\"><span style=\"color: rgb(51, 51, 51);\"><strong>Technical Execution: </strong>Quality, correctness, and robustness of the implementation. How well is the system designed and engineered?</span></p></li><li><p class=\"text-node\"><span style=\"color: rgb(51, 51, 51);\"><strong>Product and Commercial Potential: </strong>Is this a compelling product? Does it solve a real problem with clear user demand and potential for adoption or monetization?</span></p></li><li><p class=\"text-node\"><span style=\"color: rgb(51, 51, 51);\"><strong>Impact: </strong>What meaningful problem does the project solve, and how significant is its potential contribution to users and the Solana ecosystem?</span></p></li><li><p class=\"text-node\"><span style=\"color: rgb(51, 51, 51);\"><strong>Usability and Experience: </strong>How intuitive, polished, and user-friendly is the application?</span></p></li><li><p class=\"text-node\"><span style=\"color: rgb(51, 51, 51);\"><strong>Completeness and Clarity: </strong>How fully realized is the project within the hackathon timeframe, and how clearly is the vision communicated (demo, pitch, docs)?</span></p></li></ul><h1 class=\"heading-node\"><span style=\"color: rgb(26, 26, 26);\"><strong>Reward Structure</strong></span></h1><ul class=\"list-node\"><li><p class=\"text-node\"><span style=\"color: rgb(51, 51, 51);\"><strong>1st Place: $5,000 USDC</strong></span></p></li><li><p class=\"text-node\"><span style=\"color: rgb(51, 51, 51);\"><strong>2nd Place: $3,000 USDC</strong></span></p></li><li><p class=\"text-node\"><span style=\"color: rgb(51, 51, 51);\"><strong>3rd Place: $2,000 USDC</strong></span></p></li></ul><h1 class=\"heading-node\"><span style=\"color: rgb(26, 26, 26);\"><strong>Documentation</strong></span></h1><ul class=\"list-node\"><li><p class=\"text-node\"><a target=\"_blank\" rel=\"noopener noreferrer nofollow\" class=\"link\" href=\"https://sdk.umbraprivacy.com/\"><span style=\"color: rgb(5, 99, 193);\"><u>Umbra SDK Documentation</u></span></a></p></li><li><p class=\"text-node\"><a target=\"_blank\" rel=\"noopener noreferrer nofollow\" class=\"link\" href=\"https://docs.umbraprivacy.com/\"><span style=\"color: rgb(5, 99, 193);\"><u>Umbra Developer Docs</u></span></a></p></li><li><p class=\"text-node\"><a target=\"_blank\" rel=\"noopener noreferrer nofollow\" class=\"link\" href=\"https://www.umbraprivacy.com/\"><span style=\"color: rgb(5, 99, 193);\"><u>Umbra Website</u></span></a><br></p></li></ul><p class=\"text-node\"><span style=\"color: rgb(51, 51, 51);\">If you have any questions or need help with your integration, reach out to the Umbra team on </span><a target=\"_blank\" rel=\"noopener noreferrer nofollow\" class=\"link\" href=\"https://x.com/UmbraPrivacy\"><span style=\"color: rgb(5, 99, 193);\"><u>X</u></span></a><span style=\"color: rgb(51, 51, 51);\"> or </span><a target=\"_blank\" rel=\"noopener noreferrer nofollow\" class=\"link\" href=\"https://t.me/+iBc9FNPYnudiMWE0\">TG</a><span style=\"color: rgb(51, 51, 51);\">. We're here to help you build.</span></p>",
+        "deadline": "2026-05-12T11:59:59.999Z",
+        "commitmentDate": "2026-05-26T18:29:59.999Z",
+        "eligibility": [
+          {
+            "type": "text",
+            "order": 1,
+            "optional": false,
+            "question": "Project Title"
+          },
+          {
+            "type": "text",
+            "order": 2,
+            "optional": false,
+            "question": "Project Description"
+          },
+          {
+            "type": "link",
+            "order": 3,
+            "optional": false,
+            "question": "Project Github Link"
+          },
+          {
+            "type": "link",
+            "order": 4,
+            "optional": true,
+            "question": "Project Website"
+          },
+          {
+            "type": "text",
+            "order": 5,
+            "optional": false,
+            "question": "Did you submit this project to the official Frontier Hackathon on Colosseum? (Yes/No)"
+          },
+          {
+            "type": "link",
+            "order": 6,
+            "optional": false,
+            "question": "Link to your project's Colosseum profile"
+          },
+          {
+            "type": "link",
+            "order": 7,
+            "optional": false,
+            "question": "Link to your Loom / Demo Video"
+          },
+          {
+            "type": "link",
+            "order": 8,
+            "optional": true,
+            "question": "Presentation Link"
+          },
+          {
+            "type": "link",
+            "order": 9,
+            "optional": true,
+            "question": "Project Twitter Profile Link"
+          }
+        ],
+        "status": "OPEN",
+        "token": "USDC",
+        "rewardAmount": 10000,
+        "rewards": {
+          "1": 5000,
+          "2": 3000,
+          "3": 2000
+        },
+        "maxBonusSpots": 0,
+        "usdValue": 10000,
+        "tokenUsdAtPublish": 1,
+        "sponsorId": "e122c73d-b8e3-4dba-9c86-33f9155b708d",
+        "pocId": "2eaefe15-9cd2-4bd7-8fab-d794f52213f4",
+        "source": "NATIVE",
+        "isPublished": true,
+        "isFeatured": false,
+        "isActive": true,
+        "isArchived": false,
+        "createdAt": "2026-04-07T07:40:17.767Z",
+        "updatedAt": "2026-04-21T12:13:42.975Z",
+        "applicationLink": null,
+        "skills": [
+          {
+            "skills": "Blockchain",
+            "subskills": []
+          },
+          {
+            "skills": "Backend",
+            "subskills": []
+          },
+          {
+            "skills": "Frontend",
+            "subskills": []
+          }
+        ],
+        "type": "hackathon",
+        "requirements": null,
+        "isWinnersAnnounced": false,
+        "templateId": null,
+        "region": "Global",
+        "pocSocials": "https://t.me/abbasshaikh01",
+        "hackathonprize": false,
+        "applicationType": "fixed",
+        "timeToComplete": null,
+        "references": null,
+        "referredBy": null,
+        "publishedAt": "2026-04-07T08:52:50.121Z",
+        "isPrivate": false,
+        "agentAccess": "HUMAN_ONLY",
+        "hackathonId": "df89585d-1a7a-433a-bf4a-bdcc7a6e0068",
+        "compensationType": "fixed",
+        "maxRewardAsk": null,
+        "minRewardAsk": null,
+        "language": "eng",
+        "shouldSendEmail": true,
+        "isFndnPaying": false,
+        "winnersAnnouncedAt": null,
+        "discordMessageIds": null,
+        "telegramMessageIds": {
+          "SuperteamDM": {
+            "msgId": 30,
+            "chatId": -1003538106224,
+            "vouchStatus": "pending",
+            "superteamLead": "Aditya",
+            "superteamName": "Superteam India"
+          },
+          "ListingVerification": {
+            "msgId": 951,
+            "chatId": -1002869414491,
+            "reason": "Hackathon Listing",
+            "threadId": 402
+          }
+        },
+        "ai": null,
+        "publishedBy": "2eaefe15-9cd2-4bd7-8fab-d794f52213f4",
+        "XWeeklyThread": null,
+        "XStandalonePost": null,
+        "isPro": false,
+        "sponsor": {
+          "name": "Umbra",
+          "logo": "https://res.cloudinary.com/dgvnuwspr/image/upload/v1775409239/earn-sponsor/n1wsmte6vmisnyoq22b9.webp",
+          "slug": "umbra",
+          "entityName": "Phoenix DAO",
+          "isVerified": false,
+          "isCaution": false
+        },
+        "poc": {
+          "id": "2eaefe15-9cd2-4bd7-8fab-d794f52213f4",
+          "firstName": "Abbas",
+          "lastName": "Shaik",
+          "username": "abbas-umbra",
+          "photo": "https://res.cloudinary.com/dgvnuwspr/image/upload/v1775409108/earn-pfp/ga1hnypwqqf4q5ooxyms.webp"
+        },
+        "Hackathon": {
+          "logo": "https://res.cloudinary.com/dgvnuwspr/image/upload/v1758300382/assets/hackathon/frontier/logo.png",
+          "altLogo": "https://res.cloudinary.com/dgvnuwspr/image/upload/v1758300382/assets/hackathon/frontier/logo.png",
+          "startDate": "2026-04-06T05:30:00.000Z",
+          "name": "Frontier",
+          "description": "This is a special Frontier Hackathon track hosted exclusively on Superteam Earn.",
+          "slug": "frontier",
+          "announceDate": "2026-05-20T07:59:00.000Z",
+          "sponsorId": "44624377-ecbb-45b1-8620-e08790628d9f",
+          "Sponsor": {
+            "name": "Frontier Hackathon",
+            "logo": "https://res.cloudinary.com/dgvnuwspr/image/upload/v1758300382/assets/hackathon/frontier/logo.png",
+            "entityName": null,
+            "isVerified": true,
+            "isCaution": false
+          }
+        }
+      },
+      "dehydratedState": {
+        "mutations": [],
+        "queries": [
+          {
+            "dehydratedAt": 1778132604910,
+            "state": {
+              "data": 15,
+              "dataUpdateCount": 1,
+              "dataUpdatedAt": 1778132604910,
+              "error": null,
+              "errorUpdateCount": 0,
+              "errorUpdatedAt": 0,
+              "fetchFailureCount": 0,
+              "fetchFailureReason": null,
+              "fetchMeta": null,
+              "isInvalidated": false,
+              "status": "success",
+              "fetchStatus": "idle"
+            },
+            "queryKey": [
+              "submissionCount",
+              "9d8c7418-7816-4120-bd00-13c113998253"
+            ],
+            "queryHash": "[\"submissionCount\",\"9d8c7418-7816-4120-bd00-13c113998253\"]"
+          }
+        ]
+      }
+    },
+    "__N_SSP": true
+  },
+  "page": "/earn/listing/[slug]",
+  "query": {
+    "slug": "umbra-side-track"
+  },
+  "buildId": "build-TfctsWXpff2fKS",
+  "isFallback": false,
+  "isExperimentalCompile": false,
+  "dynamicIds": [
+    794280,
+    213071,
+    710202,
+    740037,
+    684109,
+    40550,
+    187193
+  ],
+  "gssp": true,
+  "scriptLoader": []
+}
