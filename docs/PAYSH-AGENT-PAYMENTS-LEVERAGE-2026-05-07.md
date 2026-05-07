@@ -44,7 +44,7 @@ pay --sandbox curl http://localhost:3402/x402/joke
 For us, this is immediately useful as a standards harness:
 
 - Verify our x402 endpoints emit challenges a real agent wallet can satisfy.
-- Compare Reddi x402 challenge/receipt shape against Pay.sh-compatible expectations.
+- Compare `reddi-x402` challenge/receipt shape against Pay.sh-compatible expectations.
 - Demonstrate “agent wallet approval → payment proof → paid API retry” without building more wallet UX.
 
 ### 2. Pay gateway for accepting API payments
@@ -69,7 +69,7 @@ Runtime is driven by a provider spec YAML. Important fields:
 - `operator.currencies.usd: ['USDC', 'USDT']`.
 - `routing.auth.value_from_env` for injecting upstream credentials only after payment verification.
 
-This directly maps to Reddi APIs like:
+This directly maps to Reddi Agent Protocol APIs like:
 
 - `/api/planner/tools/invoke`
 - `/api/economic-demo/webpage-live-workflow`
@@ -134,7 +134,7 @@ endpoints:
 
 This gives us a clean commercial story:
 
-- Reddi manager agent charges for orchestration.
+- Reddi Agent Protocol manager agent charges for orchestration.
 - Specialist agents / data providers receive split revenue.
 - Disclosure ledger records the downstream split obligation.
 
@@ -144,15 +144,15 @@ Pay.sh has a provider catalog and pay-skills registry. Agents can search by task
 
 This is directly aligned with our product’s market positioning:
 
-- Reddi agents become discoverable paid API providers.
-- Third-party agents can call Reddi endpoints through Pay.sh.
+- Reddi Agent Protocol agents become discoverable paid API providers.
+- Third-party agents can call Reddi Agent Protocol endpoints through Pay.sh.
 - Our “agent protocol” story gains an existing distribution/discovery path.
 
-## Fit against Reddi’s current state
+## Fit against Reddi Agent Protocol’s current state
 
 ### Very strong fit: “agent-first paid API protocol”
 
-Pay.sh is almost exactly adjacent to Reddi’s core story. We already have:
+Pay.sh is almost exactly adjacent to Reddi Agent Protocol’s core story. We already have:
 
 - x402 economic demo and smoke scripts.
 - Disclosure-ledger evidence tooling.
@@ -162,11 +162,11 @@ Pay.sh is almost exactly adjacent to Reddi’s core story. We already have:
 
 Pay.sh can become:
 
-1. A compatibility target for Reddi x402 endpoints.
+1. A compatibility target for `reddi-x402` endpoints.
 2. A demo gateway in front of our paid APIs.
 3. A distribution channel via pay-skills catalog.
 4. A wallet-approval UX for agent payments.
-5. A bridge story between Reddi and Umbra: Pay.sh handles payment challenge/authorization; Umbra handles private settlement lane if/when integrated.
+5. A bridge story between Reddi Agent Protocol and Umbra: Pay.sh handles payment challenge/authorization; Umbra handles private settlement lane if/when integrated.
 
 ### Better immediate leverage than Umbra for core demo
 
@@ -184,10 +184,10 @@ MagicBlock remains technically interesting, but our Quasar-on-MagicBlock-TEE exe
 External agent / CLI
   └─ pay.sh client / MCP / pay curl
        └─ HTTP 402 x402 or MPP challenge
-            └─ Pay.sh gateway for Reddi paid API
+            └─ Pay.sh gateway for Reddi Agent Protocol paid API
                  ├─ verifies payment proof
                  ├─ applies endpoint allowlist + metering + caps/splits
-                 └─ forwards to Reddi API
+                 └─ forwards to Reddi Agent Protocol API
                        ├─ Quasar public settlement proof/evidence
                        ├─ disclosure ledger
                        └─ optional Umbra private settlement adapter later
@@ -196,7 +196,7 @@ External agent / CLI
 This lets us tell a layered story:
 
 - **Pay.sh:** agent wallet approval, 402 retry, paid API gateway, discoverability.
-- **Reddi:** specialist-agent orchestration, evidence, policy, disclosure ledger, Quasar-native on-chain proof.
+- **Reddi Agent Protocol:** specialist-agent orchestration, evidence, policy, disclosure ledger, Quasar-native on-chain proof.
 - **Umbra:** optional private settlement/privacy rail.
 - **MagicBlock:** boundary/repro evidence; not relied on for final settlement.
 
@@ -208,9 +208,9 @@ Create `docs/PAYSH-REDDI-AGENT-PAYMENTS-BDD-PLAYBOOK-2026-05-07.md`.
 
 Scenarios:
 
-1. Reddi paid endpoint returns a standards-compatible 402 challenge.
+1. Reddi Agent Protocol paid endpoint returns a standards-compatible 402 challenge.
 2. Pay.sh sandbox client retries with a payment proof.
-3. Reddi evidence pack records payment receipt/proof metadata.
+3. Reddi Agent Protocol evidence pack records payment receipt/proof metadata.
 4. Session payment cap is represented as a bounded spend authorization.
 5. Payment split metadata maps to downstream specialist/disclosure ledger.
 
@@ -256,7 +256,7 @@ Guard:
 
 Create a draft provider metadata entry locally, not submitted externally yet:
 
-- Reddi paid specialist API
+- Reddi Agent Protocol paid specialist API
 - endpoint descriptions
 - usage notes
 - pricing metadata
@@ -286,12 +286,12 @@ Prioritize Pay.sh immediately as a **core demo accelerator**, not just a side op
 
 Why:
 
-1. It directly matches Reddi’s agent-payment/x402 thesis.
+1. It directly matches Reddi Agent Protocol’s agent-payment/x402 thesis.
 2. It gives us a ready-made local wallet approval and HTTP 402 retry UX.
-3. It lets Reddi expose paid APIs via gateway/spec without rewriting Quasar programs.
+3. It lets Reddi Agent Protocol expose paid APIs via gateway/spec without rewriting Quasar programs.
 4. It supports usage metering, capped session payments, and payment splits — all core to agent commerce.
 5. It strengthens the Umbra pitch: Pay.sh can be the payment-challenge/discovery layer, Umbra can be a private settlement rail later.
 
 Suggested next move:
 
-> Build a Pay.sh sandbox provider spec around one Reddi economic-demo paid endpoint, validate with `pay --sandbox curl`, and generate a compatibility evidence artifact. If that works, use it as the primary “agent-paid API” demo layer and keep Umbra as private-payments expansion.
+> Build a Pay.sh sandbox provider spec around one Reddi Agent Protocol economic-demo paid endpoint, validate with `pay --sandbox curl`, and generate a compatibility evidence artifact. If that works, use it as the primary “agent-paid API” demo layer and keep Umbra as private-payments expansion.

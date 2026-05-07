@@ -1,0 +1,38 @@
+#!/usr/bin/env node
+import { readFileSync, existsSync } from "node:fs";
+
+const defaultFiles = [
+  "STATUS.md",
+  "docs/PAYSH-AGENT-PAYMENTS-LEVERAGE-2026-05-07.md",
+  "docs/PAYSH-REDDI-X402-BDD-PLAYBOOK-2026-05-07.md",
+  "docs/UMBRA-PRIVACY-PAYMENTS-BOUNTY-FIT-2026-05-07.md",
+];
+
+const files = process.argv.slice(2).length ? process.argv.slice(2) : defaultFiles;
+const standaloneReddi = /\bReddi\b(?! Agent Protocol| Engage|tech)/;
+const allowStandaloneWhenExplainingRule = [
+  "not standalone",
+  "standalone “Reddi”",
+  "standalone \"Reddi\"",
+  "Do not use standalone",
+];
+
+const failures = [];
+
+for (const file of files) {
+  if (!existsSync(file)) continue;
+  const lines = readFileSync(file, "utf8").split(/\r?\n/);
+  lines.forEach((line, index) => {
+    if (!standaloneReddi.test(line)) return;
+    if (allowStandaloneWhenExplainingRule.some((phrase) => line.includes(phrase))) return;
+    failures.push(`${file}:${index + 1}: use “Reddi Agent Protocol” or \`reddi-x402\`, not standalone “Reddi”: ${line.trim()}`);
+  });
+}
+
+if (failures.length) {
+  console.error("[product-naming] FAIL");
+  for (const failure of failures) console.error(failure);
+  process.exit(1);
+}
+
+console.log(`[product-naming] OK: checked ${files.filter((file) => existsSync(file)).length} file(s)`);

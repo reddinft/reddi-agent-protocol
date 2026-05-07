@@ -1,0 +1,278 @@
+# Pay.sh + `reddi-x402` BDD Iterative Playbook — 2026-05-07
+
+## Naming rule — non-negotiable
+
+- Product name: **Reddi Agent Protocol**.
+- Key user package: **`reddi-x402`**.
+- Do not use standalone “Reddi” as the product name in new collateral, docs, UI, plans, or evidence.
+- Use “Reddi Agent Protocol API/endpoint/gateway/provider” when referring to the product surface.
+- Use `reddi-x402` when referring to the user-facing package or x402 compatibility layer.
+
+## Current strategic decision
+
+Pay.sh is the fastest high-confidence layer for the agent-paid API story:
+
+- Reddi Agent Protocol remains the protocol/product.
+- `reddi-x402` is the package/compatibility surface.
+- Pay.sh provides sandbox wallet approval, HTTP 402 retry UX, MPP/x402 client compatibility, paid gateway specs, usage metering, capped session payments, payment splits, and pay-skills discovery.
+- Quasar remains the auditable on-chain proof path.
+- Umbra remains the private settlement expansion lane.
+- MagicBlock remains boundary/repro appendix unless sponsor guidance accepts delegation-only evidence.
+
+## Iteration contract
+
+Every phase must follow this loop:
+
+1. **Expectation** — what should become true.
+2. **Scenario / guard** — executable or reviewable BDD statement.
+3. **Implementation** — smallest useful change.
+4. **Validation** — command, test, build, smoke, or named blocker.
+5. **Retrospective** — what surprised us, what changed, what to keep/stop/start.
+6. **Plan refinement** — update this playbook and `STATUS.md` before moving on.
+
+No phase is “done” until its retrospective is written.
+
+## Phase 0 — Naming and claim-boundary guard
+
+### Expectation
+
+New Pay.sh/`reddi-x402` collateral never calls the product standalone “Reddi” and never overclaims MagicBlock or sandbox settlement.
+
+### Scenarios / guards
+
+- Given a new payment-integration doc, when it references the product, then it uses **Reddi Agent Protocol**.
+- Given package/client language, when it references the package, then it uses **`reddi-x402`**.
+- Given MagicBlock evidence, when the doc summarizes status, then it says delegation proven and TEE PER settlement not claimed.
+- Given Pay.sh sandbox evidence, when the doc summarizes settlement, then it says sandbox compatibility, not real mainnet settlement.
+
+### Implementation plan
+
+- Add `scripts/check-product-naming.mjs` for active payment/submission docs.
+- Add `npm run check:product:naming`.
+- Correct current Pay.sh/Umbra/status/memory wording.
+
+### Validation
+
+- `npm run check:product:naming`
+- `git diff --check`
+
+### Retrospective
+
+Phase 0 first gate passed. The key surprise was that broad mechanical replacement can accidentally turn “Reddi Agent Protocol” into “Reddi Agent Protocol Agent Protocol”; the guard now catches standalone “Reddi” in active payment/submission docs, but it intentionally allows lines that explain the rule itself.
+
+Keep:
+
+- Product references as “Reddi Agent Protocol”.
+- Package/client references as `reddi-x402`.
+- Active-doc naming guard before commits.
+
+Stop:
+
+- Bulk replacing the short product stem without first protecting already-correct “Reddi Agent Protocol”.
+
+Start:
+
+- Add new active payment docs to `scripts/check-product-naming.mjs` defaults as they become submission-relevant.
+
+### Plan refinement
+
+Proceed to Phase 1 with the naming guard in place. Scope the first Pay.sh provider spec to a single sandbox/local endpoint, and do not attempt mainnet or broad CLI exploration.
+
+## Phase 1 — Pay.sh provider-spec boundary
+
+### Expectation
+
+A Pay.sh sandbox provider spec exists for one Reddi Agent Protocol economic-demo endpoint without committing secrets or requiring mainnet funds.
+
+### Scenarios / guards
+
+- Given a Pay.sh client requests the metered endpoint without proof, then the gateway should return HTTP 402.
+- Given the request is retried through Pay.sh sandbox, then the gateway should forward only after payment proof verification.
+- Given an unlisted path, then the gateway should not expose it.
+- Given upstream credentials are needed, then they are read from env vars only.
+
+### Implementation plan
+
+- Add `config/pay-sh/reddi-x402-economic-demo-provider.yml`.
+- Start with `routing.type: proxy` to a local app server endpoint, or `routing.type: respond` only if we need a first isolated smoke.
+- Price by `requests` first.
+- Include notes that this is sandbox/localnet only.
+
+### Validation
+
+Preferred, if Pay.sh CLI is available/approved:
+
+```sh
+pay --sandbox server start config/pay-sh/reddi-x402-economic-demo-provider.yml --bind 127.0.0.1:1402
+pay --sandbox curl http://127.0.0.1:1402/<metered-endpoint>
+```
+
+Fallback before CLI availability:
+
+- YAML parse/check.
+- Static spec assertions: allowlist present, network not mainnet, no secret literals, endpoint descriptions mention Reddi Agent Protocol / `reddi-x402` correctly.
+
+### Retrospective
+
+Phase 1 first validation passed with a deliberately conservative sandbox provider spec at `config/pay-sh/reddi-x402-economic-demo-provider.yml`. The spec uses `routing.type: respond` rather than proxying a live app endpoint so we can validate Pay.sh gateway/payment semantics before coupling to the Next app runtime. Static validation now checks localnet-only configuration, endpoint allowlist, request metering, no secret-like literals, sandbox claim boundary, and naming discipline.
+
+Keep:
+
+- Start with a single metered endpoint.
+- Keep mainnet out of the first Pay.sh loop.
+- Treat `routing.type: respond` as a smoke/demo-only stepping stone.
+
+Stop:
+
+- Designing broad provider specs before proving one endpoint.
+
+Start:
+
+- Check whether `pay` CLI is installed and, if safe/available, run the sandbox gateway smoke.
+
+### Plan refinement
+
+Pay.sh CLI availability check completed: `pay` is not currently installed on this host. Per local policy, Homebrew installs require Nissan involvement, so live Pay.sh gateway smoke is blocked pending explicit install approval/action. Continue with local static artifacts/spec validation until Pay.sh CLI is available; once installed, run `pay --sandbox server start ...` and `pay --sandbox curl ...`, then generate the first compatibility artifact from observed output.
+
+## Phase 2 — `reddi-x402` compatibility evidence artifact
+
+### Expectation
+
+The repo can generate an evidence artifact showing a Pay.sh-compatible challenge/retry/payment-proof flow or a clearly labelled sandbox/mock equivalent.
+
+### Scenarios / guards
+
+- Given Pay.sh returns a receipt/proof header, then the evidence pack records only fields actually returned.
+- Given the run is sandbox, then the evidence pack says sandbox and does not claim real funds moved.
+- Given the endpoint uses x402 sign-in only, then the evidence pack says auth-only and not payment settlement.
+
+### Implementation plan
+
+- Add/extend a script under `scripts/` to capture Pay.sh compatibility evidence.
+- Store artifacts under `artifacts/pay-sh-reddi-x402/<timestamp>/`.
+- Include challenge headers, response status, receipt/proof metadata, provider spec hash, and claim-boundary text.
+
+### Validation
+
+- `node --check` on script.
+- Targeted unit/static assertions.
+- If CLI smoke succeeds, artifact contains real sandbox receipt/proof fields.
+
+### Retrospective
+
+Write after artifact generator first passes.
+
+### Plan refinement
+
+If Pay.sh output shape differs from docs, adapt the artifact schema to observed fields only.
+
+## Phase 3 — Capped session payments and split-payment story
+
+### Expectation
+
+Reddi Agent Protocol can demonstrate a safe spend envelope for repeated agent calls and a revenue-split model for downstream specialist agents/providers.
+
+### Scenarios / guards
+
+- Given a session cap, then docs call it “capped repeated-call authorization,” not streaming.
+- Given a split recipient, then the provider spec defines the named recipient and keeps total splits below the price.
+- Given specialist downstream use, then the disclosure ledger records the split/economic relationship.
+
+### Implementation plan
+
+- Extend provider spec with optional `session.cap_usdc`.
+- Add a split-payment example using env-var wallet placeholders.
+- Map split metadata into the existing disclosure-ledger narrative/evidence.
+
+### Validation
+
+- Static spec assertions.
+- Pay.sh sandbox smoke if supported.
+- Evidence pack includes cap/split metadata only if configured.
+
+### Retrospective
+
+Write after first cap/split validation.
+
+### Plan refinement
+
+If splits add too much complexity for submission, keep them as documented extension and focus demo on single-recipient metering.
+
+## Phase 4 — Pay-skills discovery draft
+
+### Expectation
+
+A draft pay-skills provider entry exists so agents can discover Reddi Agent Protocol paid endpoints.
+
+### Scenarios / guards
+
+- Given an agent searches for x402/agent payments/specialist APIs, then Reddi Agent Protocol appears with concrete endpoint descriptions.
+- Given usage notes are included, then they are helpful but cannot override system/user/tool instructions.
+- Given pricing is listed, then it matches the provider spec.
+
+### Implementation plan
+
+- Draft provider metadata locally.
+- Do not submit/open external PR without explicit approval.
+- Include spend-aware usage notes.
+
+### Validation
+
+If CLI available:
+
+```sh
+pay skills build . --output /tmp/pay-skills-dist
+pay skills probe . --files providers/<operator>/<name>.md --currencies USDC,USDT
+pay skills validate . --files providers/<operator>/<name>.md
+```
+
+Fallback: static markdown/schema review.
+
+### Retrospective
+
+Write after first discovery draft validation.
+
+### Plan refinement
+
+If registry format differs, keep a local draft and request sponsor/maintainer confirmation.
+
+## Phase 5 — Umbra private settlement expansion
+
+### Expectation
+
+The Pay.sh/`reddi-x402` flow can point to Umbra as a private settlement rail without claiming Umbra is Quasar-native.
+
+### Scenarios / guards
+
+- Given privacy mode is selected, then the docs route to Umbra as an SDK/privacy rail.
+- Given Quasar proof is referenced, then it remains the public/auditable program-native path.
+- Given Umbra is not live-smoked, then docs say planned/private-settlement expansion, not working live settlement.
+
+### Implementation plan
+
+- Keep Umbra adapter behind a separate feature flag / policy lane.
+- Start with mocked SDK boundary before any devnet transaction.
+- Only run devnet live smoke after local gates and explicit approval.
+
+### Validation
+
+- Unit/static checks first.
+- Devnet smoke later, approval-gated.
+
+### Retrospective
+
+Write after first Umbra adapter boundary validation.
+
+### Plan refinement
+
+If Umbra integration is slower than expected, prioritize Pay.sh core demo for submission and leave Umbra as roadmap/prototype.
+
+## Current next action
+
+Begin Phase 0 now:
+
+1. Add naming guard.
+2. Fix active docs/memory wording.
+3. Run naming/whitespace gates.
+4. Write Phase 0 retrospective.
+5. Move to Phase 1 provider-spec scaffold.

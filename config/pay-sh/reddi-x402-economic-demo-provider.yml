@@ -1,0 +1,36 @@
+name: reddi-x402-economic-demo
+subdomain: reddi-x402-economic-demo
+title: 'Reddi Agent Protocol economic demo'
+description: 'Sandbox Pay.sh gateway spec for a Reddi Agent Protocol paid API compatibility smoke using the reddi-x402 package surface.'
+category: productivity
+version: v1
+routing:
+  type: respond
+  status: 200
+  headers:
+    content-type: application/json
+  body: |
+    {
+      "ok": true,
+      "product": "Reddi Agent Protocol",
+      "package": "reddi-x402",
+      "mode": "pay-sh-sandbox-smoke",
+      "claimBoundary": "Sandbox gateway compatibility only; no mainnet funds or private settlement claimed."
+    }
+operator:
+  currencies:
+    usd: ['USDC', 'USDT']
+  network: localnet
+  fee_payer: true
+endpoints:
+  - method: GET
+    path: 'api/economic-demo/reddi-x402/pay-sh-smoke'
+    resource: 'reddi-x402-pay-sh-smoke'
+    description: 'Return a sandbox Reddi Agent Protocol paid API smoke response after Pay.sh payment-proof verification.'
+    metering:
+      dimensions:
+        - direction: usage
+          unit: requests
+          scale: 1
+          tiers:
+            - price_usd: 0.01

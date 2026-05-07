@@ -143,7 +143,7 @@ Risk:
 
 ### Phase 0 — BDD claim boundary
 
-Expectation: Reddi can offer a private payment rail without weakening the Quasar-only final-program claim.
+Expectation: Reddi Agent Protocol can offer a private payment rail without weakening the Quasar-only final-program claim.
 
 Scenario:
 
