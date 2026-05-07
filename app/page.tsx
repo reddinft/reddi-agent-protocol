@@ -49,8 +49,8 @@ const ECOSYSTEM_PROOFS = [
   },
   {
     name: "MagicBlock",
-    status: "Live boundary proof",
-    desc: "Authenticated devnet TEE lane submitted a PER-routed settlement with fallback disabled; TEE rejected it, so successful PER settlement is not claimed.",
+    status: "Delegation proven; settlement blocked",
+    desc: "Quasar-native MagicBlock permission/delegation succeeds live on devnet; TEE settlement is not claimed because delegated Quasar program execution currently fails on MagicBlock TEE.",
     href: "/economic-demo",
   },
   {

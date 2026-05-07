@@ -13,7 +13,7 @@ Record the Colosseum Frontier submission with Quasar-compiled Solana programs as
   - Reputation `nb9rLVjoHMibsgfRGgKuPqm6M8GVcH9r6bYNfg7Yiy6`
   - Attestation `CRGsWWkptdxsH6N6aWAyahLbuMsT58yM624EopEsv1Ex`
 - Do not claim mainnet-ready; architectural audit blockers remain.
-- MagicBlock PER/TEE has live boundary proof (`docs/MAGICBLOCK-PER-TEE-VALIDATION-2026-05-07.md`), but do not claim successful PER settlement; the TEE finalized the PER-routed attempt with `InvalidAccountForFee`.
+- MagicBlock PER/TEE has live Quasar-native delegation proof (`docs/MAGICBLOCK-QUASAR-TEE-REPRO-2026-05-07.md`) plus earlier PER/TEE boundary proof (`docs/MAGICBLOCK-PER-TEE-VALIDATION-2026-05-07.md`), but do not claim successful PER settlement; delegated Quasar program execution currently fails at MagicBlock TEE instruction start.
 - Do not claim successful public Jupiter devnet execution. Current safe Jupiter framing is: local Surfpool/mock-Jupiter invoke success plus public Jupiter quote/build/sign boundary. A real successful Jupiter swap requires separately approved mainnet-beta execution.
 - Legacy Anchor registrations/artifacts are reference-only.
 
@@ -69,7 +69,7 @@ npm run test:surfpool:quasar-critical
    - Surfpool localnet confidence passed.
    - x402/OpenRouter/Jupiter evidence is visible with exact boundaries.
    - Jupiter: Surfpool/mock-Jupiter is the successful no-real-funds visual; public Jupiter devnet is quote/build/sign boundary only.
-   - MagicBlock PER/TEE: authenticated devnet TEE + PER-routed submission + public invisibility are evidenced; successful PER settlement is not claimed. Successful live Jupiter swap is not a final claim unless separately run with explicit approval.
+   - MagicBlock PER/TEE: Quasar-native permission/delegation succeeds live on devnet; successful PER settlement is not claimed because the delegated Quasar program image fails to execute on MagicBlock TEE. Successful live Jupiter swap is not a final claim unless separately run with explicit approval.
    - Not mainnet-ready until architectural audit blockers are resolved and re-reviewed.
 
 ## Latest green evidence
