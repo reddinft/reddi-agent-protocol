@@ -162,12 +162,15 @@ mod tests {
     use super::*;
 
     const DEVNET_TEE_VALIDATOR_BYTES: [u8; 32] = [
-        5, 61, 71, 26, 133, 158, 115, 46, 104, 11, 201, 88, 248, 65, 7, 43, 143, 63, 188, 25,
-        115, 155, 230, 151, 196, 198, 129, 18, 111, 140, 31, 116,
+        5, 61, 71, 26, 133, 158, 115, 46, 104, 11, 201, 88, 248, 65, 7, 43, 143, 63, 188, 25, 115,
+        155, 230, 151, 196, 198, 129, 18, 111, 140, 31, 116,
     ];
 
     fn flags(specs: &[AccountSpec]) -> Vec<(bool, bool)> {
-        specs.iter().map(|spec| (spec.is_signer, spec.is_writable)).collect()
+        specs
+            .iter()
+            .map(|spec| (spec.is_signer, spec.is_writable))
+            .collect()
     }
 
     fn hex(bytes: &[u8]) -> String {
@@ -225,7 +228,13 @@ mod tests {
     fn commit_and_undelegate_permission_account_flags_match_sdk_fixture() {
         assert_eq!(
             flags(&COMMIT_AND_UNDELEGATE_PERMISSION_ACCOUNTS),
-            [(true, true), (true, true), (false, true), (false, false), (false, true)]
+            [
+                (true, true),
+                (true, true),
+                (false, true),
+                (false, false),
+                (false, true)
+            ]
         );
     }
 
@@ -250,7 +259,10 @@ mod tests {
             hex(&delegate_escrow.data),
             "0000000000000000ffffffff0300000006000000657363726f7720000000070707070707070707070707070707070707070707070707070707070707070708000000020000000000000001053d471a859e732e680bc958f841072b8f3fbc19739be697c4c681126f8c1f74"
         );
-        assert_eq!(delegate_escrow.signer_role, Some(AccountRole::DelegatedAccount));
+        assert_eq!(
+            delegate_escrow.signer_role,
+            Some(AccountRole::DelegatedAccount)
+        );
 
         let commit = commit_and_undelegate_permission_descriptor();
         assert_eq!(commit.program, ProgramRole::Permission);

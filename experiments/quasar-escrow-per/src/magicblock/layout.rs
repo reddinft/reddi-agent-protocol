@@ -65,7 +65,11 @@ pub const fn commit_and_undelegate_permission_data() -> [u8; 8] {
 /// - `seeds: Vec<Vec<u8>>` with this program's escrow seeds, excluding bump
 /// - `validator: Option<Pubkey>` as 1 + 32-byte validator pubkey
 #[inline(always)]
-pub const fn delegate_escrow_data(validator: [u8; 32], payer: [u8; 32], escrow_id: u64) -> [u8; 107] {
+pub const fn delegate_escrow_data(
+    validator: [u8; 32],
+    payer: [u8; 32],
+    escrow_id: u64,
+) -> [u8; 107] {
     let mut out = [0u8; 107];
     let mut offset = 0usize;
     let mut i = 0usize;
@@ -155,8 +159,8 @@ mod tests {
     use std::{format, string::String};
 
     const DEVNET_TEE_VALIDATOR_BYTES: [u8; 32] = [
-        5, 61, 71, 26, 133, 158, 115, 46, 104, 11, 201, 88, 248, 65, 7, 43, 143, 63, 188, 25,
-        115, 155, 230, 151, 196, 198, 129, 18, 111, 140, 31, 116,
+        5, 61, 71, 26, 133, 158, 115, 46, 104, 11, 201, 88, 248, 65, 7, 43, 143, 63, 188, 25, 115,
+        155, 230, 151, 196, 198, 129, 18, 111, 140, 31, 116,
     ];
 
     fn hex(bytes: &[u8]) -> String {
@@ -165,15 +169,24 @@ mod tests {
 
     #[test]
     fn permission_instruction_data_matches_magicblock_js_sdk_fixture() {
-        assert_eq!(hex(&create_permission_data_members_none()), "000000000000000000");
+        assert_eq!(
+            hex(&create_permission_data_members_none()),
+            "000000000000000000"
+        );
         assert_eq!(hex(&delegate_permission_data()), "0300000000000000");
-        assert_eq!(hex(&commit_and_undelegate_permission_data()), "0500000000000000");
+        assert_eq!(
+            hex(&commit_and_undelegate_permission_data()),
+            "0500000000000000"
+        );
     }
 
     #[test]
     fn delegate_escrow_data_matches_magicblock_rust_cpi_shape() {
         let payer = [7u8; 32];
-        assert_eq!(delegate_escrow_data(DEVNET_TEE_VALIDATOR_BYTES, payer, 2).len(), 107);
+        assert_eq!(
+            delegate_escrow_data(DEVNET_TEE_VALIDATOR_BYTES, payer, 2).len(),
+            107
+        );
         assert_eq!(
             hex(&delegate_escrow_data(DEVNET_TEE_VALIDATOR_BYTES, payer, 2)),
             "0000000000000000ffffffff0300000006000000657363726f7720000000070707070707070707070707070707070707070707070707070707070707070708000000020000000000000001053d471a859e732e680bc958f841072b8f3fbc19739be697c4c681126f8c1f74"

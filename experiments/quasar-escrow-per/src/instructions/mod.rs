@@ -2,12 +2,18 @@ pub mod cancel;
 pub mod commit_undelegate_per;
 pub mod delegate_per;
 pub mod lock;
+pub mod prepare_agent_vault;
 pub mod release;
+pub mod take_to_agent_vault;
 pub mod undelegate_callback;
+pub mod withdraw_agent_vault;
 
 pub use cancel::*;
 pub use commit_undelegate_per::*;
 pub use delegate_per::*;
 pub use lock::*;
+pub use prepare_agent_vault::*;
 pub use release::*;
+pub use take_to_agent_vault::*;
 pub use undelegate_callback::*;
+pub use withdraw_agent_vault::*;

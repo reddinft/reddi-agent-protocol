@@ -46,7 +46,10 @@ impl<'info> Cancel<'info> {
         }
 
         let clock = Clock::get()?;
-        let elapsed = clock.slot.get().saturating_sub(self.escrow.created_slot.get());
+        let elapsed = clock
+            .slot
+            .get()
+            .saturating_sub(self.escrow.created_slot.get());
         if elapsed < CANCEL_WINDOW_SLOTS {
             return Err(ProgramError::InvalidArgument);
         }
