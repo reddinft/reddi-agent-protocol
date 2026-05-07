@@ -235,3 +235,9 @@ Exit: bounty submission can honestly claim Quasar-native MagicBlock PER usage.
 ## Recommendation
 
 Proceed with Phases 0–2 immediately on the existing MagicBlock branch. Do not spend time making the legacy Anchor PER path work unless we need a comparison artifact. The critical path is now clear: Quasar-native explicit MagicBlock CPI lifecycle + TEE client routing + evidence pack.
+
+## Quasar docs viability addendum
+
+Follow-up Quasar docs crawl/analysis is captured in `docs/QUASAR-DOCS-MAGICBLOCK-PER-VIABILITY-2026-05-07.md` with raw ingest under `ingests/quasar-docs-2026-05-07/full-docs-plus-two-deep/`.
+
+Conclusion: the plan remains viable, but the PER-enabled Quasar escrow ABI must account for MagicBlock's exact 8-byte undelegate callback discriminator `[196, 28, 41, 206, 48, 37, 51, 167]`. Since Quasar docs say all instruction discriminators in one program must have the same byte length, the clean hackathon path is a new PER-specific Quasar escrow program using 8-byte discriminators, rather than trying to bolt the callback onto the existing single-byte Quasar escrow ABI.

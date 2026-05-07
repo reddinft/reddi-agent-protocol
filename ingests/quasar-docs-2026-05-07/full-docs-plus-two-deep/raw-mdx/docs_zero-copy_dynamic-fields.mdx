@@ -1,0 +1,110 @@
+URL: https://quasar-lang.com/docs/zero-copy/dynamic-fields
+FETCHED_FINAL: https://quasar-lang.com/docs/zero-copy/dynamic-fields.mdx
+DEPTH: 0
+
+# Dynamic Fields (/docs/zero-copy/dynamic-fields.mdx)
+
+> Variable-length strings and vectors stored inline in account data, zero-copy.
+
+Fixed-size accounts cover most use cases, but sometimes you need variable-length data -- a label, a list of signers, a chunk of arbitrary bytes. Quasar provides `String<'a, MAX>` and `Vec<'a, T, MAX>` as zero-copy dynamic fields that live inline in account data with a length prefix. No heap allocation, no deserialization.
+
+## String and Vec
+
+```rust
+#[account(discriminator = 1)]
+pub struct MultisigConfig<'a> {
+    pub creator: Address,
+    pub threshold: u8,
+    pub bump: u8,
+    pub label: String<'a, 32>,         // max 32 bytes
+    pub signers: Vec<'a, Address, 10>, // max 10 elements
+}
+```
+
+Structs with dynamic fields need a lifetime parameter -- the generated accessors return borrowed references (`&str`, `&[Address]`) pointing directly into the account data buffer.
+
+Each dynamic field is stored with a length prefix (default `u32`, Borsh-compatible) followed by the data:
+
+```
+Offset     Field
+------     -----
+0          discriminator (0x01)
+1          creator: Address (32 bytes)
+33         threshold: u8
+34         bump: u8
+35         label length prefix (u32 LE)
+39         label UTF-8 data (0..32 bytes)
+39+L       signers count prefix (u32 LE)
+43+L       signers data (0..320 bytes)
+```
+
+For `String`, the prefix is the byte length. For `Vec`, it's the element count. Elements must have alignment 1 (enforced at compile time).
+
+## Reading dynamic fields
+
+The macro generates typed accessors:
+
+```rust
+let label: &str = self.config.label();
+let signers: &[Address] = self.config.signers();
+```
+
+Vec fields also get a mutable accessor for in-place modification without reallocation:
+
+```rust
+let signers_mut: &mut [Address] = self.config.signers_mut();
+signers_mut[0] = new_address;
+```
+
+## Writing dynamic fields
+
+`set_inner()` writes everything at once during initialization:
+
+```rust
+self.config.set_inner(
+    *self.creator.address(),
+    threshold,
+    bumps.config,
+    "",           // label: empty initially
+    signers,      // &[Address]
+    self.creator.to_account_view(),  // payer for realloc
+    Some(&**self.rent),
+)
+```
+
+Individual setters handle reallocation automatically after init:
+
+```rust
+self.config.set_label(self.creator, "new label")?;
+```
+
+Exceeding the `MAX` returns `QuasarError::DynamicFieldTooLong`.
+
+## Ordering rules
+
+Dynamic fields must come **after** all fixed fields. This is enforced at compile time -- dynamic fields are accessed by walking length prefixes from the end of the fixed-field header, so they must be contiguous at the tail.
+
+No nested dynamic types either: `Vec<String>` and `Vec<Vec<Address>>` won't compile.
+
+## Tail fields
+
+If you have exactly one dynamic field and it's the last field, you can skip the length prefix entirely with a bare `&'a str` or `&'a [u8]`. The field consumes all remaining bytes in the account:
+
+```rust
+#[account(discriminator = 1)]
+pub struct Note<'a> {
+    pub author: Address,
+    pub content: &'a str,    // no prefix -- uses everything after `author`
+}
+```
+
+Slightly more efficient than `String<MAX>` since there's no prefix overhead, but limited to one field and it must be last.
+
+## Smaller prefixes
+
+The default `u32` prefix matches Borsh encoding. If you don't need Borsh compatibility, smaller prefixes save a few bytes:
+
+```rust
+pub name: String<u8, 32>,        // 1-byte prefix instead of 4
+pub items: Vec<Address, u8, 10>, // 1-byte prefix instead of 4
+```

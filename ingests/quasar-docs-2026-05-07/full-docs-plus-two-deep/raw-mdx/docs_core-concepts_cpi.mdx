@@ -1,0 +1,140 @@
+URL: https://quasar-lang.com/docs/core-concepts/cpi
+FETCHED_FINAL: https://quasar-lang.com/docs/core-concepts/cpi.mdx
+DEPTH: 0
+
+# Cross-Program Invocations (/docs/core-concepts/cpi.mdx)
+
+> Method-style CPI calls, PDA signing, declare_program!, and events.
+
+CPI in Quasar is method-style -- you call methods on program types or account types and get back a `CpiCall` that you `.invoke()`. Everything is stack-allocated with const-generic sizes, no heap.
+
+## The Pattern
+
+```rust
+// No PDA signer
+self.system_program.transfer(self.user, self.vault, amount).invoke()?;
+
+// Single PDA signer
+self.token_program
+    .transfer(self.vault_ta_a, self.taker_ta_a, self.escrow, amount)
+    .invoke_signed(&seeds)?;
+
+// Multiple PDA signers
+cpi_call.invoke_with_signers(&[seeds_a, seeds_b])?;
+```
+
+Every CPI helper returns a `CpiCall<'a, ACCTS, DATA>` where account count and data size are const-generics known at compile time. You chain `.invoke()`, `.invoke_signed()`, or `.invoke_with_signers()` to execute it.
+
+## System Program
+
+Methods on `Program<System>` accept typed accounts directly:
+
+```rust
+self.system_program.transfer(self.user, self.vault, amount).invoke()?;
+
+self.system_program
+    .create_account_with_minimum_balance(self.payer, self.new_account, space, &owner, Some(&*self.rent))?
+    .invoke()?;
+
+self.system_program.assign(self.account, &new_owner).invoke()?;
+```
+
+Also available as free functions in `quasar_lang::cpi::system` when you're working with raw `AccountView` references.
+
+## Token Program
+
+The `quasar-spl` crate provides the same method-style CPI on `Program<Token>`:
+
+```rust
+// Transfer tokens
+self.token_program
+    .transfer(self.maker_ta_a, self.vault_ta_a, self.maker, amount)
+    .invoke()?;
+
+// Close a token account
+self.vault_ta_a
+    .close(self.token_program, self.taker, self.escrow)
+    .invoke_signed(&seeds)?;
+```
+
+## PDA Signing
+
+Use the auto-generated `*_seeds()` methods on the bumps struct. No manual seed construction:
+
+```rust
+pub fn withdraw_tokens_and_close(&mut self, bumps: &TakeBumps) -> Result<(), ProgramError> {
+    let seeds = bumps.escrow_seeds();
+
+    self.token_program
+        .transfer(self.vault_ta_a, self.taker_ta_a, self.escrow, self.vault_ta_a.amount())
+        .invoke_signed(&seeds)?;
+
+    self.vault_ta_a
+        .close(self.token_program, self.taker, self.escrow)
+        .invoke_signed(&seeds)
+}
+```
+
+`bumps.escrow_seeds()` returns a `[Seed; N]` array with the full seed set including the bump byte. See [PDA](./pda) for how bumps are discovered and stored.
+
+## declare_program!
+
+Reads an IDL JSON at compile time and generates typed CPI functions for calling another program:
+
+```rust
+declare_program!(vault_program, "target/idl/quasar_vault.idl.json");
+```
+
+This generates a module with:
+
+* `pub const ID: Address` from the IDL
+* A program type (e.g., `VaultProgram`) with executable and address validation
+* A method per instruction on the program type
+* A free function per instruction (for raw `AccountView` usage)
+
+Account flags, discriminators, and data buffer sizes are all derived from the IDL and baked into the generated code at compile time. Only primitives and addresses are supported as CPI arguments. See [IDL](./idl) for the full IDL structure.
+
+## Events
+
+### emit!
+
+Writes event data to the program log. Fast, but spoofable -- any program can write to the log:
+
+```rust
+emit!(MakeEvent {
+    escrow: *self.escrow.address(),
+    maker: *self.maker.address(),
+    deposit,
+    receive,
+});
+```
+
+### emit_cpi!
+
+Self-CPI with event data prefixed by `0xFF`, signed by the `EventAuthority` PDA (seeds: `["__event_authority"]`). Your program ID appears in the transaction trace, so clients can verify the event is authentic.
+
+Add `event_authority` and `program` to your accounts struct, then call `emit_cpi!` the same way you'd call `emit!`:
+
+```rust
+#[derive(Accounts)]
+pub struct EmitViaCpi<'info> {
+    pub signer: &'info Signer,
+    pub event_authority: &'info EventAuthority,
+    pub program: &'info Program<MyProgram>,
+}
+
+impl<'info> EmitViaCpi<'info> {
+    pub fn handler(&self, value: u64) -> Result<(), ProgramError> {
+        emit_cpi!(SimpleEvent { value })?;
+        Ok(())
+    }
+}
+```
+
+Use `emit!` for most indexing. Use `emit_cpi!` when event authenticity matters -- financial events, governance actions, anything clients need to trust.
+
+## Next Steps
+
+* [Program Derived Addresses](./pda) -- PDA derivation and signing
+* [Accounts and Validation](./accounts-and-validation) -- the Bumps struct and seed configuration
+* [IDL](./idl) -- generating the IDL consumed by `declare_program!`

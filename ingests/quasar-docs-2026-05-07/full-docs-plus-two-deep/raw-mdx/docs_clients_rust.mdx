@@ -1,0 +1,66 @@
+URL: https://quasar-lang.com/docs/clients/rust
+FETCHED_FINAL: https://quasar-lang.com/docs/clients/rust.mdx
+DEPTH: 0
+
+# Rust Client (/docs/clients/rust.mdx)
+
+> Auto-generated Rust instruction builders for off-chain use and testing.
+
+`#[program]` generates a `client` submodule with typed instruction builders. Each instruction gets a struct that converts into `solana_instruction::Instruction` via `.into()`.
+
+## Inline Client Module
+
+The module is gated behind `#[cfg(not(target_os = "solana"))]` -- it only compiles for off-chain targets (tests, CLI tools, scripts). For the vault program:
+
+```rust
+use crate::client::{DepositInstruction, WithdrawInstruction};
+
+let ix: Instruction = DepositInstruction {
+    user,
+    vault,
+    system_program,
+    amount: 1_000_000_000,
+}.into();
+```
+
+Each struct has a field for every account (as `Address`) plus every instruction argument. Account metadata (writable, signer) is derived from your accounts struct automatically.
+
+If your instruction uses `CtxWithRemaining<T>`, the struct includes an additional `remaining_accounts: Vec<AccountMeta>` field.
+
+## Standalone Crate
+
+`quasar idl` also generates a standalone crate at `target/client/rust/<name>-client/` with the same instruction builders. Use it when your test suite or CLI tool lives outside the program crate:
+
+```toml
+[dev-dependencies]
+my-program-client = { path = "target/client/rust/my-program-client" }
+```
+
+The standalone crate depends only on `solana-instruction` and `solana-address` -- no dependency on your program.
+
+## Sending Transactions
+
+Combine generated instructions with `solana-client`:
+
+```rust
+use solana_client::rpc_client::RpcClient;
+use solana_sdk::{signature::{Keypair, Signer}, transaction::Transaction};
+
+let client = RpcClient::new("http://localhost:8899");
+let payer = Keypair::new();
+
+let ix: Instruction = DepositInstruction {
+    user: payer.pubkey(),
+    vault: vault_pda,
+    system_program: solana_sdk::system_program::id(),
+    amount: 1_000_000_000,
+}.into();
+
+let tx = Transaction::new_signed_with_payer(
+    &[ix],
+    Some(&payer.pubkey()),
+    &[&payer],
+    client.get_latest_blockhash()?,
+);
+client.send_and_confirm_transaction(&tx)?;
+```

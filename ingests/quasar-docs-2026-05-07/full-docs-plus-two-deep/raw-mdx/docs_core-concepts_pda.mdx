@@ -1,0 +1,159 @@
+URL: https://quasar-lang.com/docs/core-concepts/pda
+FETCHED_FINAL: https://quasar-lang.com/docs/core-concepts/pda.mdx
+DEPTH: 0
+
+# Program Derived Addresses (/docs/core-concepts/pda.mdx)
+
+> PDA derivation, seed verification, bump discovery, and PDA signing.
+
+PDAs are declared with `seeds` and `bump` attributes on account fields.
+
+## bump vs bump = expr
+
+Use bare `bump` to search for the canonical bump. Quasar iterates from 255 downward until it finds a valid off-curve address, and stores the result in `ctx.bumps.<field_name>`:
+
+```rust
+#[derive(Accounts)]
+pub struct Make<'info> {
+    pub maker: &'info mut Signer,
+    #[account(init, payer = maker, seeds = [b"escrow", maker], bump)]
+    pub escrow: &'info mut Account<Escrow>,
+}
+```
+
+Use `bump = expr` when you already have the bump stored in account data. This skips the search and verifies with a single hash -- much cheaper:
+
+```rust
+#[derive(Accounts)]
+pub struct Take<'info> {
+    #[account(
+        has_one = maker,
+        close = taker,
+        seeds = [b"escrow", maker],
+        bump = escrow.bump
+    )]
+    pub escrow: &'info mut Account<Escrow>,
+    pub taker: &'info mut Signer,
+    pub maker: &'info mut UncheckedAccount,
+}
+```
+
+Always store the bump during initialization so future instructions can use `bump = expr` instead of searching.
+
+## Seed Expressions
+
+Seeds can be:
+
+* **Byte literals**: `b"escrow"`, `b"vault"` -- constant prefixes that namespace your PDAs
+* **Account field references**: `maker`, `mint_a` -- automatically converted to the 32-byte address. Write `maker`, not `maker.address().as_ref()`
+* **Arbitrary byte expressions**: `&vault_id.to_le_bytes()`, any expression that evaluates to `&[u8]`
+
+```rust
+// Multiple seed types combined
+#[account(init, payer = maker, seeds = [b"escrow", maker, mint_a], bump)]
+pub escrow: &'info mut Account<Escrow>,
+```
+
+The Solana runtime enforces a maximum of 16 seeds per PDA (plus the bump seed, for 17 total). Each individual seed can be at most 32 bytes.
+
+## Storing Bumps
+
+Store the bump in your account data so every subsequent instruction uses verify instead of find:
+
+```rust
+#[account(discriminator = 1)]
+pub struct Escrow {
+    pub maker: Address,
+    pub mint_a: Address,
+    pub mint_b: Address,
+    pub maker_ta_b: Address,
+    pub receive: u64,
+    pub bump: u8,
+}
+```
+
+During initialization, save the discovered bump from `ctx.bumps`:
+
+```rust
+pub fn make_escrow(&mut self, receive: u64, bumps: &MakeBumps) -> Result<(), ProgramError> {
+    self.escrow.set_inner(
+        *self.maker.address(),
+        *self.mint_a.address(),
+        *self.mint_b.address(),
+        *self.maker_ta_b.address(),
+        receive,
+        bumps.escrow,  // discovered bump from ctx.bumps
+    );
+    Ok(())
+}
+```
+
+This also prevents accidental use of non-canonical bumps, since you always store the first valid one found.
+
+## The Bumps Struct
+
+`#[derive(Accounts)]` generates a companion `Bumps` struct with one `u8` field per PDA field. Only fields with `seeds` + `bump` get an entry:
+
+```rust
+// Auto-generated for Make
+#[derive(Copy, Clone)]
+pub struct MakeBumps {
+    pub escrow: u8,
+}
+```
+
+Available via `ctx.bumps` in the instruction handler.
+
+### Seed Helper Methods
+
+The bumps struct also generates `*_seeds()` methods that return the complete seed array for CPI signing -- seeds + bump, ready to pass to `invoke_signed`:
+
+```rust
+impl TakeBumps {
+    pub fn escrow_seeds(&self) -> [Seed; 3] {
+        // [b"escrow", maker_address, &[self.escrow]]
+    }
+}
+```
+
+This eliminates manual seed construction. The seeds array includes the bump byte and matches exactly what was used during PDA derivation:
+
+```rust
+pub fn withdraw_tokens_and_close(&mut self, bumps: &TakeBumps) -> Result<(), ProgramError> {
+    let seeds = bumps.escrow_seeds();
+
+    self.token_program
+        .transfer(self.vault_ta_a, self.taker_ta_a, self.escrow, self.vault_ta_a.amount())
+        .invoke_signed(&seeds)?;
+
+    self.vault_ta_a
+        .close(self.token_program, self.taker, self.escrow)
+        .invoke_signed(&seeds)
+}
+```
+
+## PDA Signing Flow
+
+When your program needs to sign a CPI as a PDA, the flow is:
+
+1. **Account parsing** -- the bump is discovered (bare `bump`) or verified (`bump = escrow.bump`) and stored in `ctx.bumps`
+2. **Handler** -- call `bumps.field_seeds()` to get the complete seed array
+3. **CPI** -- pass seeds to `.invoke_signed(&seeds)`. The runtime verifies that `sha256(seeds || program_id)` produces the signer address
+
+See [Cross-Program Invocations](./cpi) for the full CPI API.
+
+## Compile-Time PDA Derivation
+
+For PDAs with fully known seeds at compile time (like the `EventAuthority` PDA at `["__event_authority"]`), Quasar provides `find_program_address_const`:
+
+```rust
+pub const fn find_program_address_const(seeds: &[&[u8]], program_id: &Address) -> (Address, u8)
+```
+
+This runs PDA derivation in a `const` context using `const_crypto`, so the address and bump are baked into the binary at compile time -- zero runtime cost.
+
+## Next Steps
+
+* [Cross-Program Invocations](./cpi) -- using PDA seeds in CPI signing
+* [Accounts and Validation](./accounts-and-validation) -- the full `seeds` and `bump` attribute reference
+* [Program Structure](./program-structure) -- how the event authority PDA is generated

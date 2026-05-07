@@ -1,0 +1,110 @@
+URL: https://quasar-lang.com/docs/clients/typescript
+FETCHED_FINAL: https://quasar-lang.com/docs/clients/typescript.mdx
+DEPTH: 1
+
+# TypeScript Client (/docs/clients/typescript.mdx)
+
+> Auto-generated TypeScript clients for interacting with Quasar programs.
+
+`quasar idl` generates two TypeScript clients from your IDL: one for `@solana/web3.js` v2 and one for `@solana/kit`. Both include typed instruction builders, account decoders, event parsers, and PDA derivation helpers.
+
+## Generating
+
+```bash
+quasar idl          # IDL + clients only
+quasar build        # build + IDL + clients
+```
+
+Output:
+
+```
+target/client/typescript/<name>/
+  web3.ts           # @solana/web3.js v2
+  kit.ts            # @solana/kit
+  package.json
+```
+
+Files are regenerated on every build -- don't edit them manually.
+
+## Web3.js
+
+```typescript
+import { make } from "../target/client/typescript/quasar-escrow/web3.js";
+import { Connection, Keypair, Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
+
+const makeIx = make({
+  maker: maker.publicKey,
+  escrow: escrowPda,
+  mintA, mintB,
+  makerTaA, makerTaB, vaultTaA,
+  rent: SYSVAR_RENT_PUBKEY,
+  tokenProgram: TOKEN_PROGRAM_ID,
+  systemProgram: SystemProgram.programId,
+  deposit: 1000000n,
+  receive: 500000n,
+});
+
+const tx = new Transaction().add(makeIx);
+await sendAndConfirmTransaction(connection, tx, [maker]);
+```
+
+Each function takes a single object with named fields -- accounts as `PublicKey`, arguments as their natural TypeScript types (`bigint` for `u64`/`i64`, `number` for smaller integers, `boolean` for `bool`).
+
+## Kit
+
+Same API shape, different types:
+
+```typescript
+import { make } from "../target/client/typescript/quasar-escrow/kit.js";
+import { createSolanaRpc, address, pipe, createTransactionMessage,
+         setTransactionMessageFeePayer, appendTransactionMessageInstruction,
+         signAndSendTransactionMessageWithSigners } from "@solana/kit";
+
+const makeIx = make({
+  maker: address("..."),
+  escrow: address("..."),
+  // ...
+  deposit: 1000000n,
+  receive: 500000n,
+});
+
+const message = pipe(
+  createTransactionMessage({ version: 0 }),
+  (msg) => setTransactionMessageFeePayer(makerAddress, msg),
+  (msg) => appendTransactionMessageInstruction(makeIx, msg),
+);
+
+await signAndSendTransactionMessageWithSigners(message);
+```
+
+## Account Decoding
+
+The client includes decoders for all `#[account]` types:
+
+```typescript
+import { decodeEscrow } from "../target/client/typescript/quasar-escrow/web3.js";
+
+const accountInfo = await connection.getAccountInfo(escrowPda);
+const escrow = decodeEscrow(accountInfo.data);
+console.log("Maker:", escrow.maker.toBase58());
+console.log("Receive:", escrow.receive.toString());
+```
+
+## PDA Derivation
+
+A helper is generated for each unique seed pattern:
+
+```typescript
+import { findEscrowPda } from "../target/client/typescript/quasar-escrow/web3.js";
+
+const [escrowPda, bump] = findEscrowPda(makerPublicKey);
+```
+
+## Type Mapping
+
+| Rust                                   | TypeScript                              | Notes    |
+| -------------------------------------- | --------------------------------------- | -------- |
+| `u8`, `u16`, `u32`, `i8`, `i16`, `i32` | `number`                                |          |
+| `u64`, `u128`, `i64`, `i128`           | `bigint`                                |          |
+| `bool`                                 | `boolean`                               |          |
+| `Address`                              | `PublicKey` (web3.js) / `Address` (kit) | 32 bytes |

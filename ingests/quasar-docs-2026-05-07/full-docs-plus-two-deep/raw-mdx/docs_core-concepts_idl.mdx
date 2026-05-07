@@ -1,0 +1,147 @@
+URL: https://quasar-lang.com/docs/core-concepts/idl
+FETCHED_FINAL: https://quasar-lang.com/docs/core-concepts/idl.mdx
+DEPTH: 0
+
+# IDL Generation (/docs/core-concepts/idl.mdx)
+
+> How Quasar generates program interface descriptions and client code from your Rust source.
+
+The IDL is a JSON file describing your program's interface -- instructions, accounts, events, types, and errors. Generated from your Rust source by the CLI, it drives TypeScript and Rust client generation, and is consumed by [`declare_program!`](./cpi#declare_program) for typed CPI at compile time.
+
+## What the IDL Contains
+
+```json
+{
+  "address": "22222222222222222222222222222222222222222222",
+  "metadata": { "name": "quasar_escrow", "version": "0.1.0", "spec": "0.1.0" },
+  "instructions": [ ... ],
+  "accounts": [ ... ],
+  "events": [ ... ],
+  "types": [ ... ],
+  "errors": [ ... ]
+}
+```
+
+### Instructions
+
+Each instruction includes its name, discriminator bytes, accounts with flags, and typed arguments:
+
+```json
+{
+  "name": "Make",
+  "discriminator": [0],
+  "accounts": [
+    { "name": "maker", "writable": true, "signer": true },
+    { "name": "escrow", "writable": true, "pda": {
+      "seeds": [
+        { "kind": "const", "value": [101, 115, 99, 114, 111, 119] },
+        { "kind": "account", "path": "maker" }
+      ]
+    }},
+    { "name": "mintA" },
+    { "name": "makerTaA", "writable": true },
+    { "name": "vaultTaA", "writable": true },
+    { "name": "tokenProgram", "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA" },
+    { "name": "systemProgram", "address": "11111111111111111111111111111111" }
+  ],
+  "args": [
+    { "name": "deposit", "type": "u64" },
+    { "name": "receive", "type": "u64" }
+  ]
+}
+```
+
+* PDA seeds are encoded as `const` (literal bytes) or `account` (reference to another account)
+* `writable` and `signer` flags appear only when `true`
+* Known program addresses are included as `address` fields
+* Instructions using `CtxWithRemaining` set `hasRemaining: true`
+
+Accounts and events each list their name and discriminator. Event discriminators are prefixed with `0xFF` on the wire to distinguish them from instructions.
+
+### Types
+
+Struct types referenced by instructions or accounts. The only non-obvious mapping is `pubkey` for `Address` -- everything else (`u8`, `u64`, `bool`, etc.) maps directly to its Rust equivalent:
+
+```json
+{
+  "name": "Escrow",
+  "type": {
+    "kind": "struct",
+    "fields": [
+      { "name": "maker", "type": "pubkey" },
+      { "name": "mintA", "type": "pubkey" },
+      { "name": "receive", "type": "u64" },
+      { "name": "bump", "type": "u8" }
+    ]
+  }
+}
+```
+
+Dynamic fields have dedicated representations:
+
+```json
+{ "name": "label", "type": { "string": { "maxLength": 32 } } }
+{ "name": "signers", "type": { "vec": { "items": "pubkey", "maxLength": 10 } } }
+{ "name": "data", "type": { "tail": { "element": "u8" } } }
+```
+
+| IDL      | Rust                   | Description                                  |
+| -------- | ---------------------- | -------------------------------------------- |
+| `string` | `String<'a, MAX>`      | Length-prefixed string with max byte count   |
+| `vec`    | `Vec<'a, T, MAX>`      | Length-prefixed array with max element count |
+| `tail`   | `&'a [u8]` / `&'a str` | Trailing data, no length prefix              |
+
+### Errors
+
+`#[error_code]` variants are offset by 6000. Framework errors (`QuasarError`) start at 3000:
+
+```json
+{ "code": 6000, "name": "InvalidAmount", "msg": "Invalid amount" }
+```
+
+## Generating the IDL
+
+```bash
+quasar idl path/to/program
+```
+
+### Output structure
+
+```
+target/
+  idl/
+    my_program.idl.json
+  client/
+    typescript/
+      my_program/
+        web3.ts                      # @solana/web3.js v2
+        kit.ts                       # @solana/kit
+        package.json
+    rust/
+      my-program-client/
+        Cargo.toml
+        src/lib.rs                   # Typed instruction builders
+```
+
+### TypeScript clients
+
+Two flavors generated from the same IDL -- one for `@solana/web3.js` v2, one for `@solana/kit`. Both include typed instruction builders, account/event type definitions, discriminator constants, and codec functions.
+
+### Rust client
+
+A standalone crate with typed `Instruction` builders. Each instruction struct implements `From<T> for Instruction`:
+
+```rust
+let ix: Instruction = DepositInstruction {
+    user: user_pubkey,
+    vault: vault_pda,
+    system_program: system_program::ID,
+    amount: 1_000_000,
+}.into();
+```
+
+## Next Steps
+
+* [Program Structure](./program-structure) -- how the `#[program]` macro generates the dispatch table
+* [Instructions](./instructions) -- discriminators and argument handling
+* [CPI](./cpi) -- `declare_program!` for typed cross-program calls

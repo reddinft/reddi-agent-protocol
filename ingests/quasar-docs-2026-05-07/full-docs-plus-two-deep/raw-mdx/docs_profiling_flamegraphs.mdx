@@ -1,0 +1,48 @@
+URL: https://quasar-lang.com/docs/profiling/flamegraphs
+FETCHED_FINAL: https://quasar-lang.com/docs/profiling/flamegraphs.mdx
+DEPTH: 0
+
+# Flamegraphs (/docs/profiling/flamegraphs.mdx)
+
+> Interactive flamegraph viewer for visualizing compute unit hotspots.
+
+Every `quasar profile` run generates a JSON profile and starts a local flamegraph server on port 7777:
+
+```
+  my_program  2,816 CU
+     ...
+  flamegraph  http://127.0.0.1:7777/?program=my_program
+```
+
+The server forks into the background and auto-shuts down after 30 seconds of inactivity. If port 7777 is already in use, the profiler reuses the existing server.
+
+## Reading the Flamegraph
+
+* **Width = cost** — wider bars consumed more CU
+* **Vertical stacking = call depth** — bottom is the entrypoint, each bar above is called by the bar below
+* **Click** a bar to zoom in, click root or breadcrumb to zoom out
+* **Hover** for function name, CU count, and percentage
+
+What to look for:
+
+* **Wide bars at the top** — leaf functions burning the most CU. Primary optimization targets.
+* **Plateaus** — a function as wide as its parent means the parent does nothing besides calling that child.
+* **Many thin bars** — small calls that add up. Consider inlining.
+
+## Diff View
+
+```bash
+quasar profile --diff my_program
+```
+
+Overlays two flamegraphs, highlighting regressions in red and improvements in green. Runs in the foreground -- press Ctrl-C to stop.
+
+## Profile History
+
+All profiles are stored as timestamped JSON files in `target/profile/profiles/`:
+
+```
+my_program__2025-03-15-14-30-00-123.profile.json
+```
+
+The viewer can load any profile from this directory. Each file contains the program name, version, binary hash (SHA-256), binary size, and a hierarchical frame tree with CU values.

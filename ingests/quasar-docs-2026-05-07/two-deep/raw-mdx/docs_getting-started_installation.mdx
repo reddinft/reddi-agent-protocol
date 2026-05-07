@@ -1,0 +1,65 @@
+URL: https://quasar-lang.com/docs/getting-started/installation
+FETCHED_FINAL: https://quasar-lang.com/docs/getting-started/installation.mdx
+DEPTH: 1
+
+# Installation (/docs/getting-started/installation.mdx)
+
+> Install Quasar and set up your development environment.
+
+**Quasar is in beta.** There are no published crate releases yet. Install from source by cloning the repository.
+
+***
+
+## Prerequisites
+
+Install [Rust](https://rustup.rs/) and the [Solana CLI](https://docs.anza.xyz/cli/install):
+
+```bash
+# Rust
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# Solana CLI
+sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"
+```
+
+## Install the Quasar CLI
+
+```bash
+cargo install quasar-cli
+```
+
+Verify with `quasar --version`.
+
+## Toolchain
+
+Quasar compiles programs to SBF (Solana Bytecode Format). Two toolchains are available:
+
+| Toolchain            | Build command          | Notes                                                                                                                               |
+| -------------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| **Solana** (default) | `cargo build-sbf`      | Uses the Solana CLI. No extra setup.                                                                                                |
+| **Upstream**         | `cargo +nightly build` | Targets `bpfel-unknown-none` with [`sbpf-linker`](https://github.com/blueshift-gg/sbpf-linker). Smaller binaries, nightly features. |
+
+Choose during `quasar init` or set in `Quasar.toml`:
+
+```toml
+[toolchain]
+type = "solana"
+```
+
+### Upstream setup
+
+The upstream toolchain requires nightly Rust, the SBF target, and the linker:
+
+```bash
+rustup toolchain install nightly
+rustup target add bpfel-unknown-none --toolchain nightly
+cargo install sbpf-linker
+```
+
+## Editor setup
+
+Install [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer). Quasar programs use `#![no_std]` and `cfg(target_os = "solana")` -- the generated `Cargo.toml` configures `check-cfg` so rust-analyzer won't warn about either.
+
+## Next steps
+
+Head to the [Quickstart](./quickstart) to scaffold and build your first program.

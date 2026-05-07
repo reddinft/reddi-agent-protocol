@@ -1,0 +1,342 @@
+{
+  "https://quasar-lang.com/docs": {
+    "url": "https://quasar-lang.com/docs",
+    "depth": 0,
+    "file": "ingests/quasar-docs-2026-05-07/full-docs-plus-two-deep/raw-mdx/docs.mdx",
+    "links": [
+      "https://quasar-lang.com/docs/clients/rust",
+      "https://quasar-lang.com/docs/clients/testing",
+      "https://quasar-lang.com/docs/clients/typescript",
+      "https://quasar-lang.com/docs/core-concepts/accounts-and-validation",
+      "https://quasar-lang.com/docs/core-concepts/cpi",
+      "https://quasar-lang.com/docs/core-concepts/idl",
+      "https://quasar-lang.com/docs/core-concepts/instructions",
+      "https://quasar-lang.com/docs/core-concepts/pda",
+      "https://quasar-lang.com/docs/core-concepts/program-structure",
+      "https://quasar-lang.com/docs/getting-started/installation",
+      "https://quasar-lang.com/docs/getting-started/migrating-from-anchor",
+      "https://quasar-lang.com/docs/getting-started/quickstart",
+      "https://quasar-lang.com/docs/guides/build-a-multisig",
+      "https://quasar-lang.com/docs/guides/build-a-vault",
+      "https://quasar-lang.com/docs/guides/build-an-escrow",
+      "https://quasar-lang.com/docs/profiling/benchmarks",
+      "https://quasar-lang.com/docs/profiling/cu-profiler",
+      "https://quasar-lang.com/docs/profiling/flamegraphs",
+      "https://quasar-lang.com/docs/references/account-constraints",
+      "https://quasar-lang.com/docs/references/account-types",
+      "https://quasar-lang.com/docs/references/cli",
+      "https://quasar-lang.com/docs/references/configuration",
+      "https://quasar-lang.com/docs/references/type-mapping",
+      "https://quasar-lang.com/docs/spl-tokens/associated-token-accounts",
+      "https://quasar-lang.com/docs/spl-tokens/token-2022",
+      "https://quasar-lang.com/docs/spl-tokens/token-program",
+      "https://quasar-lang.com/docs/zero-copy/account-layout",
+      "https://quasar-lang.com/docs/zero-copy/dynamic-fields",
+      "https://quasar-lang.com/docs/zero-copy/pod-types"
+    ],
+    "chars": 3960,
+    "status": 200
+  },
+  "https://quasar-lang.com/docs/getting-started/installation": {
+    "url": "https://quasar-lang.com/docs/getting-started/installation",
+    "depth": 0,
+    "file": "ingests/quasar-docs-2026-05-07/full-docs-plus-two-deep/raw-mdx/docs_getting-started_installation.mdx",
+    "links": [
+      "https://quasar-lang.com/docs/getting-started/quickstart"
+    ],
+    "chars": 2141,
+    "status": 200
+  },
+  "https://quasar-lang.com/docs/getting-started/quickstart": {
+    "url": "https://quasar-lang.com/docs/getting-started/quickstart",
+    "depth": 0,
+    "file": "ingests/quasar-docs-2026-05-07/full-docs-plus-two-deep/raw-mdx/docs_getting-started_quickstart.mdx",
+    "links": [
+      "https://quasar-lang.com/docs/core-concepts/program-structure",
+      "https://quasar-lang.com/docs/getting-started/migrating-from-anchor",
+      "https://quasar-lang.com/docs/guides/build-an-escrow",
+      "https://quasar-lang.com/docs/references/account-constraints"
+    ],
+    "chars": 3259,
+    "status": 200
+  },
+  "https://quasar-lang.com/docs/getting-started/migrating-from-anchor": {
+    "url": "https://quasar-lang.com/docs/getting-started/migrating-from-anchor",
+    "depth": 0,
+    "file": "ingests/quasar-docs-2026-05-07/full-docs-plus-two-deep/raw-mdx/docs_getting-started_migrating-from-anchor.mdx",
+    "links": [],
+    "chars": 6324,
+    "status": 200
+  },
+  "https://quasar-lang.com/docs/core-concepts/program-structure": {
+    "url": "https://quasar-lang.com/docs/core-concepts/program-structure",
+    "depth": 0,
+    "file": "ingests/quasar-docs-2026-05-07/full-docs-plus-two-deep/raw-mdx/docs_core-concepts_program-structure.mdx",
+    "links": [
+      "https://quasar-lang.com/docs/core-concepts/accounts-and-validation",
+      "https://quasar-lang.com/docs/core-concepts/idl",
+      "https://quasar-lang.com/docs/core-concepts/instructions"
+    ],
+    "chars": 5696,
+    "status": 200
+  },
+  "https://quasar-lang.com/docs/core-concepts/accounts-and-validation": {
+    "url": "https://quasar-lang.com/docs/core-concepts/accounts-and-validation",
+    "depth": 0,
+    "file": "ingests/quasar-docs-2026-05-07/full-docs-plus-two-deep/raw-mdx/docs_core-concepts_accounts-and-validation.mdx",
+    "links": [
+      "https://quasar-lang.com/docs/core-concepts/accounts-and-validation",
+      "https://quasar-lang.com/docs/core-concepts/cpi",
+      "https://quasar-lang.com/docs/core-concepts/instructions",
+      "https://quasar-lang.com/docs/core-concepts/pda",
+      "https://quasar-lang.com/docs/references/account-constraints"
+    ],
+    "chars": 16120,
+    "status": 200
+  },
+  "https://quasar-lang.com/docs/core-concepts/instructions": {
+    "url": "https://quasar-lang.com/docs/core-concepts/instructions",
+    "depth": 0,
+    "file": "ingests/quasar-docs-2026-05-07/full-docs-plus-two-deep/raw-mdx/docs_core-concepts_instructions.mdx",
+    "links": [
+      "https://quasar-lang.com/docs/core-concepts/accounts-and-validation",
+      "https://quasar-lang.com/docs/core-concepts/cpi",
+      "https://quasar-lang.com/docs/core-concepts/idl",
+      "https://quasar-lang.com/docs/core-concepts/pda"
+    ],
+    "chars": 7478,
+    "status": 200
+  },
+  "https://quasar-lang.com/docs/core-concepts/pda": {
+    "url": "https://quasar-lang.com/docs/core-concepts/pda",
+    "depth": 0,
+    "file": "ingests/quasar-docs-2026-05-07/full-docs-plus-two-deep/raw-mdx/docs_core-concepts_pda.mdx",
+    "links": [
+      "https://quasar-lang.com/docs/core-concepts/accounts-and-validation",
+      "https://quasar-lang.com/docs/core-concepts/cpi",
+      "https://quasar-lang.com/docs/core-concepts/program-structure"
+    ],
+    "chars": 5126,
+    "status": 200
+  },
+  "https://quasar-lang.com/docs/core-concepts/cpi": {
+    "url": "https://quasar-lang.com/docs/core-concepts/cpi",
+    "depth": 0,
+    "file": "ingests/quasar-docs-2026-05-07/full-docs-plus-two-deep/raw-mdx/docs_core-concepts_cpi.mdx",
+    "links": [
+      "https://quasar-lang.com/docs/core-concepts/accounts-and-validation",
+      "https://quasar-lang.com/docs/core-concepts/idl",
+      "https://quasar-lang.com/docs/core-concepts/pda"
+    ],
+    "chars": 4453,
+    "status": 200
+  },
+  "https://quasar-lang.com/docs/core-concepts/idl": {
+    "url": "https://quasar-lang.com/docs/core-concepts/idl",
+    "depth": 0,
+    "file": "ingests/quasar-docs-2026-05-07/full-docs-plus-two-deep/raw-mdx/docs_core-concepts_idl.mdx",
+    "links": [
+      "https://quasar-lang.com/docs/core-concepts/cpi",
+      "https://quasar-lang.com/docs/core-concepts/instructions",
+      "https://quasar-lang.com/docs/core-concepts/program-structure"
+    ],
+    "chars": 4597,
+    "status": 200
+  },
+  "https://quasar-lang.com/docs/spl-tokens/token-program": {
+    "url": "https://quasar-lang.com/docs/spl-tokens/token-program",
+    "depth": 0,
+    "file": "ingests/quasar-docs-2026-05-07/full-docs-plus-two-deep/raw-mdx/docs_spl-tokens_token-program.mdx",
+    "links": [],
+    "chars": 4065,
+    "status": 200
+  },
+  "https://quasar-lang.com/docs/spl-tokens/token-2022": {
+    "url": "https://quasar-lang.com/docs/spl-tokens/token-2022",
+    "depth": 0,
+    "file": "ingests/quasar-docs-2026-05-07/full-docs-plus-two-deep/raw-mdx/docs_spl-tokens_token-2022.mdx",
+    "links": [],
+    "chars": 4068,
+    "status": 200
+  },
+  "https://quasar-lang.com/docs/spl-tokens/associated-token-accounts": {
+    "url": "https://quasar-lang.com/docs/spl-tokens/associated-token-accounts",
+    "depth": 0,
+    "file": "ingests/quasar-docs-2026-05-07/full-docs-plus-two-deep/raw-mdx/docs_spl-tokens_associated-token-accounts.mdx",
+    "links": [],
+    "chars": 2781,
+    "status": 200
+  },
+  "https://quasar-lang.com/docs/clients/typescript": {
+    "url": "https://quasar-lang.com/docs/clients/typescript",
+    "depth": 0,
+    "file": "ingests/quasar-docs-2026-05-07/full-docs-plus-two-deep/raw-mdx/docs_clients_typescript.mdx",
+    "links": [],
+    "chars": 3388,
+    "status": 200
+  },
+  "https://quasar-lang.com/docs/clients/rust": {
+    "url": "https://quasar-lang.com/docs/clients/rust",
+    "depth": 0,
+    "file": "ingests/quasar-docs-2026-05-07/full-docs-plus-two-deep/raw-mdx/docs_clients_rust.mdx",
+    "links": [],
+    "chars": 2066,
+    "status": 200
+  },
+  "https://quasar-lang.com/docs/clients/testing": {
+    "url": "https://quasar-lang.com/docs/clients/testing",
+    "depth": 0,
+    "file": "ingests/quasar-docs-2026-05-07/full-docs-plus-two-deep/raw-mdx/docs_clients_testing.mdx",
+    "links": [],
+    "chars": 7266,
+    "status": 200
+  },
+  "https://quasar-lang.com/docs/profiling/cu-profiler": {
+    "url": "https://quasar-lang.com/docs/profiling/cu-profiler",
+    "depth": 0,
+    "file": "ingests/quasar-docs-2026-05-07/full-docs-plus-two-deep/raw-mdx/docs_profiling_cu-profiler.mdx",
+    "links": [],
+    "chars": 1829,
+    "status": 200
+  },
+  "https://quasar-lang.com/docs/profiling/flamegraphs": {
+    "url": "https://quasar-lang.com/docs/profiling/flamegraphs",
+    "depth": 0,
+    "file": "ingests/quasar-docs-2026-05-07/full-docs-plus-two-deep/raw-mdx/docs_profiling_flamegraphs.mdx",
+    "links": [],
+    "chars": 1616,
+    "status": 200
+  },
+  "https://quasar-lang.com/docs/profiling/benchmarks": {
+    "url": "https://quasar-lang.com/docs/profiling/benchmarks",
+    "depth": 0,
+    "file": "ingests/quasar-docs-2026-05-07/full-docs-plus-two-deep/raw-mdx/docs_profiling_benchmarks.mdx",
+    "links": [],
+    "chars": 2021,
+    "status": 200
+  },
+  "https://quasar-lang.com/docs/guides/build-a-vault": {
+    "url": "https://quasar-lang.com/docs/guides/build-a-vault",
+    "depth": 0,
+    "file": "ingests/quasar-docs-2026-05-07/full-docs-plus-two-deep/raw-mdx/docs_guides_build-a-vault.mdx",
+    "links": [
+      "https://quasar-lang.com/docs/core-concepts/accounts-and-validation",
+      "https://quasar-lang.com/docs/core-concepts/cpi",
+      "https://quasar-lang.com/docs/core-concepts/pda",
+      "https://quasar-lang.com/docs/core-concepts/program-structure",
+      "https://quasar-lang.com/docs/guides/build-a-multisig",
+      "https://quasar-lang.com/docs/guides/build-an-escrow"
+    ],
+    "chars": 8887,
+    "status": 200
+  },
+  "https://quasar-lang.com/docs/guides/build-an-escrow": {
+    "url": "https://quasar-lang.com/docs/guides/build-an-escrow",
+    "depth": 0,
+    "file": "ingests/quasar-docs-2026-05-07/full-docs-plus-two-deep/raw-mdx/docs_guides_build-an-escrow.mdx",
+    "links": [
+      "https://quasar-lang.com/docs/core-concepts/cpi",
+      "https://quasar-lang.com/docs/core-concepts/pda",
+      "https://quasar-lang.com/docs/features/events",
+      "https://quasar-lang.com/docs/guides/build-a-multisig",
+      "https://quasar-lang.com/docs/guides/build-a-vault"
+    ],
+    "chars": 13792,
+    "status": 200
+  },
+  "https://quasar-lang.com/docs/guides/build-a-multisig": {
+    "url": "https://quasar-lang.com/docs/guides/build-a-multisig",
+    "depth": 0,
+    "file": "ingests/quasar-docs-2026-05-07/full-docs-plus-two-deep/raw-mdx/docs_guides_build-a-multisig.mdx",
+    "links": [
+      "https://quasar-lang.com/docs/core-concepts/accounts-and-validation",
+      "https://quasar-lang.com/docs/core-concepts/pda",
+      "https://quasar-lang.com/docs/features/remaining-accounts",
+      "https://quasar-lang.com/docs/guides/build-a-vault",
+      "https://quasar-lang.com/docs/guides/build-an-escrow",
+      "https://quasar-lang.com/docs/zero-copy/dynamic-fields"
+    ],
+    "chars": 12275,
+    "status": 200
+  },
+  "https://quasar-lang.com/docs/zero-copy/pod-types": {
+    "url": "https://quasar-lang.com/docs/zero-copy/pod-types",
+    "depth": 0,
+    "file": "ingests/quasar-docs-2026-05-07/full-docs-plus-two-deep/raw-mdx/docs_zero-copy_pod-types.mdx",
+    "links": [],
+    "chars": 3719,
+    "status": 200
+  },
+  "https://quasar-lang.com/docs/zero-copy/account-layout": {
+    "url": "https://quasar-lang.com/docs/zero-copy/account-layout",
+    "depth": 0,
+    "file": "ingests/quasar-docs-2026-05-07/full-docs-plus-two-deep/raw-mdx/docs_zero-copy_account-layout.mdx",
+    "links": [],
+    "chars": 3194,
+    "status": 200
+  },
+  "https://quasar-lang.com/docs/zero-copy/dynamic-fields": {
+    "url": "https://quasar-lang.com/docs/zero-copy/dynamic-fields",
+    "depth": 0,
+    "file": "ingests/quasar-docs-2026-05-07/full-docs-plus-two-deep/raw-mdx/docs_zero-copy_dynamic-fields.mdx",
+    "links": [],
+    "chars": 3503,
+    "status": 200
+  },
+  "https://quasar-lang.com/docs/references/account-types": {
+    "url": "https://quasar-lang.com/docs/references/account-types",
+    "depth": 0,
+    "file": "ingests/quasar-docs-2026-05-07/full-docs-plus-two-deep/raw-mdx/docs_references_account-types.mdx",
+    "links": [],
+    "chars": 11290,
+    "status": 200
+  },
+  "https://quasar-lang.com/docs/references/account-constraints": {
+    "url": "https://quasar-lang.com/docs/references/account-constraints",
+    "depth": 0,
+    "file": "ingests/quasar-docs-2026-05-07/full-docs-plus-two-deep/raw-mdx/docs_references_account-constraints.mdx",
+    "links": [],
+    "chars": 20819,
+    "status": 200
+  },
+  "https://quasar-lang.com/docs/references/cli": {
+    "url": "https://quasar-lang.com/docs/references/cli",
+    "depth": 0,
+    "file": "ingests/quasar-docs-2026-05-07/full-docs-plus-two-deep/raw-mdx/docs_references_cli.mdx",
+    "links": [],
+    "chars": 12379,
+    "status": 200
+  },
+  "https://quasar-lang.com/docs/references/type-mapping": {
+    "url": "https://quasar-lang.com/docs/references/type-mapping",
+    "depth": 0,
+    "file": "ingests/quasar-docs-2026-05-07/full-docs-plus-two-deep/raw-mdx/docs_references_type-mapping.mdx",
+    "links": [],
+    "chars": 11892,
+    "status": 200
+  },
+  "https://quasar-lang.com/docs/references/configuration": {
+    "url": "https://quasar-lang.com/docs/references/configuration",
+    "depth": 0,
+    "file": "ingests/quasar-docs-2026-05-07/full-docs-plus-two-deep/raw-mdx/docs_references_configuration.mdx",
+    "links": [],
+    "chars": 9299,
+    "status": 200
+  },
+  "https://quasar-lang.com/docs/features/events": {
+    "url": "https://quasar-lang.com/docs/features/events",
+    "depth": 1,
+    "file": "ingests/quasar-docs-2026-05-07/full-docs-plus-two-deep/raw-mdx/docs_features_events.mdx",
+    "links": [],
+    "chars": 6526,
+    "status": 200
+  },
+  "https://quasar-lang.com/docs/features/remaining-accounts": {
+    "url": "https://quasar-lang.com/docs/features/remaining-accounts",
+    "depth": 1,
+    "file": "ingests/quasar-docs-2026-05-07/full-docs-plus-two-deep/raw-mdx/docs_features_remaining-accounts.mdx",
+    "links": [],
+    "chars": 7506,
+    "status": 200
+  }
+}

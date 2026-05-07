@@ -1,0 +1,51 @@
+URL: https://quasar-lang.com/docs/profiling/benchmarks
+FETCHED_FINAL: https://quasar-lang.com/docs/profiling/benchmarks.mdx
+DEPTH: 0
+
+# Benchmarks (/docs/profiling/benchmarks.mdx)
+
+> CU benchmarks and optimization strategies for Quasar programs.
+
+## Framework Comparison
+
+Standard vault program (PDA derivation + system transfer CPI for deposit, direct lamport manipulation for withdraw):
+
+| Framework  | Deposit CU | Withdraw CU |
+| ---------- | ---------- | ----------- |
+| **Quasar** | **2,816**  | **1,618**   |
+| Pinocchio  | 2,833      | 1,635       |
+| Anchor     | \~5,500    | —           |
+
+Quasar matches hand-written Pinocchio (-17 CU) while providing derive macros, auto-generated clients, and constraint validation. The gap from Anchor comes from zero-copy vs Borsh deserialization, compile-time codegen vs runtime dispatch, and `no_std` by default.
+
+## Measuring CU
+
+**Static profiler** — deterministic instruction count from the binary's `.text` section. Fast iteration, per-function breakdown, but counts all instructions including unreachable branches:
+
+```bash
+quasar profile
+```
+
+**Runtime measurement** — actual CU consumed by the SVM. Exact match to on-chain behavior. Use QuasarSVM or Mollusk:
+
+```rust
+let result = svm.process_instruction(&instruction, &accounts);
+result.assert_success();
+println!("CU: {}", result.compute_units_consumed);
+```
+
+Both are useful: the profiler for fast iteration and hotspot identification, runtime for precise on-chain-matching numbers.
+
+## Optimization Checklist
+
+**Inline instruction handlers** — `#[inline(always)]` on handlers (the default in scaffolded code). Removing it can add 50-100 CU.
+
+**Minimize CPI** — each cross-program invocation has fixed overhead. When you own the accounts, direct lamport manipulation is cheaper than a system program transfer.
+
+**Store bumps** — `find_program_address` searches for the bump (expensive). If the bump is stored in the account, use `bump = expr` to verify it directly (cheap).
+
+**Use `--expand` and `--watch`** — find the widest bars in the flamegraph, optimize them, and catch regressions as you edit:
+
+```bash
+quasar profile --watch --expand
+```

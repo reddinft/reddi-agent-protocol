@@ -1,0 +1,95 @@
+URL: https://quasar-lang.com/docs/zero-copy/pod-types
+FETCHED_FINAL: https://quasar-lang.com/docs/zero-copy/pod-types.mdx
+DEPTH: 0
+
+# Pod Types (/docs/zero-copy/pod-types.mdx)
+
+> How Quasar solves the alignment problem with transparent byte-array wrappers.
+
+Solana account data arrives as raw `&[u8]` -- alignment 1. A `u64` has alignment 8. Casting `&[u8]` to a struct with `u64` fields is undefined behavior. This is the fundamental problem that every zero-copy Solana framework must solve.
+
+## The hotswap
+
+Quasar's solution: you write normal Rust types in your structs, and the `#[account]` macro swaps them for alignment-1 Pod equivalents at compile time. You never see it happen.
+
+```rust
+// What you write
+#[account(discriminator = 1)]
+pub struct Escrow {
+    pub maker: Address,
+    pub receive: u64,       // alignment 8 -- can't cast from &[u8]
+    pub bump: u8,
+}
+
+// What the macro generates (the "ZC companion")
+#[repr(C)]
+pub struct EscrowZc {
+    pub maker: Address,     // [u8; 32] -- already alignment 1
+    pub receive: PodU64,    // [u8; 8]  -- alignment 1
+    pub bump: u8,           // alignment 1
+}
+```
+
+Every type with alignment > 1 gets replaced:
+
+| You write       | Macro generates       | Size     |
+| --------------- | --------------------- | -------- |
+| `u16` / `i16`   | `PodU16` / `PodI16`   | 2 bytes  |
+| `u32` / `i32`   | `PodU32` / `PodI32`   | 4 bytes  |
+| `u64` / `i64`   | `PodU64` / `PodI64`   | 8 bytes  |
+| `u128` / `i128` | `PodU128` / `PodI128` | 16 bytes |
+| `bool`          | `PodBool`             | 1 byte   |
+
+Types already at alignment 1 (`u8`, `i8`, `Address`) pass through unchanged. The companion struct is `#[repr(C)]` with all fields at alignment 1, so there's zero padding and the layout matches the wire format byte-for-byte.
+
+A compile-time assertion enforces this:
+
+```rust
+const _: () = assert!(core::mem::align_of::<EscrowZc>() == 1);
+```
+
+## What Pod types actually are
+
+Each Pod type is a `#[repr(transparent)]` wrapper around a `[u8; N]` array:
+
+```rust
+#[repr(transparent)]
+pub struct PodU64([u8; 8]);
+```
+
+Because `[u8; 8]` has alignment 1, `PodU64` has alignment 1. That's the whole trick -- it stores the same bytes as a `u64`, but the compiler treats it as a byte array for alignment purposes.
+
+## Seamless arithmetic
+
+The point of Pod types is that you shouldn't have to think about them. When you access `escrow.receive` through the zero-copy view, you get a `PodU64` -- but it implements all the operators you'd expect:
+
+```rust
+// All of these just work:
+require!(escrow.receive > 0, MyError::ZeroAmount);
+let total = escrow.receive + deposit;       // PodU64 + u64
+escrow.receive += amount;                    // PodU64 += u64
+let half = escrow.receive / 2u64;           // PodU64 / u64
+```
+
+Pod-to-Pod, Pod-to-native, native-to-Pod -- all operator combinations are implemented. Comparisons, arithmetic, assignment operators, bitwise operations, negation for signed types.
+
+Arithmetic uses **wrapping semantics in release** and **panics on overflow in debug** -- matching Rust's native integer behavior. When overflow detection matters, use the checked variants:
+
+```rust
+match balance.checked_sub(PodU64::from(amount)) {
+    Some(result) => { /* success */ }
+    None => return Err(MyError::InsufficientFunds.into()),
+}
+```
+
+## Conversions
+
+```rust
+let amount = PodU64::from(1_000_000u64);  // native -> Pod
+let raw: u64 = amount.into();              // Pod -> native
+let value: u64 = amount.get();             // read without consuming
+```
+
+## When you actually see Pod types
+
+Almost never. The `#[account]` macro handles the mapping, `set_inner()` accepts native types and converts internally, and operators let you mix Pod and native values freely. The only time you deal with Pod types explicitly is when building custom `#[repr(C)]` structs outside the `#[account]` macro.
