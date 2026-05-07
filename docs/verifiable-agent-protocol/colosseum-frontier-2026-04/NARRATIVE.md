@@ -61,7 +61,7 @@ Colosseum Frontier ships five interlocking layers:
 2. **Permissionless on-chain agent registry** — any agent can register, update, and be discovered.
 3. **Blind commit-reveal reputation** — scores that resist gaming and collusion.
 4. **Attestation judges** — quality verification on delivery, not just payment confirmation.
-5. **MagicBlock PER boundary** — Quasar-native MagicBlock permission/delegation succeeds live; private settlement is not claimed because the delegated Quasar program currently fails at TEE instruction start.
+5. **MagicBlock PER boundary** — Quasar-native MagicBlock permission/delegation succeeds live, and patched Quasar PER executes inside MagicBlock TEE for private authorization/commit evidence; private payee lamport settlement is not claimed.
 
 Think Stripe Connect escrow, rebuilt as programmable trust rails on Solana, with privacy-aware settlement. That is what we are shipping today.
 
@@ -104,7 +104,7 @@ The answer is yes — with receipts.
 
 The release and cancel savings are structural: Quasar's `set_lamports` eliminates a System Program CPI on the hot path. This is not a benchmark trick. It is a different execution model with real per-transaction cost implications at scale.
 
-**What remains on the Quasar side:** MagicBlock PER settlement is not complete. Quasar-native MagicBlock permission/delegation succeeds live on devnet, but the delegated Quasar program image fails at MagicBlock TEE instruction start. We do not claim end-to-end private settlement.
+**What remains on the Quasar side:** MagicBlock PER settlement is not complete. Quasar-native MagicBlock permission/delegation succeeds live on devnet, and patched Quasar PER executes inside MagicBlock TEE for private authorization/commit evidence. We do not claim end-to-end private payee lamport settlement.
 
 **The disciplined call:** we keep the final proof Quasar-native and boundary-labeled rather than falling back to Anchor or overclaiming a privacy rail that has not settled.
 
@@ -145,7 +145,7 @@ The ask: **recognise Reddi Agent Protocol as the category winner for trustless a
 | Do say | Don't say |
 |---|---|
 | Quasar is the final critical on-chain proof path | "Anchor is the final demo path" |
-| MagicBlock delegation succeeds live; settlement is blocked at TEE execution | "MagicBlock PER settlement succeeded" |
+| MagicBlock delegation + TEE private authorization succeed live; private payee settlement is not claimed | "MagicBlock PER settlement succeeded" |
 | Jupiter has quote/build/sign and local invoke evidence | "Jupiter devnet swap succeeded" |
 | Umbra adapter + devnet encrypted-balance deposit evidence | "Umbra production/private settlement completed" |
 | Measured CU gains: release 649, cancel 626 | Inflated or unqualified CU claims |

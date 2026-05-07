@@ -13,7 +13,7 @@ Record the Colosseum Frontier submission with Quasar-compiled Solana programs as
   - Reputation `nb9rLVjoHMibsgfRGgKuPqm6M8GVcH9r6bYNfg7Yiy6`
   - Attestation `CRGsWWkptdxsH6N6aWAyahLbuMsT58yM624EopEsv1Ex`
 - Do not claim mainnet-ready; architectural audit blockers remain.
-- MagicBlock PER/TEE has live Quasar-native delegation proof (`docs/MAGICBLOCK-QUASAR-TEE-REPRO-2026-05-07.md`) plus earlier PER/TEE boundary proof (`docs/MAGICBLOCK-PER-TEE-VALIDATION-2026-05-07.md`), but do not claim successful PER settlement; delegated Quasar program execution currently fails at MagicBlock TEE instruction start.
+- MagicBlock PER/TEE has live Quasar-native delegation plus patched TEE private-authorization proof (`docs/MAGICBLOCK-QUASAR-TEE-REPRO-2026-05-07.md`, `docs/QUASAR-MAGICBLOCK-PER-BDD-PLAYBOOK-2026-05-07.md`) plus earlier PER/TEE boundary proof (`docs/MAGICBLOCK-PER-TEE-VALIDATION-2026-05-07.md`), but do not claim successful private payee lamport settlement.
 - Do not claim successful public Jupiter devnet execution. Current safe Jupiter framing is: local Surfpool/mock-Jupiter invoke success plus public Jupiter quote/build/sign boundary. A real successful Jupiter swap requires separately approved mainnet-beta execution.
 - Legacy Anchor registrations/artifacts are reference-only.
 

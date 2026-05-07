@@ -241,7 +241,7 @@ Retrospective template:
 - **What failed / surprised us:** The native no-op without delegated state cannot prove general TEE execution because MagicBlock rejects it at clone time. A comparable non-Quasar probe would need to implement delegation support, which starts becoming a parallel MagicBlock integration rather than a cheap diagnostic.
 - **Safety / approval review:** Devnet-only tiny native program deploy; no mainnet/paid provider/env mutation. No settlement claim.
 - **Decision:** after PR #260, do not describe MagicBlock as a TEE execution failure. Current honest boundary: Quasar PER delegation succeeds on base devnet and the patched Quasar PER program executes inside MagicBlock TEE for private authorization/commit evidence; successful private payee lamport settlement is still not claimed.
-- **Plan changes for next phase:** Focus on packaging evidence honestly and, if time allows, open/prepare a minimal reproduction for MagicBlock/Quasar maintainers: public devnet succeeds, TEE cloned image fails at instruction start, exact program IDs/tx/artifacts included.
+- **Plan changes for next phase:** Superseded by PR #260. Focus on packaging evidence honestly and, if time allows, design delegated-payee/private settlement beyond the current TEE private-authorization proof.
 
 ### Phase 7 — Final evidence + demo integration guard
 
@@ -253,7 +253,7 @@ Retrospective template:
 
 ### Retrospective — Phase 7 loop 1
 
-- **Expected:** Submission-facing docs should not describe MagicBlock as successful PER settlement while Phase 6D shows delegated Quasar execution fails on TEE.
+- **Expected:** Submission-facing docs should not describe MagicBlock as successful private payee settlement while current evidence proves TEE private authorization/commit rather than non-delegated payee lamport mutation.
 - **Observed:** `docs/COLOSSEUM-FINAL-QUASAR-PROOF-MAP-2026-05-06.md` already had an honest boundary, but older narrative collateral still described Anchor as canonical and MagicBlock private settlement as proven. The submission claim-boundary guard also did not scan that older narrative or the final proof map.
 - **Validation:** `npm run check:submission:claim-boundaries` passed after expanding the guard to 7 files; `npm run test:bdd:index` passed; `git diff --check` passed.
 - **What worked:** Updating the guard first enough to include the stale narrative makes future copy drift cheaper to catch. The current safe claim is crisp: Quasar-native MagicBlock permission/delegation succeeds live, and patched Quasar PER executes inside MagicBlock TEE for private authorization/commit evidence; successful private payee lamport settlement is not claimed.

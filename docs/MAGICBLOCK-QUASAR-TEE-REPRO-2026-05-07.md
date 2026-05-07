@@ -2,7 +2,7 @@
 
 ## Summary
 
-Quasar-native MagicBlock delegation now succeeds live on devnet, but settlement is **not** claimed. The remaining blocker is execution of a delegated Quasar program image on MagicBlock TEE: TEE simulation fails at instruction start with an access violation before Quasar instruction logic runs.
+Quasar-native MagicBlock delegation succeeds live on devnet. This repro is now **superseded** by PR #260: the access violation was traced to Quasar generated entrypoint ABI mismatch, and patched Quasar PER now executes inside MagicBlock TEE for private authorization/commit evidence. Settlement is still **not** claimed for non-delegated payee lamport mutation.
 
 ## Program IDs
 
@@ -39,12 +39,12 @@ Program 7ra8FZAHQ6F4SGfJJdjfgLuVnSN8HsGLx5iXq8qxSCpb failed: Access violation in
 A minimal Quasar PER callback simulation shows the same split:
 
 - public devnet: enters program and succeeds
-- MagicBlock TEE: fails at instruction start with the access violation above
+- MagicBlock TEE: historical failure superseded by PR #260 standard-entrypoint fix
 
 The reusable base Quasar escrow program shows the same pattern:
 
 - public devnet: enters program and returns `NotEnoughAccountKeys`
-- MagicBlock TEE: fails at instruction start with the same access violation
+- MagicBlock TEE: historical failure superseded by PR #260 standard-entrypoint fix
 
 ## Toolchain probes
 
