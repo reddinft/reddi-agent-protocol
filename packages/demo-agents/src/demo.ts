@@ -451,16 +451,20 @@ async function runDemo() {
       data: encodeReleaseEscrowPer(sessionKeypair.publicKey),
     });
 
-    const perConn = new Connection(PER_DEVNET_RPC, "confirmed");
-    const { blockhash } = await perConn.getLatestBlockhash();
+    // MagicBlock delegated-account transactions need a blockhash selected for the
+    // writable account set (`getBlockhashForAccounts`), not a plain public/TEE
+    // blockhash. The SDK's ConnectionMagicRouter wraps that custom RPC method.
+    // Keep the import local so this demo package can reuse the checked-in PER
+    // client dependency without adding another install step during hackathon runs.
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { ConnectionMagicRouter } = require("../../per-client/node_modules/@magicblock-labs/ephemeral-rollups-sdk");
+    const perConn = new ConnectionMagicRouter(PER_DEVNET_RPC, "confirmed");
 
     const perTx = new Transaction();
-    perTx.recentBlockhash = blockhash;
     perTx.feePayer = AGENT_A_KEYPAIR.publicKey;
     perTx.add(releasePerIx);
-    perTx.sign(AGENT_A_KEYPAIR);
 
-    return perConn.sendRawTransaction(perTx.serialize(), { skipPreflight: true });
+    return perConn.sendTransaction(perTx, [AGENT_A_KEYPAIR], { skipPreflight: true });
   };
 
   if (PROGRAM_TARGET === "quasar") {
