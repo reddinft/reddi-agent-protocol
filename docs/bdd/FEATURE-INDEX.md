@@ -70,6 +70,13 @@ Purpose: single lookup from BDD feature file -> bucket -> executable verificatio
   - `npm run build`
   - Future targeted route tests for dry-run graph, image disabled gate, balance snapshots, Surfpool local transfer rehearsal, and first-live-edge guardrails
 
+### Bucket M — Quasar-native MagicBlock PER Escrow
+- Feature: `docs/bdd/features/bucket-m-magicblock-per.feature`
+- Verify:
+  - `npm run test:bdd:index`
+  - `cargo test --manifest-path experiments/quasar-escrow-per/Cargo.toml` once Phase 1 scaffolds the PER crate
+  - Future PER guards: discriminator-length check, MagicBlock CPI fixture parity, bounded devnet evidence pack
+
 ## Drift guard
 - Validate index coverage against feature files:
   - `npm run test:bdd:index`
