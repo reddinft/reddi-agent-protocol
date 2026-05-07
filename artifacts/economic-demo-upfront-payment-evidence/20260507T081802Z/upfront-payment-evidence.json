@@ -1,0 +1,138 @@
+{
+  "schemaVersion": "reddi.economic-demo.upfront-payment-evidence.v1",
+  "generatedAt": "2026-05-07T08:18:02.475Z",
+  "sourceArtifactPath": "artifacts/economic-demo-surfpool-rehearsal/20260507T081756Z/summary.json",
+  "scenarioId": "webpage",
+  "proofMode": "surfpool_local_upfront_payment_rehearsal",
+  "userFunding": {
+    "paymentAsset": "USDC",
+    "fromProfileId": "end-user",
+    "toProfileId": "agentic-workflow-system",
+    "amountUsdc": 3.33125,
+    "equivalentLamports": 3331250,
+    "signaturePresent": true
+  },
+  "jupiterSolRoute": {
+    "inputAsset": "SOL",
+    "outputAsset": "USDC",
+    "estimatedInputSol": 0.021,
+    "outputUsdc": 3.33125,
+    "slippageBps": 75,
+    "status": "quoted_not_executed"
+  },
+  "devnetUsdcReceiptVerification": {
+    "sourceArtifactPath": "artifacts/economic-demo-devnet-usdc-receipt/20260506T154314Z/receipt-verification.json",
+    "status": "blocked",
+    "signaturePresent": false,
+    "verifiedTransfer": null,
+    "blockers": [
+      "explicit_confirmation",
+      "asset_usdc",
+      "network_devnet",
+      "spend_cap_present",
+      "payer_reference_present",
+      "recipient_pubkey",
+      "signature_present"
+    ]
+  },
+  "liveJupiterQuoteProof": {
+    "sourceArtifactPath": "artifacts/economic-demo-jupiter-quote-proof/20260506T153602Z/quote-proof.json",
+    "inputSol": 0.042,
+    "outputUsdc": 3.726188,
+    "slippageBps": 75,
+    "routePlanLength": 1,
+    "quoteOnly": true
+  },
+  "budgetProof": {
+    "upfrontFundingLamports": 3331250,
+    "downstreamTransferAmountLamports": 2500000,
+    "grossExecutedLamports": 5832500,
+    "totalDebitedLamports": 3336250,
+    "totalCreditedLamports": 3301250,
+    "specialistCreditedLamports": 2500000,
+    "orchestratorDeltaLamports": 800000,
+    "specialistCreditsMatchDownstreamTransfers": true,
+    "protocolTreasuryCreditedLamports": 1250,
+    "protocolFeeMatchesExpectedBps": true,
+    "upfrontCoversDownstreamBudget": true,
+    "orchestratorRetainsPositiveMarkupBeforeFees": true
+  },
+  "protocolRailFee": {
+    "bps": 5,
+    "treasuryProfileId": "reddi-protocol-treasury",
+    "totalFeeLamports": 1250,
+    "feeTransfers": [
+      {
+        "fromProfileId": "agentic-workflow-system",
+        "toProfileId": "reddi-protocol-treasury",
+        "fromLocalWalletAddress": "2dgi4RtUnciYtULLx5hJpqEBAiUVS37ZDzWSbkEPWvyV",
+        "toLocalWalletAddress": "2gZCkmuXQF97V6v5QrTZVepPbTAXKLyySJEwWuPPqCC6",
+        "amountLamports": 500,
+        "signature": "2Vy3ZbgY9f3wt2a4Hbn1t7mha69dyhygqReiDH1EvSJttk8KL7REHvNywq6xDrr2EzbKzRNUcAur5SVqm5RunKdC",
+        "status": "executed",
+        "category": "protocol_rail_fee",
+        "feeBps": 5,
+        "feeOnTransferLamports": 1000000
+      },
+      {
+        "fromProfileId": "agentic-workflow-system",
+        "toProfileId": "reddi-protocol-treasury",
+        "fromLocalWalletAddress": "2dgi4RtUnciYtULLx5hJpqEBAiUVS37ZDzWSbkEPWvyV",
+        "toLocalWalletAddress": "2gZCkmuXQF97V6v5QrTZVepPbTAXKLyySJEwWuPPqCC6",
+        "amountLamports": 500,
+        "signature": "36jNP9zzFLpYRBorbtzQ53NnsEDDB8nyX4JgVWsWKnvWYNqW4a6qrSgETRM5XRGdfbXDchAvkaf28UDrrmvsWqgj",
+        "status": "executed",
+        "category": "protocol_rail_fee",
+        "feeBps": 5,
+        "feeOnTransferLamports": 1000000
+      },
+      {
+        "fromProfileId": "agentic-workflow-system",
+        "toProfileId": "reddi-protocol-treasury",
+        "fromLocalWalletAddress": "2dgi4RtUnciYtULLx5hJpqEBAiUVS37ZDzWSbkEPWvyV",
+        "toLocalWalletAddress": "2gZCkmuXQF97V6v5QrTZVepPbTAXKLyySJEwWuPPqCC6",
+        "amountLamports": 250,
+        "signature": "3DxcVNe592KrsPbowdufo1btfjxiwsNjp9iPLxKyt5FQZPUDy7297YM4ahk9ThFskPrNs1AZspbC1Ko2TY7tLx3x",
+        "status": "executed",
+        "category": "protocol_rail_fee",
+        "feeBps": 5,
+        "feeOnTransferLamports": 500000
+      }
+    ]
+  },
+  "negativeProof": {
+    "blockedTransfers": [
+      {
+        "reason": "not_allowlisted",
+        "amountLamports": 1000000,
+        "status": "not_executed"
+      },
+      {
+        "reason": "over_budget",
+        "amountLamports": 2000001,
+        "status": "not_executed"
+      }
+    ],
+    "totalBlockedDeltaLamports": 0
+  },
+  "executedTransferCount": 7,
+  "downstreamTransferCount": 3,
+  "guardrails": [
+    "Surfpool offline local validator only",
+    "No devnet wallet mutation",
+    "No downstream specialist HTTP calls",
+    "Every agent-to-agent transfer through Reddi Agent Protocol rails pays a 0.05% protocol fee to protocol treasury",
+    "No private key material written to artifact",
+    "Evidence pack is public-safe: private key material is not included.",
+    "Every agent-to-agent payment through Reddi Agent Protocol rails pays the configured 0.05% protocol fee to protocol treasury.",
+    "Jupiter route is quote/proof-lane metadata here; live swap is not claimed unless status contains an executed swap receipt.",
+    "A live Jupiter quote was fetched without requesting a swap transaction."
+  ],
+  "limitations": [
+    "Surfpool/local proof demonstrates transaction ordering and budget math before devnet/live mutation.",
+    "USDC is represented by deterministic lamports-equivalent accounting in this local rehearsal artifact.",
+    "SOL→USDC Jupiter route is quoted/not executed in this local proof pack.",
+    "Live Jupiter quote proves current route availability only; no swap/signature is claimed."
+  ],
+  "nextStep": "Run approval-gated devnet/live USDC receipt and SOL→USDC Jupiter swap receipt lanes, then regenerate this pack with live receipt fields."
+}

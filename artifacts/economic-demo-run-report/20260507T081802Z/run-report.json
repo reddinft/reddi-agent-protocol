@@ -1,0 +1,357 @@
+{
+  "schemaVersion": "reddi.economic-demo.run-report.v1",
+  "generatedAt": "2026-05-07T08:18:02.632Z",
+  "scenarioId": "webpage",
+  "sourceArtifacts": {
+    "surfpool": "artifacts/economic-demo-surfpool-rehearsal/20260507T081756Z/summary.json",
+    "upfrontPack": "artifacts/economic-demo-upfront-payment-evidence/20260507T081802Z/upfront-payment-evidence.json",
+    "devnetUsdcReceipt": "artifacts/economic-demo-devnet-usdc-receipt/20260506T154314Z/receipt-verification.json",
+    "jupiterQuote": "artifacts/economic-demo-jupiter-quote-proof/20260506T153602Z/quote-proof.json",
+    "devnetSignedAction": "artifacts/economic-demo-devnet-signed-action/20260506T160648Z/signed-action.json",
+    "walletBackedJupiterSwap": "artifacts/economic-demo-devnet-wallet-backed-jupiter-swap/20260506T161235Z/wallet-backed-jupiter-swap.json",
+    "payShReddix402": "artifacts/pay-sh-reddi-x402/20260507T064842Z/SUMMARY.json",
+    "payShSessionProbe": "artifacts/pay-sh-reddi-x402/20260507T065805Z-session-splits/SUMMARY.json",
+    "payShSplitProbe": "artifacts/pay-sh-reddi-x402/20260507T065908Z-splits/SUMMARY.json",
+    "umbraPrivateX402": "artifacts/umbra-private-x402/20260507T074334Z/SUMMARY.json",
+    "umbraDevnetSmoke": "artifacts/umbra-devnet-smoke/20260507T075904Z/SUMMARY.json"
+  },
+  "story": [
+    "User starts with SOL when they do not have the required downstream USDC budget.",
+    "A live Jupiter quote proves SOL→USDC route availability for the required downstream USDC budget.",
+    "Surfpool/local or explicitly approved live execution funds the orchestrator upfront before downstream payments are released.",
+    "Orchestrator pays specialist agents from the funded run budget.",
+    "Attestors validate output quality, disclosure-ledger completeness, and payment receipt chain before release.",
+    "Reputation updates are represented as commit-reveal events and are not final unless reveal receipt status is verified."
+  ],
+  "jupiterSwapProof": {
+    "inputAsset": "SOL",
+    "outputAsset": "USDC",
+    "inputSol": 0.042,
+    "outputUsdc": 3.726188,
+    "routePlanLength": 1,
+    "slippageBps": 75,
+    "localSettlementSignature": "4LUki7dLhD4dQDbEV9d7Sq4v4MRbMUemDEbyxmXNUrGRostdsjjNPmiLScRSbZMNvbHudRnge9WkpQ6QDwU3KG7z",
+    "devnetSignedSwapBudgetTx": {
+      "category": "jupiter_sol_to_usdc_budget",
+      "memo": "User signs SOL payment; Jupiter swap lane converts it into orchestrator USDC-equivalent budget",
+      "fromWallet": "AjAPTMjZbsJbeXmdBGzMADWkFixRvVw3mKt8sp99mVCe",
+      "toWallet": "78DhERomBE36WYyd5YcKKDvNpptD5WhEfUmar3LqPeVj",
+      "amountLamports": 21000000,
+      "signature": "jenTEkjtfJz58v9az2sRVUpKYuNfMwsFtpCnstd7Epi8UomspqtPqQ1QVhANEVT1XBED1NhKsM3HozbHEGmrczh",
+      "explorer": "https://explorer.solana.com/tx/jenTEkjtfJz58v9az2sRVUpKYuNfMwsFtpCnstd7Epi8UomspqtPqQ1QVhANEVT1XBED1NhKsM3HozbHEGmrczh?cluster=devnet",
+      "status": "executed"
+    },
+    "devnetDownstreamPayments": [
+      {
+        "category": "downstream_agent_payment",
+        "memo": "Converted budget pays copy specialist",
+        "fromWallet": "78DhERomBE36WYyd5YcKKDvNpptD5WhEfUmar3LqPeVj",
+        "toWallet": "88baYDN3LqFrf5i6AAGWbW14f6h4mRfLskKD3T5CiNF7",
+        "amountLamports": 1000000,
+        "signature": "3ufuhouTuG1Dkbd7Wq6XKsU8hBPN43ANT6VE8i32CASjP9fSoHXNkPLNCiucxv3ZYF6vNKxxgVckEZCam59L4Kyn",
+        "explorer": "https://explorer.solana.com/tx/3ufuhouTuG1Dkbd7Wq6XKsU8hBPN43ANT6VE8i32CASjP9fSoHXNkPLNCiucxv3ZYF6vNKxxgVckEZCam59L4Kyn?cluster=devnet",
+        "status": "executed"
+      },
+      {
+        "category": "downstream_agent_payment",
+        "memo": "Converted budget pays code specialist",
+        "fromWallet": "78DhERomBE36WYyd5YcKKDvNpptD5WhEfUmar3LqPeVj",
+        "toWallet": "6TdGcZTBQbSG6trHC3yxG5c6y4DqsBRrzC9GjrbsGT1d",
+        "amountLamports": 1000000,
+        "signature": "26W3wmSnLvmGcpD8XdUqeajrbozkuY8z4q7gfwvzpkB1p29r2K27Wvqn8tqjwhUnZSZyR9cFCSwq8Y6UGJopMCqB",
+        "explorer": "https://explorer.solana.com/tx/26W3wmSnLvmGcpD8XdUqeajrbozkuY8z4q7gfwvzpkB1p29r2K27Wvqn8tqjwhUnZSZyR9cFCSwq8Y6UGJopMCqB?cluster=devnet",
+        "status": "executed"
+      },
+      {
+        "category": "attestor_payment",
+        "memo": "Converted budget pays attestor for validation",
+        "fromWallet": "78DhERomBE36WYyd5YcKKDvNpptD5WhEfUmar3LqPeVj",
+        "toWallet": "7XW2SbWWp2R38WFRrhZJDS9A991kTSjcoYNSK2nX3zoq",
+        "amountLamports": 500000,
+        "signature": "5fURph3znUhs9zMuJCfEVAc9gpPgkVFbpYWfaVDzMoPv84bTjLiBPPWxYpcekpAB2Uo3ebWkDJziuTR9DqY9kCbx",
+        "explorer": "https://explorer.solana.com/tx/5fURph3znUhs9zMuJCfEVAc9gpPgkVFbpYWfaVDzMoPv84bTjLiBPPWxYpcekpAB2Uo3ebWkDJziuTR9DqY9kCbx?cluster=devnet",
+        "status": "executed"
+      }
+    ],
+    "walletBackedAttempt": {
+      "status": "signed_but_devnet_send_failed",
+      "ok": false,
+      "wallet": "AjAPTMjZbsJbeXmdBGzMADWkFixRvVw3mKt8sp99mVCe",
+      "quote": {
+        "inAmount": "1000000",
+        "outAmount": "89128",
+        "contextSlot": 417998830,
+        "routePlanLength": 1
+      },
+      "swapTransactionReceived": true,
+      "walletSignedTransaction": true,
+      "signature": null,
+      "sendError": "Transaction resulted in an error. invalid transaction: Transaction loads an address table account that doesn't exist. Catch the `SendTransactionError` and call `getLogs()` on it for full details."
+    },
+    "proofStatus": "live_quote_plus_signed_devnet_budget_lane",
+    "caveat": "Signed devnet transaction proves the SOL-funded demo budget lane and downstream payment flow; live Jupiter route quote proves route availability only. Wallet-backed Jupiter transaction was attempted separately and devnet rejected Jupiter mainnet account-table material. Not an executed Jupiter devnet or mainnet swap claim."
+  },
+  "payShReddix402Compatibility": {
+    "packageName": "reddi-x402",
+    "mode": "pay-sh-sandbox",
+    "providerSpec": "config/pay-sh/reddi-x402-economic-demo-provider.yml",
+    "providerSpecSha256": "77f48c499b1b335e297372b58d8746ffd8b54783d73188ebedff766371af49ef",
+    "registryMetadataPath": "providers/redditech/reddi-agent-protocol/reddi-x402-economic-demo-provider.md",
+    "url": "http://127.0.0.1:1402/api/economic-demo/reddi-x402/pay-sh-smoke",
+    "priceUsd": 0.01,
+    "challengeProtocol": "mpp",
+    "challengeCount": 2,
+    "plainCurlStatus": "402 Payment Required",
+    "paidRetryStatus": "200 OK",
+    "paymentReceiptPresent": true,
+    "receiptStatus": "success",
+    "receiptMethod": "solana",
+    "receiptReference": "5QYPZc6sFu3tQ6XhMSnCEBqBaJk1dou1J3vMDUV6z2nwjNpDGvBW8yu1futaAdXwZyrAgXHfmuhfNFukymDt8uJH",
+    "proofStatus": "sandbox_http_402_to_pay_sh_200_receipt",
+    "extensionProbes": [
+      {
+        "id": "capped_sessions",
+        "status": "probe_only",
+        "observedIntents": [
+          "session"
+        ],
+        "paySandboxRetryError": "Server returned 402 again after payment",
+        "evidenceArtifactPath": "artifacts/pay-sh-reddi-x402/20260507T065805Z-session-splits/SUMMARY.json"
+      },
+      {
+        "id": "split_payments",
+        "status": "probe_only",
+        "observedIntents": [
+          "charge"
+        ],
+        "paySandboxRetryError": "Server returned 402 again after payment",
+        "evidenceArtifactPath": "artifacts/pay-sh-reddi-x402/20260507T065908Z-splits/SUMMARY.json"
+      }
+    ],
+    "claimBoundary": "Sandbox Pay.sh gateway compatibility evidence only; no mainnet funds, no Umbra private settlement, and no MagicBlock PER settlement claimed."
+  },
+  "umbraPrivateX402": {
+    "packageName": "reddi-x402",
+    "rail": "private-umbra",
+    "network": "devnet",
+    "operation": "public-balance-to-receiver-claimable-utxo",
+    "proofStatus": "mocked_adapter_contract",
+    "evidenceArtifactPath": "artifacts/umbra-private-x402/20260507T074334Z/SUMMARY.json",
+    "protocolProgramId": "DSuKkyqGVGgo4QtPABfxKJKygUDACbUhirnuv63mEpAJ",
+    "indexerApiEndpoint": "https://utxo-indexer.api-devnet.umbraprivacy.com",
+    "relayerApiEndpoint": "https://relayer.api-devnet.umbraprivacy.com",
+    "selectiveDisclosure": {
+      "receiptType": "reddi.umbra-private-x402.receipt.v1",
+      "reveals": [
+        "rail",
+        "network",
+        "mint",
+        "amount",
+        "recipientProfileId",
+        "operation",
+        "signatures"
+      ],
+      "hides": [
+        "payerPublicAta",
+        "recipientFinalWalletLink",
+        "encryptedBalance",
+        "utxoSecret"
+      ]
+    },
+    "claimBoundary": "Umbra private x402 adapter contract: mocked/local proof only until an approval-gated devnet SDK smoke submits registration, UTXO creation, scan, and claim transactions.",
+    "liveSettlementClaimed": false,
+    "devnetTransactionsSubmitted": false,
+    "devnetSmoke": {
+      "proofStatus": "devnet_encrypted_balance_deposit_confirmed",
+      "evidenceArtifactPath": "artifacts/umbra-devnet-smoke/20260507T075904Z/SUMMARY.json",
+      "programId": "DSuKkyqGVGgo4QtPABfxKJKygUDACbUhirnuv63mEpAJ",
+      "signerAddress": "3Vmcwra5tfxGwaX3jnpmYybCd7gH4fstJzi1Yci38f94",
+      "mint": "So11111111111111111111111111111111111111112",
+      "amountBaseUnits": "1000000",
+      "wrapSolSignature": "3VKLskQnawASV23AqWdEeXEWnHdRK484Kjb8C6RM8cAQ2Xz8uVA3j4CeKr7YZFdgjF7etwHwwcTqLbCdPQPRYQz8",
+      "registrationSignatures": [
+        "3ndyEuvBMKEPkxz1LT9jK2NougyzaUoFu96dtyZhCTSiv3ZdduCwFXQyErdMrgcYrFdksna6RBmq5QNzKEhTmUE",
+        "5dLTzctrhWNcg7f9XammZBYLhwz57dibutjXxW7d1w1BJY6ZB1vzncZWJA4kttywr38MPb2J8sW5YusVjRRSvj2H"
+      ],
+      "depositQueueSignature": "3DUNUaSjPWC2qdXHX8NTCN5BAnosvcZ5v5vJhUTjbD7YhMUdsPWyKEFBMrLNRc9EZnkstKJudkpXL8dhax2oD7Vt",
+      "depositCallbackSignature": "RB1AaW9iXrAfQhMgEaRbrRumEohMd2YGAi2UtgQeZR1q9Pq4Rey1pRC872MMAw9AVxg3t85c8mYjKfob4iNYE3v",
+      "rentClaimSignature": "4LbCtBsfCxeDwPfVrWpbZMR2e6snLo5odazb5DngvtFgs7Z9MfTJjvQu6Jg3a5ub6f9JqVmudfp9fjtx66o4hVmn",
+      "encryptedBalance": {
+        "So11111111111111111111111111111111111111112": {
+          "state": "shared",
+          "balance": "1000000"
+        }
+      },
+      "claimBoundary": "Umbra devnet-only smoke. No mainnet settlement, no real funds, no Quasar-native Umbra execution, no MagicBlock PER settlement."
+    }
+  },
+  "paymentReceipts": [
+    {
+      "fromProfileId": "end-user",
+      "toProfileId": "agentic-workflow-system",
+      "amountLamports": 3331250,
+      "category": "upfront_user_funding",
+      "networkProfile": "local-surfpool",
+      "transactionAddress": "4LUki7dLhD4dQDbEV9d7Sq4v4MRbMUemDEbyxmXNUrGRostdsjjNPmiLScRSbZMNvbHudRnge9WkpQ6QDwU3KG7z",
+      "proofStatus": "local_surfpool_executed"
+    },
+    {
+      "fromProfileId": "agentic-workflow-system",
+      "toProfileId": "content-creation-agent",
+      "amountLamports": 1000000,
+      "category": "downstream_agent_payment",
+      "networkProfile": "local-surfpool",
+      "transactionAddress": "t6GSNyW3LzuGF6EbRZEBmMzkdKKGG1C1dcyWn1ZTw5xu31XzsARgYWavyU4LAiETejAzURmkeqcuqQ8ZSVe6opL",
+      "proofStatus": "local_surfpool_executed"
+    },
+    {
+      "fromProfileId": "agentic-workflow-system",
+      "toProfileId": "reddi-protocol-treasury",
+      "amountLamports": 500,
+      "category": "protocol_rail_fee",
+      "networkProfile": "local-surfpool",
+      "transactionAddress": "2Vy3ZbgY9f3wt2a4Hbn1t7mha69dyhygqReiDH1EvSJttk8KL7REHvNywq6xDrr2EzbKzRNUcAur5SVqm5RunKdC",
+      "proofStatus": "local_surfpool_executed"
+    },
+    {
+      "fromProfileId": "agentic-workflow-system",
+      "toProfileId": "code-generation-agent",
+      "amountLamports": 1000000,
+      "category": "downstream_agent_payment",
+      "networkProfile": "local-surfpool",
+      "transactionAddress": "F1Lty7G7ViyYRsT5hBpTAcBDzeogiHrJL4Sbdpcar6gMqK6z81SSKTDRp6tkchgkP3hDt64E3DEVz3ZcBdC4HAS",
+      "proofStatus": "local_surfpool_executed"
+    },
+    {
+      "fromProfileId": "agentic-workflow-system",
+      "toProfileId": "reddi-protocol-treasury",
+      "amountLamports": 500,
+      "category": "protocol_rail_fee",
+      "networkProfile": "local-surfpool",
+      "transactionAddress": "36jNP9zzFLpYRBorbtzQ53NnsEDDB8nyX4JgVWsWKnvWYNqW4a6qrSgETRM5XRGdfbXDchAvkaf28UDrrmvsWqgj",
+      "proofStatus": "local_surfpool_executed"
+    },
+    {
+      "fromProfileId": "agentic-workflow-system",
+      "toProfileId": "verification-validation-agent",
+      "amountLamports": 500000,
+      "category": "downstream_agent_payment",
+      "networkProfile": "local-surfpool",
+      "transactionAddress": "5A8sBC9H3d6CDsMzgjt7jEKzRg1KZ2iJmHm4unPpeo1R7PHwJR66o9bbNYJ1MgNNVdke3Co7cu8feqh4bZ9x97oR",
+      "proofStatus": "local_surfpool_executed"
+    },
+    {
+      "fromProfileId": "agentic-workflow-system",
+      "toProfileId": "reddi-protocol-treasury",
+      "amountLamports": 250,
+      "category": "protocol_rail_fee",
+      "networkProfile": "local-surfpool",
+      "transactionAddress": "3DxcVNe592KrsPbowdufo1btfjxiwsNjp9iPLxKyt5FQZPUDy7297YM4ahk9ThFskPrNs1AZspbC1Ko2TY7tLx3x",
+      "proofStatus": "local_surfpool_executed"
+    }
+  ],
+  "specialistCalls": [
+    {
+      "step": 1,
+      "specialistProfileId": "content-creation-agent",
+      "paymentReceiptSignature": "t6GSNyW3LzuGF6EbRZEBmMzkdKKGG1C1dcyWn1ZTw5xu31XzsARgYWavyU4LAiETejAzURmkeqcuqQ8ZSVe6opL",
+      "validation": {
+        "attestorProfileId": "verification-validation-agent",
+        "validatesProfileId": "content-creation-agent",
+        "validation": "Validated specialist output against acceptance criteria, receipt chain, downstream disclosure ledger, and release/refund criteria.",
+        "result": "release_recommended",
+        "paymentReceiptSignature": "5A8sBC9H3d6CDsMzgjt7jEKzRg1KZ2iJmHm4unPpeo1R7PHwJR66o9bbNYJ1MgNNVdke3Co7cu8feqh4bZ9x97oR"
+      },
+      "reputation": {
+        "profileId": "content-creation-agent",
+        "beforeScore": 72,
+        "committedScore": 5,
+        "afterScore": 77,
+        "commitTx": "fixture-local-tx:webpage:reputation:content-creation-agent:commit",
+        "revealTx": "fixture-local-tx:webpage:reputation:content-creation-agent:reveal",
+        "status": "fixture_commit_reveal_pending_devnet_receipts"
+      }
+    },
+    {
+      "step": 2,
+      "specialistProfileId": "code-generation-agent",
+      "paymentReceiptSignature": "F1Lty7G7ViyYRsT5hBpTAcBDzeogiHrJL4Sbdpcar6gMqK6z81SSKTDRp6tkchgkP3hDt64E3DEVz3ZcBdC4HAS",
+      "validation": {
+        "attestorProfileId": "verification-validation-agent",
+        "validatesProfileId": "code-generation-agent",
+        "validation": "Validated specialist output against acceptance criteria, receipt chain, downstream disclosure ledger, and release/refund criteria.",
+        "result": "release_recommended",
+        "paymentReceiptSignature": "5A8sBC9H3d6CDsMzgjt7jEKzRg1KZ2iJmHm4unPpeo1R7PHwJR66o9bbNYJ1MgNNVdke3Co7cu8feqh4bZ9x97oR"
+      },
+      "reputation": {
+        "profileId": "code-generation-agent",
+        "beforeScore": 76,
+        "committedScore": 5,
+        "afterScore": 81,
+        "commitTx": "fixture-local-tx:webpage:reputation:code-generation-agent:commit",
+        "revealTx": "fixture-local-tx:webpage:reputation:code-generation-agent:reveal",
+        "status": "fixture_commit_reveal_pending_devnet_receipts"
+      }
+    }
+  ],
+  "attestations": [
+    {
+      "attestorProfileId": "verification-validation-agent",
+      "validatesProfileId": "content-creation-agent",
+      "validation": "Validated specialist output against acceptance criteria, receipt chain, downstream disclosure ledger, and release/refund criteria.",
+      "result": "release_recommended",
+      "paymentReceiptSignature": "5A8sBC9H3d6CDsMzgjt7jEKzRg1KZ2iJmHm4unPpeo1R7PHwJR66o9bbNYJ1MgNNVdke3Co7cu8feqh4bZ9x97oR"
+    },
+    {
+      "attestorProfileId": "verification-validation-agent",
+      "validatesProfileId": "code-generation-agent",
+      "validation": "Validated specialist output against acceptance criteria, receipt chain, downstream disclosure ledger, and release/refund criteria.",
+      "result": "release_recommended",
+      "paymentReceiptSignature": "5A8sBC9H3d6CDsMzgjt7jEKzRg1KZ2iJmHm4unPpeo1R7PHwJR66o9bbNYJ1MgNNVdke3Co7cu8feqh4bZ9x97oR"
+    }
+  ],
+  "reputationEvents": [
+    {
+      "profileId": "content-creation-agent",
+      "beforeScore": 72,
+      "committedScore": 5,
+      "afterScore": 77,
+      "commitTx": "fixture-local-tx:webpage:reputation:content-creation-agent:commit",
+      "revealTx": "fixture-local-tx:webpage:reputation:content-creation-agent:reveal",
+      "status": "fixture_commit_reveal_pending_devnet_receipts"
+    },
+    {
+      "profileId": "code-generation-agent",
+      "beforeScore": 76,
+      "committedScore": 5,
+      "afterScore": 81,
+      "commitTx": "fixture-local-tx:webpage:reputation:code-generation-agent:commit",
+      "revealTx": "fixture-local-tx:webpage:reputation:code-generation-agent:reveal",
+      "status": "fixture_commit_reveal_pending_devnet_receipts"
+    }
+  ],
+  "devnetReceiptStatus": {
+    "status": "blocked",
+    "signaturePresent": false,
+    "verifiedTransfer": null,
+    "blockers": [
+      "explicit_confirmation",
+      "asset_usdc",
+      "network_devnet",
+      "spend_cap_present",
+      "payer_reference_present",
+      "recipient_pubkey",
+      "signature_present"
+    ]
+  },
+  "guardrails": [
+    "Jupiter proof includes live quote, signed devnet budget-lane receipts, and a wallet-backed Jupiter attempt artifact when available.",
+    "Wallet-backed Jupiter public swap transactions may reference mainnet address-table/liquidity accounts and fail on devnet; do not claim executed devnet Jupiter swap unless a successful confirmed devnet Jupiter execution signature is present.",
+    "Surfpool signatures are local/offline transaction addresses, not devnet or mainnet settlement receipts.",
+    "Devnet USDC receipt status is attached separately and must be verified before claiming real devnet payment.",
+    "Reputation commit/reveal entries are fixture-only until a live Quasar reputation commit and reveal receipt are supplied.",
+    "No signing, swap, transfer, paid provider call, or wallet mutation is performed by this report generator.",
+    "Pay.sh / reddi-x402 evidence is sandbox gateway compatibility only; sessions and splits remain probe-only until Pay.sh runtime behavior is clarified.",
+    "Umbra devnet smoke proves a bounded devnet registration plus public wSOL to encrypted-balance deposit only; it does not prove mainnet settlement, production funds, Quasar-native Umbra execution, or MagicBlock PER settlement."
+  ]
+}

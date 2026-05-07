@@ -27,6 +27,9 @@ export type EconomicDemoLedgerReconciliation = {
     realSettlementsVerified: 0;
     surfpoolLocalTransferLamports: number;
     surfpoolLocalTransferSol: string;
+    protocolRailFeeBps: number;
+    protocolRailFeeLamports: number;
+    protocolTreasuryProfileId: string;
   };
   edges: EconomicDemoLedgerReconciliationEdge[];
   proofLayers: Array<{
@@ -96,6 +99,9 @@ export function buildEconomicDemoLedgerReconciliation(): EconomicDemoLedgerRecon
       realSettlementsVerified: 0,
       surfpoolLocalTransferLamports,
       surfpoolLocalTransferSol: lamportsToSol(surfpoolLocalTransferLamports),
+      protocolRailFeeBps: surfpool.protocolRailFee.bps,
+      protocolRailFeeLamports: surfpool.protocolRailFee.totalFeeLamports,
+      protocolTreasuryProfileId: surfpool.protocolRailFee.treasuryProfileId,
     },
     edges,
     proofLayers: [
@@ -112,7 +118,7 @@ export function buildEconomicDemoLedgerReconciliation(): EconomicDemoLedgerRecon
       {
         id: "surfpool_local_transfer",
         status: "complete",
-        summary: "Surfpool/local rehearsal proves transfer semantics with deterministic local wallets and blocked-transfer zero-delta proof.",
+        summary: "Surfpool/local rehearsal proves transfer semantics with deterministic local wallets, 0.05% Reddi Agent Protocol rail fees, and blocked-transfer zero-delta proof.",
       },
       {
         id: "real_devnet_receipt_verifier",

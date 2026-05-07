@@ -3,6 +3,8 @@ import { createHash } from "node:crypto";
 import { Keypair } from "@solana/web3.js";
 import {
   economicDemoScenarios,
+  REDDI_PROTOCOL_RAIL_FEE_BPS,
+  REDDI_PROTOCOL_TREASURY_PROFILE_ID,
   type EconomicDemoScenario,
 } from "@/lib/economic-demo/fixture";
 import type {
@@ -12,7 +14,7 @@ import type {
 
 export type SurfpoolRehearsalParticipant = {
   profileId: string;
-  role: "end-user" | "orchestrator" | "specialist";
+  role: "end-user" | "orchestrator" | "specialist" | "adapter";
   catalogWalletAddress: string;
   localWalletAddress: string;
   startingLamports: number;
@@ -25,6 +27,7 @@ export type SurfpoolRehearsalTransfer = {
   fromLocalWalletAddress: string;
   toLocalWalletAddress: string;
   amountLamports: number;
+  category: "upfront_user_funding" | "downstream_agent_payment" | "protocol_rail_fee";
   status: "planned" | "blocked";
   reason?: "not_allowlisted" | "over_budget" | "insufficient_upfront_budget";
 };
@@ -45,6 +48,12 @@ export type SurfpoolRehearsalReport = {
     downstreamBudgetUsdc: number;
     attestorBudgetUsdc: number;
   };
+  protocolRailFee: {
+    bps: number;
+    treasuryProfileId: string;
+    totalFeeLamports: number;
+    feeTransfers: SurfpoolRehearsalTransfer[];
+  };
   jupiterSolRoute: {
     available: true;
     inputAsset: "SOL";
@@ -60,6 +69,8 @@ export type SurfpoolRehearsalReport = {
     totalDebitedLamports: number;
     totalCreditedLamports: number;
     balanced: boolean;
+    protocolFeeMatchesExpectedBps: boolean;
+    protocolTreasuryCreditedLamports: number;
   };
   negativeProof: {
     blockedTransfers: SurfpoolRehearsalTransfer[];
@@ -75,6 +86,10 @@ const USDC_TO_LOCAL_LAMPORTS = 1_000_000;
 const DEFAULT_EDGE_LAMPORTS = 1_000_000;
 const ATTESTOR_EDGE_LAMPORTS = 500_000;
 const MAX_LOCAL_REHEARSAL_EDGE_LAMPORTS = 2_000_000;
+
+function protocolFeeLamportsFor(amountLamports: number) {
+  return Math.round((amountLamports * REDDI_PROTOCOL_RAIL_FEE_BPS) / 10_000);
+}
 
 function deterministicLocalWallet(profileId: string): string {
   const seed = createHash("sha256")
@@ -129,6 +144,14 @@ export function buildSurfpoolRehearsalReport(
     startingLamports: ORCHESTRATOR_STARTING_LAMPORTS,
     endingLamports: ORCHESTRATOR_STARTING_LAMPORTS + upfrontLamports,
   });
+  participantMap.set(participantKey(REDDI_PROTOCOL_TREASURY_PROFILE_ID), {
+    profileId: REDDI_PROTOCOL_TREASURY_PROFILE_ID,
+    role: "adapter",
+    catalogWalletAddress: "reddi-protocol-treasury-wallet",
+    localWalletAddress: deterministicLocalWallet(REDDI_PROTOCOL_TREASURY_PROFILE_ID),
+    startingLamports: 0,
+    endingLamports: 0,
+  });
 
   for (const edge of plan.edges) {
     if (!participantMap.has(participantKey(edge.toProfileId))) {
@@ -153,6 +176,7 @@ export function buildSurfpoolRehearsalReport(
         participantKey(plan.orchestrator.id),
       )!.localWalletAddress,
       amountLamports: upfrontLamports,
+      category: "upfront_user_funding",
       status: "planned",
     },
   ];
@@ -162,6 +186,9 @@ export function buildSurfpoolRehearsalReport(
     const to = participantMap.get(participantKey(edge.toProfileId));
     if (!from || !to)
       throw new Error(`missing_rehearsal_participant:${edge.toProfileId}`);
+    const treasury = participantMap.get(participantKey(REDDI_PROTOCOL_TREASURY_PROFILE_ID));
+    if (!treasury) throw new Error("missing_protocol_treasury_participant");
+    const protocolFeeLamports = protocolFeeLamportsFor(amountLamports);
 
     transfers.push({
       fromProfileId: plan.orchestrator.id,
@@ -169,11 +196,24 @@ export function buildSurfpoolRehearsalReport(
       fromLocalWalletAddress: from.localWalletAddress,
       toLocalWalletAddress: to.localWalletAddress,
       amountLamports,
+      category: "downstream_agent_payment",
       status: "planned",
     });
+    if (protocolFeeLamports > 0) {
+      transfers.push({
+        fromProfileId: plan.orchestrator.id,
+        toProfileId: REDDI_PROTOCOL_TREASURY_PROFILE_ID,
+        fromLocalWalletAddress: from.localWalletAddress,
+        toLocalWalletAddress: treasury.localWalletAddress,
+        amountLamports: protocolFeeLamports,
+        category: "protocol_rail_fee",
+        status: "planned",
+      });
+    }
 
-    from.endingLamports -= amountLamports;
+    from.endingLamports -= amountLamports + protocolFeeLamports;
     to.endingLamports += amountLamports;
+    treasury.endingLamports += protocolFeeLamports;
   }
 
   const firstSpecialist = plan.edges[0];
@@ -187,6 +227,7 @@ export function buildSurfpoolRehearsalReport(
           )!.localWalletAddress,
           toLocalWalletAddress: deterministicLocalWallet("unlisted-specialist"),
           amountLamports: DEFAULT_EDGE_LAMPORTS,
+          category: "downstream_agent_payment",
           status: "blocked",
           reason: "not_allowlisted",
         },
@@ -200,6 +241,7 @@ export function buildSurfpoolRehearsalReport(
             participantKey(firstSpecialist.toProfileId),
           )!.localWalletAddress,
           amountLamports: MAX_LOCAL_REHEARSAL_EDGE_LAMPORTS + 1,
+          category: "downstream_agent_payment",
           status: "blocked",
           reason: "over_budget",
         },
@@ -219,6 +261,13 @@ export function buildSurfpoolRehearsalReport(
       Math.max(0, participant.endingLamports - participant.startingLamports),
     0,
   );
+  const totalProtocolFeeLamports = transfers
+    .filter((transfer) => transfer.category === "protocol_rail_fee")
+    .reduce((sum, transfer) => sum + transfer.amountLamports, 0);
+  const expectedProtocolFeeLamports = transfers
+    .filter((transfer) => transfer.category === "downstream_agent_payment")
+    .reduce((sum, transfer) => sum + protocolFeeLamportsFor(transfer.amountLamports), 0);
+  const protocolTreasury = participantMap.get(participantKey(REDDI_PROTOCOL_TREASURY_PROFILE_ID));
 
   return {
     mode: "surfpool_local_rehearsal_plan",
@@ -236,6 +285,14 @@ export function buildSurfpoolRehearsalReport(
       downstreamBudgetUsdc: scenario.quote.downstreamFeesUsdc,
       attestorBudgetUsdc: scenario.quote.attestorFeesUsdc,
     },
+    protocolRailFee: {
+      bps: REDDI_PROTOCOL_RAIL_FEE_BPS,
+      treasuryProfileId: REDDI_PROTOCOL_TREASURY_PROFILE_ID,
+      totalFeeLamports: transfers
+        .filter((transfer) => transfer.category === "protocol_rail_fee")
+        .reduce((sum, transfer) => sum + transfer.amountLamports, 0),
+      feeTransfers: transfers.filter((transfer) => transfer.category === "protocol_rail_fee"),
+    },
     jupiterSolRoute: {
       available: true,
       inputAsset: "SOL",
@@ -251,6 +308,8 @@ export function buildSurfpoolRehearsalReport(
       totalDebitedLamports,
       totalCreditedLamports,
       balanced: totalDebitedLamports === totalCreditedLamports,
+      protocolFeeMatchesExpectedBps: totalProtocolFeeLamports === expectedProtocolFeeLamports,
+      protocolTreasuryCreditedLamports: (protocolTreasury?.endingLamports ?? 0) - (protocolTreasury?.startingLamports ?? 0),
     },
     negativeProof: {
       blockedTransfers,
@@ -259,6 +318,7 @@ export function buildSurfpoolRehearsalReport(
     notes: [
       "Surfpool rehearsal plan only: deterministic local wallets, no devnet wallet mutation.",
       "User upfront funding is modeled before downstream orchestration spends occur.",
+      "Every agent-to-agent payment through Reddi Agent Protocol rails includes a 0.05% protocol fee credited to the protocol treasury.",
       "SOL payment route records Jupiter quote semantics only here; no swap is executed by this deterministic API report.",
       "Positive proof requires local paid edges to debit orchestrator and credit specialists by the same lamport total.",
       "Negative proof requires non-allowlisted and over-budget edges to produce zero lamport delta.",

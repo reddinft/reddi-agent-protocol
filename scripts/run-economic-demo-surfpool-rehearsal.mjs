@@ -27,8 +27,10 @@ const scenario = {
   id: "webpage",
   user: "end-user",
   orchestrator: "agentic-workflow-system",
-  upfrontFunding: { amountUsdc: 3.33, equivalentLamports: 3_330_000, paymentAsset: "USDC" },
-  jupiterSolRoute: { inputAsset: "SOL", outputAsset: "USDC", estimatedInputSol: 0.021, outputUsdc: 3.33, slippageBps: 75, status: "quoted_not_executed" },
+  protocolTreasury: "reddi-protocol-treasury",
+  protocolRailFeeBps: 5,
+  upfrontFunding: { amountUsdc: 3.33125, equivalentLamports: 3_331_250, paymentAsset: "USDC" },
+  jupiterSolRoute: { inputAsset: "SOL", outputAsset: "USDC", estimatedInputSol: 0.021, outputUsdc: 3.33125, slippageBps: 75, status: "quoted_not_executed" },
   transfers: [
     ["content-creation-agent", 1_000_000],
     ["code-generation-agent", 1_000_000],
@@ -43,6 +45,10 @@ function keypairFor(profileId) {
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function protocolFeeLamportsFor(amountLamports) {
+  return Math.round((amountLamports * scenario.protocolRailFeeBps) / 10_000);
 }
 
 async function waitForRpc(connection) {
@@ -81,10 +87,12 @@ async function main() {
 
     const user = keypairFor(scenario.user);
     const orchestrator = keypairFor(scenario.orchestrator);
+    const protocolTreasury = keypairFor(scenario.protocolTreasury);
     const specialists = new Map(scenario.transfers.map(([profileId]) => [profileId, keypairFor(profileId)]));
     const participants = [
       [scenario.user, user.publicKey],
       [scenario.orchestrator, orchestrator.publicKey],
+      [scenario.protocolTreasury, protocolTreasury.publicKey],
       ...[...specialists.entries()].map(([profileId, keypair]) => [profileId, keypair.publicKey]),
     ];
 
@@ -139,6 +147,30 @@ async function main() {
         status: "executed",
         category: "downstream_agent_payment",
       });
+
+      const protocolFeeLamports = protocolFeeLamportsFor(amountLamports);
+      if (protocolFeeLamports > 0) {
+        const feeTx = new Transaction().add(
+          SystemProgram.transfer({
+            fromPubkey: orchestrator.publicKey,
+            toPubkey: protocolTreasury.publicKey,
+            lamports: protocolFeeLamports,
+          }),
+        );
+        const feeSignature = await sendAndConfirmTransaction(connection, feeTx, [orchestrator], { commitment: "confirmed" });
+        executedTransfers.push({
+          fromProfileId: scenario.orchestrator,
+          toProfileId: scenario.protocolTreasury,
+          fromLocalWalletAddress: orchestrator.publicKey.toBase58(),
+          toLocalWalletAddress: protocolTreasury.publicKey.toBase58(),
+          amountLamports: protocolFeeLamports,
+          signature: feeSignature,
+          status: "executed",
+          category: "protocol_rail_fee",
+          feeBps: scenario.protocolRailFeeBps,
+          feeOnTransferLamports: amountLamports,
+        });
+      }
     }
 
     const after = Object.fromEntries(
@@ -157,11 +189,15 @@ async function main() {
     const downstreamTransferAmountLamports = executedTransfers
       .filter((transfer) => transfer.category === "downstream_agent_payment")
       .reduce((sum, transfer) => sum + transfer.amountLamports, 0);
+    const protocolFeeAmountLamports = executedTransfers
+      .filter((transfer) => transfer.category === "protocol_rail_fee")
+      .reduce((sum, transfer) => sum + transfer.amountLamports, 0);
     const grossExecutedLamports = executedTransfers.reduce((sum, transfer) => sum + transfer.amountLamports, 0);
     const specialistCreditedLamports = participantReports
-      .filter((item) => item.profileId !== scenario.user && item.profileId !== scenario.orchestrator)
+      .filter((item) => item.profileId !== scenario.user && item.profileId !== scenario.orchestrator && item.profileId !== scenario.protocolTreasury)
       .reduce((sum, item) => sum + Math.max(0, item.deltaLamports), 0);
     const orchestratorDeltaLamports = participantReports.find((item) => item.profileId === scenario.orchestrator)?.deltaLamports ?? 0;
+    const protocolTreasuryDeltaLamports = participantReports.find((item) => item.profileId === scenario.protocolTreasury)?.deltaLamports ?? 0;
 
     const artifact = {
       schemaVersion: "reddi.economic-demo.surfpool-rehearsal.v1",
@@ -173,6 +209,12 @@ async function main() {
       airdropSignatures: { user: userAirdropSig, orchestrator: orchestratorAirdropSig },
       upfrontFunding: { ...scenario.upfrontFunding, fromProfileId: scenario.user, toProfileId: scenario.orchestrator, signature: upfrontSignature },
       jupiterSolRoute: scenario.jupiterSolRoute,
+      protocolRailFee: {
+        bps: scenario.protocolRailFeeBps,
+        treasuryProfileId: scenario.protocolTreasury,
+        totalFeeLamports: protocolFeeAmountLamports,
+        feeTransfers: executedTransfers.filter((transfer) => transfer.category === "protocol_rail_fee"),
+      },
       participants: participantReports,
       executedTransfers,
       positiveProof: {
@@ -184,7 +226,9 @@ async function main() {
         specialistCreditedLamports,
         orchestratorDeltaLamports,
         specialistCreditsMatchDownstreamTransfers: specialistCreditedLamports === downstreamTransferAmountLamports,
-        upfrontCoversDownstreamBudget: scenario.upfrontFunding.equivalentLamports >= downstreamTransferAmountLamports,
+        protocolTreasuryCreditedLamports: protocolTreasuryDeltaLamports,
+        protocolFeeMatchesExpectedBps: protocolFeeAmountLamports === scenario.transfers.reduce((sum, [, amountLamports]) => sum + protocolFeeLamportsFor(amountLamports), 0),
+        upfrontCoversDownstreamBudget: scenario.upfrontFunding.equivalentLamports >= downstreamTransferAmountLamports + protocolFeeAmountLamports,
         orchestratorRetainsPositiveMarkupBeforeFees: orchestratorDeltaLamports > 0,
       },
       negativeProof: {
@@ -198,6 +242,7 @@ async function main() {
         "Surfpool offline local validator only",
         "No devnet wallet mutation",
         "No downstream specialist HTTP calls",
+        "Every agent-to-agent transfer through Reddi Agent Protocol rails pays a 0.05% protocol fee to protocol treasury",
         "No private key material written to artifact",
       ],
     };
@@ -206,7 +251,7 @@ async function main() {
     writeFileSync(artifactPath, `${JSON.stringify(artifact, null, 2)}\n`);
     writeFileSync(
       join(outDir, "SUMMARY.md"),
-      `# Economic Demo Surfpool Rehearsal\n\n- Scenario: ${scenario.id}\n- RPC: ${rpcUrl}\n- Executed transfers: ${executedTransfers.length}\n- Upfront funding: ${scenario.upfrontFunding.equivalentLamports} lamports-equivalent (${scenario.upfrontFunding.amountUsdc} USDC)\n- Jupiter SOL route: ${scenario.jupiterSolRoute.estimatedInputSol} SOL → ${scenario.jupiterSolRoute.outputUsdc} USDC (${scenario.jupiterSolRoute.status})\n- Downstream transfer amount: ${downstreamTransferAmountLamports}\n- Specialist credits match downstream transfers: ${artifact.positiveProof.specialistCreditsMatchDownstreamTransfers}\n- Upfront covers downstream budget: ${artifact.positiveProof.upfrontCoversDownstreamBudget}\n- Orchestrator retains positive markup before fees: ${artifact.positiveProof.orchestratorRetainsPositiveMarkupBeforeFees}\n- Blocked delta: ${artifact.negativeProof.totalBlockedDeltaLamports}\n- JSON: ${artifactPath}\n`,
+      `# Economic Demo Surfpool Rehearsal\n\n- Scenario: ${scenario.id}\n- RPC: ${rpcUrl}\n- Executed transfers: ${executedTransfers.length}\n- Upfront funding: ${scenario.upfrontFunding.equivalentLamports} lamports-equivalent (${scenario.upfrontFunding.amountUsdc} USDC)\n- Jupiter SOL route: ${scenario.jupiterSolRoute.estimatedInputSol} SOL → ${scenario.jupiterSolRoute.outputUsdc} USDC (${scenario.jupiterSolRoute.status})\n- Downstream transfer amount: ${downstreamTransferAmountLamports}\n- Protocol rail fee: ${protocolFeeAmountLamports} lamports (${scenario.protocolRailFeeBps} bps)\n- Protocol fee matches expected bps: ${artifact.positiveProof.protocolFeeMatchesExpectedBps}\n- Specialist credits match downstream transfers: ${artifact.positiveProof.specialistCreditsMatchDownstreamTransfers}\n- Upfront covers downstream budget + protocol fee: ${artifact.positiveProof.upfrontCoversDownstreamBudget}\n- Orchestrator retains positive markup after fees: ${artifact.positiveProof.orchestratorRetainsPositiveMarkupBeforeFees}\n- Blocked delta: ${artifact.negativeProof.totalBlockedDeltaLamports}\n- JSON: ${artifactPath}\n`,
     );
     console.log(JSON.stringify({ ok: true, artifactPath, summaryPath: join(outDir, "SUMMARY.md") }, null, 2));
   } finally {

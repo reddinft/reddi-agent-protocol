@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { join } from "node:path";
 
@@ -29,11 +29,23 @@ function runStep(label, command) {
 for (const [label, command] of steps) runStep(label, command);
 
 const prepPath = join("artifacts", "economic-demo-submission-prep", "latest", "SUBMISSION-PREP.md");
-if (!existsSync(prepPath)) {
-  console.error(`[final-recording] FAIL: missing ${prepPath}`);
+function newestPrepPath() {
+  const parent = join("artifacts", "economic-demo-submission-prep");
+  if (!existsSync(parent)) return prepPath;
+  const candidate = readdirSync(parent, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && /^\d{8}T\d{6}Z$/.test(entry.name))
+    .map((entry) => join(parent, entry.name, "SUBMISSION-PREP.md"))
+    .filter((path) => existsSync(path))
+    .sort()
+    .at(-1);
+  return candidate ?? prepPath;
+}
+const resolvedPrepPath = existsSync(prepPath) ? prepPath : newestPrepPath();
+if (!existsSync(resolvedPrepPath)) {
+  console.error(`[final-recording] FAIL: missing ${prepPath} and no timestamped fallback exists`);
   process.exit(1);
 }
-const prep = readFileSync(prepPath, "utf8");
+const prep = readFileSync(resolvedPrepPath, "utf8");
 const reportMatch = prep.match(/`(artifacts\/economic-demo-run-report\/\d{8}T\d{6}Z\/run-report\.json)`/);
 if (!reportMatch) {
   console.error("[final-recording] FAIL: submission prep does not reference a timestamped run-report JSON");
@@ -53,6 +65,22 @@ if (!report.umbraPrivateX402) {
   console.error(`[final-recording] FAIL: run report missing umbraPrivateX402: ${reportPath}`);
   process.exit(1);
 }
+const protocolFeeReceipts = report.paymentReceipts?.filter((receipt) => receipt.category === "protocol_rail_fee") ?? [];
+const protocolFeeLamports = protocolFeeReceipts.reduce((sum, receipt) => sum + (receipt.amountLamports ?? 0), 0);
+if (protocolFeeReceipts.length < 1 || protocolFeeLamports <= 0 || !protocolFeeReceipts.every((receipt) => receipt.toProfileId === "reddi-protocol-treasury")) {
+  console.error(`[final-recording] FAIL: run report missing Reddi Agent Protocol rail fee receipts: ${JSON.stringify(protocolFeeReceipts)}`);
+  process.exit(1);
+}
+const upfrontPackPath = report.sourceArtifacts?.upfrontPack;
+if (!upfrontPackPath || !existsSync(upfrontPackPath)) {
+  console.error(`[final-recording] FAIL: missing upfront protocol-fee evidence pack: ${upfrontPackPath}`);
+  process.exit(1);
+}
+const upfrontPack = JSON.parse(readFileSync(upfrontPackPath, "utf8"));
+if (upfrontPack.protocolRailFee?.bps !== 5 || upfrontPack.budgetProof?.protocolFeeMatchesExpectedBps !== true) {
+  console.error(`[final-recording] FAIL: upfront evidence pack does not prove 0.05% protocol fee: ${JSON.stringify(upfrontPack.protocolRailFee ?? null)}`);
+  process.exit(1);
+}
 if (report.umbraPrivateX402.proofStatus !== "mocked_adapter_contract" || report.umbraPrivateX402.liveSettlementClaimed !== false) {
   console.error(`[final-recording] FAIL: Umbra adapter proof overclaims live settlement: ${JSON.stringify(report.umbraPrivateX402)}`);
   process.exit(1);
@@ -63,7 +91,8 @@ if (report.umbraPrivateX402.devnetSmoke?.proofStatus !== "devnet_encrypted_balan
 }
 
 console.log("\n[final-recording] OK");
-console.log(`[final-recording] submission prep: ${prepPath}`);
+console.log(`[final-recording] submission prep: ${resolvedPrepPath}`);
 console.log(`[final-recording] run report: ${reportPath}`);
+console.log(`[final-recording] protocol rail fee: ${protocolFeeLamports} lamports across ${protocolFeeReceipts.length} receipt(s)`);
 console.log(`[final-recording] Pay.sh proof: ${report.payShReddix402Compatibility.proofStatus}`);
 console.log(`[final-recording] Umbra proof: ${report.umbraPrivateX402.proofStatus} + ${report.umbraPrivateX402.devnetSmoke.proofStatus}`);

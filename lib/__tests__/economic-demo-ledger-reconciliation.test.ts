@@ -17,6 +17,9 @@ describe("economic demo ledger reconciliation", () => {
     expect(reconciliation.totals.controlledPaidCompletions).toBe(4);
     expect(reconciliation.totals.realSettlementsVerified).toBe(0);
     expect(reconciliation.totals.surfpoolLocalTransferLamports).toBe(3500000);
+    expect(reconciliation.totals.protocolRailFeeBps).toBe(5);
+    expect(reconciliation.totals.protocolRailFeeLamports).toBe(1750);
+    expect(reconciliation.totals.protocolTreasuryProfileId).toBe("reddi-protocol-treasury");
     expect(reconciliation.edges.every((edge) => edge.controlledReceiptStatus === "satisfied_demo_only")).toBe(true);
     expect(reconciliation.edges.every((edge) => edge.realSettlementStatus === "not_verified")).toBe(true);
     expect(reconciliation.guardrails).toMatchObject({

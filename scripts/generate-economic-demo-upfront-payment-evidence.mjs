@@ -46,6 +46,7 @@ assert(surfpool.schemaVersion === "reddi.economic-demo.surfpool-rehearsal.v1", "
 assert(surfpool.upfrontFunding?.signature, "missing_upfront_funding_signature");
 assert(surfpool.jupiterSolRoute?.status, "missing_jupiter_route_status");
 assert(surfpool.positiveProof?.specialistCreditsMatchDownstreamTransfers === true, "specialist_credits_do_not_match_downstream_transfers");
+assert(surfpool.positiveProof?.protocolFeeMatchesExpectedBps === true, "protocol_fee_does_not_match_expected_bps");
 assert(surfpool.positiveProof?.upfrontCoversDownstreamBudget === true, "upfront_does_not_cover_downstream_budget");
 assert(surfpool.positiveProof?.orchestratorRetainsPositiveMarkupBeforeFees === true, "orchestrator_markup_not_retained");
 assert(surfpool.negativeProof?.totalBlockedDeltaLamports === 0, "blocked_transfer_mutated_balance");
@@ -100,12 +101,14 @@ const pack = {
       }
     : null,
   budgetProof: surfpool.positiveProof,
+  protocolRailFee: surfpool.protocolRailFee,
   negativeProof: surfpool.negativeProof,
   executedTransferCount: surfpool.executedTransfers.length,
   downstreamTransferCount: surfpool.executedTransfers.filter((transfer) => transfer.category === "downstream_agent_payment").length,
   guardrails: [
     ...surfpool.guardrails,
     "Evidence pack is public-safe: private key material is not included.",
+    "Every agent-to-agent payment through Reddi Agent Protocol rails pays the configured 0.05% protocol fee to protocol treasury.",
     "Jupiter route is quote/proof-lane metadata here; live swap is not claimed unless status contains an executed swap receipt.",
     ...(jupiterQuote ? ["A live Jupiter quote was fetched without requesting a swap transaction."] : []),
     ...(devnetUsdcReceipt?.status === "verified" ? ["A devnet USDC receipt was verified against explicit cap and recipient constraints."] : []),
@@ -135,9 +138,11 @@ writeFileSync(
     `- User funds orchestrator first: **${pack.userFunding.signaturePresent}**`,
     `- Upfront funding: **${pack.userFunding.amountUsdc} ${pack.userFunding.paymentAsset}** (${pack.userFunding.equivalentLamports} local lamports-equivalent)`,
     `- Downstream transfer count: **${pack.downstreamTransferCount}**`,
+    `- Protocol rail fee: **${pack.protocolRailFee.totalFeeLamports} lamports** (${pack.protocolRailFee.bps} bps → ${pack.protocolRailFee.treasuryProfileId})`,
+    `- Protocol fee matches expected bps: **${pack.budgetProof.protocolFeeMatchesExpectedBps}**`,
     `- Specialist credits match downstream transfers: **${pack.budgetProof.specialistCreditsMatchDownstreamTransfers}**`,
-    `- Upfront covers downstream budget: **${pack.budgetProof.upfrontCoversDownstreamBudget}**`,
-    `- Orchestrator retains positive markup before fees: **${pack.budgetProof.orchestratorRetainsPositiveMarkupBeforeFees}**`,
+    `- Upfront covers downstream budget + protocol fee: **${pack.budgetProof.upfrontCoversDownstreamBudget}**`,
+    `- Orchestrator retains positive markup after fees: **${pack.budgetProof.orchestratorRetainsPositiveMarkupBeforeFees}**`,
     `- Blocked transfer balance mutation: **${pack.negativeProof.totalBlockedDeltaLamports}**`,
     "",
     "## Jupiter route",

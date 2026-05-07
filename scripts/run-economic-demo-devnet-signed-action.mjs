@@ -71,6 +71,7 @@ const participants = {
   copy: keypairFor("content-creation-agent"),
   code: keypairFor("code-generation-agent"),
   attestor: attestorKeypair,
+  protocolTreasury: keypairFor("reddi-protocol-treasury"),
 };
 
 const participantEntries = Object.entries(participants);
@@ -84,16 +85,23 @@ if (afterAirdrop.user < 30_000_000) throw new Error(`insufficient_user_devnet_ba
 if (afterAirdrop.orchestrator < 5_500_000) throw new Error(`insufficient_orchestrator_devnet_balance:${afterAirdrop.orchestrator}`);
 
 const swapInputLamports = 21_000_000;
-const convertedBudgetLamports = 3_330_000;
+const protocolRailFeeBps = 5;
+const convertedBudgetLamports = 3_331_250;
 const downstreamCopyLamports = 1_000_000;
 const downstreamCodeLamports = 1_000_000;
 const attestorLamports = 500_000;
+function protocolFeeLamportsFor(amountLamports) {
+  return Math.round((amountLamports * protocolRailFeeBps) / 10_000);
+}
 
 const executedTransactions = [];
 executedTransactions.push(await transfer(connection, participants.user, participants.orchestrator, swapInputLamports, "jupiter_sol_to_usdc_budget", "User signs SOL payment; Jupiter swap lane converts it into orchestrator USDC-equivalent budget"));
 executedTransactions.push(await transfer(connection, participants.orchestrator, participants.copy, downstreamCopyLamports, "downstream_agent_payment", "Converted budget pays copy specialist"));
+executedTransactions.push(await transfer(connection, participants.orchestrator, participants.protocolTreasury, protocolFeeLamportsFor(downstreamCopyLamports), "protocol_rail_fee", "Reddi Agent Protocol fee: 0.05% of copy specialist rail payment"));
 executedTransactions.push(await transfer(connection, participants.orchestrator, participants.code, downstreamCodeLamports, "downstream_agent_payment", "Converted budget pays code specialist"));
+executedTransactions.push(await transfer(connection, participants.orchestrator, participants.protocolTreasury, protocolFeeLamportsFor(downstreamCodeLamports), "protocol_rail_fee", "Reddi Agent Protocol fee: 0.05% of code specialist rail payment"));
 executedTransactions.push(await transfer(connection, participants.orchestrator, participants.attestor, attestorLamports, "attestor_payment", "Converted budget pays attestor for validation"));
+executedTransactions.push(await transfer(connection, participants.orchestrator, participants.protocolTreasury, protocolFeeLamportsFor(attestorLamports), "protocol_rail_fee", "Reddi Agent Protocol fee: 0.05% of attestor rail payment"));
 
 const after = Object.fromEntries(await Promise.all(participantEntries.map(async ([id, kp]) => [id, await connection.getBalance(kp.publicKey)])));
 
@@ -129,6 +137,14 @@ const report = {
     outputUsdcEquivalent: convertedBudgetLamports / 1_000_000,
   },
   downstreamPayments: executedTransactions.filter((tx) => tx.category === "downstream_agent_payment" || tx.category === "attestor_payment"),
+  protocolRailFees: {
+    bps: protocolRailFeeBps,
+    treasuryProfileId: "reddi-protocol-treasury",
+    totalFeeLamports: executedTransactions
+      .filter((tx) => tx.category === "protocol_rail_fee")
+      .reduce((sum, tx) => sum + tx.amountLamports, 0),
+    transactions: executedTransactions.filter((tx) => tx.category === "protocol_rail_fee"),
+  },
   attestations: [
     {
       attestorProfileId: "verification-validation-agent",
@@ -147,12 +163,16 @@ const report = {
     swapBudgetTxExecuted: executedTransactions.some((tx) => tx.category === "jupiter_sol_to_usdc_budget"),
     downstreamPaymentsExecutedAfterSwap: true,
     attestorPaidAfterSwap: true,
+    protocolFeeMatchesExpectedBps: executedTransactions
+      .filter((tx) => tx.category === "protocol_rail_fee")
+      .reduce((sum, tx) => sum + tx.amountLamports, 0) === protocolFeeLamportsFor(downstreamCopyLamports) + protocolFeeLamportsFor(downstreamCodeLamports) + protocolFeeLamportsFor(attestorLamports),
   },
   guardrails: [
     "devnet only",
     "ephemeral deterministic demo keypairs only",
     "no private key material written to artifact",
     "mainnet not used",
+    "Every agent-to-agent transfer through Reddi Agent Protocol rails pays a 0.05% protocol fee to protocol treasury",
     "Jupiter live route availability is proven separately by quote artifact; this signed devnet action proves budget-conversion/payment flow semantics",
   ],
 };
@@ -181,6 +201,14 @@ writeFileSync(
     "## Downstream payments",
     "",
     ...report.downstreamPayments.map((tx) => `- ${tx.memo}: ${tx.explorer}`),
+    "",
+    "## Protocol rail fee",
+    "",
+    `- Fee: ${report.protocolRailFees.bps} bps (0.05%)`,
+    `- Treasury: ${report.protocolRailFees.treasuryProfileId}`,
+    `- Total fee: ${report.protocolRailFees.totalFeeLamports} lamports`,
+    `- Matches expected bps: ${report.positiveProof.protocolFeeMatchesExpectedBps}`,
+    ...report.protocolRailFees.transactions.map((tx) => `- ${tx.memo}: ${tx.explorer}`),
     "",
   ].join("\n"),
 );

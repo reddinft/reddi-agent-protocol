@@ -1,0 +1,229 @@
+{
+  "schemaVersion": "reddi.economic-demo.surfpool-rehearsal.v1",
+  "generatedAt": "2026-05-07T08:18:00.797Z",
+  "scenarioId": "webpage",
+  "rpcUrl": "http://127.0.0.1:19101",
+  "mode": "surfpool_local_transaction_rehearsal",
+  "downstreamCallsExecuted": 0,
+  "airdropSignatures": {
+    "user": "56FgQVQJp7eMC1uuqbH5yZbpJPNNEYjPEuVAXrqUayxwezwM8voPLciEUNqU1WGzneAZ2NVpNa1U58ngVXDHjzQz",
+    "orchestrator": "4p2xVKrPKca98KMe2i7jfNfUpEraRQhrKhEvVu8M8z7uehoUduJYrQzBDfHzrxoXZn2gARFKJefdMZwxds6fhNXC"
+  },
+  "upfrontFunding": {
+    "amountUsdc": 3.33125,
+    "equivalentLamports": 3331250,
+    "paymentAsset": "USDC",
+    "fromProfileId": "end-user",
+    "toProfileId": "agentic-workflow-system",
+    "signature": "4LUki7dLhD4dQDbEV9d7Sq4v4MRbMUemDEbyxmXNUrGRostdsjjNPmiLScRSbZMNvbHudRnge9WkpQ6QDwU3KG7z"
+  },
+  "jupiterSolRoute": {
+    "inputAsset": "SOL",
+    "outputAsset": "USDC",
+    "estimatedInputSol": 0.021,
+    "outputUsdc": 3.33125,
+    "slippageBps": 75,
+    "status": "quoted_not_executed"
+  },
+  "protocolRailFee": {
+    "bps": 5,
+    "treasuryProfileId": "reddi-protocol-treasury",
+    "totalFeeLamports": 1250,
+    "feeTransfers": [
+      {
+        "fromProfileId": "agentic-workflow-system",
+        "toProfileId": "reddi-protocol-treasury",
+        "fromLocalWalletAddress": "2dgi4RtUnciYtULLx5hJpqEBAiUVS37ZDzWSbkEPWvyV",
+        "toLocalWalletAddress": "2gZCkmuXQF97V6v5QrTZVepPbTAXKLyySJEwWuPPqCC6",
+        "amountLamports": 500,
+        "signature": "2Vy3ZbgY9f3wt2a4Hbn1t7mha69dyhygqReiDH1EvSJttk8KL7REHvNywq6xDrr2EzbKzRNUcAur5SVqm5RunKdC",
+        "status": "executed",
+        "category": "protocol_rail_fee",
+        "feeBps": 5,
+        "feeOnTransferLamports": 1000000
+      },
+      {
+        "fromProfileId": "agentic-workflow-system",
+        "toProfileId": "reddi-protocol-treasury",
+        "fromLocalWalletAddress": "2dgi4RtUnciYtULLx5hJpqEBAiUVS37ZDzWSbkEPWvyV",
+        "toLocalWalletAddress": "2gZCkmuXQF97V6v5QrTZVepPbTAXKLyySJEwWuPPqCC6",
+        "amountLamports": 500,
+        "signature": "36jNP9zzFLpYRBorbtzQ53NnsEDDB8nyX4JgVWsWKnvWYNqW4a6qrSgETRM5XRGdfbXDchAvkaf28UDrrmvsWqgj",
+        "status": "executed",
+        "category": "protocol_rail_fee",
+        "feeBps": 5,
+        "feeOnTransferLamports": 1000000
+      },
+      {
+        "fromProfileId": "agentic-workflow-system",
+        "toProfileId": "reddi-protocol-treasury",
+        "fromLocalWalletAddress": "2dgi4RtUnciYtULLx5hJpqEBAiUVS37ZDzWSbkEPWvyV",
+        "toLocalWalletAddress": "2gZCkmuXQF97V6v5QrTZVepPbTAXKLyySJEwWuPPqCC6",
+        "amountLamports": 250,
+        "signature": "3DxcVNe592KrsPbowdufo1btfjxiwsNjp9iPLxKyt5FQZPUDy7297YM4ahk9ThFskPrNs1AZspbC1Ko2TY7tLx3x",
+        "status": "executed",
+        "category": "protocol_rail_fee",
+        "feeBps": 5,
+        "feeOnTransferLamports": 500000
+      }
+    ]
+  },
+  "participants": [
+    {
+      "profileId": "end-user",
+      "localWalletAddress": "FK4nhDaGZjfeZ58BxL4usqbQ2HaZD5GFHXqwcSz7bS2i",
+      "startingLamports": 2000000000,
+      "endingLamports": 1996663750,
+      "deltaLamports": -3336250
+    },
+    {
+      "profileId": "agentic-workflow-system",
+      "localWalletAddress": "2dgi4RtUnciYtULLx5hJpqEBAiUVS37ZDzWSbkEPWvyV",
+      "startingLamports": 1000000000,
+      "endingLamports": 1000800000,
+      "deltaLamports": 800000
+    },
+    {
+      "profileId": "reddi-protocol-treasury",
+      "localWalletAddress": "2gZCkmuXQF97V6v5QrTZVepPbTAXKLyySJEwWuPPqCC6",
+      "startingLamports": 0,
+      "endingLamports": 1250,
+      "deltaLamports": 1250
+    },
+    {
+      "profileId": "content-creation-agent",
+      "localWalletAddress": "3ZvgyxgMFZXiWDq3LQKXx39LNyJAwShmim6NthW6GD1G",
+      "startingLamports": 0,
+      "endingLamports": 1000000,
+      "deltaLamports": 1000000
+    },
+    {
+      "profileId": "code-generation-agent",
+      "localWalletAddress": "HcTt4N6W1SoXRhdbCVSitNys2Hh5omRgp8vs4B4tQbyP",
+      "startingLamports": 0,
+      "endingLamports": 1000000,
+      "deltaLamports": 1000000
+    },
+    {
+      "profileId": "verification-validation-agent",
+      "localWalletAddress": "83vL64mCMkBtWD7kXKrJPF34g2jn8yB4xTEUa2WkkLfM",
+      "startingLamports": 0,
+      "endingLamports": 500000,
+      "deltaLamports": 500000
+    }
+  ],
+  "executedTransfers": [
+    {
+      "fromProfileId": "end-user",
+      "toProfileId": "agentic-workflow-system",
+      "fromLocalWalletAddress": "FK4nhDaGZjfeZ58BxL4usqbQ2HaZD5GFHXqwcSz7bS2i",
+      "toLocalWalletAddress": "2dgi4RtUnciYtULLx5hJpqEBAiUVS37ZDzWSbkEPWvyV",
+      "amountLamports": 3331250,
+      "signature": "4LUki7dLhD4dQDbEV9d7Sq4v4MRbMUemDEbyxmXNUrGRostdsjjNPmiLScRSbZMNvbHudRnge9WkpQ6QDwU3KG7z",
+      "status": "executed",
+      "category": "upfront_user_funding"
+    },
+    {
+      "fromProfileId": "agentic-workflow-system",
+      "toProfileId": "content-creation-agent",
+      "fromLocalWalletAddress": "2dgi4RtUnciYtULLx5hJpqEBAiUVS37ZDzWSbkEPWvyV",
+      "toLocalWalletAddress": "3ZvgyxgMFZXiWDq3LQKXx39LNyJAwShmim6NthW6GD1G",
+      "amountLamports": 1000000,
+      "signature": "t6GSNyW3LzuGF6EbRZEBmMzkdKKGG1C1dcyWn1ZTw5xu31XzsARgYWavyU4LAiETejAzURmkeqcuqQ8ZSVe6opL",
+      "status": "executed",
+      "category": "downstream_agent_payment"
+    },
+    {
+      "fromProfileId": "agentic-workflow-system",
+      "toProfileId": "reddi-protocol-treasury",
+      "fromLocalWalletAddress": "2dgi4RtUnciYtULLx5hJpqEBAiUVS37ZDzWSbkEPWvyV",
+      "toLocalWalletAddress": "2gZCkmuXQF97V6v5QrTZVepPbTAXKLyySJEwWuPPqCC6",
+      "amountLamports": 500,
+      "signature": "2Vy3ZbgY9f3wt2a4Hbn1t7mha69dyhygqReiDH1EvSJttk8KL7REHvNywq6xDrr2EzbKzRNUcAur5SVqm5RunKdC",
+      "status": "executed",
+      "category": "protocol_rail_fee",
+      "feeBps": 5,
+      "feeOnTransferLamports": 1000000
+    },
+    {
+      "fromProfileId": "agentic-workflow-system",
+      "toProfileId": "code-generation-agent",
+      "fromLocalWalletAddress": "2dgi4RtUnciYtULLx5hJpqEBAiUVS37ZDzWSbkEPWvyV",
+      "toLocalWalletAddress": "HcTt4N6W1SoXRhdbCVSitNys2Hh5omRgp8vs4B4tQbyP",
+      "amountLamports": 1000000,
+      "signature": "F1Lty7G7ViyYRsT5hBpTAcBDzeogiHrJL4Sbdpcar6gMqK6z81SSKTDRp6tkchgkP3hDt64E3DEVz3ZcBdC4HAS",
+      "status": "executed",
+      "category": "downstream_agent_payment"
+    },
+    {
+      "fromProfileId": "agentic-workflow-system",
+      "toProfileId": "reddi-protocol-treasury",
+      "fromLocalWalletAddress": "2dgi4RtUnciYtULLx5hJpqEBAiUVS37ZDzWSbkEPWvyV",
+      "toLocalWalletAddress": "2gZCkmuXQF97V6v5QrTZVepPbTAXKLyySJEwWuPPqCC6",
+      "amountLamports": 500,
+      "signature": "36jNP9zzFLpYRBorbtzQ53NnsEDDB8nyX4JgVWsWKnvWYNqW4a6qrSgETRM5XRGdfbXDchAvkaf28UDrrmvsWqgj",
+      "status": "executed",
+      "category": "protocol_rail_fee",
+      "feeBps": 5,
+      "feeOnTransferLamports": 1000000
+    },
+    {
+      "fromProfileId": "agentic-workflow-system",
+      "toProfileId": "verification-validation-agent",
+      "fromLocalWalletAddress": "2dgi4RtUnciYtULLx5hJpqEBAiUVS37ZDzWSbkEPWvyV",
+      "toLocalWalletAddress": "83vL64mCMkBtWD7kXKrJPF34g2jn8yB4xTEUa2WkkLfM",
+      "amountLamports": 500000,
+      "signature": "5A8sBC9H3d6CDsMzgjt7jEKzRg1KZ2iJmHm4unPpeo1R7PHwJR66o9bbNYJ1MgNNVdke3Co7cu8feqh4bZ9x97oR",
+      "status": "executed",
+      "category": "downstream_agent_payment"
+    },
+    {
+      "fromProfileId": "agentic-workflow-system",
+      "toProfileId": "reddi-protocol-treasury",
+      "fromLocalWalletAddress": "2dgi4RtUnciYtULLx5hJpqEBAiUVS37ZDzWSbkEPWvyV",
+      "toLocalWalletAddress": "2gZCkmuXQF97V6v5QrTZVepPbTAXKLyySJEwWuPPqCC6",
+      "amountLamports": 250,
+      "signature": "3DxcVNe592KrsPbowdufo1btfjxiwsNjp9iPLxKyt5FQZPUDy7297YM4ahk9ThFskPrNs1AZspbC1Ko2TY7tLx3x",
+      "status": "executed",
+      "category": "protocol_rail_fee",
+      "feeBps": 5,
+      "feeOnTransferLamports": 500000
+    }
+  ],
+  "positiveProof": {
+    "upfrontFundingLamports": 3331250,
+    "downstreamTransferAmountLamports": 2500000,
+    "grossExecutedLamports": 5832500,
+    "totalDebitedLamports": 3336250,
+    "totalCreditedLamports": 3301250,
+    "specialistCreditedLamports": 2500000,
+    "orchestratorDeltaLamports": 800000,
+    "specialistCreditsMatchDownstreamTransfers": true,
+    "protocolTreasuryCreditedLamports": 1250,
+    "protocolFeeMatchesExpectedBps": true,
+    "upfrontCoversDownstreamBudget": true,
+    "orchestratorRetainsPositiveMarkupBeforeFees": true
+  },
+  "negativeProof": {
+    "blockedTransfers": [
+      {
+        "reason": "not_allowlisted",
+        "amountLamports": 1000000,
+        "status": "not_executed"
+      },
+      {
+        "reason": "over_budget",
+        "amountLamports": 2000001,
+        "status": "not_executed"
+      }
+    ],
+    "totalBlockedDeltaLamports": 0
+  },
+  "guardrails": [
+    "Surfpool offline local validator only",
+    "No devnet wallet mutation",
+    "No downstream specialist HTTP calls",
+    "Every agent-to-agent transfer through Reddi Agent Protocol rails pays a 0.05% protocol fee to protocol treasury",
+    "No private key material written to artifact"
+  ]
+}
