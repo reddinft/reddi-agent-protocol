@@ -38,9 +38,9 @@ Even frontier general-purpose LLMs are **jagged**: they can perform spectacularl
 
 Raw general-purpose LLMs are powerful but inconsistent. They can be brilliant in one workflow and brittle in the next because their capability surface is shaped by opaque training data and lab priorities.
 
-### Reddi framing
+### Reddi Agent Protocol framing
 
-Reddi turns jagged model capability into an **agent marketplace with verifiable specialization**:
+Reddi Agent Protocol turns jagged model capability into an **agent marketplace with verifiable specialization**:
 
 - specialist profiles expose which jobs an agent is meant to perform;
 - payment gates turn work into explicit economic transactions;
@@ -57,6 +57,12 @@ A specialist agent is not merely a smaller prompt around a big model. It is a pa
 - **Economic accountability:** the agent is paid for work and can earn or lose reputation.
 - **Routing discipline:** the system chooses the right agent for the job instead of assuming one model is uniformly good at everything.
 - **Human control:** the user triggers, reviews, and approves costly or sensitive actions.
+
+## Malatang analogy
+
+We are experimenting with **Malatang** as an analogy, not as the product name. The idea: users choose the ingredients they need, the system assembles them into a coherent bowl, and the value comes from composability plus a repeatable preparation layer. In Reddi Agent Protocol terms, specialist agents are the ingredients, `reddi-x402` is the payment-gated ordering/checkout rail, and attestations/reputation are the receipt and quality memory.
+
+For now, do not rename the product to Malatang. Use it only as a way to explain how specialist-agent composition works.
 
 ## Pitch deck copy options
 
@@ -87,7 +93,7 @@ Suggested sequence:
 1. Frontier LLMs unlocked general capability.
 2. But capability is jagged and opaque.
 3. Work needs specialization, routing, and verification.
-4. Reddi provides the economic protocol for specialist agents.
+4. Reddi Agent Protocol provides the economic protocol for specialist agents, with `reddi-x402` as the key user package for x402 payment-gated agent work.
 
 ## Evidence-safe wording
 
@@ -95,11 +101,11 @@ Use:
 
 - “Inspired by Karpathy’s jagged capability framing.”
 - “General-purpose models still need domain scaffolding and verification.”
-- “Reddi provides a protocol layer for routed, paid, attestable specialist work.”
+- “Reddi Agent Protocol provides a protocol layer for routed, paid, attestable specialist work, packaged for users through `reddi-x402`.”
 
 Avoid:
 
-- “Karpathy endorses Reddi.”
+- “Karpathy endorses Reddi Agent Protocol.”
 - “Specialist agents are always more capable than frontier models.”
 - “General-purpose LLMs cannot do specialist work.”
 
