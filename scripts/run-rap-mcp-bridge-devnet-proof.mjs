@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { createHash } from "node:crypto";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -20,6 +20,8 @@ const outDir = join(rootDir, "artifacts", "rap-mcp-bridge-devnet-proof", timesta
 mkdirSync(outDir, { recursive: true });
 
 const rpcUrl = process.env.RAP_MCP_DEVNET_RPC_URL ?? clusterApiUrl("devnet");
+const devnetProofApproved = process.env.RAP_MCP_DEVNET_PROOF_APPROVED === "1";
+const funderKeypairPath = process.env.RAP_MCP_DEVNET_FUNDER_KEYPAIR;
 const maxTotalDebitLamports = Number(process.env.RAP_MCP_DEVNET_MAX_TOTAL_DEBIT_LAMPORTS ?? 100_050);
 const scenario = {
   quoteId: "quote_rap_mcp_bridge_devnet_research_001",
@@ -35,6 +37,12 @@ const scenario = {
 function keypairFor(profileId) {
   const seed = createHash("sha256").update(`reddi-rap-mcp-bridge-devnet:${profileId}`).digest().subarray(0, 32);
   return Keypair.fromSeed(seed);
+}
+
+function loadKeypair(path) {
+  if (!path || !existsSync(path)) return null;
+  const secret = Uint8Array.from(JSON.parse(readFileSync(path, "utf8")));
+  return Keypair.fromSecretKey(secret);
 }
 
 function sleep(ms) {
@@ -88,10 +96,25 @@ async function retryAirdrop(connection, publicKey, lamports) {
   throw lastError;
 }
 
-async function ensureHostBalance(connection, host, lamportsNeeded) {
+async function transferFunding(connection, funder, recipient, lamports, category) {
+  const tx = new Transaction().add(SystemProgram.transfer({
+    fromPubkey: funder.publicKey,
+    toPubkey: recipient,
+    lamports,
+  }));
+  const signature = await sendAndConfirmTransaction(connection, tx, [funder], { commitment: "confirmed" });
+  return { signature, category, source: "configured_funder_wallet", lamports };
+}
+
+async function ensureHostBalance(connection, host, lamportsNeeded, funder) {
   const current = await connection.getBalance(host.publicKey);
   if (current >= lamportsNeeded) {
     return { signature: null, source: "existing_balance", startingBalanceLamports: current };
+  }
+  if (funder) {
+    const topUpLamports = lamportsNeeded - current + 1_000_000;
+    const funding = await transferFunding(connection, funder, host.publicKey, topUpLamports, "host_top_up");
+    return { ...funding, startingBalanceLamports: await connection.getBalance(host.publicKey) };
   }
   const signature = await retryAirdrop(connection, host.publicKey, lamportsNeeded - current + 1_000_000);
   return { signature, source: "devnet_airdrop", startingBalanceLamports: await connection.getBalance(host.publicKey) };
@@ -112,6 +135,10 @@ async function ensureRentSafeRecipient(connection, host, publicKey, minimumLampo
 }
 
 async function main() {
+  if (!devnetProofApproved) {
+    throw new Error("devnet_proof_requires_explicit_opt_in:set_RAP_MCP_DEVNET_PROOF_APPROVED=1");
+  }
+
   const protocolFeeLamports = protocolFeeLamportsFor(scenario.downstreamAmountLamports);
   const totalDebitLamports = scenario.downstreamAmountLamports + protocolFeeLamports;
   if (totalDebitLamports > maxTotalDebitLamports) {
@@ -121,6 +148,7 @@ async function main() {
   const connection = new Connection(rpcUrl, "confirmed");
   await connection.getVersion();
 
+  const configuredFunder = loadKeypair(funderKeypairPath);
   const host = keypairFor(scenario.host);
   const specialist = keypairFor(scenario.specialist);
   const treasury = keypairFor(scenario.protocolTreasury);
@@ -135,7 +163,7 @@ async function main() {
   if (setupLamportsNeeded > LAMPORTS_PER_SOL / 100) {
     throw new Error(`setup_cap_exceeded:${setupLamportsNeeded}`);
   }
-  const hostFunding = await ensureHostBalance(connection, host, setupLamportsNeeded);
+  const hostFunding = await ensureHostBalance(connection, host, setupLamportsNeeded, configuredFunder);
   // Devnet SystemProgram transfers to previously-empty accounts can fail rent checks
   // for tiny protocol-fee amounts. Use host-funded setup transfers before the proof
   // snapshot, avoiding extra faucet calls and keeping proof deltas clean.
@@ -250,6 +278,7 @@ async function main() {
     },
     guardrails: [
       "Solana devnet only",
+      "Optional configured funder wallet only tops up deterministic devnet proof host",
       "Explicit maxTotalDebitLamports cap enforced before transfers",
       "No mainnet path",
       "No specialist HTTP invocation",

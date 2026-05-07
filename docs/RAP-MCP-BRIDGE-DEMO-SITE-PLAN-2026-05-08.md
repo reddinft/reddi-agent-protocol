@@ -296,3 +296,14 @@ artifacts/rap-mcp-bridge-demo-YYYYMMDD/
 - Every panel labels proof boundary honestly.
 - Disclosure ledger is downloadable.
 - Screen recording script does not overclaim production settlement.
+
+
+## Devnet proof execution guard
+
+The bounded devnet proof helper mutates Solana devnet and therefore requires explicit opt-in:
+
+```bash
+RAP_MCP_DEVNET_PROOF_APPROVED=1 npm run smoke:rap-mcp-bridge:devnet-proof
+```
+
+When a pre-funded devnet wallet is available, pass it via `RAP_MCP_DEVNET_FUNDER_KEYPAIR=/path/to/keypair.json` to avoid relying on the public faucet. The helper still enforces the default `100050` lamport total-debit cap and has no mainnet path.
