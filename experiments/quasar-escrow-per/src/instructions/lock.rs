@@ -15,7 +15,10 @@
 use {
     crate::{
         events::EscrowLocked,
-        state::{EscrowAccount, EscrowAccountInner, EscrowStatus, UserEscrowCounter, UserEscrowCounterInner},
+        state::{
+            EscrowAccount, EscrowAccountInner, EscrowStatus, UserEscrowCounter,
+            UserEscrowCounterInner,
+        },
     },
     quasar_lang::{
         prelude::*,

@@ -13,6 +13,13 @@ pub enum EscrowStatus {
     Cancelled = 2,
 }
 
+/// Agent vault status for self-custodied protocol vaults.
+#[repr(u8)]
+#[derive(Copy, Clone, PartialEq, Eq)]
+pub enum AgentVaultStatus {
+    Active = 0,
+}
+
 /// Tracks the next escrow id for a payer.
 /// PDA seeds: [b"counter", payer]
 #[account(discriminator = 9, set_inner)]
@@ -38,10 +45,33 @@ pub struct EscrowAccount {
     pub payee: Address,
     pub escrow_id: u64,
     pub amount: u64,
-    pub status: u8,        // EscrowStatus as u8 — POC keeps it simple
+    pub status: u8, // EscrowStatus as u8 — POC keeps it simple
     pub created_at: i64,
     pub created_slot: u64,
     pub bump: u8,
+}
+
+/// Self-custodied agent payment vault.
+///
+/// PDA seeds: [b"agent_vault", authority]
+///
+/// The vault is program-owned state that can be delegated to MagicBlock PER.
+/// Funds credited here are withdrawable only by `authority`.
+#[account(discriminator = 11, set_inner)]
+#[seeds(b"agent_vault", authority: Address)]
+pub struct AgentVault {
+    pub authority: Address,
+    pub balance: u64,
+    pub lifetime_credited: u64,
+    pub lifetime_withdrawn: u64,
+    pub status: u8,
+    pub bump: u8,
+}
+
+impl AgentVault {
+    pub fn is_active(&self) -> bool {
+        self.status == AgentVaultStatus::Active as u8
+    }
 }
 
 impl EscrowAccount {

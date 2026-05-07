@@ -9,8 +9,8 @@
 extern crate std;
 
 use {
-    quasar_lang::traits::HasSeeds,
     crate::state::CANCEL_WINDOW_SLOTS,
+    quasar_lang::traits::HasSeeds,
     quasar_svm::{Account, AccountMeta, Instruction, Pubkey, QuasarSvm},
     std::{println, vec},
 };
@@ -18,10 +18,13 @@ use {
 // ── Setup ─────────────────────────────────────────────────────────────────────
 
 fn setup() -> QuasarSvm {
-    let elf = std::fs::read(
-        concat!(env!("CARGO_MANIFEST_DIR"), "/target/deploy/quasar_escrow_per_poc.so"),
-    )
-    .expect("build .so first: cargo build-sbf --manifest-path experiments/quasar-escrow-per/Cargo.toml");
+    let elf = std::fs::read(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/target/deploy/quasar_escrow_per_poc.so"
+    ))
+    .expect(
+        "build .so first: cargo build-sbf --manifest-path experiments/quasar-escrow-per/Cargo.toml",
+    );
     QuasarSvm::new().with_program(&crate::ID, &elf)
 }
 
@@ -41,7 +44,10 @@ fn empty(address: Pubkey) -> Account {
 
 fn counter_pda(payer: &Pubkey) -> Pubkey {
     Pubkey::find_program_address(
-        &[<crate::state::UserEscrowCounter as HasSeeds>::SEED_PREFIX, payer.as_ref()],
+        &[
+            <crate::state::UserEscrowCounter as HasSeeds>::SEED_PREFIX,
+            payer.as_ref(),
+        ],
         &crate::ID,
     )
     .0
@@ -54,6 +60,17 @@ fn escrow_pda(payer: &Pubkey, escrow_id: u64) -> Pubkey {
             <crate::state::EscrowAccount as HasSeeds>::SEED_PREFIX,
             payer.as_ref(),
             &escrow_id_bytes,
+        ],
+        &crate::ID,
+    )
+    .0
+}
+
+fn agent_vault_pda(authority: &Pubkey) -> Pubkey {
+    Pubkey::find_program_address(
+        &[
+            <crate::state::AgentVault as HasSeeds>::SEED_PREFIX,
+            authority.as_ref(),
         ],
         &crate::ID,
     )
@@ -113,6 +130,50 @@ fn cancel_ix(payer: Pubkey, escrow: Pubkey, escrow_id: u64) -> Instruction {
     }
 }
 
+fn prepare_agent_vault_ix(payer: Pubkey, authority: Pubkey, vault: Pubkey) -> Instruction {
+    Instruction {
+        program_id: crate::ID,
+        accounts: vec![
+            AccountMeta::new(payer, true),
+            AccountMeta::new_readonly(authority, false),
+            AccountMeta::new(vault, false),
+            AccountMeta::new_readonly(quasar_svm::system_program::ID, false),
+        ],
+        data: vec![81, 80, 69, 82, 86, 65, 76, 84], // QPERVALT
+    }
+}
+
+fn take_to_agent_vault_ix(
+    payer: Pubkey,
+    escrow: Pubkey,
+    vault: Pubkey,
+    escrow_id: u64,
+) -> Instruction {
+    let mut data = vec![81, 80, 69, 82, 86, 84, 65, 75]; // QPERVTAK
+    data.extend_from_slice(&escrow_id.to_le_bytes());
+    Instruction {
+        program_id: crate::ID,
+        accounts: vec![
+            AccountMeta::new(payer, true),
+            AccountMeta::new(escrow, false),
+            AccountMeta::new(vault, false),
+        ],
+        data,
+    }
+}
+
+fn withdraw_agent_vault_ix(authority: Pubkey, vault: Pubkey, amount: u64) -> Instruction {
+    let mut data = vec![81, 80, 69, 82, 86, 87, 68, 82]; // QPERVWDR
+    data.extend_from_slice(&amount.to_le_bytes());
+    Instruction {
+        program_id: crate::ID,
+        accounts: vec![
+            AccountMeta::new(authority, true),
+            AccountMeta::new(vault, false),
+        ],
+        data,
+    }
+}
 
 fn undelegate_callback_ix(escrow: Pubkey) -> Instruction {
     Instruction {
@@ -141,7 +202,10 @@ fn test_magicblock_undelegate_callback_rejects_wrong_discriminator() {
     ix.data[0] ^= 0xff;
 
     let result = svm.process_instruction(&ix, &[empty(escrow)]);
-    assert!(result.is_err(), "wrong MagicBlock callback discriminator must fail");
+    assert!(
+        result.is_err(),
+        "wrong MagicBlock callback discriminator must fail"
+    );
 }
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
@@ -167,7 +231,10 @@ fn test_lock_and_release() {
     lock_result.assert_success();
     println!("  LOCK CU:    {}", lock_result.compute_units_consumed);
 
-    let escrow_lamports = lock_result.account(&escrow).expect("escrow exists").lamports;
+    let escrow_lamports = lock_result
+        .account(&escrow)
+        .expect("escrow exists")
+        .lamports;
     assert!(escrow_lamports >= amount, "escrow holds locked lamports");
 
     // --- Release ---
@@ -185,7 +252,10 @@ fn test_lock_and_release() {
     release_result.assert_success();
     println!("  RELEASE CU: {}", release_result.compute_units_consumed);
 
-    let payee_after = release_result.account(&payee).map(|a| a.lamports).unwrap_or(0);
+    let payee_after = release_result
+        .account(&payee)
+        .map(|a| a.lamports)
+        .unwrap_or(0);
     assert!(payee_after >= payee_before + amount, "payee received funds");
     let escrow_after = release_result.account(&escrow);
     assert!(
@@ -233,7 +303,11 @@ fn test_lock_and_cancel() {
         "payer refunded after cancel"
     );
     assert!(
-        cancel_result.account(&escrow).map(|a| a.lamports).unwrap_or(0) == 0,
+        cancel_result
+            .account(&escrow)
+            .map(|a| a.lamports)
+            .unwrap_or(0)
+            == 0,
         "escrow PDA should be closed (lamports=0) after cancel"
     );
 }
@@ -324,7 +398,11 @@ fn test_release_after_cancel_fails() {
     );
     cancel_result.assert_success();
     assert!(
-        cancel_result.account(&escrow).map(|a| a.lamports).unwrap_or(0) == 0,
+        cancel_result
+            .account(&escrow)
+            .map(|a| a.lamports)
+            .unwrap_or(0)
+            == 0,
         "escrow should be closed after cancel"
     );
 
@@ -333,8 +411,14 @@ fn test_release_after_cancel_fails() {
         &release_ix(payer, payee, escrow, escrow_id),
         &[
             cancel_result.account(&payer).unwrap().clone(),
-            cancel_result.account(&payee).cloned().unwrap_or(empty(payee)),
-            cancel_result.account(&escrow).cloned().unwrap_or(empty(escrow)), // closed
+            cancel_result
+                .account(&payee)
+                .cloned()
+                .unwrap_or(empty(payee)),
+            cancel_result
+                .account(&escrow)
+                .cloned()
+                .unwrap_or(empty(escrow)), // closed
         ],
     );
 
@@ -358,7 +442,12 @@ fn test_multiple_escrows_per_payer() {
 
     let first = svm.process_instruction(
         &lock_ix(payer, payee_a, counter, escrow0, 100_000_000, 0),
-        &[funded(payer), empty(payee_a), empty(counter), empty(escrow0)],
+        &[
+            funded(payer),
+            empty(payee_a),
+            empty(counter),
+            empty(escrow0),
+        ],
     );
     first.assert_success();
 
@@ -407,4 +496,180 @@ fn test_audit_cancel_before_window_rejected() {
         cancel_result.is_err(),
         "audit HIGH-1 regression: cancel before CANCEL_WINDOW_SLOTS must fail"
     );
+}
+
+/// Test 11: self-custodied agent vault settlement model.
+#[test]
+fn test_agent_vault_credit_and_withdraw() {
+    let mut svm = setup();
+
+    let payer = Pubkey::new_unique();
+    let agent = Pubkey::new_unique();
+    let counter = counter_pda(&payer);
+    let escrow_id = 0u64;
+    let escrow = escrow_pda(&payer, escrow_id);
+    let vault = agent_vault_pda(&agent);
+    let amount: u64 = 1_000_000_000;
+
+    let lock_result = svm.process_instruction(
+        &lock_ix(payer, agent, counter, escrow, amount, escrow_id),
+        &[funded(payer), empty(agent), empty(counter), empty(escrow)],
+    );
+    lock_result.assert_success();
+
+    let prepare_result = svm.process_instruction(
+        &prepare_agent_vault_ix(payer, agent, vault),
+        &[
+            lock_result.account(&payer).unwrap().clone(),
+            lock_result.account(&agent).cloned().unwrap_or(empty(agent)),
+            empty(vault),
+        ],
+    );
+    prepare_result.assert_success();
+
+    let vault_before_credit = prepare_result.account(&vault).unwrap().lamports;
+    let credit_result = svm.process_instruction(
+        &take_to_agent_vault_ix(payer, escrow, vault, escrow_id),
+        &[
+            prepare_result.account(&payer).unwrap().clone(),
+            lock_result.account(&escrow).unwrap().clone(),
+            prepare_result.account(&vault).unwrap().clone(),
+        ],
+    );
+    credit_result.assert_success();
+
+    let vault_after_credit = credit_result.account(&vault).unwrap().lamports;
+    assert!(
+        vault_after_credit >= vault_before_credit + amount,
+        "agent vault received escrowed funds"
+    );
+
+    let agent_before_withdraw = credit_result
+        .account(&agent)
+        .map(|a| a.lamports)
+        .unwrap_or(0);
+    let withdraw_result = svm.process_instruction(
+        &withdraw_agent_vault_ix(agent, vault, amount),
+        &[
+            credit_result
+                .account(&agent)
+                .cloned()
+                .unwrap_or(empty(agent)),
+            credit_result.account(&vault).unwrap().clone(),
+        ],
+    );
+    withdraw_result.assert_success();
+
+    let agent_after_withdraw = withdraw_result.account(&agent).unwrap().lamports;
+    assert!(
+        agent_after_withdraw >= agent_before_withdraw + amount,
+        "agent wallet withdrew from self-custodied vault"
+    );
+}
+
+/// Test 12: wrong agent vault cannot receive an escrow credit.
+#[test]
+fn test_agent_vault_wrong_authority_rejected() {
+    let mut svm = setup();
+
+    let payer = Pubkey::new_unique();
+    let agent = Pubkey::new_unique();
+    let wrong_agent = Pubkey::new_unique();
+    let counter = counter_pda(&payer);
+    let escrow_id = 0u64;
+    let escrow = escrow_pda(&payer, escrow_id);
+    let wrong_vault = agent_vault_pda(&wrong_agent);
+    let amount: u64 = 500_000_000;
+
+    let lock_result = svm.process_instruction(
+        &lock_ix(payer, agent, counter, escrow, amount, escrow_id),
+        &[funded(payer), empty(agent), empty(counter), empty(escrow)],
+    );
+    lock_result.assert_success();
+
+    let prepare_result = svm.process_instruction(
+        &prepare_agent_vault_ix(payer, wrong_agent, wrong_vault),
+        &[
+            lock_result.account(&payer).unwrap().clone(),
+            empty(wrong_agent),
+            empty(wrong_vault),
+        ],
+    );
+    prepare_result.assert_success();
+
+    let credit_result = svm.process_instruction(
+        &take_to_agent_vault_ix(payer, escrow, wrong_vault, escrow_id),
+        &[
+            prepare_result.account(&payer).unwrap().clone(),
+            lock_result.account(&escrow).unwrap().clone(),
+            prepare_result.account(&wrong_vault).unwrap().clone(),
+        ],
+    );
+
+    assert!(
+        credit_result.is_err(),
+        "wrong agent vault must not be credited"
+    );
+}
+
+/// Test 13: agent cannot double-withdraw beyond vault balance.
+#[test]
+fn test_agent_vault_double_withdraw_rejected() {
+    let mut svm = setup();
+
+    let payer = Pubkey::new_unique();
+    let agent = Pubkey::new_unique();
+    let counter = counter_pda(&payer);
+    let escrow_id = 0u64;
+    let escrow = escrow_pda(&payer, escrow_id);
+    let vault = agent_vault_pda(&agent);
+    let amount: u64 = 250_000_000;
+
+    let lock_result = svm.process_instruction(
+        &lock_ix(payer, agent, counter, escrow, amount, escrow_id),
+        &[funded(payer), empty(agent), empty(counter), empty(escrow)],
+    );
+    lock_result.assert_success();
+
+    let prepare_result = svm.process_instruction(
+        &prepare_agent_vault_ix(payer, agent, vault),
+        &[
+            lock_result.account(&payer).unwrap().clone(),
+            lock_result.account(&agent).cloned().unwrap_or(empty(agent)),
+            empty(vault),
+        ],
+    );
+    prepare_result.assert_success();
+
+    let credit_result = svm.process_instruction(
+        &take_to_agent_vault_ix(payer, escrow, vault, escrow_id),
+        &[
+            prepare_result.account(&payer).unwrap().clone(),
+            lock_result.account(&escrow).unwrap().clone(),
+            prepare_result.account(&vault).unwrap().clone(),
+        ],
+    );
+    credit_result.assert_success();
+
+    let first_withdraw = svm.process_instruction(
+        &withdraw_agent_vault_ix(agent, vault, amount),
+        &[
+            credit_result
+                .account(&agent)
+                .cloned()
+                .unwrap_or(empty(agent)),
+            credit_result.account(&vault).unwrap().clone(),
+        ],
+    );
+    first_withdraw.assert_success();
+
+    let second_withdraw = svm.process_instruction(
+        &withdraw_agent_vault_ix(agent, vault, 1),
+        &[
+            first_withdraw.account(&agent).unwrap().clone(),
+            first_withdraw.account(&vault).unwrap().clone(),
+        ],
+    );
+
+    assert!(second_withdraw.is_err(), "double-withdraw must be rejected");
 }

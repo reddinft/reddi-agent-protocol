@@ -274,3 +274,13 @@ Retrospective template:
 - **Safety / approval review:** Docs/BDD/GitHub issue only; no signing/deployment/wallet mutation in Phase 0. Devnet tx approval is recorded for later phases only.
 - **Decision:** continue.
 - **Plan changes for next phase:** Phase 1 should start with a minimal separate crate scaffold and discriminator guard before adding MagicBlock CPI complexity. Keep the old escrow source as a reference, not an edited base.
+
+### Phase 7 — Self-custodied agent vault settlement model
+
+**Expectation:** Instead of mutating arbitrary wallet payees inside MagicBlock TEE, the PER program should support a Quasar-owned agent vault PDA that can be delegated and privately credited, with wallet withdrawal controlled by the agent authority.
+
+**Implementation slice:** Add local-only Quasar vault semantics first: `AgentVault` PDA, `prepare_agent_vault`, `take_to_agent_vault`, and `withdraw_agent_vault`. Keep MagicBlock vault delegation for the next phase.
+
+**Validation:** `cargo build-sbf --manifest-path experiments/quasar-escrow-per/Cargo.toml` passed; `cargo test --manifest-path experiments/quasar-escrow-per/Cargo.toml -- --nocapture` passed 21/21; `npm run check:quasar:per-abi` passed with 9 PER instructions; `npm run check:submission:claim-boundaries`, product naming guard, BDD index, and `git diff --check` passed.
+
+**Review / retrospective:** Nissan's vault framing is the right protocol abstraction. The assign-first wallet delegation probe proved direct wallet delegation can work, but it is a heavy UX/security story. Agent vaults keep self-custody at the withdrawal-authority layer while giving MagicBlock a program-owned delegated account to mutate. Current claim remains local vault settlement semantics only; do not claim MagicBlock private vault credit until vault delegation + TEE smoke are implemented.

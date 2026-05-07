@@ -1,8 +1,5 @@
 use {
-    crate::{
-        magicblock::layout as mb_layout,
-        state::EscrowAccount,
-    },
+    crate::{magicblock::layout as mb_layout, state::EscrowAccount},
     quasar_lang::{cpi::system as quasar_system, prelude::*},
 };
 
@@ -40,7 +37,11 @@ pub struct DelegatePer<'info> {
 
 impl<'info> DelegatePer<'info> {
     #[inline(always)]
-    pub fn delegate_per(&mut self, escrow_id: u64, bumps: &DelegatePerBumps) -> Result<(), ProgramError> {
+    pub fn delegate_per(
+        &mut self,
+        escrow_id: u64,
+        bumps: &DelegatePerBumps,
+    ) -> Result<(), ProgramError> {
         if u64::from(self.escrow.escrow_id) != escrow_id {
             return Err(ProgramError::InvalidArgument);
         }
@@ -68,11 +69,31 @@ impl<'info> DelegatePer<'info> {
         delegate_permission.push_account(self.escrow.to_account_view(), true, true)?;
         delegate_permission.push_account(self.permission.to_account_view(), false, true)?;
         delegate_permission.push_account(self.system_program.to_account_view(), false, false)?;
-        delegate_permission.push_account(self.permission_program.to_account_view(), false, false)?;
-        delegate_permission.push_account(self.permission_delegate_buffer.to_account_view(), false, true)?;
-        delegate_permission.push_account(self.permission_delegation_record.to_account_view(), false, true)?;
-        delegate_permission.push_account(self.permission_delegation_metadata.to_account_view(), false, true)?;
-        delegate_permission.push_account(self.delegation_program.to_account_view(), false, false)?;
+        delegate_permission.push_account(
+            self.permission_program.to_account_view(),
+            false,
+            false,
+        )?;
+        delegate_permission.push_account(
+            self.permission_delegate_buffer.to_account_view(),
+            false,
+            true,
+        )?;
+        delegate_permission.push_account(
+            self.permission_delegation_record.to_account_view(),
+            false,
+            true,
+        )?;
+        delegate_permission.push_account(
+            self.permission_delegation_metadata.to_account_view(),
+            false,
+            true,
+        )?;
+        delegate_permission.push_account(
+            self.delegation_program.to_account_view(),
+            false,
+            false,
+        )?;
         delegate_permission.push_account(self.validator.to_account_view(), false, false)?;
         delegate_permission.set_data(&mb_layout::delegate_permission_data())?;
         delegate_permission.invoke_signed(&seeds)?;
@@ -84,7 +105,8 @@ impl<'info> DelegatePer<'info> {
         let mut escrow_view = self.escrow.to_account_view().clone();
         unsafe { escrow_view.borrow_unchecked_mut().fill(0) };
         unsafe { escrow_view.assign(self.system_program.address()) };
-        quasar_system::assign(&escrow_view, self.delegation_program.address()).invoke_signed(&seeds)?;
+        quasar_system::assign(&escrow_view, self.delegation_program.address())
+            .invoke_signed(&seeds)?;
 
         let validator = self.validator.address().to_bytes();
         let payer = self.payer.address().to_bytes();
@@ -93,10 +115,20 @@ impl<'info> DelegatePer<'info> {
         delegate_escrow.push_account(self.escrow.to_account_view(), true, true)?;
         delegate_escrow.push_account(self.owner_program.to_account_view(), false, false)?;
         delegate_escrow.push_account(self.escrow_delegate_buffer.to_account_view(), false, true)?;
-        delegate_escrow.push_account(self.escrow_delegation_record.to_account_view(), false, true)?;
-        delegate_escrow.push_account(self.escrow_delegation_metadata.to_account_view(), false, true)?;
+        delegate_escrow.push_account(
+            self.escrow_delegation_record.to_account_view(),
+            false,
+            true,
+        )?;
+        delegate_escrow.push_account(
+            self.escrow_delegation_metadata.to_account_view(),
+            false,
+            true,
+        )?;
         delegate_escrow.push_account(self.system_program.to_account_view(), false, false)?;
-        delegate_escrow.set_data(&mb_layout::delegate_escrow_data(validator, payer, escrow_id))?;
+        delegate_escrow.set_data(&mb_layout::delegate_escrow_data(
+            validator, payer, escrow_id,
+        ))?;
         delegate_escrow.invoke_signed(&seeds)
     }
 }
