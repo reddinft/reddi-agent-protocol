@@ -16,14 +16,16 @@
     "clean": "rm -rf dist",
     "build": "tsc -p tsconfig.json",
     "test": "npm run build && node --test dist/tests/*.test.js",
-    "smoke:stdio": "npm run build && node scripts/smoke-stdio.mjs"
+    "smoke:stdio": "npm run build && node scripts/smoke-stdio.mjs",
+    "smoke:devnet": "npm run build && node scripts/smoke-devnet-mcp.mjs"
   },
   "engines": {
     "node": ">=20"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.27.1",
-    "zod": "^3.25.76"
+    "zod": "^3.25.76",
+    "@solana/web3.js": "^1.98.4"
   },
   "devDependencies": {
     "@types/node": "^20",

@@ -38,6 +38,22 @@ export const exportDisclosureLedgerInputSchema = {
   quoteIds: z.array(z.string().max(160)).max(MAX_LEDGER_ENTRIES).default([]),
 };
 
+export const prepareDevnetPaymentInputSchema = {
+  quoteId: z.string().max(160),
+  maxTotalDebitLamports: z.number().int().positive().max(10_000_000).optional(),
+};
+
+export const executeDevnetPaymentInputSchema = {
+  quoteId: z.string().max(160),
+  idempotencyKey: z.string().min(1).max(128),
+  maxTotalDebitLamports: z.number().int().positive().max(10_000_000),
+  approvalPhrase: z.literal("EXECUTE_DEVNET_RAP_PAYMENT"),
+};
+
+export const verifyDevnetReceiptInputSchema = {
+  quoteId: z.string().max(160),
+};
+
 export type ReddiQuote = {
   schemaVersion: "reddi.quote.v1";
   quoteId: string;

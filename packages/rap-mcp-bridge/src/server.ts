@@ -8,13 +8,17 @@ import { RapClient } from "./rap-client.js";
 import { BridgeStore } from "./store.js";
 import {
   discoverInputSchema,
+  executeDevnetPaymentInputSchema,
   exportDisclosureLedgerInputSchema,
+  prepareDevnetPaymentInputSchema,
   requestQuoteInputSchema,
+  verifyDevnetReceiptInputSchema,
   verifyReceiptInputSchema,
 } from "./schemas.js";
 import { requestQuote } from "./tools/request-quote.js";
 import { verifyReceipt } from "./tools/verify-receipt.js";
 import { exportDisclosureLedger } from "./tools/export-disclosure-ledger.js";
+import { executeDevnetPayment, prepareDevnetPayment, verifyDevnetReceipt } from "./tools/devnet-payment.js";
 
 function jsonContent(value: unknown) {
   return { content: [{ type: "text" as const, text: JSON.stringify(value, null, 2) }] };
@@ -22,7 +26,7 @@ function jsonContent(value: unknown) {
 
 export function createServer(env: NodeJS.ProcessEnv = process.env) {
   const config = loadConfig(env);
-  const policy = currentPolicy();
+  const policy = currentPolicy(config.policyMode);
   const client = new RapClient(config);
   const store = new BridgeStore(config.storeDir);
   const server = new McpServer({ name: "reddi-rap-mcp-bridge", version: "0.1.0" });
@@ -47,12 +51,29 @@ export function createServer(env: NodeJS.ProcessEnv = process.env) {
     inputSchema: exportDisclosureLedgerInputSchema,
   }, async (args) => jsonContent(exportDisclosureLedger(args, store)));
 
+  if (config.policyMode === "devnet") {
+    server.registerTool("reddi.prepare_devnet_payment", {
+      description: "Prepare a bounded Solana devnet payment for a bridge quote. Non-mutating readiness check; no mainnet and no specialist invocation.",
+      inputSchema: prepareDevnetPaymentInputSchema,
+    }, async (args) => jsonContent(await prepareDevnetPayment(args, config, store)));
+
+    server.registerTool("reddi.execute_devnet_payment", {
+      description: "Execute a capped, idempotent Solana devnet payment for a bridge quote. Requires explicit env gates and approval phrase; no mainnet and no specialist invocation.",
+      inputSchema: executeDevnetPaymentInputSchema,
+    }, async (args) => jsonContent(await executeDevnetPayment(args, config, store)));
+
+    server.registerTool("reddi.verify_devnet_receipt", {
+      description: "Verify bridge-stored Solana devnet payment receipts. Never claims mainnet settlement.",
+      inputSchema: verifyDevnetReceiptInputSchema,
+    }, async (args) => jsonContent(await verifyDevnetReceipt(args, store)));
+  }
+
   server.registerResource("reddi-policy-current", "reddi://policy/current", {
     title: "Current RAP MCP Bridge policy",
     description: "Dry-run policy state for the RAP MCP Bridge.",
     mimeType: "application/json",
   }, async (uri) => ({
-    contents: [{ uri: uri.href, mimeType: "application/json", text: JSON.stringify({ config: { rapBaseUrl: config.rapBaseUrl, hostFramework: config.hostFramework, agentName: config.agentName }, policy }, null, 2) }],
+    contents: [{ uri: uri.href, mimeType: "application/json", text: JSON.stringify({ config: { rapBaseUrl: config.rapBaseUrl, hostFramework: config.hostFramework, agentName: config.agentName, policyMode: config.policyMode, devnetProofApproved: config.devnetProofApproved, devnetFunderConfigured: Boolean(config.devnetFunderKeypairPath) }, policy }, null, 2) }],
   }));
 
   return server;
