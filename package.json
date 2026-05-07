@@ -19,6 +19,7 @@
     "test:bdd:status": "./scripts/bdd-sweep-latest-status.sh",
     "test:jupiter:live": "./scripts/run-jupiter-live-smoke.sh",
     "test:per:happy": "./scripts/run-per-happy-smoke.sh",
+    "evidence:magicblock:cpi-layout": "node ./scripts/generate-magicblock-cpi-layout-fixture.mjs",
     "test:mainnet:readiness": "./scripts/run-mainnet-readiness-check.sh",
     "test:surfpool:critical": "./scripts/run-surfpool-critical-smoke.sh",
     "test:surfpool:onboarding": "./scripts/run-surfpool-onboarding-attestation-smoke.sh",

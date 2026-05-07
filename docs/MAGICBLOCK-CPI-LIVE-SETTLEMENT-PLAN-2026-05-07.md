@@ -133,6 +133,33 @@ use anchor_lang::solana_program::{
 
 Byte layouts should be copied from the installed JS SDK helpers in `packages/per-client/node_modules/@magicblock-labs/ephemeral-rollups-sdk/lib/instructions/*`.
 
+## Offline CPI layout fixture
+
+A non-mutating fixture generator now derives the MagicBlock instruction layouts from the installed JS SDK:
+
+```bash
+npm run evidence:magicblock:cpi-layout
+```
+
+Output:
+
+```text
+artifacts/magicblock-cpi-layout/latest.json
+```
+
+The fixture includes:
+
+- MagicBlock program constants.
+- Devnet TEE validator key.
+- Sample permission/delegation PDAs.
+- Account metas and instruction data hex for:
+  - `createPermission`
+  - `delegatePermission`
+  - `delegateEscrow`
+  - `commitAndUndelegatePermission`
+
+Important finding from the fixture: all MagicBlock state/permission operations expect the escrow account as a signer for the delegated-account path. Because the escrow is a PDA, the legacy program must use `invoke_signed`; client-only instruction construction is not enough.
+
 ## Tests and validation gates
 
 ### Local tests
