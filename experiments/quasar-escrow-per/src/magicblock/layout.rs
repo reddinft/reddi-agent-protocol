@@ -57,16 +57,16 @@ pub const fn commit_and_undelegate_permission_data() -> [u8; 8] {
     COMMIT_AND_UNDELEGATE_PERMISSION_DISCRIMINATOR
 }
 
-/// Data for Delegation Program `delegate`.
+/// Data for Delegation Program `delegate` for this program's escrow PDA.
 ///
-/// Mirrors the JS SDK layout:
+/// Mirrors the MagicBlock Rust CPI helper Borsh layout:
 /// - 8-byte discriminator
-/// - `commitFrequencyMs` u32 little-endian (`u32::MAX` = SDK default)
-/// - seed vector length u32 little-endian (0 here)
-/// - validator Option: 1 + 32-byte validator pubkey
+/// - `commit_frequency_ms` u32 little-endian (`u32::MAX` = SDK default)
+/// - `seeds: Vec<Vec<u8>>` with this program's escrow seeds, excluding bump
+/// - `validator: Option<Pubkey>` as 1 + 32-byte validator pubkey
 #[inline(always)]
-pub const fn delegate_account_data(validator: [u8; 32]) -> [u8; 49] {
-    let mut out = [0u8; 49];
+pub const fn delegate_escrow_data(validator: [u8; 32], payer: [u8; 32], escrow_id: u64) -> [u8; 107] {
+    let mut out = [0u8; 107];
     let mut offset = 0usize;
     let mut i = 0usize;
     while i < 8 {
@@ -83,13 +83,57 @@ pub const fn delegate_account_data(validator: [u8; 32]) -> [u8; 49] {
     }
     offset += 4;
 
-    let seed_len = 0u32.to_le_bytes();
+    let seed_count = 3u32.to_le_bytes();
     i = 0;
     while i < 4 {
-        out[offset + i] = seed_len[i];
+        out[offset + i] = seed_count[i];
         i += 1;
     }
     offset += 4;
+
+    let seed0_len = 6u32.to_le_bytes();
+    i = 0;
+    while i < 4 {
+        out[offset + i] = seed0_len[i];
+        i += 1;
+    }
+    offset += 4;
+    let seed0 = *b"escrow";
+    i = 0;
+    while i < 6 {
+        out[offset + i] = seed0[i];
+        i += 1;
+    }
+    offset += 6;
+
+    let seed1_len = 32u32.to_le_bytes();
+    i = 0;
+    while i < 4 {
+        out[offset + i] = seed1_len[i];
+        i += 1;
+    }
+    offset += 4;
+    i = 0;
+    while i < 32 {
+        out[offset + i] = payer[i];
+        i += 1;
+    }
+    offset += 32;
+
+    let seed2_len = 8u32.to_le_bytes();
+    i = 0;
+    while i < 4 {
+        out[offset + i] = seed2_len[i];
+        i += 1;
+    }
+    offset += 4;
+    let escrow_id_bytes = escrow_id.to_le_bytes();
+    i = 0;
+    while i < 8 {
+        out[offset + i] = escrow_id_bytes[i];
+        i += 1;
+    }
+    offset += 8;
 
     out[offset] = 1;
     offset += 1;
@@ -127,10 +171,12 @@ mod tests {
     }
 
     #[test]
-    fn delegate_account_data_matches_magicblock_js_sdk_fixture() {
+    fn delegate_escrow_data_matches_magicblock_rust_cpi_shape() {
+        let payer = [7u8; 32];
+        assert_eq!(delegate_escrow_data(DEVNET_TEE_VALIDATOR_BYTES, payer, 2).len(), 107);
         assert_eq!(
-            hex(&delegate_account_data(DEVNET_TEE_VALIDATOR_BYTES)),
-            "0000000000000000ffffffff0000000001053d471a859e732e680bc958f841072b8f3fbc19739be697c4c681126f8c1f74"
+            hex(&delegate_escrow_data(DEVNET_TEE_VALIDATOR_BYTES, payer, 2)),
+            "0000000000000000ffffffff0300000006000000657363726f7720000000070707070707070707070707070707070707070707070707070707070707070708000000020000000000000001053d471a859e732e680bc958f841072b8f3fbc19739be697c4c681126f8c1f74"
         );
     }
 

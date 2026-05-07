@@ -11,6 +11,8 @@
 //! | `[81, 80, 69, 82, 76, 79, 67, 75]` | `make` / lock |
 //! | `[81, 80, 69, 82, 84, 65, 75, 69]` | `take` / release |
 //! | `[81, 80, 69, 82, 82, 69, 70, 68]` | `refund` / cancel |
+//! | `[81, 80, 69, 82, 68, 69, 76, 71]` | MagicBlock delegate PER CPI |
+//! | `[81, 80, 69, 82, 67, 77, 73, 84]` | MagicBlock commit/undelegate PER CPI |
 //! | `[196, 28, 41, 206, 48, 37, 51, 167]` | MagicBlock undelegate callback |
 
 use quasar_lang::prelude::*;
@@ -69,6 +71,24 @@ mod quasar_escrow_per_poc {
         escrow_id: u64,
     ) -> Result<(), ProgramError> {
         ctx.accounts.cancel(escrow_id)
+    }
+
+    /// Delegate escrow state to MagicBlock PER using explicit Quasar CPI.
+    #[instruction(discriminator = [81, 80, 69, 82, 68, 69, 76, 71])]
+    pub fn delegate_per(
+        ctx: Ctx<DelegatePer>,
+        escrow_id: u64,
+    ) -> Result<(), ProgramError> {
+        ctx.accounts.delegate_per(escrow_id, &ctx.bumps)
+    }
+
+    /// Commit and undelegate MagicBlock PER permission state using explicit Quasar CPI.
+    #[instruction(discriminator = [81, 80, 69, 82, 67, 77, 73, 84])]
+    pub fn commit_undelegate_per(
+        ctx: Ctx<CommitUndelegatePer>,
+        escrow_id: u64,
+    ) -> Result<(), ProgramError> {
+        ctx.accounts.commit_undelegate_per(escrow_id, &ctx.bumps)
     }
 
     /// MagicBlock undelegation callback entrypoint.

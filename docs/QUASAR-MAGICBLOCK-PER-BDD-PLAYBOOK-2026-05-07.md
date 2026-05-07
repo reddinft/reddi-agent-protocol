@@ -182,9 +182,70 @@ Retrospective template:
 
 **Validation:** SBF build, cargo tests, PER ABI guard, devnet deploy/upgrade, then a bounded MagicBlock permission/delegation smoke.
 
+### Retrospective — Phase 6B
+
+- **Expected:** The Quasar PER program exposes concrete instructions that invoke MagicBlock Permission/Delegation programs with descriptor-pinned bytes/accounts and escrow PDA signer seeds.
+- **Observed:** Added `delegate_per` and `commit_undelegate_per` Quasar instructions. `delegate_per` builds three `DynCpiCall`s: createPermission, delegatePermission, and delegate escrow. `commit_undelegate_per` builds the commitAndUndelegatePermission CPI. Both derive escrow PDA signer seeds from `[b"escrow", payer, escrow_id, bump]`. Rebuilt and upgraded the deployed devnet PER program.
+- **Validation:** `cargo test --manifest-path experiments/quasar-escrow-per/Cargo.toml` passed 18/18; `cargo build-sbf --manifest-path experiments/quasar-escrow-per/Cargo.toml` passed; `npm run check:quasar:per-abi` passed with 6 PER instructions; upgrade tx `4PsT7HsPM6RbEnKVEdxFuA1kMJGxz11ozVeQoLvfgW2HT3K5LpNJXPzJMQLEhyrR3cWtPyiteitWwnb1tPxa46VG`; `solana program show` shows slot `460637119`, data length `39200`, balance `0.27403608 SOL`; post-upgrade devnet ABI smoke passed with lock tx `5iEqfrTJWZuLizksmNCh2qEYL4wgv44DLhtVSyxxNmAUFnW9SSVU939N3kN5dNkLhZVg63wzJgjPSUVEHncNEdir` and callback tx `4oasrxXMhvBrLg6c746NSvWkPpmGgfNDnndvrhF2Jxy3UJDRBeoDtWzWyQHR5uC62MGxje97jiwbYxDGraENqCWv`.
+- **What worked:** The Quasar-native program now contains actual MagicBlock CPI invocation code, not just byte descriptors. SBF size increased from `26984` to `39200`, and the upgraded program remained callable.
+- **What failed / surprised us:** Upgrade required an additional `0.35 SOL` devnet top-up from treasury because the larger program needed `0.27403608 SOL` rent. The first upgrade failure again emitted a transient buffer recovery phrase; it was redacted immediately. We still need a client-side MagicBlock account derivation/smoke to exercise the new CPI instructions against real MagicBlock accounts.
+- **Safety / approval review:** Devnet-only upgrade/top-up under existing approval. Treasury drawdown was `0.35 SOL` devnet. No mainnet or paid-provider action.
+- **Decision:** continue.
+- **Plan changes for next phase:** Insert Phase 6C: derive MagicBlock permission/delegation accounts client-side using SDK/reference helpers, invoke `delegate_per`, inspect success/failure, then invoke/route `commit_undelegate_per`. If MagicBlock rejects an account derivation or owner-program assumption, record the exact boundary and adjust account mapping rather than falling back to Anchor.
+
+### Phase 6C — MagicBlock account derivation and live CPI smoke
+
+**Expectation:** A bounded devnet script can derive/provide the MagicBlock account set for a Quasar escrow PDA and invoke the new `delegate_per` / `commit_undelegate_per` instructions, capturing either successful Permission/PER lifecycle txs or exact MagicBlock rejection logs.
+
+**Implementation slice:** Extend the devnet smoke with MagicBlock SDK/reference PDA derivation, send `delegate_per` against the upgraded Quasar PER program, inspect MagicBlock account readbacks/logs, then attempt `commit_undelegate_per` only if delegation succeeds.
+
+**Validation:** tx signatures or simulation logs, account readbacks, redacted artifacts, ABI guard, and retrospective.
+
+### Retrospective — Phase 6C
+
+- **Expected:** A bounded devnet script can derive/provide the MagicBlock account set for a Quasar escrow PDA and invoke `delegate_per` / `commit_undelegate_per`, proving the Permission/PER lifecycle or capturing exact rejection logs.
+- **Observed:** Added `scripts/run-quasar-per-magicblock-cpi-smoke.mjs` and `npm run smoke:quasar:per-magicblock-cpi`. The script derives Permission and Delegation PDAs from the installed MagicBlock SDK, generates a redacted TEE auth token when using `https://devnet-tee.magicblock.app`, locks a tiny Quasar PER escrow, invokes `delegate_per`, reads account owners/data lengths, and attempts `commit_undelegate_per` only after delegation succeeds. Live devnet smoke now proves `delegate_per`: createPermission + delegatePermission + delegated escrow ownership all succeed. The successful delegation tx was `3XAZiUS3ZEeysrrctV7TvmrYdeYDqTgmY2qWULKNRAPr41wTQj6Zsn81hVXdgwCz3xZJ7G3JCTaGuCkv2rgVJcj9`; later reruns also succeeded (for example `5tohE8az8SaUdQPQQ5YCYLYDLGzKuqJFXtkz3VEavM4BhqvmqmCwHEKKA35kpczpYmtMHX71CA34cLty6gsBKkmP`). `commit_undelegate_per` remains blocked on the TEE with `ProgramFailedToComplete` / access violation at instruction start; public devnet simulation reaches the Permission Program but fails with `Unsupported program id`, which is expected because commit uses Magic Program support unavailable on public devnet.
+- **Validation:** `node --check scripts/run-quasar-per-magicblock-cpi-smoke.mjs` passed; `cargo test --manifest-path experiments/quasar-escrow-per/Cargo.toml` passed 18/18; `cargo build-sbf --manifest-path experiments/quasar-escrow-per/Cargo.toml` passed; `npm run check:quasar:per-abi` passed; `git diff --check` passed. Devnet upgrades succeeded through slot `460639757`; latest PER program data length is `40320`. Evidence artifacts include `artifacts/quasar-per-magicblock-cpi-smoke/20260507-145115-phase6c-borsh-seeds/`, `20260507-145422-phase6c-tee-auth-commit/`, and `20260507-145608-phase6c-commit-public-sim/`.
+- **What worked:** The critical MagicBlock delegation semantics are now implemented in Quasar-native code: SDK PDA derivation parity, separate Permission-vs-escrow delegate buffers, SDK-style zero-before-assign owner transfer, and Borsh-encoded escrow seeds excluding bump in the Delegation Program payload while keeping bump only in `invoke_signed`.
+- **What failed / surprised us:** The first live attempts exposed three real compatibility defects: `InvalidAccountOwner` until the delegated PDA was assigned to the Delegation Program, illegal owner modification until escrow data was zeroed before ownership transfer, and `TooManySeeds` until the Delegation Program payload carried the same PDA seeds as MagicBlock's Rust CPI helper. After those were fixed, the remaining failure moved to TEE execution of the Quasar wrapper for commit. Direct Permission Program commit on TEE fails with missing escrow signature, confirming the wrapper is still needed.
+- **Safety / approval review:** Devnet-only txs and upgrades under existing bounded approval; TEE auth token metadata is redacted; no mainnet, paid-provider, env/Coolify/Vercel, or external posting action. Repeated smokes consumed devnet SOL only.
+- **Decision:** adjust and continue, but do not claim settlement.
+- **Plan changes for next phase:** Insert Phase 6D to isolate TEE-side Quasar wrapper execution. Compare TEE vs public simulation, verify whether the TEE has the latest upgraded program image, test a minimal no-CPI TEE instruction if needed, and only then retry `commit_undelegate_per`. Keep Phase 7 evidence honest: delegation is proven; commit/settlement is not.
+
+### Phase 6D — TEE wrapper execution isolation
+
+**Expectation:** The remaining commit blocker can be narrowed to either TEE program-image/runtime compatibility, Quasar account validation on delegated accounts, or MagicBlock Permission/Magic Program account requirements.
+
+**Implementation slice:** Add a minimal diagnostic or reuse existing PER instructions to verify the upgraded Quasar PER program executes on TEE after delegation; compare TEE and public simulations; inspect whether TEE is running stale program bytes; then adjust `commit_undelegate_per` account context or routing accordingly.
+
+**Validation:** TEE simulation logs with redacted auth metadata, public-devnet comparison logs, local SBF/tests/ABI guard, and no settlement claim unless commit succeeds.
+
+### Retrospective — Phase 6D loop 1
+
+- **Expected:** If `commit_undelegate_per` was failing because of its account map or CPI body, a minimal Quasar callback on TEE should at least enter the program and fail later/differently.
+- **Observed:** Minimal Quasar PER callback simulation succeeds on public devnet but fails on `https://devnet-tee.magicblock.app` at instruction start with the same `ProgramFailedToComplete` / `Access violation in unknown section at address 0xfffffffffffffff8 of size 8`. The reusable base Quasar escrow program shows the same pattern: public devnet enters the program and returns `NotEnoughAccountKeys`, while TEE fails at instruction start. This narrows the blocker from `commit_undelegate_per` account mapping to a broader Quasar/TEE program-execution compatibility issue.
+- **Validation:** Public callback sim consumed 41 CU and succeeded; TEE callback sim consumed 1 CU and failed before program logic. Base Quasar escrow comparison: public sim reached program logic (`NotEnoughAccountKeys`, 16 CU), TEE sim failed at instruction start with the same access violation.
+- **Toolchain probe:** Built an alternate PER binary with `cargo build-sbf --arch v1` and upgraded devnet program `7ra8FZAHQ6F4SGfJJdjfgLuVnSN8HsGLx5iXq8qxSCpb` at tx `5R9kqL17C42xDBzmaSUUPxUSHyKdf19T5y94L4egRSMtBCCqw6MMXxH4w2M5gCRR3pjCocESkdLnwD1Y38c5Y6Gu`. The TEE access violation persisted, so this is not fixed by simply switching from the default current SBF arch to v1. A Solana 2.1.21/platform-tools v1.43 build probe failed before SBF output because current Quasar dependencies include `wincode-derive 0.4.4` / edition-2024 metadata, which Cargo 1.79 cannot parse.
+- **What worked:** The diagnostic separated MagicBlock delegation success from TEE execution failure cleanly and showed the issue affects both PER and base Quasar programs.
+- **What failed / surprised us:** Deploying the v1 probe first failed for insufficient payer balance and emitted a transient deploy buffer recovery phrase; the artifact log was redacted, and payer was topped up by `0.4 SOL` devnet from treasury. A test expectation still included the old bump-in-seed-payload byte; tests now pin the corrected MagicBlock Rust CPI payload shape with bump excluded from the Borsh seed vector.
+- **Safety / approval review:** Devnet-only upgrade/top-up under existing bounded approval; no settlement claim; no mainnet/paid provider/env mutation. Artifact deploy logs are redacted locally.
+- **Decision:** adjust. Treat Phase 6D as Quasar-on-MagicBlock-TEE compatibility isolation, not just commit account-map debugging.
+- **Plan changes for next loop:** Try one narrower compatibility fork before stopping: either (a) build/deploy a minimal non-Quasar native no-op program to the same devnet/TEE path to prove TEE can execute locally deployed SBF generally, or (b) if cost/time is constrained, document that MagicBlock TEE currently cannot execute Quasar-compiled programs while public devnet can. Do not spend more devnet SOL on repeated PER smokes until the TEE execution boundary is resolved.
+
+### Retrospective — Phase 6D loop 2
+
+- **Expected:** A tiny non-Quasar native SBF no-op program should tell us whether the TEE can execute freshly deployed non-Anchor/non-Quasar programs at all.
+- **Observed:** Built and deployed a minimal native SBF no-op probe at program `gLzmiJdygErz3nKJk5X8mx3nphcVeTVTLdKAuacMeGo` (deploy tx `34yUAesudkeHzEV1MRnrai6M7SXZRLsWJDp5NJvW6ph6Ec144Dkr8uu7bdNMFpYab9jGUpyd2audGzYaN6gvmBZK`). Direct TEE simulation did not reach execution; it failed during MagicBlock cloning with `Cloner error: Failed to clone program ... InvalidAccountData`. This is a different boundary from Quasar PER after delegation: the Quasar program is cloned/present on TEE after MagicBlock delegation but fails at execution start.
+- **Validation:** Native probe build/deploy passed; TEE direct sim captured the cloner failure. Local PER gates after fixture correction passed: `cargo test --manifest-path experiments/quasar-escrow-per/Cargo.toml`, `cargo build-sbf --manifest-path experiments/quasar-escrow-per/Cargo.toml`, `npm run check:quasar:per-abi`, and `git diff --check`.
+- **What worked:** The probe confirmed direct TEE calls to a freshly deployed program are not enough; the program needs a MagicBlock delegation path before it becomes comparable to the Quasar PER case.
+- **What failed / surprised us:** The native no-op without delegated state cannot prove general TEE execution because MagicBlock rejects it at clone time. A comparable non-Quasar probe would need to implement delegation support, which starts becoming a parallel MagicBlock integration rather than a cheap diagnostic.
+- **Safety / approval review:** Devnet-only tiny native program deploy; no mainnet/paid provider/env mutation. No settlement claim.
+- **Decision:** pause further live spend-heavy probes unless we choose to build a native MagicBlock delegation control. Current honest boundary: Quasar PER delegation succeeds on base devnet, but MagicBlock TEE cannot execute the delegated Quasar program image in our tests.
+- **Plan changes for next phase:** Focus on packaging evidence honestly and, if time allows, open/prepare a minimal reproduction for MagicBlock/Quasar maintainers: public devnet succeeds, TEE cloned image fails at instruction start, exact program IDs/tx/artifacts included.
+
 ### Phase 7 — Final evidence + demo integration guard
 
-**Expectation:** Judge/operator evidence can honestly claim Quasar-native MagicBlock PER only if Phase 6B proves settlement; otherwise it clearly presents the remaining boundary without overstating.
+**Expectation:** Judge/operator evidence can honestly claim Quasar-native MagicBlock PER only if Phase 6C proves settlement; otherwise it clearly presents the remaining boundary without overstating.
 
 **Implementation slice:** update judge packet, operator checklist, demo evidence generator, and readiness guard.
 

@@ -135,11 +135,15 @@ pub const fn delegate_permission_descriptor() -> CpiDescriptor<11, 8> {
     )
 }
 
-pub const fn delegate_escrow_descriptor(validator: [u8; 32]) -> CpiDescriptor<7, 49> {
+pub const fn delegate_escrow_descriptor(
+    validator: [u8; 32],
+    payer: [u8; 32],
+    escrow_id: u64,
+) -> CpiDescriptor<7, 107> {
     CpiDescriptor::new(
         ProgramRole::Delegation,
         DELEGATE_ESCROW_ACCOUNTS,
-        layout::delegate_account_data(validator),
+        layout::delegate_escrow_data(validator, payer, escrow_id),
         Some(AccountRole::DelegatedAccount),
     )
 }
@@ -240,11 +244,11 @@ mod tests {
             Some(AccountRole::PermissionedAccount)
         );
 
-        let delegate_escrow = delegate_escrow_descriptor(DEVNET_TEE_VALIDATOR_BYTES);
+        let delegate_escrow = delegate_escrow_descriptor(DEVNET_TEE_VALIDATOR_BYTES, [7u8; 32], 2);
         assert_eq!(delegate_escrow.program, ProgramRole::Delegation);
         assert_eq!(
             hex(&delegate_escrow.data),
-            "0000000000000000ffffffff0000000001053d471a859e732e680bc958f841072b8f3fbc19739be697c4c681126f8c1f74"
+            "0000000000000000ffffffff0300000006000000657363726f7720000000070707070707070707070707070707070707070707070707070707070707070708000000020000000000000001053d471a859e732e680bc958f841072b8f3fbc19739be697c4c681126f8c1f74"
         );
         assert_eq!(delegate_escrow.signer_role, Some(AccountRole::DelegatedAccount));
 

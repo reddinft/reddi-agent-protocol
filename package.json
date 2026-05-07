@@ -47,6 +47,7 @@
     "check:quasar:critical-success": "node ./scripts/check-quasar-critical-success.mjs",
     "check:quasar:per-abi": "node ./scripts/check-quasar-per-abi.mjs",
     "smoke:quasar:per-devnet": "node ./scripts/run-quasar-per-devnet-smoke.mjs",
+    "smoke:quasar:per-magicblock-cpi": "node ./scripts/run-quasar-per-magicblock-cpi-smoke.mjs",
     "test:surfpool:quasar-critical": "./scripts/run-surfpool-quasar-critical-smoke.sh",
     "evidence:economic-demo:upfront-payment": "node ./scripts/generate-economic-demo-upfront-payment-evidence.mjs",
     "smoke:economic-demo:jupiter-quote": "node ./scripts/run-economic-demo-jupiter-quote-proof.mjs",
