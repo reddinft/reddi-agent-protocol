@@ -22,22 +22,33 @@ This is the judge/operator map for what the current economic demo evidence prove
    - Proves: local no-real-funds x402 challenge flow can use a swap-shaped SOL→USDC auto-route before satisfying a specialist payment.
    - Does not prove: successful public Jupiter devnet execution or mainnet Jupiter settlement.
 
-4. **Live Jupiter quote-only proof**
+4. **Pay.sh / `reddi-x402` sandbox charge compatibility**
+   - Script: `npm run evidence:pay-sh:reddi-x402 -- artifacts/pay-sh-reddi-x402/20260507T064842Z`
+   - Latest artifact: `artifacts/pay-sh-reddi-x402/20260507T064842Z/SUMMARY.md`
+   - Proves: Pay.sh sandbox gateway compatibility for the Reddi Agent Protocol `reddi-x402` single-recipient charge flow: HTTP 402 / MPP challenge → Pay.sh sandbox payment → HTTP 200 with Solana payment receipt success.
+   - Does not prove: mainnet payment, Umbra private settlement, MagicBlock PER settlement, capped session settlement, or split-payment settlement.
+
+5. **Pay.sh capped-session and split-payment probes**
+   - Artifacts: `artifacts/pay-sh-reddi-x402/20260507T065805Z-session-splits/SUMMARY.md` and `artifacts/pay-sh-reddi-x402/20260507T065908Z-splits/SUMMARY.md`
+   - Proves: Pay.sh 0.16.0 emits richer MPP challenge metadata for session and split variants.
+   - Does not prove: successful paid retry or settlement; both probes returned `Server returned 402 again after payment`.
+
+6. **Live Jupiter quote-only proof**
    - Script: `npm run smoke:economic-demo:jupiter-quote`
    - Proves: public Jupiter route availability for SOL→USDC at the time of the artifact, including output estimate, slippage, and route legs.
    - Does not prove: swap transaction creation, signing, execution, or wallet mutation.
 
-5. **Devnet USDC receipt verification**
+7. **Devnet USDC receipt verification**
    - Script: `npm run verify:economic-demo:devnet-usdc-receipt`
    - Proves: a supplied devnet transaction signature contains a USDC SPL-token transfer to the declared recipient within the approved cap.
    - Does not prove: this repo initiated the payment. It is a verifier, not a signer/sender.
 
-6. **Live payment gate**
+8. **Live payment gate**
    - Script: `npm run check:economic-demo:live-payment-gate`
    - Proves: all required inputs for an actual live receipt lane are explicit before any future executor can run.
    - Does not prove: transfer/swap occurred.
 
-7. **Future gated sender/swap executor**
+9. **Future gated sender/swap executor**
    - Status: not implemented yet.
    - Required before claiming: exact confirmation token, network, spend cap, signer reference, recipient, asset route, and receipt verification artifact.
 
@@ -64,6 +75,8 @@ Safe claims:
 - “The demo shows an upfront-funded consumer-agent workflow.”
 - “Surfpool/local evidence proves payment ordering and budget reconciliation.”
 - “Surfpool/mock-Jupiter evidence proves a successful no-real-funds swap-shaped invoke path.”
+- “Pay.sh / `reddi-x402` evidence proves sandbox HTTP 402-to-paid-receipt compatibility for a single-recipient charge.”
+- “Pay.sh capped sessions and split payments are extension probes only.”
 - “Public Jupiter quote evidence proves route availability, not an executed devnet swap.”
 - “Devnet USDC receipt verification is ready and fail-closed; a verified receipt requires a supplied devnet transaction signature.”
 
@@ -74,6 +87,9 @@ Do not claim yet:
 - “The app transferred real USDC from the judge wallet.”
 - “The repo submitted a live payment transaction.”
 - “Mainnet settlement is supported.”
+- “Pay.sh capped-session settlement completed.”
+- “Pay.sh split-payment settlement completed.”
+- “Pay.sh evidence proves Umbra private settlement or MagicBlock PER settlement.”
 
 ## Current default boundary
 

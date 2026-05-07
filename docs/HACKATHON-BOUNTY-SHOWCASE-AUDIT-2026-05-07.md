@@ -2,14 +2,14 @@
 
 ## Verdict
 
-Most bounty/ecosystem surfaces are incorporated into the website/demo enough to showcase, but they are not all equally strong. Quasar, x402, OpenRouter, Surfpool, and Jupiter-boundary evidence are strong. Torque exists and is now clearer on the homepage. MagicBlock has moved beyond generic boundary proof into **live Quasar-native delegation proof**, but it is still **not a successful PER settlement proof**: createPermission/delegatePermission/escrow delegation succeed against MagicBlock programs, while the delegated Quasar program image fails at instruction start on MagicBlock TEE. ElizaOS/SendAI exist as framework adapter evidence, not core on-chain proof.
+Most bounty/ecosystem surfaces are incorporated into the website/demo enough to showcase, but they are not all equally strong. Quasar, x402-compatible payment boundaries, Pay.sh / `reddi-x402` sandbox charge evidence, OpenRouter, Surfpool, and Jupiter-boundary evidence are strong. Torque exists and is now clearer on the homepage. MagicBlock has moved beyond generic boundary proof into **live Quasar-native delegation proof**, but it is still **not a successful PER settlement proof**: createPermission/delegatePermission/escrow delegation succeed against MagicBlock programs, while the delegated Quasar program image fails at instruction start on MagicBlock TEE. ElizaOS/SendAI exist as framework adapter evidence, not core on-chain proof.
 
 ## Showcase matrix
 
 | Surface | Website/demo presence | Qualification posture | Recording framing |
 | --- | --- | --- | --- |
 | Quasar | `/economic-demo`, `/register`, `/onboarding`, demo-agent script, CI/readiness docs | Strongest: live devnet final path across Registry/Escrow/Reputation/Attestation | “Final demo-critical on-chain path is Quasar-native.” |
-| x402 | `/economic-demo`, `/planner`, `/onboarding`, `/testers`, `packages/x402-solana` | Strong: visible fail-closed payment challenge/receipt story | “Agent calls are payment-gated with x402-style challenge/receipt boundaries.” |
+| x402 + Pay.sh / `reddi-x402` | `/economic-demo`, `/planner`, `/onboarding`, `/testers`, `packages/x402-solana`, `config/pay-sh/reddi-x402-economic-demo-provider.yml`, `artifacts/pay-sh-reddi-x402/20260507T064842Z/SUMMARY.md` | Strong for single-recipient sandbox charge compatibility; sessions/splits are probe-only | “Agent calls are payment-gated with x402-compatible challenge/receipt boundaries; Pay.sh sandbox proves HTTP 402 → payment → HTTP 200 receipt for `reddi-x402`, while sessions/splits remain extension probes.” |
 | OpenRouter specialists | `/economic-demo`, `/agents`, `packages/openrouter-specialists` | Strong: marketplace/profile layer visible without hidden paid calls | “30 specialist profiles support human-triggered workflow routing.” |
 | Jupiter | `/economic-demo`, run-report/submission-prep artifacts, Surfpool/mock-Jupiter invoke lane | Medium/strong if framed honestly: quote/build/sign + local no-real-funds invoke proof | “Public Jupiter devnet execution is not claimed; successful live Jupiter would require approved mainnet.” |
 | Surfpool | `/economic-demo`, local rehearsal scripts/artifacts | Strong supporting proof | “Local validator confidence gate before devnet; caught bugs before live proof.” |

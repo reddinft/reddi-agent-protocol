@@ -11,7 +11,7 @@ _Final proof map:_ `docs/COLOSSEUM-FINAL-QUASAR-PROOF-MAP-2026-05-06.md`
 
 ## One-paragraph summary
 
-Reddi Agent Protocol demonstrates an agentic workflow economy where a user request can be routed through an orchestrator, marketplace specialists, attestors, x402 payment challenges, and downstream-disclosure evidence. The current demo is intentionally safe and evidence-bounded: it shows the workflow, public manifest/dependency disclosure, local dry-run evidence pointers, Surfpool/local rehearsal semantics, and storyboard-only image planning without making hidden paid calls or claiming production settlement.
+Reddi Agent Protocol demonstrates an agentic workflow economy where a user request can be routed through an orchestrator, marketplace specialists, attestors, x402-compatible payment challenges, Pay.sh / `reddi-x402` sandbox compatibility evidence, and downstream-disclosure evidence. The current demo is intentionally safe and evidence-bounded: it shows the workflow, public manifest/dependency disclosure, local dry-run evidence pointers, Surfpool/local rehearsal semantics, Pay.sh sandbox charge compatibility, and storyboard-only image planning without making hidden paid calls or claiming production settlement.
 
 ## What to open
 
@@ -36,11 +36,16 @@ Nissan has selected Quasar-compiled Solana programs as the final hackathon demo 
    - `/economic-demo` loads controlled/local evidence panels without live specialist calls on page load.
    - The local evidence panel points to ignored repo-local artifacts instead of publishing private logs.
 
-4. **The picture path is spend-gated.**
+4. **Pay.sh / `reddi-x402` sandbox compatibility is proven for the single-recipient charge flow.**
+   - Evidence: `artifacts/pay-sh-reddi-x402/20260507T064842Z/SUMMARY.md`.
+   - The proven flow is HTTP 402 / MPP challenge → `pay --sandbox curl` → HTTP 200 with Solana payment receipt success.
+   - Capped sessions and split payments are extension probes only; Pay.sh 0.16.0 returned `Server returned 402 again after payment` for those variants.
+
+5. **The picture path is spend-gated.**
    - The Phase 7 picture workflow is storyboard-only.
    - The image-generation adapter remains blocked unless Nissan explicitly approves provider, model, and budget cap.
 
-5. **The Quasar submission/readiness loop is BDD-governed.**
+6. **The Quasar submission/readiness loop is BDD-governed.**
    - Issue #236 and `docs/QUASAR-BDD-ITERATIVE-PLAYBOOK-2026-05-05.md` require each Quasar phase to define expectation, scope, validation, retrospective, safety review, and plan adjustment before scope expands.
    - `npm run check:quasar:submission` verifies runtime compatibility, deployment inventory, and demo-readiness metadata.
 
@@ -61,6 +66,8 @@ Nissan has selected Quasar-compiled Solana programs as the final hackathon demo 
 - No wallet mutation.
 - No devnet transfer.
 - No Coolify/env mutation.
+- No Pay.sh capped-session or split-payment settlement claim.
+- No Pay.sh claim of Umbra private settlement or MagicBlock PER settlement.
 
 ## Public proof chain
 
@@ -80,6 +87,7 @@ The current rows below prove the final Quasar devnet cutover loop. Legacy Anchor
 
 ```bash
 npm run check:economic-demo:submission-prep
+npm run evidence:pay-sh:reddi-x402 -- artifacts/pay-sh-reddi-x402/20260507T064842Z
 npm run build
 npx jest --runTestsByPath lib/__tests__/quasar-instructions.test.ts lib/__tests__/quasar-agent-account-decoder.test.ts lib/__tests__/quasar-demo-agent-guard.test.ts --runInBand
 npm run check:quasar:submission
@@ -89,7 +97,7 @@ git diff --check
 
 ## Recommended submission wording
 
-> Reddi Agent Protocol demonstrates a Quasar-native devnet agent economy: a human-triggered workflow routes through wallet-bearing agents, x402 payment boundaries, public Quasar escrow settlement, blind reputation commit/reveal, and attestation. The final on-chain proof uses Quasar-compiled Solana programs for Registry, Escrow, Reputation, and Attestation. Surfpool localnet is used as the pre-devnet confidence gate; OpenRouter/30 specialist profiles and x402 evidence show the agent marketplace/payment boundary; Jupiter is wired for cross-token settlement but live swap is not claimed without `JUPITER_API_KEY`; MagicBlock PER/TEE is explicitly not claimed in the final Quasar path unless separately validated.
+> Reddi Agent Protocol demonstrates a Quasar-native devnet agent economy: a human-triggered workflow routes through wallet-bearing agents, x402-compatible payment boundaries, Pay.sh / `reddi-x402` sandbox charge compatibility, public Quasar escrow settlement, blind reputation commit/reveal, and attestation. The final on-chain proof uses Quasar-compiled Solana programs for Registry, Escrow, Reputation, and Attestation. Surfpool localnet is used as the pre-devnet confidence gate; OpenRouter/30 specialist profiles and x402 evidence show the agent marketplace/payment boundary; Jupiter is wired for cross-token settlement but live swap is not claimed; Pay.sh capped sessions/splits remain probe-only; MagicBlock PER/TEE settlement is explicitly not claimed in the final Quasar path unless separately validated.
 
 ## If reviewers ask what comes next
 

@@ -13,6 +13,10 @@ const defaultFiles = [
   "app/economic-demo/page.tsx",
   "lib/economic-demo/payment-readiness.ts",
   "lib/__tests__/economic-demo-payment-readiness.test.ts",
+  "artifacts/final-recording-packet-20260507.md",
+  "docs/ECONOMIC-DEMO-JUDGE-PACKET-2026-05-05.md",
+  "docs/ECONOMIC-DEMO-PROOF-HIERARCHY-2026-05-07.md",
+  "docs/HACKATHON-BOUNTY-SHOWCASE-AUDIT-2026-05-07.md",
 ];
 
 const files = process.argv.slice(2).length ? process.argv.slice(2) : defaultFiles;

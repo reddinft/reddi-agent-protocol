@@ -518,3 +518,47 @@ Start:
 ### Plan refinement
 
 Next loop should inspect the final submission/evidence packet surfaces and ensure they call the product Reddi Agent Protocol, package `reddi-x402`, and preserve the same Pay.sh/Quasar/MagicBlock/Jupiter claim boundaries.
+
+## Phase 9 — Final packet claim-boundary audit
+
+### BDD scenario
+
+Given Pay.sh / `reddi-x402` evidence now appears in the UI, run report, and submission prep, when final recording/judge/showcase packet surfaces are audited, then they must consistently use the Reddi Agent Protocol product name and preserve Pay.sh, Quasar, MagicBlock, and Jupiter claim boundaries.
+
+### Implementation
+
+- Updated final packet, judge packet, proof hierarchy, and bounty showcase audit to include Pay.sh / `reddi-x402` evidence without overclaiming.
+- Expanded product naming guard to cover those final packet surfaces.
+- Added `scripts/check-submission-claim-boundaries.mjs` and npm script `check:submission:claim-boundaries`.
+- Guard covers:
+  - `artifacts/final-recording-packet-20260507.md`
+  - `docs/ECONOMIC-DEMO-JUDGE-PACKET-2026-05-05.md`
+  - `docs/ECONOMIC-DEMO-PROOF-HIERARCHY-2026-05-07.md`
+  - `docs/HACKATHON-BOUNTY-SHOWCASE-AUDIT-2026-05-07.md`
+  - `artifacts/economic-demo-submission-prep/latest/SUBMISSION-PREP.md`
+
+### Validation
+
+- `npm run check:submission:claim-boundaries` — PASS, 5 files.
+- `npm run check:product:naming` — PASS across 15 files.
+- `node --check scripts/check-submission-claim-boundaries.mjs` — PASS.
+- `git diff --check` — PASS.
+
+### Retrospective
+
+Keep:
+
+- Boundary checks belong at the final packet layer, not only the implementation layer.
+- Pay.sh / `reddi-x402` should be represented as strong sandbox charge compatibility, while sessions/splits remain probe-only.
+
+Stop:
+
+- Letting final recording packets point at stale run reports after new evidence is generated.
+
+Start:
+
+- Treat `check:submission:claim-boundaries` as part of the pre-recording/pre-submission gate.
+
+### Plan refinement
+
+Next loop should run the combined final gate set and, if it stays green, produce a concise current-state handoff for recording/submission. If any stale artifact path remains, refresh it before handoff.
