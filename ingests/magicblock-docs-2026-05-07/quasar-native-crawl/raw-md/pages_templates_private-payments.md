@@ -1,0 +1,58 @@
+URL: https://docs.magicblock.gg/pages/templates/private-payments
+FETCHED_AS: https://docs.magicblock.gg/pages/templates/private-payments.md
+FINAL: https://docs.magicblock.gg/pages/templates/private-payments.md
+DEPTH: 0
+
+> ## Documentation Index
+> Fetch the complete documentation index at: https://docs.magicblock.gg/llms.txt
+> Use this file to discover all available pages before exploring further.
+
+# Private Payments
+
+<CardGroup cols={2}>
+  <Card title="Demo" icon="play" href="https://one.magicblock.app" iconType="duotone">
+    Try the live application
+  </Card>
+
+  <Card title="View Repository" icon="github" href="https://github.com/magicblock-labs/one" iconType="duotone">
+    Explore the source code and implementation
+  </Card>
+
+  <Card title="Private Payment API" icon="server" href="https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/introduction" iconType="duotone">
+    Fastest and simplest way to build private payments
+  </Card>
+
+  <Card title="Blog Post" icon="newspaper" href="https://www.magicblock.xyz/blog/private-payments-api" iconType="duotone">
+    Learn more about building private payments
+  </Card>
+</CardGroup>
+
+***
+
+<img src="https://mintcdn.com/magicblock-42/yuSZ4V1fWvdtozdf/images/gifs/private-payment-920w.gif?s=084136f1ce5d6469a34274234ed42d93" alt="Private Payments Demo" width="920" height="1006" data-path="images/gifs/private-payment-920w.gif" />
+
+## Overview
+
+Send and receive payments privately on-chain using Private Ephemeral Rollups. This demo showcases how to implement confidential transactions while maintaining the security and composability of blockchain technology.
+
+***
+
+## Related Products
+
+<CardGroup cols={2}>
+  <Card title="Private Ephemeral Rollup" icon="shield-check" href="/pages/private-ephemeral-rollups-pers/introduction/onchain-privacy" iconType="duotone">
+    Learn how Private ERs enable confidential on-chain computations
+  </Card>
+
+  <Card title="Authorization" icon="key" href="/pages/private-ephemeral-rollups-pers/introduction/authorization" iconType="duotone">
+    Understand authorization mechanisms in Private ERs
+  </Card>
+
+  <Card title="Quickstart Guide" icon="rocket" href="/pages/private-ephemeral-rollups-pers/how-to-guide/quickstart" iconType="duotone">
+    Get started with building private applications
+  </Card>
+
+  <Card title="Compliance Framework" icon="certificate" href="/pages/private-ephemeral-rollups-pers/introduction/compliance-framework" iconType="duotone">
+    Compliance Standards and Guidelines
+  </Card>
+</CardGroup>

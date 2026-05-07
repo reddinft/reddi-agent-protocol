@@ -1,0 +1,399 @@
+{
+  "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/how-to-guide/quickstart": {
+    "url": "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/how-to-guide/quickstart",
+    "depth": 0,
+    "file": "ingests/magicblock-docs-2026-05-07/quasar-native-crawl/raw-md/pages_private-ephemeral-rollups-pers_how-to-guide_quickstart.md",
+    "links": [
+      "https://docs.magicblock.gg/pages/ephemeral-rollups-ers/how-to-guide/quickstart",
+      "https://docs.magicblock.gg/pages/overview/additional-information/system-status",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/introduction",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/how-to-guide/access-control",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/how-to-guide/quickstart",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/introduction/authorization",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/introduction/compliance-framework",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/introduction/onchain-privacy",
+      "https://docs.magicblock.gg/pages/tools/oracle/introduction",
+      "https://docs.magicblock.gg/pages/verifiable-randomness-functions-vrfs/how-to-guide/quickstart"
+    ],
+    "chars": 23791,
+    "status": 200
+  },
+  "https://docs.magicblock.gg/pages/ephemeral-rollups-ers/how-to-guide/quickstart": {
+    "url": "https://docs.magicblock.gg/pages/ephemeral-rollups-ers/how-to-guide/quickstart",
+    "depth": 0,
+    "file": "ingests/magicblock-docs-2026-05-07/quasar-native-crawl/raw-md/pages_ephemeral-rollups-ers_how-to-guide_quickstart.md",
+    "links": [
+      "https://docs.magicblock.gg/pages/ephemeral-rollups-ers/how-to-guide/local-development",
+      "https://docs.magicblock.gg/pages/ephemeral-rollups-ers/how-to-guide/quickstart",
+      "https://docs.magicblock.gg/pages/ephemeral-rollups-ers/how-to-guide/rust-program",
+      "https://docs.magicblock.gg/pages/ephemeral-rollups-ers/introduction/ephemeral-rollup",
+      "https://docs.magicblock.gg/pages/ephemeral-rollups-ers/introduction/magic-router",
+      "https://docs.magicblock.gg/pages/ephemeral-rollups-ers/magic-actions/overview.mdx",
+      "https://docs.magicblock.gg/pages/overview/additional-information/system-status",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/introduction",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/how-to-guide/quickstart",
+      "https://docs.magicblock.gg/pages/tools/oracle/introduction",
+      "https://docs.magicblock.gg/pages/verifiable-randomness-functions-vrfs/how-to-guide/quickstart"
+    ],
+    "chars": 40834,
+    "status": 200
+  },
+  "https://docs.magicblock.gg/pages/verifiable-randomness-functions-vrfs/how-to-guide/quickstart": {
+    "url": "https://docs.magicblock.gg/pages/verifiable-randomness-functions-vrfs/how-to-guide/quickstart",
+    "depth": 0,
+    "file": "ingests/magicblock-docs-2026-05-07/quasar-native-crawl/raw-md/pages_verifiable-randomness-functions-vrfs_how-to-guide_quickstart.md",
+    "links": [
+      "https://docs.magicblock.gg/pages/ephemeral-rollups-ers/how-to-guide/quickstart",
+      "https://docs.magicblock.gg/pages/get-started/how-integrate-your-program/local-setup",
+      "https://docs.magicblock.gg/pages/overview/additional-information/system-status",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/introduction",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/how-to-guide/quickstart",
+      "https://docs.magicblock.gg/pages/tools/oracle/introduction",
+      "https://docs.magicblock.gg/pages/verifiable-randomness-functions-vrfs/how-to-guide/quickstart"
+    ],
+    "chars": 12492,
+    "status": 200
+  },
+  "https://docs.magicblock.gg/pages/templates/private-payments": {
+    "url": "https://docs.magicblock.gg/pages/templates/private-payments",
+    "depth": 0,
+    "file": "ingests/magicblock-docs-2026-05-07/quasar-native-crawl/raw-md/pages_templates_private-payments.md",
+    "links": [
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/introduction",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/how-to-guide/quickstart",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/introduction/authorization",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/introduction/compliance-framework",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/introduction/onchain-privacy"
+    ],
+    "chars": 2323,
+    "status": 200
+  },
+  "https://docs.magicblock.gg/pages/overview/additional-information/system-status": {
+    "url": "https://docs.magicblock.gg/pages/overview/additional-information/system-status",
+    "depth": 1,
+    "file": "ingests/magicblock-docs-2026-05-07/quasar-native-crawl/raw-md/pages_overview_additional-information_system-status.md",
+    "links": [],
+    "chars": 536,
+    "status": 200
+  },
+  "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/introduction": {
+    "url": "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/introduction",
+    "depth": 1,
+    "file": "ingests/magicblock-docs-2026-05-07/quasar-native-crawl/raw-md/pages_private-ephemeral-rollups-pers_api-reference_per_introduction.md",
+    "links": [
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/balance",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/challenge",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/deposit",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/health",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/initialize-mint",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/is-mint-initialized",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/login",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/mcp",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/private-balance",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/quote",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/swap",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/transfer",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/withdraw"
+    ],
+    "chars": 5203,
+    "status": 200
+  },
+  "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/how-to-guide/access-control": {
+    "url": "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/how-to-guide/access-control",
+    "depth": 1,
+    "file": "ingests/magicblock-docs-2026-05-07/quasar-native-crawl/raw-md/pages_private-ephemeral-rollups-pers_how-to-guide_access-control.md",
+    "links": [
+      "https://docs.magicblock.gg/pages/ephemeral-rollups-ers/introduction/why",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/how-to-guide/access-control",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/how-to-guide/quickstart",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/introduction/authorization",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/introduction/compliance-framework",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/introduction/onchain-privacy"
+    ],
+    "chars": 41424,
+    "status": 200
+  },
+  "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/introduction/authorization": {
+    "url": "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/introduction/authorization",
+    "depth": 1,
+    "file": "ingests/magicblock-docs-2026-05-07/quasar-native-crawl/raw-md/pages_private-ephemeral-rollups-pers_introduction_authorization.md",
+    "links": [
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/how-to-guide/access-control",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/introduction/authorization",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/introduction/compliance-framework",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/introduction/onchain-privacy"
+    ],
+    "chars": 2382,
+    "status": 200
+  },
+  "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/introduction/compliance-framework": {
+    "url": "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/introduction/compliance-framework",
+    "depth": 1,
+    "file": "ingests/magicblock-docs-2026-05-07/quasar-native-crawl/raw-md/pages_private-ephemeral-rollups-pers_introduction_compliance-framework.md",
+    "links": [
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/how-to-guide/access-control",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/introduction/authorization",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/introduction/compliance-framework",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/introduction/onchain-privacy"
+    ],
+    "chars": 4653,
+    "status": 200
+  },
+  "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/introduction/onchain-privacy": {
+    "url": "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/introduction/onchain-privacy",
+    "depth": 1,
+    "file": "ingests/magicblock-docs-2026-05-07/quasar-native-crawl/raw-md/pages_private-ephemeral-rollups-pers_introduction_onchain-privacy.md",
+    "links": [
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/how-to-guide/access-control",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/introduction/authorization",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/introduction/compliance-framework",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/introduction/onchain-privacy"
+    ],
+    "chars": 5639,
+    "status": 200
+  },
+  "https://docs.magicblock.gg/pages/tools/oracle/introduction": {
+    "url": "https://docs.magicblock.gg/pages/tools/oracle/introduction",
+    "depth": 1,
+    "file": "ingests/magicblock-docs-2026-05-07/quasar-native-crawl/raw-md/pages_tools_oracle_introduction.md",
+    "links": [
+      "https://docs.magicblock.gg/pages/ephemeral-rollups-ers/how-to-guide/local-development",
+      "https://docs.magicblock.gg/pages/tools/oracle/implementation"
+    ],
+    "chars": 3514,
+    "status": 200
+  },
+  "https://docs.magicblock.gg/pages/ephemeral-rollups-ers/how-to-guide/local-development": {
+    "url": "https://docs.magicblock.gg/pages/ephemeral-rollups-ers/how-to-guide/local-development",
+    "depth": 1,
+    "file": "ingests/magicblock-docs-2026-05-07/quasar-native-crawl/raw-md/pages_ephemeral-rollups-ers_how-to-guide_local-development.md",
+    "links": [
+      "https://docs.magicblock.gg/pages/ephemeral-rollups-ers/how-to-guide/quickstart",
+      "https://docs.magicblock.gg/pages/ephemeral-rollups-ers/how-to-guide/rust-program"
+    ],
+    "chars": 9878,
+    "status": 200
+  },
+  "https://docs.magicblock.gg/pages/ephemeral-rollups-ers/how-to-guide/rust-program": {
+    "url": "https://docs.magicblock.gg/pages/ephemeral-rollups-ers/how-to-guide/rust-program",
+    "depth": 1,
+    "file": "ingests/magicblock-docs-2026-05-07/quasar-native-crawl/raw-md/pages_ephemeral-rollups-ers_how-to-guide_rust-program.md",
+    "links": [
+      "https://docs.magicblock.gg/pages/ephemeral-rollups-ers/how-to-guide/local-development",
+      "https://docs.magicblock.gg/pages/overview/additional-information/system-status"
+    ],
+    "chars": 25717,
+    "status": 200
+  },
+  "https://docs.magicblock.gg/pages/ephemeral-rollups-ers/introduction/ephemeral-rollup": {
+    "url": "https://docs.magicblock.gg/pages/ephemeral-rollups-ers/introduction/ephemeral-rollup",
+    "depth": 1,
+    "file": "ingests/magicblock-docs-2026-05-07/quasar-native-crawl/raw-md/pages_ephemeral-rollups-ers_introduction_ephemeral-rollup.md",
+    "links": [
+      "https://docs.magicblock.gg/pages/ephemeral-rollups-ers/introduction/magic-router",
+      "https://docs.magicblock.gg/pages/overview/additional-information/whitepaper"
+    ],
+    "chars": 4685,
+    "status": 200
+  },
+  "https://docs.magicblock.gg/pages/ephemeral-rollups-ers/introduction/magic-router": {
+    "url": "https://docs.magicblock.gg/pages/ephemeral-rollups-ers/introduction/magic-router",
+    "depth": 1,
+    "file": "ingests/magicblock-docs-2026-05-07/quasar-native-crawl/raw-md/pages_ephemeral-rollups-ers_introduction_magic-router.md",
+    "links": [
+      "https://docs.magicblock.gg/pages/ephemeral-rollups-ers/api-reference/er/getRoutes"
+    ],
+    "chars": 5065,
+    "status": 200
+  },
+  "https://docs.magicblock.gg/pages/ephemeral-rollups-ers/magic-actions/overview.mdx": {
+    "url": "https://docs.magicblock.gg/pages/ephemeral-rollups-ers/magic-actions/overview.mdx",
+    "depth": 1,
+    "file": "ingests/magicblock-docs-2026-05-07/quasar-native-crawl/raw-md/pages_ephemeral-rollups-ers_magic-actions_overview.mdx.md",
+    "links": [
+      "https://docs.magicblock.gg/pages/ephemeral-rollups-ers/how-to-guide/quickstart",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/introduction",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/how-to-guide/quickstart",
+      "https://docs.magicblock.gg/pages/tools/oracle/introduction",
+      "https://docs.magicblock.gg/pages/verifiable-randomness-functions-vrfs/how-to-guide/quickstart"
+    ],
+    "chars": 2905,
+    "status": 200
+  },
+  "https://docs.magicblock.gg/pages/get-started/how-integrate-your-program/local-setup": {
+    "url": "https://docs.magicblock.gg/pages/get-started/how-integrate-your-program/local-setup",
+    "depth": 1,
+    "file": "ingests/magicblock-docs-2026-05-07/quasar-native-crawl/raw-md/pages_get-started_how-integrate-your-program_local-setup.md",
+    "links": [
+      "https://docs.magicblock.gg/pages/get-started/how-integrate-your-program/anchor",
+      "https://docs.magicblock.gg/pages/get-started/how-integrate-your-program/rust"
+    ],
+    "chars": 10306,
+    "status": 200
+  },
+  "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/balance": {
+    "url": "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/balance",
+    "depth": 2,
+    "file": "ingests/magicblock-docs-2026-05-07/quasar-native-crawl/raw-md/pages_private-ephemeral-rollups-pers_api-reference_per_balance.md",
+    "links": [],
+    "chars": 3028,
+    "status": 200
+  },
+  "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/challenge": {
+    "url": "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/challenge",
+    "depth": 2,
+    "file": "ingests/magicblock-docs-2026-05-07/quasar-native-crawl/raw-md/pages_private-ephemeral-rollups-pers_api-reference_per_challenge.md",
+    "links": [],
+    "chars": 2842,
+    "status": 200
+  },
+  "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/deposit": {
+    "url": "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/deposit",
+    "depth": 2,
+    "file": "ingests/magicblock-docs-2026-05-07/quasar-native-crawl/raw-md/pages_private-ephemeral-rollups-pers_api-reference_per_deposit.md",
+    "links": [],
+    "chars": 6120,
+    "status": 200
+  },
+  "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/health": {
+    "url": "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/health",
+    "depth": 2,
+    "file": "ingests/magicblock-docs-2026-05-07/quasar-native-crawl/raw-md/pages_private-ephemeral-rollups-pers_api-reference_per_health.md",
+    "links": [],
+    "chars": 971,
+    "status": 200
+  },
+  "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/initialize-mint": {
+    "url": "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/initialize-mint",
+    "depth": 2,
+    "file": "ingests/magicblock-docs-2026-05-07/quasar-native-crawl/raw-md/pages_private-ephemeral-rollups-pers_api-reference_per_initialize-mint.md",
+    "links": [],
+    "chars": 1378,
+    "status": 200
+  },
+  "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/is-mint-initialized": {
+    "url": "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/is-mint-initialized",
+    "depth": 2,
+    "file": "ingests/magicblock-docs-2026-05-07/quasar-native-crawl/raw-md/pages_private-ephemeral-rollups-pers_api-reference_per_is-mint-initialized.md",
+    "links": [],
+    "chars": 1546,
+    "status": 200
+  },
+  "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/login": {
+    "url": "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/login",
+    "depth": 2,
+    "file": "ingests/magicblock-docs-2026-05-07/quasar-native-crawl/raw-md/pages_private-ephemeral-rollups-pers_api-reference_per_login.md",
+    "links": [],
+    "chars": 3926,
+    "status": 200
+  },
+  "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/mcp": {
+    "url": "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/mcp",
+    "depth": 2,
+    "file": "ingests/magicblock-docs-2026-05-07/quasar-native-crawl/raw-md/pages_private-ephemeral-rollups-pers_api-reference_per_mcp.md",
+    "links": [],
+    "chars": 1142,
+    "status": 200
+  },
+  "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/private-balance": {
+    "url": "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/private-balance",
+    "depth": 2,
+    "file": "ingests/magicblock-docs-2026-05-07/quasar-native-crawl/raw-md/pages_private-ephemeral-rollups-pers_api-reference_per_private-balance.md",
+    "links": [],
+    "chars": 3701,
+    "status": 200
+  },
+  "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/quote": {
+    "url": "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/quote",
+    "depth": 2,
+    "file": "ingests/magicblock-docs-2026-05-07/quasar-native-crawl/raw-md/pages_private-ephemeral-rollups-pers_api-reference_per_quote.md",
+    "links": [],
+    "chars": 8677,
+    "status": 200
+  },
+  "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/swap": {
+    "url": "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/swap",
+    "depth": 2,
+    "file": "ingests/magicblock-docs-2026-05-07/quasar-native-crawl/raw-md/pages_private-ephemeral-rollups-pers_api-reference_per_swap.md",
+    "links": [],
+    "chars": 13156,
+    "status": 200
+  },
+  "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/transfer": {
+    "url": "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/transfer",
+    "depth": 2,
+    "file": "ingests/magicblock-docs-2026-05-07/quasar-native-crawl/raw-md/pages_private-ephemeral-rollups-pers_api-reference_per_transfer.md",
+    "links": [],
+    "chars": 9693,
+    "status": 200
+  },
+  "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/withdraw": {
+    "url": "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/api-reference/per/withdraw",
+    "depth": 2,
+    "file": "ingests/magicblock-docs-2026-05-07/quasar-native-crawl/raw-md/pages_private-ephemeral-rollups-pers_api-reference_per_withdraw.md",
+    "links": [],
+    "chars": 5826,
+    "status": 200
+  },
+  "https://docs.magicblock.gg/pages/ephemeral-rollups-ers/introduction/why": {
+    "url": "https://docs.magicblock.gg/pages/ephemeral-rollups-ers/introduction/why",
+    "depth": 2,
+    "file": "ingests/magicblock-docs-2026-05-07/quasar-native-crawl/raw-md/pages_ephemeral-rollups-ers_introduction_why.md",
+    "links": [
+      "https://docs.magicblock.gg/pages/ephemeral-rollups-ers/how-to-guide/quickstart",
+      "https://docs.magicblock.gg/pages/ephemeral-rollups-ers/introduction/ephemeral-rollup",
+      "https://docs.magicblock.gg/pages/ephemeral-rollups-ers/introduction/magic-router",
+      "https://docs.magicblock.gg/pages/private-ephemeral-rollups-pers/introduction/onchain-privacy"
+    ],
+    "chars": 3116,
+    "status": 200
+  },
+  "https://docs.magicblock.gg/pages/tools/oracle/implementation": {
+    "url": "https://docs.magicblock.gg/pages/tools/oracle/implementation",
+    "depth": 2,
+    "file": "ingests/magicblock-docs-2026-05-07/quasar-native-crawl/raw-md/pages_tools_oracle_implementation.md",
+    "links": [
+      "https://docs.magicblock.gg/pages/tools/oracle/implementation"
+    ],
+    "chars": 2039,
+    "status": 200
+  },
+  "https://docs.magicblock.gg/pages/overview/additional-information/whitepaper": {
+    "url": "https://docs.magicblock.gg/pages/overview/additional-information/whitepaper",
+    "depth": 2,
+    "file": "ingests/magicblock-docs-2026-05-07/quasar-native-crawl/raw-md/pages_overview_additional-information_whitepaper.md",
+    "links": [],
+    "chars": 950,
+    "status": 200
+  },
+  "https://docs.magicblock.gg/pages/ephemeral-rollups-ers/api-reference/er/getRoutes": {
+    "url": "https://docs.magicblock.gg/pages/ephemeral-rollups-ers/api-reference/er/getRoutes",
+    "depth": 2,
+    "file": "ingests/magicblock-docs-2026-05-07/quasar-native-crawl/raw-md/pages_ephemeral-rollups-ers_api-reference_er_getRoutes.md",
+    "links": [],
+    "chars": 3885,
+    "status": 200
+  },
+  "https://docs.magicblock.gg/pages/get-started/how-integrate-your-program/anchor": {
+    "url": "https://docs.magicblock.gg/pages/get-started/how-integrate-your-program/anchor",
+    "depth": 2,
+    "file": "ingests/magicblock-docs-2026-05-07/quasar-native-crawl/raw-md/pages_get-started_how-integrate-your-program_anchor.md",
+    "links": [
+      "https://docs.magicblock.gg/pages/ephemeral-rollups-ers/how-to-guide/local-development",
+      "https://docs.magicblock.gg/pages/get-started/how-integrate-your-program/local-setup"
+    ],
+    "chars": 10145,
+    "status": 200
+  },
+  "https://docs.magicblock.gg/pages/get-started/how-integrate-your-program/rust": {
+    "url": "https://docs.magicblock.gg/pages/get-started/how-integrate-your-program/rust",
+    "depth": 2,
+    "file": "ingests/magicblock-docs-2026-05-07/quasar-native-crawl/raw-md/pages_get-started_how-integrate-your-program_rust.md",
+    "links": [
+      "https://docs.magicblock.gg/pages/ephemeral-rollups-ers/how-to-guide/local-development",
+      "https://docs.magicblock.gg/pages/get-started/how-integrate-your-program/local-setup"
+    ],
+    "chars": 20190,
+    "status": 200
+  }
+}
