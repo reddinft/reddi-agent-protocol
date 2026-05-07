@@ -80,7 +80,7 @@ The main submission at `reddi-agent-protocol-code` has:
 - DevOps already done (deployed to devnet)
 - Phase 3a/3b TypeScript plugins tested
 - Phase 4/4b reputation tested
-- Phase 5 MagicBlock PER wired
+- Historical Phase 5 MagicBlock integration notes (superseded; no current settlement claim)
 
 Migrating now would create regression risk without adding user-facing feature value. The judges can't tell from a live demo whether the program binary is 13 KB or 377 KB.
 
