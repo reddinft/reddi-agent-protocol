@@ -103,6 +103,24 @@ mod quasar_escrow_per_poc {
         ctx.accounts.take_to_agent_vault(escrow_id)
     }
 
+    /// Prepare escrow -> agent-vault binding for PER private credit.
+    #[instruction(discriminator = [81, 80, 69, 82, 86, 73, 78, 84])]
+    pub fn prepare_vault_credit_intent(
+        ctx: Ctx<PrepareVaultCreditIntent>,
+        escrow_id: u64,
+    ) -> Result<(), ProgramError> {
+        ctx.accounts.prepare_vault_credit_intent(escrow_id)
+    }
+
+    /// PER/TEE-safe escrow release into a self-custodied agent vault.
+    #[instruction(discriminator = [81, 80, 69, 82, 86, 80, 82, 86])]
+    pub fn private_take_to_agent_vault(
+        ctx: Ctx<PrivateTakeToAgentVault>,
+        escrow_id: u64,
+    ) -> Result<(), ProgramError> {
+        ctx.accounts.private_take_to_agent_vault(escrow_id, &ctx.bumps)
+    }
+
     /// Agent-authorized base-layer withdrawal from the agent vault.
     #[instruction(discriminator = [81, 80, 69, 82, 86, 87, 68, 82])]
     pub fn withdraw_agent_vault(

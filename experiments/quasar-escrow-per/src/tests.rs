@@ -162,6 +162,62 @@ fn take_to_agent_vault_ix(
     }
 }
 
+fn prepare_vault_credit_intent_ix(
+    payer: Pubkey,
+    escrow: Pubkey,
+    authority: Pubkey,
+    vault: Pubkey,
+    intent: Pubkey,
+    escrow_id: u64,
+) -> Instruction {
+    let mut data = vec![81, 80, 69, 82, 86, 73, 78, 84]; // QPERVINT
+    data.extend_from_slice(&escrow_id.to_le_bytes());
+    Instruction {
+        program_id: crate::ID,
+        accounts: vec![
+            AccountMeta::new(payer, true),
+            AccountMeta::new_readonly(escrow, false),
+            AccountMeta::new_readonly(authority, false),
+            AccountMeta::new_readonly(vault, false),
+            AccountMeta::new(intent, false),
+        ],
+        data,
+    }
+}
+
+fn private_take_to_agent_vault_ix(
+    payer: Pubkey,
+    authority: Pubkey,
+    escrow: Pubkey,
+    vault: Pubkey,
+    intent: Pubkey,
+    escrow_id: u64,
+) -> Instruction {
+    let mut data = vec![81, 80, 69, 82, 86, 80, 82, 86]; // QPERVPRV
+    data.extend_from_slice(&escrow_id.to_le_bytes());
+    Instruction {
+        program_id: crate::ID,
+        accounts: vec![
+            AccountMeta::new(payer, true),
+            AccountMeta::new_readonly(authority, false),
+            AccountMeta::new(escrow, false),
+            AccountMeta::new(vault, false),
+            AccountMeta::new_readonly(intent, false),
+        ],
+        data,
+    }
+}
+
+fn zeroed_program_account(address: Pubkey, lamports: u64, data_len: usize) -> Account {
+    Account {
+        address,
+        lamports,
+        data: vec![0; data_len],
+        owner: crate::ID,
+        executable: false,
+    }
+}
+
 fn withdraw_agent_vault_ix(authority: Pubkey, vault: Pubkey, amount: u64) -> Instruction {
     let mut data = vec![81, 80, 69, 82, 86, 87, 68, 82]; // QPERVWDR
     data.extend_from_slice(&amount.to_le_bytes());
@@ -650,7 +706,225 @@ fn test_agent_vault_wrong_authority_rejected() {
     );
 }
 
-/// Test 13: wrong signer cannot withdraw from an agent vault.
+/// Test 13: PER/private vault credit accepts MagicBlock's zeroed delegated mirrors.
+#[test]
+fn test_private_take_to_agent_vault_accepts_zeroed_delegated_mirrors() {
+    let mut svm = setup();
+
+    let payer = Pubkey::new_unique();
+    let agent = Pubkey::new_unique();
+    let escrow_id = 0u64;
+    let counter = counter_pda(&payer);
+    let escrow = escrow_pda(&payer, escrow_id);
+    let vault = agent_vault_pda(&agent);
+    let intent = Pubkey::new_unique();
+    let amount: u64 = 1_000_000;
+    let escrow_rent: u64 = 1_579_920;
+    let vault_rent: u64 = 1_301_520;
+
+    let lock_result = svm.process_instruction(
+        &lock_ix(payer, agent, counter, escrow, amount, escrow_id),
+        &[funded(payer), empty(agent), empty(counter), empty(escrow)],
+    );
+    lock_result.assert_success();
+    let prepare_result = svm.process_instruction(
+        &prepare_agent_vault_ix(payer, agent, vault),
+        &[
+            lock_result.account(&payer).unwrap().clone(),
+            lock_result.account(&agent).cloned().unwrap_or(empty(agent)),
+            empty(vault),
+        ],
+    );
+    prepare_result.assert_success();
+    let intent_result = svm.process_instruction(
+        &prepare_vault_credit_intent_ix(payer, escrow, agent, vault, intent, escrow_id),
+        &[
+            prepare_result.account(&payer).unwrap().clone(),
+            lock_result.account(&escrow).unwrap().clone(),
+            prepare_result.account(&agent).cloned().unwrap_or(empty(agent)),
+            prepare_result.account(&vault).unwrap().clone(),
+            zeroed_program_account(intent, 1_000_000, 145),
+        ],
+    );
+    intent_result.assert_success();
+
+    let credit_result = svm.process_instruction(
+        &private_take_to_agent_vault_ix(payer, agent, escrow, vault, intent, escrow_id),
+        &[
+            intent_result.account(&payer).unwrap().clone(),
+            empty(agent),
+            zeroed_program_account(escrow, escrow_rent + amount, 99),
+            zeroed_program_account(vault, vault_rent, 59),
+            intent_result.account(&intent).unwrap().clone(),
+        ],
+    );
+    credit_result.assert_success();
+
+    let escrow_after = credit_result.account(&escrow).unwrap();
+    let vault_after = credit_result.account(&vault).unwrap();
+    assert_eq!(escrow_after.lamports, escrow_rent);
+    assert_eq!(vault_after.lamports, vault_rent + amount);
+    assert_eq!(vault_after.data[0], 11, "vault discriminator restored");
+    assert_eq!(&vault_after.data[1..33], agent.as_ref());
+    assert_eq!(
+        u64::from_le_bytes(vault_after.data[33..41].try_into().unwrap()),
+        amount,
+        "private credit updates vault balance bytes"
+    );
+}
+
+/// Test 14: PER/private vault credit rejects the wrong authority/vault PDA.
+#[test]
+fn test_private_take_to_agent_vault_rejects_wrong_authority_vault() {
+    let mut svm = setup();
+
+    let payer = Pubkey::new_unique();
+    let agent = Pubkey::new_unique();
+    let wrong_agent = Pubkey::new_unique();
+    let escrow_id = 0u64;
+    let counter = counter_pda(&payer);
+    let escrow = escrow_pda(&payer, escrow_id);
+    let vault = agent_vault_pda(&agent);
+    let wrong_vault = agent_vault_pda(&wrong_agent);
+    let intent = Pubkey::new_unique();
+    let amount: u64 = 1_000_000;
+
+    let lock_result = svm.process_instruction(
+        &lock_ix(payer, agent, counter, escrow, amount, escrow_id),
+        &[funded(payer), empty(agent), empty(counter), empty(escrow)],
+    );
+    lock_result.assert_success();
+    let prepare_result = svm.process_instruction(
+        &prepare_agent_vault_ix(payer, agent, vault),
+        &[
+            lock_result.account(&payer).unwrap().clone(),
+            lock_result.account(&agent).cloned().unwrap_or(empty(agent)),
+            empty(vault),
+        ],
+    );
+    prepare_result.assert_success();
+    let intent_result = svm.process_instruction(
+        &prepare_vault_credit_intent_ix(payer, escrow, agent, vault, intent, escrow_id),
+        &[
+            prepare_result.account(&payer).unwrap().clone(),
+            lock_result.account(&escrow).unwrap().clone(),
+            prepare_result.account(&agent).cloned().unwrap_or(empty(agent)),
+            prepare_result.account(&vault).unwrap().clone(),
+            zeroed_program_account(intent, 1_000_000, 145),
+        ],
+    );
+    intent_result.assert_success();
+
+    let credit_result = svm.process_instruction(
+        &private_take_to_agent_vault_ix(payer, agent, escrow, wrong_vault, intent, escrow_id),
+        &[
+            intent_result.account(&payer).unwrap().clone(),
+            empty(agent),
+            zeroed_program_account(escrow, 2_579_920, 99),
+            zeroed_program_account(wrong_vault, 1_301_520, 59),
+            intent_result.account(&intent).unwrap().clone(),
+        ],
+    );
+
+    assert!(
+        credit_result.is_err(),
+        "wrong authority/vault PDA must be rejected before private credit"
+    );
+}
+
+/// Test 15: PER/private vault credit rejects an intent prepared for another escrow.
+#[test]
+fn test_private_take_to_agent_vault_rejects_same_amount_wrong_escrow_intent() {
+    let mut svm = setup();
+
+    let payer = Pubkey::new_unique();
+    let agent_one = Pubkey::new_unique();
+    let agent_two = Pubkey::new_unique();
+    let counter = counter_pda(&payer);
+    let escrow_one_id = 0u64;
+    let escrow_two_id = 1u64;
+    let escrow_one = escrow_pda(&payer, escrow_one_id);
+    let escrow_two = escrow_pda(&payer, escrow_two_id);
+    let vault_one = agent_vault_pda(&agent_one);
+    let intent_one = Pubkey::new_unique();
+    let amount: u64 = 1_000_000;
+    let escrow_rent: u64 = 1_579_920;
+    let vault_rent: u64 = 1_301_520;
+
+    let lock_one_result = svm.process_instruction(
+        &lock_ix(payer, agent_one, counter, escrow_one, amount, escrow_one_id),
+        &[funded(payer), empty(agent_one), empty(counter), empty(escrow_one)],
+    );
+    lock_one_result.assert_success();
+
+    let lock_two_result = svm.process_instruction(
+        &lock_ix(payer, agent_two, counter, escrow_two, amount, escrow_two_id),
+        &[
+            lock_one_result.account(&payer).unwrap().clone(),
+            empty(agent_two),
+            lock_one_result.account(&counter).unwrap().clone(),
+            empty(escrow_two),
+        ],
+    );
+    lock_two_result.assert_success();
+
+    let prepare_result = svm.process_instruction(
+        &prepare_agent_vault_ix(payer, agent_one, vault_one),
+        &[
+            lock_two_result.account(&payer).unwrap().clone(),
+            lock_one_result.account(&agent_one).cloned().unwrap_or(empty(agent_one)),
+            empty(vault_one),
+        ],
+    );
+    prepare_result.assert_success();
+
+    let intent_result = svm.process_instruction(
+        &prepare_vault_credit_intent_ix(
+            payer,
+            escrow_one,
+            agent_one,
+            vault_one,
+            intent_one,
+            escrow_one_id,
+        ),
+        &[
+            prepare_result.account(&payer).unwrap().clone(),
+            lock_one_result.account(&escrow_one).unwrap().clone(),
+            prepare_result
+                .account(&agent_one)
+                .cloned()
+                .unwrap_or(empty(agent_one)),
+            prepare_result.account(&vault_one).unwrap().clone(),
+            zeroed_program_account(intent_one, 1_000_000, 145),
+        ],
+    );
+    intent_result.assert_success();
+
+    let credit_result = svm.process_instruction(
+        &private_take_to_agent_vault_ix(
+            payer,
+            agent_one,
+            escrow_two,
+            vault_one,
+            intent_one,
+            escrow_two_id,
+        ),
+        &[
+            intent_result.account(&payer).unwrap().clone(),
+            empty(agent_one),
+            zeroed_program_account(escrow_two, escrow_rent + amount, 99),
+            zeroed_program_account(vault_one, vault_rent, 59),
+            intent_result.account(&intent_one).unwrap().clone(),
+        ],
+    );
+
+    assert!(
+        credit_result.is_err(),
+        "intent prepared for escrow_one must not authorize same-amount escrow_two"
+    );
+}
+
+/// Test 16: wrong signer cannot withdraw from an agent vault.
 #[test]
 fn test_agent_vault_wrong_withdraw_signer_rejected() {
     let mut svm = setup();

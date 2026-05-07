@@ -35,8 +35,8 @@ Legacy Anchor artifacts and devnet registrations may remain as historical/refere
 2. Show Surfpool local gate: localnet caught a real bug before devnet, then passed.
 3. Trigger the frontend economic/demo flow by human action; narrate that it uses 30 specialist profiles and x402-style payment boundaries.
 4. Show devnet terminal proof: Quasar A→B→C completes with escrow, settlement, reputation, and attestation.
-5. Show ecosystem map: x402/OpenRouter/Jupiter/Surfpool/MagicBlock boundaries. For Jupiter, say: “we can build and sign a Jupiter-routed transaction, but public Jupiter devnet execution is not supported; successful live Jupiter requires mainnet approval.” For MagicBlock, say: “we implemented Quasar-native MagicBlock permission/delegation and proved it live on devnet; the remaining blocker is TEE execution of the delegated Quasar program image, so we do not claim successful PER settlement.”
-6. Close honestly: final demo is Quasar-native devnet proof; not mainnet-ready; MagicBlock has live Quasar-native delegation proof but no successful PER settlement claim; successful live Jupiter swap is not claimed unless separately run.
+5. Show ecosystem map: x402/OpenRouter/Jupiter/Surfpool/MagicBlock boundaries. For Jupiter, say: “we can build and sign a Jupiter-routed transaction, but public Jupiter devnet execution is not supported; successful live Jupiter requires mainnet approval.” For MagicBlock, say: “we implemented Quasar-native MagicBlock permission/delegation and proved delegated Quasar execution inside MagicBlock TEE on devnet; bounded private agent-vault delegated-state credit is proven, while arbitrary-wallet private settlement and base-layer vault settlement remain unclaimed.”
+6. Close honestly: final demo is Quasar-native devnet proof; not mainnet-ready; MagicBlock has live Quasar-native delegation + TEE execution proof but we do not claim successful PER settlement for arbitrary-wallet/private base-layer settlement; successful live Jupiter swap is not claimed unless separately run.
 
 ## Required pre-recording gates
 
