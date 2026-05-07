@@ -163,9 +163,28 @@ Retrospective template:
 
 **Validation:** evidence pack with tx signatures, RPC readbacks, MagicBlock PER router/TEE request evidence, and explicit success/failure boundary.
 
+### Retrospective — Phase 6
+
+- **Expected:** Devnet txs create permission/delegation state for the PER escrow PDA using Quasar-native CPI and route through the MagicBlock PER/TEE boundary.
+- **Observed:** Added `scripts/run-quasar-per-devnet-smoke.mjs` and `npm run smoke:quasar:per-devnet`. The smoke sends real devnet txs to the deployed Quasar PER program: a tiny `QPERLOCK` escrow lock and the exact MagicBlock undelegate callback discriminator. This proves the deployed PER ABI is callable on devnet, the escrow PDA is owned by the Quasar PER program, and the callback entrypoint dispatches live. It does **not** yet create MagicBlock permission/delegation accounts because the deployed program still lacks concrete Quasar instructions that map the CPI descriptors to live `AccountView`s and invoke MagicBlock programs.
+- **Validation:** `npm run smoke:quasar:per-devnet` passed against `7ra8FZAHQ6F4SGfJJdjfgLuVnSN8HsGLx5iXq8qxSCpb`; lock tx `4Bk1VLxWqBN98D5qXG3J9Kdma3zgdcKwSDr22QntGBkBLAa9oD6VEAVhdqEmrSYFSqjvpWnQQpmKRfQ7yxvHbiTu`; callback tx `3EEk59Swd262JPYMeEvwKAKTLwqkdyWEcBFm3FFngF17X3RZuWvneHdHoy7n1JPftMWrcUvTswo8dLvYuk1StrNY`; escrow PDA `EyPKcNBFhLA8yb7y3xK5Pmt4dDftzMVRmUQtKoti2cLd`; escrow account owner `7ra8FZ...`, lamports `2579920`, data length `99`. First smoke attempt failed because the script used a timestamp escrow id while the on-chain counter expected `0`; the script now reads the counter PDA and uses the next id automatically.
+- **What worked:** The deployed Quasar PER program can run the core lock + callback ABI on public devnet. The smoke is deterministic enough to rerun because it derives the next escrow id from the counter account.
+- **What failed / surprised us:** The current Phase 6 expectation was too large for the code state: we had descriptors for MagicBlock CPIs but no exposed Quasar instruction that invokes them. Treating descriptor-only code as ready for full PER lifecycle would overclaim.
+- **Safety / approval review:** Devnet-only txs, tiny escrow amount (`0.001 SOL`) plus fees, using the configured funded payer. No mainnet or paid-provider action.
+- **Decision:** adjust.
+- **Plan changes for next phase:** Insert Phase 6B before final evidence: implement concrete Quasar PER lifecycle instructions (`delegate_per` and `commit_undelegate_per`) that consume remaining/manual accounts, map descriptors to `DynCpiCall`, and invoke MagicBlock with PDA signer seeds. Only after that should we rerun the full MagicBlock Permission/PER transaction loop.
+
+### Phase 6B — On-chain MagicBlock CPI instruction wiring
+
+**Expectation:** The Quasar PER program exposes concrete instructions that invoke MagicBlock Permission/Delegation programs with the descriptor-pinned bytes/accounts and escrow PDA signer seeds.
+
+**Implementation slice:** Add PER-specific `delegate_per` and `commit_undelegate_per` instructions, account contexts for required MagicBlock accounts, descriptor-to-`DynCpiCall` mapping, local tests for account order/seed roles, then rebuild/redeploy.
+
+**Validation:** SBF build, cargo tests, PER ABI guard, devnet deploy/upgrade, then a bounded MagicBlock permission/delegation smoke.
+
 ### Phase 7 — Final evidence + demo integration guard
 
-**Expectation:** Judge/operator evidence can honestly claim Quasar-native MagicBlock PER only if Phase 6 proves settlement; otherwise it clearly presents the remaining boundary without overstating.
+**Expectation:** Judge/operator evidence can honestly claim Quasar-native MagicBlock PER only if Phase 6B proves settlement; otherwise it clearly presents the remaining boundary without overstating.
 
 **Implementation slice:** update judge packet, operator checklist, demo evidence generator, and readiness guard.
 
