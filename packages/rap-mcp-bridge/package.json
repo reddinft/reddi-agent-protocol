@@ -1,0 +1,32 @@
+{
+  "name": "@reddi/rap-mcp-bridge",
+  "version": "0.1.0",
+  "description": "MCP bridge for Reddi Agent Protocol specialist discovery, synthetic quotes, verification, and disclosure ledgers.",
+  "type": "module",
+  "bin": {
+    "rap-mcp-bridge": "dist/src/server.js"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node --test dist/tests/*.test.js",
+    "smoke:stdio": "npm run build && node scripts/smoke-stdio.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "typescript": "^5"
+  }
+}
