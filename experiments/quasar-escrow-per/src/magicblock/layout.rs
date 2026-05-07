@@ -151,6 +151,77 @@ pub const fn delegate_escrow_data(
     out
 }
 
+/// Data for Delegation Program `delegate` for this program's agent vault PDA.
+///
+/// Seeds mirror `AgentVault`: `[b"agent_vault", authority]`, excluding bump.
+#[inline(always)]
+pub const fn delegate_agent_vault_data(validator: [u8; 32], authority: [u8; 32]) -> [u8; 100] {
+    let mut out = [0u8; 100];
+    let mut offset = 0usize;
+    let mut i = 0usize;
+    while i < 8 {
+        out[offset + i] = DELEGATE_ACCOUNT_DISCRIMINATOR[i];
+        i += 1;
+    }
+    offset += 8;
+
+    let freq = u32::MAX.to_le_bytes();
+    i = 0;
+    while i < 4 {
+        out[offset + i] = freq[i];
+        i += 1;
+    }
+    offset += 4;
+
+    let seed_count = 2u32.to_le_bytes();
+    i = 0;
+    while i < 4 {
+        out[offset + i] = seed_count[i];
+        i += 1;
+    }
+    offset += 4;
+
+    let seed0_len = 11u32.to_le_bytes();
+    i = 0;
+    while i < 4 {
+        out[offset + i] = seed0_len[i];
+        i += 1;
+    }
+    offset += 4;
+    let seed0 = *b"agent_vault";
+    i = 0;
+    while i < 11 {
+        out[offset + i] = seed0[i];
+        i += 1;
+    }
+    offset += 11;
+
+    let seed1_len = 32u32.to_le_bytes();
+    i = 0;
+    while i < 4 {
+        out[offset + i] = seed1_len[i];
+        i += 1;
+    }
+    offset += 4;
+    i = 0;
+    while i < 32 {
+        out[offset + i] = authority[i];
+        i += 1;
+    }
+    offset += 32;
+
+    out[offset] = 1;
+    offset += 1;
+
+    i = 0;
+    while i < 32 {
+        out[offset + i] = validator[i];
+        i += 1;
+    }
+
+    out
+}
+
 #[cfg(test)]
 mod tests {
     extern crate std;
@@ -190,6 +261,19 @@ mod tests {
         assert_eq!(
             hex(&delegate_escrow_data(DEVNET_TEE_VALIDATOR_BYTES, payer, 2)),
             "0000000000000000ffffffff0300000006000000657363726f7720000000070707070707070707070707070707070707070707070707070707070707070708000000020000000000000001053d471a859e732e680bc958f841072b8f3fbc19739be697c4c681126f8c1f74"
+        );
+    }
+
+    #[test]
+    fn delegate_agent_vault_data_matches_magicblock_rust_cpi_shape() {
+        let authority = [9u8; 32];
+        assert_eq!(
+            delegate_agent_vault_data(DEVNET_TEE_VALIDATOR_BYTES, authority).len(),
+            100
+        );
+        assert_eq!(
+            hex(&delegate_agent_vault_data(DEVNET_TEE_VALIDATOR_BYTES, authority)),
+            "0000000000000000ffffffff020000000b0000006167656e745f7661756c7420000000090909090909090909090909090909090909090909090909090909090909090901053d471a859e732e680bc958f841072b8f3fbc19739be697c4c681126f8c1f74"
         );
     }
 

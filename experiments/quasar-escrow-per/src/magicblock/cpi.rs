@@ -108,6 +108,9 @@ pub const DELEGATE_ESCROW_ACCOUNTS: [AccountSpec; 7] = [
     AccountSpec::new(AccountRole::SystemProgram, false, false),
 ];
 
+/// Same Delegation Program account order when delegating an `AgentVault` PDA.
+pub const DELEGATE_AGENT_VAULT_ACCOUNTS: [AccountSpec; 7] = DELEGATE_ESCROW_ACCOUNTS;
+
 /// SDK order for Permission Program `commitAndUndelegatePermission`.
 pub const COMMIT_AND_UNDELEGATE_PERMISSION_ACCOUNTS: [AccountSpec; 5] = [
     AccountSpec::new(AccountRole::Authority, true, true),
@@ -144,6 +147,18 @@ pub const fn delegate_escrow_descriptor(
         ProgramRole::Delegation,
         DELEGATE_ESCROW_ACCOUNTS,
         layout::delegate_escrow_data(validator, payer, escrow_id),
+        Some(AccountRole::DelegatedAccount),
+    )
+}
+
+pub const fn delegate_agent_vault_descriptor(
+    validator: [u8; 32],
+    authority: [u8; 32],
+) -> CpiDescriptor<7, 100> {
+    CpiDescriptor::new(
+        ProgramRole::Delegation,
+        DELEGATE_AGENT_VAULT_ACCOUNTS,
+        layout::delegate_agent_vault_data(validator, authority),
         Some(AccountRole::DelegatedAccount),
     )
 }
@@ -225,6 +240,14 @@ mod tests {
     }
 
     #[test]
+    fn delegate_agent_vault_account_flags_match_sdk_fixture() {
+        assert_eq!(
+            flags(&DELEGATE_AGENT_VAULT_ACCOUNTS),
+            flags(&DELEGATE_ESCROW_ACCOUNTS)
+        );
+    }
+
+    #[test]
     fn commit_and_undelegate_permission_account_flags_match_sdk_fixture() {
         assert_eq!(
             flags(&COMMIT_AND_UNDELEGATE_PERMISSION_ACCOUNTS),
@@ -261,6 +284,18 @@ mod tests {
         );
         assert_eq!(
             delegate_escrow.signer_role,
+            Some(AccountRole::DelegatedAccount)
+        );
+
+        let delegate_agent_vault =
+            delegate_agent_vault_descriptor(DEVNET_TEE_VALIDATOR_BYTES, [9u8; 32]);
+        assert_eq!(delegate_agent_vault.program, ProgramRole::Delegation);
+        assert_eq!(
+            hex(&delegate_agent_vault.data),
+            "0000000000000000ffffffff020000000b0000006167656e745f7661756c7420000000090909090909090909090909090909090909090909090909090909090909090901053d471a859e732e680bc958f841072b8f3fbc19739be697c4c681126f8c1f74"
+        );
+        assert_eq!(
+            delegate_agent_vault.signer_role,
             Some(AccountRole::DelegatedAccount)
         );
 
