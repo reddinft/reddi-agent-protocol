@@ -158,7 +158,7 @@ The ask: **recognise Reddi Agent Protocol as the category winner for trustless a
 **"Is this just another payment wrapper with a new framework attached?"**
 No. The differentiator is the full trust stack — escrow + blind reputation + attestations — not Quasar by itself. Quasar is the performance evidence. The product story is the five-layer protocol.
 
-**"If Anchor is still the submission, why should we care about Quasar?"**
+**"Why should we care about Quasar specifically?"**
 Because the critical proof path now runs Quasar-native, and the supporting evidence shows why that matters for agent-commerce throughput and cost.
 
 **"Are you introducing submission risk by talking about a Beta framework?"**
