@@ -1,0 +1,12 @@
+
+== pay sandbox curl retry (actual CLI syntax) ==
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100    15  100    15    0     0     21      0 --:--:-- --:--:-- --:--:--    21100    15  100    15    0     0     21      0 --:--:-- --:--:-- --:--:--    21
+HTTP/1.1 200 OK
+content-type: application/json
+content-length: 15
+payment-receipt: eyJjaGFsbGVuZ2VJZCI6ImgxUW5Ld1huMEhNWXU2dTZkSzg3VURMaE1ZVjh1cVFSTm96eUVoa2dNRGsiLCJtZXRob2QiOiJzb2xhbmEiLCJyZWZlcmVuY2UiOiI1UVlQWmM2c0Z1M3RRNlhoTVNuQ0VCcUJhSmsxZG91MUozdk1EVVY2ejJud2pOcERHdkJXOHl1MWZ1dGFBZFh3WnlyQWdYSGZtdWhmTkZ1a3ltRHQ4dUpIIiwic3RhdHVzIjoic3VjY2VzcyIsInRpbWVzdGFtcCI6IjIwMjYtMDUtMDdUMDY6NDk6MDYuMTUwMjE2WiJ9
+date: Thu, 07 May 2026 06:49:05 GMT
+
+{"status":"ok"}

@@ -132,7 +132,7 @@ Start:
 
 ### Plan refinement
 
-Pay.sh CLI availability check completed: `pay` is not currently installed on this host. Per local policy, Homebrew installs require Nissan involvement, so live Pay.sh gateway smoke is blocked pending explicit install approval/action. Continue with local static artifacts/spec validation until Pay.sh CLI is available; once installed, run `pay --sandbox server start ...` and `pay --sandbox curl ...`, then generate the first compatibility artifact from observed output.
+Pay.sh CLI availability check completed after Nissan installed it with Homebrew: `pay 0.16.0` is available. Sandbox gateway smoke ran successfully with `pay --sandbox server start config/pay-sh/reddi-x402-economic-demo-provider.yml --bind 127.0.0.1:1402 --debugger`. Plain curl produced HTTP 402 / MPP challenges; `pay --sandbox curl -i` retried and returned HTTP 200 with a `payment-receipt` header. Proceed to Phase 2 evidence hardening and observed-output capture.
 
 ## Phase 2 — `reddi-x402` compatibility evidence artifact
 
@@ -160,11 +160,25 @@ The repo can generate an evidence artifact showing a Pay.sh-compatible challenge
 
 ### Retrospective
 
-Write after artifact generator first passes.
+Phase 2 first sandbox evidence passed. Observed Pay.sh CLI shape differed slightly from docs: `pay --sandbox --output json curl ...` was invalid in `pay 0.16.0`; the working form was `pay --sandbox curl -i ...`. Plain curl returned HTTP 402 with two MPP challenges for USDC/USDT at $0.01/request. Pay.sh sandbox retry returned HTTP 200 with `payment-receipt`, receipt status `success`, method `solana`, and a sandbox reference signature. Evidence was captured under `artifacts/pay-sh-reddi-x402/20260507T064842Z/`.
+
+Keep:
+
+- Record only fields actually observed in CLI output.
+- Label the result sandbox compatibility, not mainnet settlement.
+- Keep provider spec hash in artifacts.
+
+Stop:
+
+- Relying on docs-only CLI flags without checking installed version behavior.
+
+Start:
+
+- Turn the ad-hoc evidence extraction into a reusable script before Phase 3 expands to sessions/splits.
 
 ### Plan refinement
 
-If Pay.sh output shape differs from docs, adapt the artifact schema to observed fields only.
+Reusable evidence generator added: `scripts/generate-pay-sh-reddi-x402-evidence.mjs` and `npm run evidence:pay-sh:reddi-x402 -- <artifact-dir>`. It parses captured plain/pay outputs, verifies the expected HTTP 402 → Pay.sh sandbox HTTP 200 + `payment-receipt` transition, and emits `SUMMARY.json`/`SUMMARY.md`. Phase 3 can reuse this schema for cap/split metadata.
 
 ## Phase 3 — Capped session payments and split-payment story
 

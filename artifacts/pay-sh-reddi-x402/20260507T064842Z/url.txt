@@ -1,0 +1,1 @@
+http://127.0.0.1:1402/api/economic-demo/reddi-x402/pay-sh-smoke

@@ -1,0 +1,12 @@
+== plain curl ==
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100   289  100   289    0     0    365      0 --:--:-- --:--:-- --:--:--   365100   289  100   289    0     0    365      0 --:--:-- --:--:-- --:--:--   365
+HTTP/1.1 402 Payment Required
+content-type: application/json
+www-authenticate: Payment id="pSR6WDZ7WWQizkLrhfopredQ4b6c5CdJN4LLxUIYhUo", realm="MPP Payment", method="solana", intent="charge", request="eyJhbW91bnQiOiIxMDAwMCIsImN1cnJlbmN5IjoiRVBqRldkZDVBdWZxU1NxZU0ycU4xeHp5YmFwQzhHNHdFR0drWnd5VER0MXYiLCJkZXNjcmlwdGlvbiI6IlJldHVybiBhIHNhbmRib3ggUmVkZGkgQWdlbnQgUHJvdG9jb2wgcGFpZCBBUEkgc21va2UgcmVzcG9uc2UgYWZ0ZXIgUGF5LnNoIHBheW1lbnQtcHJvb2YgdmVyaWZpY2F0aW9uLiIsIm1ldGhvZERldGFpbHMiOnsiZGVjaW1hbHMiOjYsImZlZVBheWVyIjp0cnVlLCJmZWVQYXllcktleSI6Ikd1elNuVXhGZ3BVNnVuZFQ0eGd5aU1pNGNjU1NHdFp3R1lrQWZSa1Npdm91IiwibmV0d29yayI6ImxvY2FsbmV0IiwicmVjZW50QmxvY2toYXNoIjoiU1VSRk5FVHhTQUZFSEFTSHh4eHh4eHh4eHh4eHh4eHh4eHgxOGVhOWQzZSIsInRva2VuUHJvZ3JhbSI6IlRva2Vua2VnUWZlWnlpTndBSmJOYkdLUEZYQ1d1QnZmOVNzNjIzVlE1REEifSwicmVjaXBpZW50IjoiR3V6U25VeEZncFU2dW5kVDR4Z3lpTWk0Y2NTU0d0WndHWWtBZlJrU2l2b3UifQ", expires="2026-05-07T06:53:42.562291Z"
+www-authenticate: Payment id="vpoUqYLY7kvG_--4qhA4PdnXLCb9iZ5pKuQylF9fzXw", realm="MPP Payment", method="solana", intent="charge", request="eyJhbW91bnQiOiIxMDAwMCIsImN1cnJlbmN5IjoiRXM5dk1GcnphQ0VSbUpmckY0SDJGWUQ0S0NvTmtZMTFNY0NlOEJlbndOWUIiLCJkZXNjcmlwdGlvbiI6IlJldHVybiBhIHNhbmRib3ggUmVkZGkgQWdlbnQgUHJvdG9jb2wgcGFpZCBBUEkgc21va2UgcmVzcG9uc2UgYWZ0ZXIgUGF5LnNoIHBheW1lbnQtcHJvb2YgdmVyaWZpY2F0aW9uLiIsIm1ldGhvZERldGFpbHMiOnsiZGVjaW1hbHMiOjYsImZlZVBheWVyIjp0cnVlLCJmZWVQYXllcktleSI6Ikd1elNuVXhGZ3BVNnVuZFQ0eGd5aU1pNGNjU1NHdFp3R1lrQWZSa1Npdm91IiwibmV0d29yayI6ImxvY2FsbmV0IiwicmVjZW50QmxvY2toYXNoIjoiU1VSRk5FVHhTQUZFSEFTSHh4eHh4eHh4eHh4eHh4eHh4eHgxOGVhOWQzZiIsInRva2VuUHJvZ3JhbSI6IlRva2Vua2VnUWZlWnlpTndBSmJOYkdLUEZYQ1d1QnZmOVNzNjIzVlE1REEifSwicmVjaXBpZW50IjoiR3V6U25VeEZncFU2dW5kVDR4Z3lpTWk0Y2NTU0d0WndHWWtBZlJrU2l2b3UifQ", expires="2026-05-07T06:53:42.971928Z"
+content-length: 289
+date: Thu, 07 May 2026 06:48:42 GMT
+
+{"endpoint":{"method":"GET","path":"api/economic-demo/reddi-x402/pay-sh-smoke"},"error":"payment_required","message":"This endpoint requires payment.","payment":{"challenges":2,"protocol":"mpp"},"pricing":{"dimensions":[{"direction":"usage","price_usd":0.01,"scale":1,"unit":"requests"}]}}

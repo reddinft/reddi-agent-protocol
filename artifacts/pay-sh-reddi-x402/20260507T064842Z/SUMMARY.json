@@ -1,0 +1,29 @@
+{
+  "schema": "reddi-x402.pay-sh.compatibility-evidence.v1",
+  "product": "Reddi Agent Protocol",
+  "package": "reddi-x402",
+  "mode": "pay-sh-sandbox",
+  "artifactDir": "artifacts/pay-sh-reddi-x402/20260507T064842Z",
+  "providerSpec": "config/pay-sh/reddi-x402-economic-demo-provider.yml",
+  "providerSpecSha256": "77f48c499b1b335e297372b58d8746ffd8b54783d73188ebedff766371af49ef",
+  "url": "http://127.0.0.1:1402/api/economic-demo/reddi-x402/pay-sh-smoke",
+  "plainCurl": {
+    "status": "402 Payment Required",
+    "paymentProtocol": "mpp",
+    "challengeCount": 2,
+    "priceUsd": 0.01
+  },
+  "paySandboxCurl": {
+    "status": "200 OK",
+    "hasPaymentReceipt": true,
+    "receipt": {
+      "challengeId": "h1QnKwXn0HMYu6u6dK87UDLhMYV8uqQRNozyEhkgMDk",
+      "method": "solana",
+      "reference": "5QYPZc6sFu3tQ6XhMSnCEBqBaJk1dou1J3vMDUV6z2nwjNpDGvBW8yu1futaAdXwZyrAgXHfmuhfNFukymDt8uJH",
+      "status": "success",
+      "timestamp": "2026-05-07T06:49:06.150216Z"
+    },
+    "bodyOk": true
+  },
+  "claimBoundary": "Sandbox Pay.sh gateway compatibility evidence only; no mainnet funds, no Umbra private settlement, and no MagicBlock PER settlement claimed."
+}
