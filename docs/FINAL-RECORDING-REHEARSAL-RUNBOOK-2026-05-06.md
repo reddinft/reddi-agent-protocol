@@ -69,7 +69,7 @@ npm run test:surfpool:quasar-critical
    - Surfpool localnet confidence passed.
    - x402/OpenRouter/Jupiter evidence is visible with exact boundaries.
    - Jupiter: Surfpool/mock-Jupiter is the successful no-real-funds visual; public Jupiter devnet is quote/build/sign boundary only.
-   - MagicBlock PER/TEE: Quasar-native permission/delegation succeeds live on devnet; successful PER settlement is not claimed because the delegated Quasar program image fails to execute on MagicBlock TEE. Successful live Jupiter swap is not a final claim unless separately run with explicit approval.
+   - MagicBlock PER/TEE: Quasar-native permission/delegation succeeds live on devnet, and patched Quasar PER executes inside MagicBlock TEE for private authorization/commit evidence; successful private payee lamport settlement is not claimed. Successful live Jupiter swap is not a final claim unless separately run with explicit approval.
    - Not mainnet-ready until architectural audit blockers are resolved and re-reviewed.
 
 ## Latest green evidence

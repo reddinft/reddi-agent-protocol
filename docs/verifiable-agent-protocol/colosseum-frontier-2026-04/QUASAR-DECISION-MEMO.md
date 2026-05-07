@@ -1,6 +1,6 @@
 # Quasar Escrow POC — Decision Memo
 
-> **2026-05-08 supersession note:** This memo is historical. The final critical submission path has since moved to Quasar-native devnet programs for escrow, registry, reputation, and attestation. Do not reuse the old “Keep Anchor” or “MagicBlock PER wired” language as current judge copy. Current MagicBlock claim boundary: Quasar-native permission/delegation succeeds live on devnet; successful PER settlement is not claimed because delegated Quasar program execution fails at MagicBlock TEE instruction start.
+> **2026-05-08 supersession note:** This memo is historical. The final critical submission path has since moved to Quasar-native devnet programs for escrow, registry, reputation, and attestation. Do not reuse the old “Keep Anchor” or “MagicBlock PER wired” language as current judge copy. Current MagicBlock claim boundary: Quasar-native permission/delegation succeeds live on devnet, and patched Quasar PER executes inside MagicBlock TEE for private authorization/commit evidence; successful private payee lamport settlement is not claimed.
 _Date: 2026-04-11_
 _Author: Kit_
 _For: Loki / Nissan (Colosseum Frontier submission decision)_

@@ -46,8 +46,8 @@ const requiredByFile = {
     "not a successful PER settlement proof",
   ],
   "docs/COLOSSEUM-FINAL-QUASAR-PROOF-MAP-2026-05-06.md": [
-    "Live Quasar-native permission/delegation proof, not successful settlement claim",
-    "delegated Quasar program execution fails at MagicBlock TEE instruction start",
+    "Live Quasar-native permission/delegation + TEE private authorization proof, not successful private payee settlement claim",
+    "patched Quasar PER executes inside MagicBlock TEE for private authorization/commit evidence",
     "we do not claim successful PER settlement",
   ],
   "docs/verifiable-agent-protocol/colosseum-frontier-2026-04/NARRATIVE.md": [
