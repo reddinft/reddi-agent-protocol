@@ -175,6 +175,44 @@ fn withdraw_agent_vault_ix(authority: Pubkey, vault: Pubkey, amount: u64) -> Ins
     }
 }
 
+#[allow(clippy::too_many_arguments)]
+fn delegate_agent_vault_per_ix(
+    authority: Pubkey,
+    vault: Pubkey,
+    permission: Pubkey,
+    permission_program: Pubkey,
+    delegation_program: Pubkey,
+    owner_program: Pubkey,
+    permission_delegate_buffer: Pubkey,
+    permission_delegation_record: Pubkey,
+    permission_delegation_metadata: Pubkey,
+    vault_delegate_buffer: Pubkey,
+    vault_delegation_record: Pubkey,
+    vault_delegation_metadata: Pubkey,
+    validator: Pubkey,
+) -> Instruction {
+    Instruction {
+        program_id: crate::ID,
+        accounts: vec![
+            AccountMeta::new(authority, true),
+            AccountMeta::new(vault, false),
+            AccountMeta::new(permission, false),
+            AccountMeta::new_readonly(permission_program, false),
+            AccountMeta::new_readonly(delegation_program, false),
+            AccountMeta::new_readonly(owner_program, false),
+            AccountMeta::new(permission_delegate_buffer, false),
+            AccountMeta::new(permission_delegation_record, false),
+            AccountMeta::new(permission_delegation_metadata, false),
+            AccountMeta::new(vault_delegate_buffer, false),
+            AccountMeta::new(vault_delegation_record, false),
+            AccountMeta::new(vault_delegation_metadata, false),
+            AccountMeta::new_readonly(validator, false),
+            AccountMeta::new_readonly(quasar_svm::system_program::ID, false),
+        ],
+        data: vec![81, 80, 69, 82, 86, 68, 69, 76], // QPERVDEL
+    }
+}
+
 fn undelegate_callback_ix(escrow: Pubkey) -> Instruction {
     Instruction {
         program_id: crate::ID,
@@ -758,4 +796,264 @@ fn test_agent_vault_double_withdraw_rejected() {
     );
 
     assert!(second_withdraw.is_err(), "double-withdraw must be rejected");
+}
+
+/// Test 16: vault delegation rejects an unpinned Permission Program before PDA signing.
+#[test]
+fn test_delegate_agent_vault_per_rejects_wrong_permission_program() {
+    let mut svm = setup();
+
+    let payer = Pubkey::new_unique();
+    let agent = Pubkey::new_unique();
+    let vault = agent_vault_pda(&agent);
+    let permission = Pubkey::new_unique();
+    let wrong_permission_program = Pubkey::new_unique();
+    let permission_delegate_buffer = Pubkey::new_unique();
+    let permission_delegation_record = Pubkey::new_unique();
+    let permission_delegation_metadata = Pubkey::new_unique();
+    let vault_delegate_buffer = Pubkey::new_unique();
+    let vault_delegation_record = Pubkey::new_unique();
+    let vault_delegation_metadata = Pubkey::new_unique();
+
+    let prepare_result = svm.process_instruction(
+        &prepare_agent_vault_ix(payer, agent, vault),
+        &[funded(payer), empty(agent), empty(vault)],
+    );
+    prepare_result.assert_success();
+
+    let result = svm.process_instruction(
+        &delegate_agent_vault_per_ix(
+            agent,
+            vault,
+            permission,
+            wrong_permission_program,
+            crate::magicblock::constants::DELEGATION_PROGRAM_ID,
+            crate::ID,
+            permission_delegate_buffer,
+            permission_delegation_record,
+            permission_delegation_metadata,
+            vault_delegate_buffer,
+            vault_delegation_record,
+            vault_delegation_metadata,
+            crate::magicblock::constants::DEVNET_TEE_VALIDATOR_ID,
+        ),
+        &[
+            prepare_result
+                .account(&agent)
+                .cloned()
+                .unwrap_or(empty(agent)),
+            prepare_result.account(&vault).unwrap().clone(),
+            empty(permission),
+            empty(wrong_permission_program),
+            empty(crate::magicblock::constants::DELEGATION_PROGRAM_ID),
+            empty(crate::ID),
+            empty(permission_delegate_buffer),
+            empty(permission_delegation_record),
+            empty(permission_delegation_metadata),
+            empty(vault_delegate_buffer),
+            empty(vault_delegation_record),
+            empty(vault_delegation_metadata),
+            empty(crate::magicblock::constants::DEVNET_TEE_VALIDATOR_ID),
+        ],
+    );
+
+    assert!(
+        result.is_err(),
+        "wrong Permission Program must be rejected before vault PDA signing"
+    );
+}
+
+/// Test 17: vault delegation rejects an unpinned TEE validator before PDA signing.
+#[test]
+fn test_delegate_agent_vault_per_rejects_wrong_validator() {
+    let mut svm = setup();
+
+    let payer = Pubkey::new_unique();
+    let agent = Pubkey::new_unique();
+    let vault = agent_vault_pda(&agent);
+    let permission = Pubkey::new_unique();
+    let wrong_validator = Pubkey::new_unique();
+    let permission_delegate_buffer = Pubkey::new_unique();
+    let permission_delegation_record = Pubkey::new_unique();
+    let permission_delegation_metadata = Pubkey::new_unique();
+    let vault_delegate_buffer = Pubkey::new_unique();
+    let vault_delegation_record = Pubkey::new_unique();
+    let vault_delegation_metadata = Pubkey::new_unique();
+
+    let prepare_result = svm.process_instruction(
+        &prepare_agent_vault_ix(payer, agent, vault),
+        &[funded(payer), empty(agent), empty(vault)],
+    );
+    prepare_result.assert_success();
+
+    let result = svm.process_instruction(
+        &delegate_agent_vault_per_ix(
+            agent,
+            vault,
+            permission,
+            crate::magicblock::constants::PERMISSION_PROGRAM_ID,
+            crate::magicblock::constants::DELEGATION_PROGRAM_ID,
+            crate::ID,
+            permission_delegate_buffer,
+            permission_delegation_record,
+            permission_delegation_metadata,
+            vault_delegate_buffer,
+            vault_delegation_record,
+            vault_delegation_metadata,
+            wrong_validator,
+        ),
+        &[
+            prepare_result
+                .account(&agent)
+                .cloned()
+                .unwrap_or(empty(agent)),
+            prepare_result.account(&vault).unwrap().clone(),
+            empty(permission),
+            empty(crate::magicblock::constants::PERMISSION_PROGRAM_ID),
+            empty(crate::magicblock::constants::DELEGATION_PROGRAM_ID),
+            empty(crate::ID),
+            empty(permission_delegate_buffer),
+            empty(permission_delegation_record),
+            empty(permission_delegation_metadata),
+            empty(vault_delegate_buffer),
+            empty(vault_delegation_record),
+            empty(vault_delegation_metadata),
+            empty(wrong_validator),
+        ],
+    );
+
+    assert!(
+        result.is_err(),
+        "wrong TEE validator must be rejected before vault PDA signing"
+    );
+}
+
+/// Test 18: vault delegation rejects an unpinned Delegation Program before ownership transfer.
+#[test]
+fn test_delegate_agent_vault_per_rejects_wrong_delegation_program() {
+    let mut svm = setup();
+
+    let payer = Pubkey::new_unique();
+    let agent = Pubkey::new_unique();
+    let vault = agent_vault_pda(&agent);
+    let permission = Pubkey::new_unique();
+    let wrong_delegation_program = Pubkey::new_unique();
+    let permission_delegate_buffer = Pubkey::new_unique();
+    let permission_delegation_record = Pubkey::new_unique();
+    let permission_delegation_metadata = Pubkey::new_unique();
+    let vault_delegate_buffer = Pubkey::new_unique();
+    let vault_delegation_record = Pubkey::new_unique();
+    let vault_delegation_metadata = Pubkey::new_unique();
+
+    let prepare_result = svm.process_instruction(
+        &prepare_agent_vault_ix(payer, agent, vault),
+        &[funded(payer), empty(agent), empty(vault)],
+    );
+    prepare_result.assert_success();
+
+    let result = svm.process_instruction(
+        &delegate_agent_vault_per_ix(
+            agent,
+            vault,
+            permission,
+            crate::magicblock::constants::PERMISSION_PROGRAM_ID,
+            wrong_delegation_program,
+            crate::ID,
+            permission_delegate_buffer,
+            permission_delegation_record,
+            permission_delegation_metadata,
+            vault_delegate_buffer,
+            vault_delegation_record,
+            vault_delegation_metadata,
+            crate::magicblock::constants::DEVNET_TEE_VALIDATOR_ID,
+        ),
+        &[
+            prepare_result
+                .account(&agent)
+                .cloned()
+                .unwrap_or(empty(agent)),
+            prepare_result.account(&vault).unwrap().clone(),
+            empty(permission),
+            empty(crate::magicblock::constants::PERMISSION_PROGRAM_ID),
+            empty(wrong_delegation_program),
+            empty(crate::ID),
+            empty(permission_delegate_buffer),
+            empty(permission_delegation_record),
+            empty(permission_delegation_metadata),
+            empty(vault_delegate_buffer),
+            empty(vault_delegation_record),
+            empty(vault_delegation_metadata),
+            empty(crate::magicblock::constants::DEVNET_TEE_VALIDATOR_ID),
+        ],
+    );
+
+    assert!(
+        result.is_err(),
+        "wrong Delegation Program must be rejected before vault ownership transfer"
+    );
+}
+
+/// Test 19: vault delegation rejects a spoofed owner program before PDA signing.
+#[test]
+fn test_delegate_agent_vault_per_rejects_wrong_owner_program() {
+    let mut svm = setup();
+
+    let payer = Pubkey::new_unique();
+    let agent = Pubkey::new_unique();
+    let vault = agent_vault_pda(&agent);
+    let permission = Pubkey::new_unique();
+    let wrong_owner_program = Pubkey::new_unique();
+    let permission_delegate_buffer = Pubkey::new_unique();
+    let permission_delegation_record = Pubkey::new_unique();
+    let permission_delegation_metadata = Pubkey::new_unique();
+    let vault_delegate_buffer = Pubkey::new_unique();
+    let vault_delegation_record = Pubkey::new_unique();
+    let vault_delegation_metadata = Pubkey::new_unique();
+
+    let prepare_result = svm.process_instruction(
+        &prepare_agent_vault_ix(payer, agent, vault),
+        &[funded(payer), empty(agent), empty(vault)],
+    );
+    prepare_result.assert_success();
+
+    let result = svm.process_instruction(
+        &delegate_agent_vault_per_ix(
+            agent,
+            vault,
+            permission,
+            crate::magicblock::constants::PERMISSION_PROGRAM_ID,
+            crate::magicblock::constants::DELEGATION_PROGRAM_ID,
+            wrong_owner_program,
+            permission_delegate_buffer,
+            permission_delegation_record,
+            permission_delegation_metadata,
+            vault_delegate_buffer,
+            vault_delegation_record,
+            vault_delegation_metadata,
+            crate::magicblock::constants::DEVNET_TEE_VALIDATOR_ID,
+        ),
+        &[
+            prepare_result
+                .account(&agent)
+                .cloned()
+                .unwrap_or(empty(agent)),
+            prepare_result.account(&vault).unwrap().clone(),
+            empty(permission),
+            empty(crate::magicblock::constants::PERMISSION_PROGRAM_ID),
+            empty(crate::magicblock::constants::DELEGATION_PROGRAM_ID),
+            empty(wrong_owner_program),
+            empty(permission_delegate_buffer),
+            empty(permission_delegation_record),
+            empty(permission_delegation_metadata),
+            empty(vault_delegate_buffer),
+            empty(vault_delegation_record),
+            empty(vault_delegation_metadata),
+            empty(crate::magicblock::constants::DEVNET_TEE_VALIDATOR_ID),
+        ],
+    );
+
+    assert!(
+        result.is_err(),
+        "wrong owner program must be rejected before vault PDA signing"
+    );
 }
