@@ -134,7 +134,7 @@ This is not a hackathon wrapper. This is the infrastructure layer that agent com
 
 **If you are scoring on execution discipline:** we made the harder call — shipped the Quasar critical path while refusing to overclaim MagicBlock PER settlement or Jupiter devnet execution.
 
-**What comes next:** resolve the MagicBlock TEE execution compatibility blocker, expand privacy rails beyond bounded evidence, and harden the production Reddi Agent Protocol launch path.
+**What comes next:** design delegated-payee/private settlement beyond the current MagicBlock TEE authorization proof, expand privacy rails beyond bounded evidence, and harden the production Reddi Agent Protocol launch path.
 
 The ask: **recognise Reddi Agent Protocol as the category winner for trustless agent commerce infrastructure on Solana.**
 
@@ -165,7 +165,7 @@ Because the critical proof path now runs Quasar-native, and the supporting evide
 Only if we hide the boundaries — which we do not. The documented decision is Quasar for the critical proof path, with MagicBlock/Jupiter/Umbra claims scoped to the evidence actually produced.
 
 **"Is the privacy story fully proven on Quasar?"**
-Not yet, and we say so clearly. Quasar-native MagicBlock permission/delegation succeeds live, but successful PER settlement is not claimed because delegated Quasar execution currently fails on MagicBlock TEE.
+Not yet, and we say so clearly. Quasar-native MagicBlock permission/delegation succeeds live, and patched Quasar PER executes inside MagicBlock TEE for private authorization/commit evidence, but successful private payee lamport settlement is not claimed.
 
 ---
 

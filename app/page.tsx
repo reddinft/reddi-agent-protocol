@@ -49,8 +49,8 @@ const ECOSYSTEM_PROOFS = [
   },
   {
     name: "MagicBlock",
-    status: "Delegation proven; settlement blocked",
-    desc: "Quasar-native MagicBlock permission/delegation succeeds live on devnet; TEE settlement is not claimed because delegated Quasar program execution currently fails on MagicBlock TEE.",
+    status: "Delegation + TEE auth proven; settlement bounded",
+    desc: "Quasar-native MagicBlock permission/delegation succeeds live on devnet; patched Quasar PER executes inside MagicBlock TEE for private authorization, but private payee lamport settlement is not claimed.",
     href: "/economic-demo",
   },
   {

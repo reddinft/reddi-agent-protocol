@@ -117,7 +117,7 @@ Reason:
 
 Suggested posture:
 
-- Submit MagicBlock only if we have time as an appendix / honorable technical evidence: “Quasar-native delegation proven; PER settlement blocked by TEE execution compatibility; repro included.”
+- Submit MagicBlock as appendix / honorable technical evidence: “Quasar-native delegation and TEE private authorization proven; private payee lamport settlement not claimed.”
 - Do not spend more live-smoke cycles chasing PER settlement unless MagicBlock/Quasar provides guidance or we build a full native control probe.
 - Do not pitch MagicBlock as the privacy payments rail in the final story.
 
