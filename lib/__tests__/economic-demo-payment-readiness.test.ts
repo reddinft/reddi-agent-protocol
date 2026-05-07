@@ -55,26 +55,27 @@ describe("economic demo payment readiness", () => {
     );
   });
 
-  it("surfaces Umbra as an implemented private x402 adapter contract without claiming live settlement", () => {
+  it("surfaces Umbra as an implemented private x402 adapter contract plus bounded devnet deposit without claiming live settlement", () => {
     const readiness = getEconomicDemoPaymentReadiness();
 
     expect(readiness.umbraPrivatePayment).toMatchObject({
       packageName: "reddi-x402",
       rail: "private-umbra",
       network: "devnet",
-      status: "adapter_contract_proven",
+      status: "adapter_contract_plus_devnet_encrypted_balance_deposit",
       operation: "public-balance-to-receiver-claimable-utxo",
       sdkPackages: ["@umbra-privacy/sdk", "@umbra-privacy/web-zk-prover"],
       programId: "DSuKkyqGVGgo4QtPABfxKJKygUDACbUhirnuv63mEpAJ",
       indexerApiEndpoint: "https://utxo-indexer.api-devnet.umbraprivacy.com",
       relayerApiEndpoint: "https://relayer.api-devnet.umbraprivacy.com",
       evidenceArtifactPath: "artifacts/umbra-private-x402/20260507T074334Z/SUMMARY.md",
-      nextGate: "approval_gated_devnet_sdk_smoke",
+      devnetEvidenceArtifactPath: "artifacts/umbra-devnet-smoke/20260507T075904Z/SUMMARY.md",
+      nextGate: "receiver_claimable_utxo_devnet_claim_smoke",
     });
     expect(readiness.umbraPrivatePayment.selectiveDisclosure.reveals).toContain("signatures");
     expect(readiness.umbraPrivatePayment.selectiveDisclosure.hides).toEqual(
       expect.arrayContaining(["recipientFinalWalletLink", "encryptedBalance", "utxoSecret"]),
     );
-    expect(readiness.umbraPrivatePayment.claimBoundary).toContain("no live/devnet Umbra settlement is claimed");
+    expect(readiness.umbraPrivatePayment.claimBoundary).toContain("No mainnet/live-production settlement");
   });
 });

@@ -55,20 +55,21 @@ export type EconomicDemoPaymentReadiness = {
     packageName: "reddi-x402";
     rail: "private-umbra";
     network: "devnet";
-    status: "adapter_contract_proven";
+    status: "adapter_contract_plus_devnet_encrypted_balance_deposit";
     operation: "public-balance-to-receiver-claimable-utxo";
     sdkPackages: ["@umbra-privacy/sdk", "@umbra-privacy/web-zk-prover"];
     programId: string;
     indexerApiEndpoint: string;
     relayerApiEndpoint: string;
     evidenceArtifactPath: string;
+    devnetEvidenceArtifactPath: string;
     selectiveDisclosure: {
       receiptType: "reddi.umbra-private-x402.receipt.v1";
       reveals: string[];
       hides: string[];
     };
     claimBoundary: string;
-    nextGate: "approval_gated_devnet_sdk_smoke";
+    nextGate: "receiver_claimable_utxo_devnet_claim_smoke";
   };
   nextOptions: Array<{
     id: "multi_edge_webpage_workflow" | "real_devnet_receipt_verifier" | "pay_sh_registry_publish";
@@ -143,21 +144,22 @@ export function getEconomicDemoPaymentReadiness(): EconomicDemoPaymentReadiness 
       packageName: "reddi-x402",
       rail: "private-umbra",
       network: "devnet",
-      status: "adapter_contract_proven",
+      status: "adapter_contract_plus_devnet_encrypted_balance_deposit",
       operation: "public-balance-to-receiver-claimable-utxo",
       sdkPackages: ["@umbra-privacy/sdk", "@umbra-privacy/web-zk-prover"],
       programId: "DSuKkyqGVGgo4QtPABfxKJKygUDACbUhirnuv63mEpAJ",
       indexerApiEndpoint: "https://utxo-indexer.api-devnet.umbraprivacy.com",
       relayerApiEndpoint: "https://relayer.api-devnet.umbraprivacy.com",
       evidenceArtifactPath: "artifacts/umbra-private-x402/20260507T074334Z/SUMMARY.md",
+      devnetEvidenceArtifactPath: "artifacts/umbra-devnet-smoke/20260507T075904Z/SUMMARY.md",
       selectiveDisclosure: {
         receiptType: "reddi.umbra-private-x402.receipt.v1",
         reveals: ["rail", "network", "mint", "amount", "recipientProfileId", "operation", "signatures"],
         hides: ["payerPublicAta", "recipientFinalWalletLink", "encryptedBalance", "utxoSecret"],
       },
       claimBoundary:
-        "Umbra private x402 adapter contract only: SDK packages are installed and import-verified, but no live/devnet Umbra settlement is claimed until an approval-gated SDK smoke submits registration, UTXO creation, scan, and claim transactions.",
-      nextGate: "approval_gated_devnet_sdk_smoke",
+        "Umbra private x402 adapter + bounded devnet encrypted-balance deposit: SDK packages are installed/import-verified, adapter-contract evidence covers receiver-claimable UTXO receipt shape, and devnet smoke proves wSOL deposit into an encrypted balance. No mainnet/live-production settlement, Quasar-native Umbra execution, or MagicBlock PER settlement is claimed.",
+      nextGate: "receiver_claimable_utxo_devnet_claim_smoke",
     },
     nextOptions: [
       {

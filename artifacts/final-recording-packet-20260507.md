@@ -13,6 +13,7 @@ Use clean `main` at `4cbed5f6` or later.
 - Latest Pay.sh / `reddi-x402` compatibility evidence: `artifacts/pay-sh-reddi-x402/20260507T064842Z/SUMMARY.md`
 - Umbra private-payment plan: `docs/UMBRA-PRIVACY-PAYMENTS-BOUNTY-FIT-2026-05-07.md`
 - Umbra private x402 adapter evidence: `artifacts/umbra-private-x402/20260507T074334Z/SUMMARY.md`
+- Umbra devnet encrypted-balance deposit completed: `artifacts/umbra-devnet-smoke/20260507T075904Z/SUMMARY.md`
 - Recording/submission handoff: `docs/RECORDING-SUBMISSION-HANDOFF-2026-05-07.md`
 
 ## Latest local gates
@@ -33,8 +34,9 @@ Safe claim:
 - Public Jupiter devnet is quote/build/sign boundary evidence only.
 - Signed devnet budget-lane tx is not a Jupiter swap receipt.
 - Pay.sh / `reddi-x402` proves sandbox HTTP 402 → payment → HTTP 200 receipt compatibility for the single-recipient charge flow.
-- Umbra is the planned private-settlement adapter lane.
-- Umbra private x402 adapter contract is implemented for receiver-claimable UTXO payments; it is not live settlement proof in this recording packet.
+- Umbra is the private-settlement adapter lane.
+- Umbra private x402 adapter contract is implemented for receiver-claimable UTXO payments.
+- Umbra devnet encrypted-balance deposit completed: tiny devnet wSOL was deposited into an Umbra encrypted balance with queue/callback tx evidence; this is not mainnet/live-production settlement proof.
 
 Do not claim:
 - successful public Jupiter devnet swap
@@ -44,7 +46,7 @@ Do not claim:
 - Pay.sh capped-session or split-payment settlement completed
 - Pay.sh evidence proving Umbra private settlement or MagicBlock PER settlement
 - Umbra private settlement executed
-- Umbra SDK devnet transaction flow completed
+- Umbra mainnet or production settlement completed
 
 ## Quasar program IDs
 

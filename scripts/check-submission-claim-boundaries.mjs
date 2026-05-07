@@ -20,23 +20,26 @@ const requiredByFile = {
     "Pay.sh evidence proving Umbra private settlement or MagicBlock PER settlement",
     "Umbra private x402 adapter contract is implemented",
     "Umbra private settlement executed",
+    "Umbra devnet encrypted-balance deposit completed",
   ],
   "docs/ECONOMIC-DEMO-JUDGE-PACKET-2026-05-05.md": [
     "Pay.sh / `reddi-x402` sandbox compatibility is proven for the single-recipient charge flow",
     "No Pay.sh capped-session or split-payment settlement claim",
     "Pay.sh capped sessions/splits remain probe-only",
-    "Umbra private x402 adapter contract is implemented, but live settlement is not claimed",
-    "No Umbra SDK devnet transaction-flow completion claim",
+    "Umbra private x402 adapter contract is implemented, and bounded devnet encrypted-balance deposit evidence is attached; live/mainnet settlement is not claimed",
+    "Umbra devnet encrypted-balance deposit completed",
   ],
   "docs/ECONOMIC-DEMO-PROOF-HIERARCHY-2026-05-07.md": [
     "Pay.sh / `reddi-x402` sandbox charge compatibility",
     "Pay.sh capped-session and split-payment probes",
     "Umbra private x402 adapter-contract proof",
-    "Does not prove: mainnet payment, Umbra private settlement, MagicBlock PER settlement",
+    "Umbra devnet encrypted-balance deposit proof",
+    "Does not prove: mainnet payment, production Umbra private settlement, MagicBlock PER settlement",
   ],
   "docs/HACKATHON-BOUNTY-SHOWCASE-AUDIT-2026-05-07.md": [
     "x402 + Pay.sh / `reddi-x402`",
     "Umbra is now a strong private-payments adapter-contract lane",
+    "Umbra devnet encrypted-balance deposit evidence",
     "sessions/splits are probe-only",
     "not a successful PER settlement proof",
   ],
@@ -45,7 +48,7 @@ const requiredByFile = {
     "Pay.sh capped sessions and split payments are probe-only extension evidence",
     "Pay.sh evidence proves Umbra private settlement or MagicBlock PER settlement",
     "Umbra private x402 adapter contract evidence proves the dependency-injected receiver-claimable UTXO call path",
-    "Umbra SDK/devnet private settlement completed",
+    "Umbra devnet encrypted-balance deposit completed",
   ],
 };
 
@@ -75,7 +78,7 @@ for (const file of files) {
     if (/MagicBlock/i.test(line) && /(?:successful PER settlement|settled PER|PER settlement proof)/i.test(line) && !/(?:not|No|without|blocked|weak)/i.test(line)) {
       failures.push(`${file}:${index + 1}: forbidden MagicBlock PER settlement overclaim: ${line.trim()}`);
     }
-    if (/Umbra/i.test(line) && /(?:SDK live\/devnet integration is complete|SDK devnet transaction flow is complete|SDK\/devnet private settlement completed|private settlement executed|live private settlement|devnet smoke passed|settlement completed)/i.test(line) && !/(?:not|No|without|planned|current evidence|does not prove|not executed|not claimed)/i.test(line)) {
+    if (/Umbra/i.test(line) && /(?:SDK live\/devnet integration is complete|SDK devnet transaction flow is complete|SDK\/devnet private settlement completed|private settlement executed|live private settlement|devnet smoke passed|mainnet settlement completed|production settlement completed|settlement completed)/i.test(line) && !/(?:not|No|without|planned|current evidence|does not prove|not executed|not claimed)/i.test(line)) {
       failures.push(`${file}:${index + 1}: forbidden Umbra execution overclaim: ${line.trim()}`);
     }
   }

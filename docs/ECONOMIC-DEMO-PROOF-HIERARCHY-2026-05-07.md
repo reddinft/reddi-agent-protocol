@@ -26,7 +26,7 @@ This is the judge/operator map for what the current economic demo evidence prove
    - Script: `npm run evidence:pay-sh:reddi-x402 -- artifacts/pay-sh-reddi-x402/20260507T064842Z`
    - Latest artifact: `artifacts/pay-sh-reddi-x402/20260507T064842Z/SUMMARY.md`
    - Proves: Pay.sh sandbox gateway compatibility for the Reddi Agent Protocol `reddi-x402` single-recipient charge flow: HTTP 402 / MPP challenge → Pay.sh sandbox payment → HTTP 200 with Solana payment receipt success.
-   - Does not prove: mainnet payment, Umbra private settlement, MagicBlock PER settlement, capped session settlement, or split-payment settlement.
+   - Does not prove: mainnet payment, production Umbra private settlement, MagicBlock PER settlement, capped session settlement, or split-payment settlement.
 
 5. **Pay.sh capped-session and split-payment probes**
    - Artifacts: `artifacts/pay-sh-reddi-x402/20260507T065805Z-session-splits/SUMMARY.md` and `artifacts/pay-sh-reddi-x402/20260507T065908Z-splits/SUMMARY.md`
@@ -37,9 +37,13 @@ This is the judge/operator map for what the current economic demo evidence prove
    - Artifact: `docs/UMBRA-PRIVACY-PAYMENTS-BOUNTY-FIT-2026-05-07.md`
    - Executable artifact: `artifacts/umbra-private-x402/20260507T074334Z/SUMMARY.md`
    - Proves: SDK packages are installed/import-verified; the dependency-injected adapter contract runs the intended receiver-claimable UTXO lifecycle; the generated receipt carries rail/network/operation/signature metadata and selective-disclosure boundaries.
-   - Does not prove: Umbra devnet registration/deposit/claim transaction submission, live private settlement, Quasar-native Umbra execution, or real encrypted-balance mutation.
 
-7. **Live Jupiter quote-only proof**
+7. **Umbra devnet encrypted-balance deposit proof**
+   - Executable artifact: `artifacts/umbra-devnet-smoke/20260507T075904Z/SUMMARY.md`
+   - Proves: devnet wSOL wrapping, Umbra confidential registration, public-balance-to-encrypted-balance deposit queue/callback, rent cleanup, and encrypted balance query returning `1000000` base units.
+   - Does not prove: mainnet payment, production Umbra private settlement, receiver-claimable UTXO claim flow, Quasar-native Umbra execution, or MagicBlock PER settlement.
+
+8. **Live Jupiter quote-only proof**
    - Script: `npm run smoke:economic-demo:jupiter-quote`
    - Proves: public Jupiter route availability for SOL→USDC at the time of the artifact, including output estimate, slippage, and route legs.
    - Does not prove: swap transaction creation, signing, execution, or wallet mutation.
@@ -84,6 +88,7 @@ Safe claims:
 - “Pay.sh / `reddi-x402` evidence proves sandbox HTTP 402-to-paid-receipt compatibility for a single-recipient charge.”
 - “Pay.sh capped sessions and split payments are extension probes only.”
 - “Umbra private x402 adapter-contract evidence proves the SDK-facing receiver-claimable UTXO call path and selective-disclosure receipt shape.”
+- “Umbra devnet encrypted-balance deposit completed for a tiny wSOL amount on devnet, with queue/callback transaction evidence and encrypted balance query.”
 - “Public Jupiter quote evidence proves route availability, not an executed devnet swap.”
 - “Devnet USDC receipt verification is ready and fail-closed; a verified receipt requires a supplied devnet transaction signature.”
 
@@ -97,7 +102,7 @@ Do not claim yet:
 - “Pay.sh capped-session settlement completed.”
 - “Pay.sh split-payment settlement completed.”
 - “Pay.sh evidence proves Umbra private settlement or MagicBlock PER settlement.”
-- “Umbra SDK devnet transaction flow is complete.”
+- “Umbra mainnet or production settlement completed.”
 - “Umbra private settlement executed.”
 
 ## Current default boundary

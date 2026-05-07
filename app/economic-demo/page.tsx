@@ -69,9 +69,9 @@ const localEvidenceArtifacts = [
     detail: "Proven sandbox HTTP 402 → Pay.sh payment → HTTP 200 receipt evidence for Reddi Agent Protocol's reddi-x402 package surface.",
   },
   {
-    label: "Umbra private x402 adapter contract",
-    path: "artifacts/umbra-private-x402/20260507T074334Z/SUMMARY.md",
-    detail: "Executable adapter-contract evidence for receiver-claimable Umbra UTXO payments; no live/devnet private settlement claimed yet.",
+    label: "Umbra private x402 adapter + devnet encrypted-balance deposit",
+    path: "artifacts/umbra-devnet-smoke/20260507T075904Z/SUMMARY.md",
+    detail: "Executable adapter-contract evidence plus bounded devnet wSOL → Umbra encrypted-balance deposit; no mainnet/live-production settlement claimed.",
   },
 ] as const;
 
@@ -869,7 +869,7 @@ export default function EconomicDemoPage() {
                       <div>
                         <p className="text-xs uppercase tracking-wide text-accent-purple">Umbra private x402 adapter</p>
                         <p className="mt-1 text-sm leading-6 text-gray-200">
-                          Reddi Agent Protocol now has an executable private-payment adapter contract for {paymentReadiness.umbraPrivatePayment.packageName}: payer creates a receiver-claimable Umbra UTXO, the recipient scans claimable UTXOs, then claims into an encrypted balance via relayer.
+                          Reddi Agent Protocol now has an executable private-payment adapter contract for {paymentReadiness.umbraPrivatePayment.packageName}: payer creates a receiver-claimable Umbra UTXO, the recipient scans claimable UTXOs, then claims into an encrypted balance via relayer. A bounded devnet smoke also proves public wSOL deposit into an Umbra encrypted balance.
                         </p>
                       </div>
                       <span className="rounded-full border border-accent-purple/40 bg-accent-purple/10 px-2 py-0.5 text-xs text-accent-purple">
@@ -888,6 +888,7 @@ export default function EconomicDemoPage() {
                       <div className="rounded border border-white/10 bg-black/30 p-2">
                         <p className="text-xs text-gray-500">evidence</p>
                         <p className="mt-1 break-all font-mono text-xs text-gray-300">{paymentReadiness.umbraPrivatePayment.evidenceArtifactPath}</p>
+                        <p className="mt-1 break-all font-mono text-xs text-gray-300">{paymentReadiness.umbraPrivatePayment.devnetEvidenceArtifactPath}</p>
                       </div>
                     </div>
                     <div className="mt-3 rounded border border-white/10 bg-black/30 p-2 text-xs leading-5 text-gray-300">

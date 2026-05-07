@@ -1,0 +1,80 @@
+{
+  "ok": true,
+  "schemaVersion": "reddi.umbra-devnet-smoke.v1",
+  "timestamp": "20260507T075904Z",
+  "boundary": "Umbra devnet-only smoke. No mainnet settlement, no real funds, no Quasar-native Umbra execution, no MagicBlock PER settlement.",
+  "network": "devnet",
+  "rpcUrl": "https://api.devnet.solana.com",
+  "indexerUrl": "https://utxo-indexer.api-devnet.umbraprivacy.com",
+  "relayerUrl": "https://relayer.api-devnet.umbraprivacy.com",
+  "umbraProgramId": "DSuKkyqGVGgo4QtPABfxKJKygUDACbUhirnuv63mEpAJ",
+  "mint": "So11111111111111111111111111111111111111112",
+  "amountBaseUnits": "1000000",
+  "signerAddress": "3Vmcwra5tfxGwaX3jnpmYybCd7gH4fstJzi1Yci38f94",
+  "signerSource": "ephemeral",
+  "associatedTokenAddress": "3yGyK3rs1cpz6TxAbWdmtGWiFAfiGNkSM98Pnazmsh7x",
+  "supportedMints": [
+    "So11111111111111111111111111111111111111112",
+    "DXQwBNGgyQ2BzGWxEriJPVmXYFQBsQbXvfvfSNTaJkL6",
+    "4oG4sjmopf5MzvTHLE8rpVJ2uyczxfsw2K84SUTpNDx7"
+  ],
+  "transactions": {
+    "airdrop": null,
+    "wrapSol": "3VKLskQnawASV23AqWdEeXEWnHdRK484Kjb8C6RM8cAQ2Xz8uVA3j4CeKr7YZFdgjF7etwHwwcTqLbCdPQPRYQz8",
+    "registration": [
+      "3ndyEuvBMKEPkxz1LT9jK2NougyzaUoFu96dtyZhCTSiv3ZdduCwFXQyErdMrgcYrFdksna6RBmq5QNzKEhTmUE",
+      "5dLTzctrhWNcg7f9XammZBYLhwz57dibutjXxW7d1w1BJY6ZB1vzncZWJA4kttywr38MPb2J8sW5YusVjRRSvj2H"
+    ],
+    "deposit": {
+      "queueSignature": "3DUNUaSjPWC2qdXHX8NTCN5BAnosvcZ5v5vJhUTjbD7YhMUdsPWyKEFBMrLNRc9EZnkstKJudkpXL8dhax2oD7Vt",
+      "callbackStatus": "finalized",
+      "callbackSignature": "RB1AaW9iXrAfQhMgEaRbrRumEohMd2YGAi2UtgQeZR1q9Pq4Rey1pRC872MMAw9AVxg3t85c8mYjKfob4iNYE3v",
+      "callbackElapsedMs": 1371,
+      "rentClaimSignature": "4LbCtBsfCxeDwPfVrWpbZMR2e6snLo5odazb5DngvtFgs7Z9MfTJjvQu6Jg3a5ub6f9JqVmudfp9fjtx66o4hVmn"
+    }
+  },
+  "encryptedBalance": {
+    "So11111111111111111111111111111111111111112": {
+      "state": "shared",
+      "balance": "1000000"
+    }
+  },
+  "userAccount": {
+    "error": {
+      "name": "QueryError",
+      "message": "Failed to derive user account PDA: Cannot read properties of undefined (reading 'length')",
+      "stack": "QueryError: Failed to derive user account PDA: Cannot read properties of undefined (reading 'length')\n    at new QueryError (file:///Users/loki/.openclaw/workspace/projects/reddi-agent-protocol-code/node_modules/@umbra-privacy/sdk/dist/chunk-AUNYA6JP.js:421:5)\n    at queryUserAccount (file:///Users/loki/.openclaw/workspace/projects/reddi-agent-protocol-code/node_modules/@umbra-privacy/sdk/dist/index.js:9301:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async main (file:///Users/loki/.openclaw/workspace/projects/reddi-agent-protocol-code/scripts/run-umbra-devnet-smoke.mjs:116:21)\n    at async file:///Users/loki/.openclaw/workspace/projects/reddi-agent-protocol-code/scripts/run-umbra-devnet-smoke.mjs:133:3",
+      "stage": "pda-derivation",
+      "cause": {
+        "name": "TypeError",
+        "message": "Cannot read properties of undefined (reading 'length')",
+        "stack": "TypeError: Cannot read properties of undefined (reading 'length')\n    at assertIsAddress (file:///Users/loki/.openclaw/workspace/projects/reddi-agent-protocol-code/node_modules/@umbra-privacy/sdk/node_modules/@solana/addresses/dist/index.node.mjs:35:21)\n    at address (file:///Users/loki/.openclaw/workspace/projects/reddi-agent-protocol-code/node_modules/@umbra-privacy/sdk/node_modules/@solana/addresses/dist/index.node.mjs:52:3)\n    at file:///Users/loki/.openclaw/workspace/projects/reddi-agent-protocol-code/node_modules/@umbra-privacy/sdk/node_modules/@solana/addresses/dist/index.node.mjs:58:26\n    at Object.write (file:///Users/loki/.openclaw/workspace/projects/reddi-agent-protocol-code/node_modules/@umbra-privacy/sdk/node_modules/@solana/codecs-core/dist/index.node.mjs:472:52)\n    at Object.encode (file:///Users/loki/.openclaw/workspace/projects/reddi-agent-protocol-code/node_modules/@umbra-privacy/sdk/node_modules/@solana/codecs-core/dist/index.node.mjs:45:15)\n    at findEncryptedUserAccountPda (file:///Users/loki/.openclaw/workspace/projects/reddi-agent-protocol-code/node_modules/@umbra-privacy/sdk/dist/chunk-KH3YTDKA.js:89:57)\n    at queryUserAccount (file:///Users/loki/.openclaw/workspace/projects/reddi-agent-protocol-code/node_modules/@umbra-privacy/sdk/dist/index.js:9299:30)\n    at main (file:///Users/loki/.openclaw/workspace/projects/reddi-agent-protocol-code/scripts/run-umbra-devnet-smoke.mjs:116:27)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async file:///Users/loki/.openclaw/workspace/projects/reddi-agent-protocol-code/scripts/run-umbra-devnet-smoke.mjs:133:3"
+      }
+    }
+  },
+  "error": null,
+  "relayerAddress": "3kbpT5EmRBjDZG5XcTYR4LmXb4EYf2AowfCVd55ePG5B",
+  "indexerHealth": {
+    "status": "ok"
+  },
+  "balanceBeforeFundingLamports": 484716240,
+  "airdropSkipped": "existing devnet balance 484716240 lamports >= 50000000",
+  "sdkClient": {
+    "signerAddress": "3Vmcwra5tfxGwaX3jnpmYybCd7gH4fstJzi1Yci38f94",
+    "network": "devnet",
+    "relayerConfigured": true
+  },
+  "userAccountBefore": {
+    "error": {
+      "name": "QueryError",
+      "message": "Failed to derive user account PDA: Cannot read properties of undefined (reading 'length')",
+      "stack": "QueryError: Failed to derive user account PDA: Cannot read properties of undefined (reading 'length')\n    at new QueryError (file:///Users/loki/.openclaw/workspace/projects/reddi-agent-protocol-code/node_modules/@umbra-privacy/sdk/dist/chunk-AUNYA6JP.js:421:5)\n    at queryUserAccount (file:///Users/loki/.openclaw/workspace/projects/reddi-agent-protocol-code/node_modules/@umbra-privacy/sdk/dist/index.js:9301:13)\n    at async main (file:///Users/loki/.openclaw/workspace/projects/reddi-agent-protocol-code/scripts/run-umbra-devnet-smoke.mjs:109:22)\n    at async file:///Users/loki/.openclaw/workspace/projects/reddi-agent-protocol-code/scripts/run-umbra-devnet-smoke.mjs:133:3",
+      "stage": "pda-derivation",
+      "cause": {
+        "name": "TypeError",
+        "message": "Cannot read properties of undefined (reading 'length')",
+        "stack": "TypeError: Cannot read properties of undefined (reading 'length')\n    at assertIsAddress (file:///Users/loki/.openclaw/workspace/projects/reddi-agent-protocol-code/node_modules/@umbra-privacy/sdk/node_modules/@solana/addresses/dist/index.node.mjs:35:21)\n    at address (file:///Users/loki/.openclaw/workspace/projects/reddi-agent-protocol-code/node_modules/@umbra-privacy/sdk/node_modules/@solana/addresses/dist/index.node.mjs:52:3)\n    at file:///Users/loki/.openclaw/workspace/projects/reddi-agent-protocol-code/node_modules/@umbra-privacy/sdk/node_modules/@solana/addresses/dist/index.node.mjs:58:26\n    at Object.write (file:///Users/loki/.openclaw/workspace/projects/reddi-agent-protocol-code/node_modules/@umbra-privacy/sdk/node_modules/@solana/codecs-core/dist/index.node.mjs:472:52)\n    at Object.encode (file:///Users/loki/.openclaw/workspace/projects/reddi-agent-protocol-code/node_modules/@umbra-privacy/sdk/node_modules/@solana/codecs-core/dist/index.node.mjs:45:15)\n    at findEncryptedUserAccountPda (file:///Users/loki/.openclaw/workspace/projects/reddi-agent-protocol-code/node_modules/@umbra-privacy/sdk/dist/chunk-KH3YTDKA.js:89:57)\n    at queryUserAccount (file:///Users/loki/.openclaw/workspace/projects/reddi-agent-protocol-code/node_modules/@umbra-privacy/sdk/dist/index.js:9299:30)\n    at main (file:///Users/loki/.openclaw/workspace/projects/reddi-agent-protocol-code/scripts/run-umbra-devnet-smoke.mjs:109:28)\n    at async file:///Users/loki/.openclaw/workspace/projects/reddi-agent-protocol-code/scripts/run-umbra-devnet-smoke.mjs:133:3"
+      }
+    }
+  }
+}

@@ -13,7 +13,7 @@ _Final proof map:_ `docs/COLOSSEUM-FINAL-QUASAR-PROOF-MAP-2026-05-06.md`
 
 Reddi Agent Protocol demonstrates an agentic workflow economy where a user request can be routed through an orchestrator, marketplace specialists, attestors, x402-compatible payment challenges, Pay.sh / `reddi-x402` sandbox compatibility evidence, and downstream-disclosure evidence. The current demo is intentionally safe and evidence-bounded: it shows the workflow, public manifest/dependency disclosure, local dry-run evidence pointers, Surfpool/local rehearsal semantics, Pay.sh sandbox charge compatibility, and storyboard-only image planning without making hidden paid calls or claiming production settlement.
 
-Umbra is now implemented as an adapter-contract lane for future private x402 payments. The current executable artifact is `artifacts/umbra-private-x402/20260507T074334Z/SUMMARY.md`, which proves the SDK-facing receiver-claimable UTXO call path and selective-disclosure receipt shape with dependency-injected mocks. It is not represented as live private settlement proof in this packet.
+Umbra is now implemented as an adapter-contract lane for private x402 payments. The executable adapter artifact is `artifacts/umbra-private-x402/20260507T074334Z/SUMMARY.md`, which proves the SDK-facing receiver-claimable UTXO call path and selective-disclosure receipt shape with dependency-injected mocks. The bounded devnet artifact is `artifacts/umbra-devnet-smoke/20260507T075904Z/SUMMARY.md`, which proves devnet wSOL wrapping, Umbra confidential registration, public-balance-to-encrypted-balance deposit queue/callback, and encrypted-balance query. It is not represented as mainnet/live-production private settlement proof in this packet.
 
 ## What to open
 
@@ -43,11 +43,13 @@ Nissan has selected Quasar-compiled Solana programs as the final hackathon demo 
    - The proven flow is HTTP 402 / MPP challenge → `pay --sandbox curl` → HTTP 200 with Solana payment receipt success.
    - Capped sessions and split payments are extension probes only; Pay.sh 0.16.0 returned `Server returned 402 again after payment` for those variants.
 
-5. **Umbra private x402 adapter contract is implemented, but live settlement is not claimed.** Umbra private x402 payments are planned, not executed.
+5. **Umbra private x402 adapter contract is implemented, and bounded devnet encrypted-balance deposit evidence is attached; live/mainnet settlement is not claimed.** Umbra private x402 payments are demoed as adapter-contract plus bounded devnet encrypted-balance deposit evidence.
    - Plan/research artifact: `docs/UMBRA-PRIVACY-PAYMENTS-BOUNTY-FIT-2026-05-07.md`.
    - Executable artifact: `artifacts/umbra-private-x402/20260507T074334Z/SUMMARY.md`.
+   - Devnet evidence artifact: `artifacts/umbra-devnet-smoke/20260507T075904Z/SUMMARY.md`.
+   - Umbra devnet encrypted-balance deposit completed.
    - Implemented role: private settlement adapter contract for Reddi Agent Protocol x402 payments using Umbra encrypted balances / receiver-claimable UTXOs / selective disclosure.
-   - Current packet does not claim Umbra devnet transaction smoke, live private settlement, or Quasar-native Umbra execution.
+   - Current packet does not claim Umbra mainnet/live-production settlement or Quasar-native Umbra execution.
 
 6. **The picture path is spend-gated.**
    - The Phase 7 picture workflow is storyboard-only.
@@ -76,8 +78,8 @@ Nissan has selected Quasar-compiled Solana programs as the final hackathon demo 
 - No Coolify/env mutation.
 - No Pay.sh capped-session or split-payment settlement claim.
 - No Pay.sh claim of Umbra private settlement or MagicBlock PER settlement.
-- No Umbra SDK live/devnet integration claim.
-- No Umbra SDK devnet transaction-flow completion claim.
+- No Umbra SDK mainnet/live-production settlement claim.
+- Umbra devnet encrypted-balance deposit completed; no broader SDK claim/withdrawal/receiver-claimable settlement claim.
 - No Umbra private settlement execution claim.
 
 ## Public proof chain
@@ -108,7 +110,7 @@ git diff --check
 
 ## Recommended submission wording
 
-> Reddi Agent Protocol demonstrates a Quasar-native devnet agent economy: a human-triggered workflow routes through wallet-bearing agents, x402-compatible payment boundaries, Pay.sh / `reddi-x402` sandbox charge compatibility, public Quasar escrow settlement, blind reputation commit/reveal, and attestation. The final on-chain proof uses Quasar-compiled Solana programs for Registry, Escrow, Reputation, and Attestation. Surfpool localnet is used as the pre-devnet confidence gate; OpenRouter/30 specialist profiles and x402 evidence show the agent marketplace/payment boundary; Umbra private x402 adapter-contract evidence shows the receiver-claimable UTXO/selective-disclosure lane without claiming live private settlement; Jupiter is wired for cross-token settlement but live swap is not claimed; Pay.sh capped sessions/splits remain probe-only; MagicBlock PER/TEE settlement is explicitly not claimed in the final Quasar path unless separately validated.
+> Reddi Agent Protocol demonstrates a Quasar-native devnet agent economy: a human-triggered workflow routes through wallet-bearing agents, x402-compatible payment boundaries, Pay.sh / `reddi-x402` sandbox charge compatibility, public Quasar escrow settlement, blind reputation commit/reveal, and attestation. The final on-chain proof uses Quasar-compiled Solana programs for Registry, Escrow, Reputation, and Attestation. Surfpool localnet is used as the pre-devnet confidence gate; OpenRouter/30 specialist profiles and x402 evidence show the agent marketplace/payment boundary; Umbra private x402 adapter-contract evidence plus bounded devnet encrypted-balance deposit evidence show the receiver-claimable UTXO/selective-disclosure lane without claiming mainnet/live-production private settlement; Jupiter is wired for cross-token settlement but live swap is not claimed; Pay.sh capped sessions/splits remain probe-only; MagicBlock PER/TEE settlement is explicitly not claimed in the final Quasar path unless separately validated.
 
 ## If reviewers ask what comes next
 

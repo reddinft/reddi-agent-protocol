@@ -39,6 +39,7 @@ const evidence = {
   payShSessionProbe: "artifacts/pay-sh-reddi-x402/20260507T065805Z-session-splits/SUMMARY.json",
   payShSplitProbe: "artifacts/pay-sh-reddi-x402/20260507T065908Z-splits/SUMMARY.json",
   umbraPrivateX402: required(latestArtifact("artifacts/umbra-private-x402", "SUMMARY.json"), "umbra_private_x402"),
+  umbraDevnetSmoke: required(latestArtifact("artifacts/umbra-devnet-smoke", "SUMMARY.json"), "umbra_devnet_smoke"),
   proofHierarchy: "docs/ECONOMIC-DEMO-PROOF-HIERARCHY-2026-05-07.md",
   bdd: "docs/bdd/features/bucket-j-end-user-economic-demo.feature",
 };
@@ -76,6 +77,7 @@ Scope: safe local/demo prep only. Generated: ${new Date().toISOString()}.
 - Economic demo run report: \`npm run report:economic-demo:run\`
 - Pay.sh / reddi-x402 evidence: \`npm run evidence:pay-sh:reddi-x402 -- artifacts/pay-sh-reddi-x402/20260507T064842Z\`
 - Umbra private x402 adapter evidence: \`npm run evidence:umbra:private-x402\`
+- Umbra devnet encrypted-balance deposit smoke: \`npm run smoke:umbra:devnet\`
 
 ## Local evidence paths to mention/demo
 
@@ -92,6 +94,7 @@ Scope: safe local/demo prep only. Generated: ${new Date().toISOString()}.
 - Pay.sh capped session probe: \`${evidence.payShSessionProbe}\`
 - Pay.sh split-payment probe: \`${evidence.payShSplitProbe}\`
 - Umbra private x402 adapter contract: \`${evidence.umbraPrivateX402}\`
+- Umbra devnet encrypted-balance deposit: \`${evidence.umbraDevnetSmoke}\`
 - Proof hierarchy doc: \`${evidence.proofHierarchy}\`
 
 ## Five-beat recording outline
@@ -100,7 +103,7 @@ Scope: safe local/demo prep only. Generated: ${new Date().toISOString()}.
 2. Show the upfront quote, user payment edge, downstream specialist/attestor fees, and retained markup.
 3. Show communication graph and payment graph together: user → orchestrator → specialists/attestors → final output.
 4. Show evidence hierarchy: deterministic UI, Surfpool local payment semantics, Surfpool/mock-Jupiter successful no-real-funds invoke proof, public Jupiter quote/build/sign boundary, devnet USDC receipt verifier, live payment gate/sender plan.
-5. Close with the hard boundary: Surfpool/mock-Jupiter is local proof, Pay.sh / reddi-x402 is sandbox charge compatibility, Umbra private x402 is adapter-contract evidence only until approval-gated devnet smoke, public Jupiter quote/build/sign is not successful devnet execution, blocked verifier/gate artifacts are safety evidence, and live signing/spend requires explicit approval.
+5. Close with the hard boundary: Surfpool/mock-Jupiter is local proof, Pay.sh / reddi-x402 is sandbox charge compatibility, Umbra private x402 now has adapter-contract evidence plus a bounded devnet wSOL-to-encrypted-balance smoke, public Jupiter quote/build/sign is not successful devnet execution, blocked verifier/gate artifacts are safety evidence, and any further live signing/spend requires explicit approval.
 
 ## Hard no-go list unless Nissan explicitly approves
 
@@ -128,6 +131,7 @@ Safe to say:
 - Pay.sh capped sessions and split payments are probe-only extension evidence because Pay.sh 0.16.0 returned 402 again after sandbox payment.
 - Umbra private x402 adapter contract is present.
 - Umbra private x402 adapter contract evidence proves the dependency-injected receiver-claimable UTXO call path and selective-disclosure receipt shape.
+- Umbra devnet encrypted-balance deposit completed: devnet wSOL was wrapped, Umbra confidential registration submitted, deposit queue/callback finalized, and encrypted balance query returned the deposited amount.
 
 Not safe to say yet:
 
@@ -138,7 +142,7 @@ Not safe to say yet:
 - Mainnet settlement is supported.
 - Pay.sh capped sessions or split-payment settlement completed.
 - Pay.sh evidence proves Umbra private settlement or MagicBlock PER settlement.
-- Umbra SDK/devnet private settlement completed.
+- Umbra mainnet or production settlement completed.
 - Umbra evidence proves live private settlement.
 `;
 writeFileSync(prepPath, content);

@@ -141,6 +141,22 @@ Risk:
 
 ## Recommended build plan — Umbra x402 private payments lane
 
+### 2026-05-07 devnet update
+
+Bounded Umbra devnet evidence is now attached at `artifacts/umbra-devnet-smoke/20260507T075904Z/SUMMARY.md`.
+
+Confirmed devnet flow:
+
+- SDK package upgraded to `@umbra-privacy/sdk@4.0.0` because `2.0.3` has `devnet: null` network config and cannot construct a devnet client.
+- Devnet relayer/indexer were reachable: `https://relayer.api-devnet.umbraprivacy.com` and `https://utxo-indexer.api-devnet.umbraprivacy.com`.
+- Supported devnet mint used: wSOL/native mint `So11111111111111111111111111111111111111112`.
+- Wrapped tiny devnet SOL to wSOL ATA.
+- Submitted Umbra confidential registration transactions.
+- Submitted public-balance-to-encrypted-balance deposit queue transaction; Umbra callback finalized; rent cleanup transaction submitted.
+- Encrypted balance query returned `1000000` base units for the wSOL mint.
+
+Claim boundary: this proves a bounded Umbra devnet encrypted-balance deposit, not mainnet payment, production/live private settlement, receiver-claimable UTXO claim flow, Quasar-native Umbra execution, or MagicBlock PER settlement.
+
 ### Phase 0 — BDD claim boundary
 
 Expectation: Reddi Agent Protocol can offer a private payment rail without weakening the Quasar-only final-program claim.

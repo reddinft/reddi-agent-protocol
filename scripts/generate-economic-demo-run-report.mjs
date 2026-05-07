@@ -37,6 +37,7 @@ const payShReddix402Path = join(rootDir, "artifacts", "pay-sh-reddi-x402", "2026
 const payShSessionProbePath = join(rootDir, "artifacts", "pay-sh-reddi-x402", "20260507T065805Z-session-splits", "SUMMARY.json");
 const payShSplitProbePath = join(rootDir, "artifacts", "pay-sh-reddi-x402", "20260507T065908Z-splits", "SUMMARY.json");
 const umbraPrivateX402Path = latestArtifact("artifacts/umbra-private-x402", "SUMMARY.json");
+const umbraDevnetSmokePath = latestArtifact("artifacts/umbra-devnet-smoke", "SUMMARY.json");
 
 if (!surfpoolPath) throw new Error("missing_surfpool_rehearsal_summary");
 const surfpool = readJson(surfpoolPath);
@@ -49,6 +50,7 @@ const payShReddix402 = existsSync(payShReddix402Path) ? readJson(payShReddix402P
 const payShSessionProbe = existsSync(payShSessionProbePath) ? readJson(payShSessionProbePath) : null;
 const payShSplitProbe = existsSync(payShSplitProbePath) ? readJson(payShSplitProbePath) : null;
 const umbraPrivateX402 = umbraPrivateX402Path ? readJson(umbraPrivateX402Path) : null;
+const umbraDevnetSmoke = umbraDevnetSmokePath ? readJson(umbraDevnetSmokePath) : null;
 
 const downstreamPayments = surfpool.executedTransfers.filter((transfer) => transfer.category === "downstream_agent_payment");
 const attestationTransfers = downstreamPayments.filter((transfer) => /verification|attest|explain/i.test(transfer.toProfileId));
@@ -92,6 +94,7 @@ const report = {
     payShSessionProbe: payShSessionProbe ? relative(rootDir, payShSessionProbePath) : null,
     payShSplitProbe: payShSplitProbe ? relative(rootDir, payShSplitProbePath) : null,
     umbraPrivateX402: umbraPrivateX402Path ? relative(rootDir, umbraPrivateX402Path) : null,
+    umbraDevnetSmoke: umbraDevnetSmokePath ? relative(rootDir, umbraDevnetSmokePath) : null,
   },
   story: [
     "User starts with SOL when they do not have the required downstream USDC budget.",
@@ -184,6 +187,23 @@ const report = {
         claimBoundary: umbraPrivateX402.claimBoundary,
         liveSettlementClaimed: umbraPrivateX402.liveSettlementClaimed,
         devnetTransactionsSubmitted: umbraPrivateX402.devnetTransactionsSubmitted,
+        devnetSmoke: umbraDevnetSmoke?.ok
+          ? {
+              proofStatus: "devnet_encrypted_balance_deposit_confirmed",
+              evidenceArtifactPath: relative(rootDir, umbraDevnetSmokePath),
+              programId: umbraDevnetSmoke.umbraProgramId,
+              signerAddress: umbraDevnetSmoke.signerAddress,
+              mint: umbraDevnetSmoke.mint,
+              amountBaseUnits: umbraDevnetSmoke.amountBaseUnits,
+              wrapSolSignature: umbraDevnetSmoke.transactions?.wrapSol ?? null,
+              registrationSignatures: umbraDevnetSmoke.transactions?.registration ?? [],
+              depositQueueSignature: umbraDevnetSmoke.transactions?.deposit?.queueSignature ?? null,
+              depositCallbackSignature: umbraDevnetSmoke.transactions?.deposit?.callbackSignature ?? null,
+              rentClaimSignature: umbraDevnetSmoke.transactions?.deposit?.rentClaimSignature ?? null,
+              encryptedBalance: umbraDevnetSmoke.encryptedBalance ?? null,
+              claimBoundary: umbraDevnetSmoke.boundary,
+            }
+          : null,
       }
     : null,
   paymentReceipts: surfpool.executedTransfers.map((transfer) => ({
@@ -220,6 +240,7 @@ const report = {
     "Reputation commit/reveal entries are fixture-only until a live Quasar reputation commit and reveal receipt are supplied.",
     "No signing, swap, transfer, paid provider call, or wallet mutation is performed by this report generator.",
     "Pay.sh / reddi-x402 evidence is sandbox gateway compatibility only; sessions and splits remain probe-only until Pay.sh runtime behavior is clarified.",
+    "Umbra devnet smoke proves a bounded devnet registration plus public wSOL to encrypted-balance deposit only; it does not prove mainnet settlement, production funds, Quasar-native Umbra execution, or MagicBlock PER settlement.",
   ],
 };
 
@@ -279,6 +300,12 @@ writeFileSync(
       : null,
     report.umbraPrivateX402
       ? `- evidence: ${report.umbraPrivateX402.evidenceArtifactPath}`
+      : null,
+    report.umbraPrivateX402?.devnetSmoke
+      ? `- devnet smoke: ${report.umbraPrivateX402.devnetSmoke.proofStatus} · deposit queue ${report.umbraPrivateX402.devnetSmoke.depositQueueSignature} · callback ${report.umbraPrivateX402.devnetSmoke.depositCallbackSignature}`
+      : null,
+    report.umbraPrivateX402?.devnetSmoke
+      ? `- devnet evidence: ${report.umbraPrivateX402.devnetSmoke.evidenceArtifactPath}`
       : null,
     report.umbraPrivateX402
       ? `- claim boundary: ${report.umbraPrivateX402.claimBoundary}`
