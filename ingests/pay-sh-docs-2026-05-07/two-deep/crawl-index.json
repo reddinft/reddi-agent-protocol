@@ -1,0 +1,424 @@
+{
+  "seed": "https://pay.sh/docs",
+  "count": 49,
+  "errors": [
+    {
+      "url": "https://pay.sh/docs",
+      "error": "ValueError('Invalid IPv6 URL')"
+    },
+    {
+      "url": "https://pay.sh/docs\"/><link",
+      "error": "<HTTPError 404: 'Not Found'>"
+    },
+    {
+      "url": "https://pay.sh/docs/index.md\"/><meta",
+      "error": "<HTTPError 404: 'Not Found'>"
+    },
+    {
+      "url": "https://pay.sh/docs\"/><meta",
+      "error": "<HTTPError 404: 'Not Found'>"
+    },
+    {
+      "url": "https://pay.sh/docs/opengraph-image\"/><meta",
+      "error": "<HTTPError 404: 'Not Found'>"
+    },
+    {
+      "url": "https://pay.sh/docs/opengraph-image\"/><link",
+      "error": "<HTTPError 404: 'Not Found'>"
+    }
+  ],
+  "pages": [
+    {
+      "url": "https://pay.sh/docs",
+      "final": "https://pay.sh/docs",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/pay_sh_docs.md",
+      "chars": 81125
+    },
+    {
+      "url": "https://pay.sh/llms.txt",
+      "final": "https://pay.sh/llms.txt",
+      "status": 200,
+      "content_type": "text/plain; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/pay_sh_llms_txt.md",
+      "chars": 2154
+    },
+    {
+      "url": "https://pay.sh/docs/llms.txt",
+      "final": "https://pay.sh/docs/llms.txt",
+      "status": 200,
+      "content_type": "text/plain; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_llms_txt.md",
+      "chars": 6782
+    },
+    {
+      "url": "https://pay.sh/docs/get-started/install/index.md",
+      "final": "https://pay.sh/docs/get-started/install/index.md",
+      "status": 200,
+      "content_type": "text/markdown; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_get_started_install_index_md.md",
+      "chars": 1705
+    },
+    {
+      "url": "https://pay.sh/docs/get-started/agent-quickstart/index.md",
+      "final": "https://pay.sh/docs/get-started/agent-quickstart/index.md",
+      "status": 200,
+      "content_type": "text/markdown; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_get_started_agent_quickstart_index_md.md",
+      "chars": 801
+    },
+    {
+      "url": "https://pay.sh/docs/pay-for-apis/call-paid-apis/index.md",
+      "final": "https://pay.sh/docs/pay-for-apis/call-paid-apis/index.md",
+      "status": 200,
+      "content_type": "text/markdown; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_pay_for_apis_call_paid_apis_index_md.md",
+      "chars": 1010
+    },
+    {
+      "url": "https://pay.sh/docs/get-started/llms.txt",
+      "final": "https://pay.sh/docs/get-started/llms.txt",
+      "status": 200,
+      "content_type": "text/plain; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_get_started_llms_txt.md",
+      "chars": 714
+    },
+    {
+      "url": "https://pay.sh/docs/pay-for-apis/llms.txt",
+      "final": "https://pay.sh/docs/pay-for-apis/llms.txt",
+      "status": 200,
+      "content_type": "text/plain; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_pay_for_apis_llms_txt.md",
+      "chars": 991
+    },
+    {
+      "url": "https://pay.sh/docs/accept-payments/llms.txt",
+      "final": "https://pay.sh/docs/accept-payments/llms.txt",
+      "status": 200,
+      "content_type": "text/plain; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_accept_payments_llms_txt.md",
+      "chars": 1636
+    },
+    {
+      "url": "https://pay.sh/docs/cli/llms.txt",
+      "final": "https://pay.sh/docs/cli/llms.txt",
+      "status": 200,
+      "content_type": "text/plain; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_cli_llms_txt.md",
+      "chars": 858
+    },
+    {
+      "url": "https://pay.sh/docs/protocol/llms.txt",
+      "final": "https://pay.sh/docs/protocol/llms.txt",
+      "status": 200,
+      "content_type": "text/plain; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_protocol_llms_txt.md",
+      "chars": 829
+    },
+    {
+      "url": "https://pay.sh/docs/pay-for-apis/discover-providers/index.md",
+      "final": "https://pay.sh/docs/pay-for-apis/discover-providers/index.md",
+      "status": 200,
+      "content_type": "text/markdown; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_pay_for_apis_discover_providers_index_md.md",
+      "chars": 946
+    },
+    {
+      "url": "https://pay.sh/docs/pay-for-apis/mcp/index.md",
+      "final": "https://pay.sh/docs/pay-for-apis/mcp/index.md",
+      "status": 200,
+      "content_type": "text/markdown; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_pay_for_apis_mcp_index_md.md",
+      "chars": 741
+    },
+    {
+      "url": "https://pay.sh/docs/accept-payments/gateway-overview/index.md",
+      "final": "https://pay.sh/docs/accept-payments/gateway-overview/index.md",
+      "status": 200,
+      "content_type": "text/markdown; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_accept_payments_gateway_overview_index_md.md",
+      "chars": 2615
+    },
+    {
+      "url": "https://pay.sh/docs/accept-payments/publish-to-pay-skills/index.md",
+      "final": "https://pay.sh/docs/accept-payments/publish-to-pay-skills/index.md",
+      "status": 200,
+      "content_type": "text/markdown; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_accept_payments_publish_to_pay_skills_index_md.md",
+      "chars": 890
+    },
+    {
+      "url": "https://pay.sh/.well-known/api-catalog",
+      "final": "https://pay.sh/.well-known/api-catalog",
+      "status": 200,
+      "content_type": "application/json",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/json/pay_sh_well_known_api_catalog.json",
+      "chars": 1022
+    },
+    {
+      "url": "https://pay.sh/.well-known/mcp/server-card.json",
+      "final": "https://pay.sh/.well-known/mcp/server-card.json",
+      "status": 200,
+      "content_type": "application/json",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/json/pay_sh_well_known_mcp_server_card_json.json",
+      "chars": 1029
+    },
+    {
+      "url": "https://pay.sh/.well-known/agent-skills/index.json",
+      "final": "https://pay.sh/.well-known/agent-skills/index.json",
+      "status": 200,
+      "content_type": "application/json",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/json/pay_sh_well_known_agent_skills_index_json.json",
+      "chars": 1271
+    },
+    {
+      "url": "https://pay.sh/api/catalog",
+      "final": "https://pay.sh/api/catalog",
+      "status": 200,
+      "content_type": "application/json",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/json/pay_sh_api_catalog.json",
+      "chars": 51179
+    },
+    {
+      "url": "https://pay.sh/index.md",
+      "final": "https://pay.sh/index.md",
+      "status": 200,
+      "content_type": "text/markdown; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/pay_sh_index_md.md",
+      "chars": 4402
+    },
+    {
+      "url": "https://pay.sh/docs/get-started/index.md",
+      "final": "https://pay.sh/docs/get-started/index.md",
+      "status": 200,
+      "content_type": "text/markdown; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_get_started_index_md.md",
+      "chars": 956
+    },
+    {
+      "url": "https://pay.sh/docs/get-started/client-quickstart/index.md",
+      "final": "https://pay.sh/docs/get-started/client-quickstart/index.md",
+      "status": 200,
+      "content_type": "text/markdown; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_get_started_client_quickstart_index_md.md",
+      "chars": 879
+    },
+    {
+      "url": "https://pay.sh/docs/get-started/server-quickstart/index.md",
+      "final": "https://pay.sh/docs/get-started/server-quickstart/index.md",
+      "status": 200,
+      "content_type": "text/markdown; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_get_started_server_quickstart_index_md.md",
+      "chars": 710
+    },
+    {
+      "url": "https://pay.sh/docs/pay-for-apis/index.md",
+      "final": "https://pay.sh/docs/pay-for-apis/index.md",
+      "status": 200,
+      "content_type": "text/markdown; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_pay_for_apis_index_md.md",
+      "chars": 926
+    },
+    {
+      "url": "https://pay.sh/docs/pay-for-apis/agents/index.md",
+      "final": "https://pay.sh/docs/pay-for-apis/agents/index.md",
+      "status": 200,
+      "content_type": "text/markdown; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_pay_for_apis_agents_index_md.md",
+      "chars": 812
+    },
+    {
+      "url": "https://pay.sh/docs/pay-for-apis/accounts/index.md",
+      "final": "https://pay.sh/docs/pay-for-apis/accounts/index.md",
+      "status": 200,
+      "content_type": "text/markdown; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_pay_for_apis_accounts_index_md.md",
+      "chars": 1121
+    },
+    {
+      "url": "https://pay.sh/docs/pay-for-apis/sandbox-and-networks/index.md",
+      "final": "https://pay.sh/docs/pay-for-apis/sandbox-and-networks/index.md",
+      "status": 200,
+      "content_type": "text/markdown; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_pay_for_apis_sandbox_and_networks_index_md.md",
+      "chars": 755
+    },
+    {
+      "url": "https://pay.sh/docs/accept-payments/index.md",
+      "final": "https://pay.sh/docs/accept-payments/index.md",
+      "status": 200,
+      "content_type": "text/markdown; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_accept_payments_index_md.md",
+      "chars": 861
+    },
+    {
+      "url": "https://pay.sh/docs/accept-payments/provider-spec/index.md",
+      "final": "https://pay.sh/docs/accept-payments/provider-spec/index.md",
+      "status": 200,
+      "content_type": "text/markdown; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_accept_payments_provider_spec_index_md.md",
+      "chars": 4062
+    },
+    {
+      "url": "https://pay.sh/docs/accept-payments/per-request/index.md",
+      "final": "https://pay.sh/docs/accept-payments/per-request/index.md",
+      "status": 200,
+      "content_type": "text/markdown; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_accept_payments_per_request_index_md.md",
+      "chars": 762
+    },
+    {
+      "url": "https://pay.sh/docs/accept-payments/usage-metered/index.md",
+      "final": "https://pay.sh/docs/accept-payments/usage-metered/index.md",
+      "status": 200,
+      "content_type": "text/markdown; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_accept_payments_usage_metered_index_md.md",
+      "chars": 700
+    },
+    {
+      "url": "https://pay.sh/docs/accept-payments/session-payments/index.md",
+      "final": "https://pay.sh/docs/accept-payments/session-payments/index.md",
+      "status": 200,
+      "content_type": "text/markdown; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_accept_payments_session_payments_index_md.md",
+      "chars": 774
+    },
+    {
+      "url": "https://pay.sh/docs/accept-payments/payment-splits/index.md",
+      "final": "https://pay.sh/docs/accept-payments/payment-splits/index.md",
+      "status": 200,
+      "content_type": "text/markdown; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_accept_payments_payment_splits_index_md.md",
+      "chars": 866
+    },
+    {
+      "url": "https://pay.sh/docs/accept-payments/openapi/index.md",
+      "final": "https://pay.sh/docs/accept-payments/openapi/index.md",
+      "status": 200,
+      "content_type": "text/markdown; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_accept_payments_openapi_index_md.md",
+      "chars": 754
+    },
+    {
+      "url": "https://pay.sh/docs/accept-payments/debugging/index.md",
+      "final": "https://pay.sh/docs/accept-payments/debugging/index.md",
+      "status": 200,
+      "content_type": "text/markdown; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_accept_payments_debugging_index_md.md",
+      "chars": 828
+    },
+    {
+      "url": "https://pay.sh/docs/accept-payments/deploy/index.md",
+      "final": "https://pay.sh/docs/accept-payments/deploy/index.md",
+      "status": 200,
+      "content_type": "text/markdown; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_accept_payments_deploy_index_md.md",
+      "chars": 834
+    },
+    {
+      "url": "https://pay.sh/docs/cli/index.md",
+      "final": "https://pay.sh/docs/cli/index.md",
+      "status": 200,
+      "content_type": "text/markdown; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_cli_index_md.md",
+      "chars": 817
+    },
+    {
+      "url": "https://pay.sh/docs/cli/global-flags/index.md",
+      "final": "https://pay.sh/docs/cli/global-flags/index.md",
+      "status": 200,
+      "content_type": "text/markdown; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_cli_global_flags_index_md.md",
+      "chars": 790
+    },
+    {
+      "url": "https://pay.sh/docs/cli/http-clients/index.md",
+      "final": "https://pay.sh/docs/cli/http-clients/index.md",
+      "status": 200,
+      "content_type": "text/markdown; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_cli_http_clients_index_md.md",
+      "chars": 1063
+    },
+    {
+      "url": "https://pay.sh/docs/cli/agents/index.md",
+      "final": "https://pay.sh/docs/cli/agents/index.md",
+      "status": 200,
+      "content_type": "text/markdown; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_cli_agents_index_md.md",
+      "chars": 783
+    },
+    {
+      "url": "https://pay.sh/docs/cli/provider-catalog/index.md",
+      "final": "https://pay.sh/docs/cli/provider-catalog/index.md",
+      "status": 200,
+      "content_type": "text/markdown; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_cli_provider_catalog_index_md.md",
+      "chars": 1037
+    },
+    {
+      "url": "https://pay.sh/docs/cli/gateways/index.md",
+      "final": "https://pay.sh/docs/cli/gateways/index.md",
+      "status": 200,
+      "content_type": "text/markdown; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_cli_gateways_index_md.md",
+      "chars": 915
+    },
+    {
+      "url": "https://pay.sh/docs/cli/wallets/index.md",
+      "final": "https://pay.sh/docs/cli/wallets/index.md",
+      "status": 200,
+      "content_type": "text/markdown; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_cli_wallets_index_md.md",
+      "chars": 877
+    },
+    {
+      "url": "https://pay.sh/docs/protocol/index.md",
+      "final": "https://pay.sh/docs/protocol/index.md",
+      "status": 200,
+      "content_type": "text/markdown; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_protocol_index_md.md",
+      "chars": 882
+    },
+    {
+      "url": "https://pay.sh/docs/protocol/http-402/index.md",
+      "final": "https://pay.sh/docs/protocol/http-402/index.md",
+      "status": 200,
+      "content_type": "text/markdown; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_protocol_http_402_index_md.md",
+      "chars": 664
+    },
+    {
+      "url": "https://pay.sh/docs/protocol/mpp/index.md",
+      "final": "https://pay.sh/docs/protocol/mpp/index.md",
+      "status": 200,
+      "content_type": "text/markdown; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_protocol_mpp_index_md.md",
+      "chars": 768
+    },
+    {
+      "url": "https://pay.sh/docs/protocol/x402/index.md",
+      "final": "https://pay.sh/docs/protocol/x402/index.md",
+      "status": 200,
+      "content_type": "text/markdown; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_protocol_x402_index_md.md",
+      "chars": 679
+    },
+    {
+      "url": "https://pay.sh/docs/protocol/security/index.md",
+      "final": "https://pay.sh/docs/protocol/security/index.md",
+      "status": 200,
+      "content_type": "text/markdown; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_protocol_security_index_md.md",
+      "chars": 761
+    },
+    {
+      "url": "https://pay.sh/docs/protocol/troubleshooting/index.md",
+      "final": "https://pay.sh/docs/protocol/troubleshooting/index.md",
+      "status": 200,
+      "content_type": "text/markdown; charset=utf-8",
+      "path": "ingests/pay-sh-docs-2026-05-07/two-deep/raw-md/docs_protocol_troubleshooting_index_md.md",
+      "chars": 882
+    }
+  ]
+}
