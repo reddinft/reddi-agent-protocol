@@ -70,3 +70,4 @@ data/onboarding/token-gated-proxy.mjs
 # Package-local dependency/build outputs
 **/node_modules/
 packages/openrouter-specialists/dist/
+packages/rap-mcp-bridge/dist/

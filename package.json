@@ -67,7 +67,10 @@
     "check:umbra:adapter-imports": "node ./scripts/check-umbra-adapter-imports.mjs",
     "check:umbra:sdk-imports": "node ./scripts/check-umbra-sdk-imports.mjs",
     "evidence:umbra:private-x402": "node ./scripts/generate-umbra-private-x402-evidence.mjs",
-    "smoke:umbra:devnet": "node ./scripts/run-umbra-devnet-smoke.mjs"
+    "smoke:umbra:devnet": "node ./scripts/run-umbra-devnet-smoke.mjs",
+    "evidence:rap-mcp-bridge:surfpool-plan": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON ./scripts/generate-rap-mcp-bridge-surfpool-proof.mjs",
+    "smoke:rap-mcp-bridge:surfpool-local": "node ./scripts/run-rap-mcp-bridge-surfpool-local.mjs",
+    "smoke:rap-mcp-bridge:devnet-proof": "node ./scripts/run-rap-mcp-bridge-devnet-proof.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",
