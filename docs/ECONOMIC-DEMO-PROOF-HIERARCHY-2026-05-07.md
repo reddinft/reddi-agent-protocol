@@ -33,22 +33,27 @@ This is the judge/operator map for what the current economic demo evidence prove
    - Proves: Pay.sh 0.16.0 emits richer MPP challenge metadata for session and split variants.
    - Does not prove: successful paid retry or settlement; both probes returned `Server returned 402 again after payment`.
 
-6. **Live Jupiter quote-only proof**
+6. **Umbra private x402 settlement plan**
+   - Artifact: `docs/UMBRA-PRIVACY-PAYMENTS-BOUNTY-FIT-2026-05-07.md`
+   - Proves: architecture and bounty-fit analysis for using Umbra as a private settlement adapter lane alongside Quasar public settlement and Pay.sh / `reddi-x402` sandbox compatibility.
+   - Does not prove: Umbra SDK import/type integration, devnet registration/deposit/claim, live private settlement, Quasar-native Umbra execution, or selective-disclosure receipt generation.
+
+7. **Live Jupiter quote-only proof**
    - Script: `npm run smoke:economic-demo:jupiter-quote`
    - Proves: public Jupiter route availability for SOL→USDC at the time of the artifact, including output estimate, slippage, and route legs.
    - Does not prove: swap transaction creation, signing, execution, or wallet mutation.
 
-7. **Devnet USDC receipt verification**
+8. **Devnet USDC receipt verification**
    - Script: `npm run verify:economic-demo:devnet-usdc-receipt`
    - Proves: a supplied devnet transaction signature contains a USDC SPL-token transfer to the declared recipient within the approved cap.
    - Does not prove: this repo initiated the payment. It is a verifier, not a signer/sender.
 
-8. **Live payment gate**
+9. **Live payment gate**
    - Script: `npm run check:economic-demo:live-payment-gate`
    - Proves: all required inputs for an actual live receipt lane are explicit before any future executor can run.
    - Does not prove: transfer/swap occurred.
 
-9. **Future gated sender/swap executor**
+10. **Future gated sender/swap executor**
    - Status: not implemented yet.
    - Required before claiming: exact confirmation token, network, spend cap, signer reference, recipient, asset route, and receipt verification artifact.
 
@@ -77,6 +82,7 @@ Safe claims:
 - “Surfpool/mock-Jupiter evidence proves a successful no-real-funds swap-shaped invoke path.”
 - “Pay.sh / `reddi-x402` evidence proves sandbox HTTP 402-to-paid-receipt compatibility for a single-recipient charge.”
 - “Pay.sh capped sessions and split payments are extension probes only.”
+- “Umbra is the planned private x402 settlement adapter lane; current packet contains architecture/bounty-fit analysis only.”
 - “Public Jupiter quote evidence proves route availability, not an executed devnet swap.”
 - “Devnet USDC receipt verification is ready and fail-closed; a verified receipt requires a supplied devnet transaction signature.”
 
@@ -90,6 +96,8 @@ Do not claim yet:
 - “Pay.sh capped-session settlement completed.”
 - “Pay.sh split-payment settlement completed.”
 - “Pay.sh evidence proves Umbra private settlement or MagicBlock PER settlement.”
+- “Umbra SDK live/devnet integration is complete.”
+- “Umbra private settlement executed.”
 
 ## Current default boundary
 

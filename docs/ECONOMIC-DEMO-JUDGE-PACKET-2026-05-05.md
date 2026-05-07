@@ -13,6 +13,8 @@ _Final proof map:_ `docs/COLOSSEUM-FINAL-QUASAR-PROOF-MAP-2026-05-06.md`
 
 Reddi Agent Protocol demonstrates an agentic workflow economy where a user request can be routed through an orchestrator, marketplace specialists, attestors, x402-compatible payment challenges, Pay.sh / `reddi-x402` sandbox compatibility evidence, and downstream-disclosure evidence. The current demo is intentionally safe and evidence-bounded: it shows the workflow, public manifest/dependency disclosure, local dry-run evidence pointers, Surfpool/local rehearsal semantics, Pay.sh sandbox charge compatibility, and storyboard-only image planning without making hidden paid calls or claiming production settlement.
 
+Umbra is tracked as the planned private-settlement adapter lane for future private x402 payments. It is not represented as executed proof in this packet; the current artifact is the plan/research doc `docs/UMBRA-PRIVACY-PAYMENTS-BOUNTY-FIT-2026-05-07.md`.
+
 ## What to open
 
 - Demo page: `/economic-demo`
@@ -41,11 +43,16 @@ Nissan has selected Quasar-compiled Solana programs as the final hackathon demo 
    - The proven flow is HTTP 402 / MPP challenge → `pay --sandbox curl` → HTTP 200 with Solana payment receipt success.
    - Capped sessions and split payments are extension probes only; Pay.sh 0.16.0 returned `Server returned 402 again after payment` for those variants.
 
-5. **The picture path is spend-gated.**
+5. **Umbra private x402 payments are planned, not executed.**
+   - Plan/research artifact: `docs/UMBRA-PRIVACY-PAYMENTS-BOUNTY-FIT-2026-05-07.md`.
+   - Intended role: private settlement adapter for Reddi Agent Protocol x402 payments using Umbra encrypted balances / receiver-claimable UTXOs / selective disclosure.
+   - Current packet does not claim Umbra SDK integration, devnet smoke, live private settlement, or Quasar-native Umbra execution.
+
+6. **The picture path is spend-gated.**
    - The Phase 7 picture workflow is storyboard-only.
    - The image-generation adapter remains blocked unless Nissan explicitly approves provider, model, and budget cap.
 
-6. **The Quasar submission/readiness loop is BDD-governed.**
+7. **The Quasar submission/readiness loop is BDD-governed.**
    - Issue #236 and `docs/QUASAR-BDD-ITERATIVE-PLAYBOOK-2026-05-05.md` require each Quasar phase to define expectation, scope, validation, retrospective, safety review, and plan adjustment before scope expands.
    - `npm run check:quasar:submission` verifies runtime compatibility, deployment inventory, and demo-readiness metadata.
 
@@ -68,6 +75,8 @@ Nissan has selected Quasar-compiled Solana programs as the final hackathon demo 
 - No Coolify/env mutation.
 - No Pay.sh capped-session or split-payment settlement claim.
 - No Pay.sh claim of Umbra private settlement or MagicBlock PER settlement.
+- No Umbra SDK live/devnet integration claim.
+- No Umbra private settlement execution claim.
 
 ## Public proof chain
 
@@ -97,7 +106,7 @@ git diff --check
 
 ## Recommended submission wording
 
-> Reddi Agent Protocol demonstrates a Quasar-native devnet agent economy: a human-triggered workflow routes through wallet-bearing agents, x402-compatible payment boundaries, Pay.sh / `reddi-x402` sandbox charge compatibility, public Quasar escrow settlement, blind reputation commit/reveal, and attestation. The final on-chain proof uses Quasar-compiled Solana programs for Registry, Escrow, Reputation, and Attestation. Surfpool localnet is used as the pre-devnet confidence gate; OpenRouter/30 specialist profiles and x402 evidence show the agent marketplace/payment boundary; Jupiter is wired for cross-token settlement but live swap is not claimed; Pay.sh capped sessions/splits remain probe-only; MagicBlock PER/TEE settlement is explicitly not claimed in the final Quasar path unless separately validated.
+> Reddi Agent Protocol demonstrates a Quasar-native devnet agent economy: a human-triggered workflow routes through wallet-bearing agents, x402-compatible payment boundaries, Pay.sh / `reddi-x402` sandbox charge compatibility, public Quasar escrow settlement, blind reputation commit/reveal, and attestation. The final on-chain proof uses Quasar-compiled Solana programs for Registry, Escrow, Reputation, and Attestation. Surfpool localnet is used as the pre-devnet confidence gate; OpenRouter/30 specialist profiles and x402 evidence show the agent marketplace/payment boundary; Umbra is the planned private x402 settlement adapter and is not claimed as executed proof; Jupiter is wired for cross-token settlement but live swap is not claimed; Pay.sh capped sessions/splits remain probe-only; MagicBlock PER/TEE settlement is explicitly not claimed in the final Quasar path unless separately validated.
 
 ## If reviewers ask what comes next
 

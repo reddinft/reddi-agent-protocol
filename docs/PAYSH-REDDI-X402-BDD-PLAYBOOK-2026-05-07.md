@@ -656,3 +656,42 @@ Start:
 ### Plan refinement
 
 The final packet now has a stable pre-recording gate. Further autonomous work should shift from evidence-boundary hardening to either rehearsal/capture prep or an explicitly approved stronger-proof lane.
+
+## Phase 12 — Umbra private-settlement adapter boundary carry-forward
+
+### BDD scenario
+
+Given Umbra was researched as the best secondary privacy-payments lane, when final packet surfaces describe the payment story, then they must include Umbra as a planned private x402 settlement adapter while explicitly avoiding any claim that Umbra SDK/devnet/private settlement has been executed.
+
+### Implementation
+
+- Updated final recording packet, judge packet, proof hierarchy, bounty showcase audit, and recording handoff to include Umbra.
+- Framing: Umbra is the planned private-settlement adapter lane for future private x402 payments.
+- Boundary: current evidence is architecture/bounty-fit analysis only; no SDK/devnet/live private settlement proof is claimed.
+- Extended `check:submission:claim-boundaries` to require Umbra boundary language and reject unsafe Umbra execution claims.
+
+### Validation
+
+- `npm run check:submission:claim-boundaries` — PASS.
+- `npm run check:product:naming` — PASS across 15 files.
+- `node --check scripts/check-submission-claim-boundaries.mjs` — PASS.
+- `git diff --check` — PASS.
+
+### Retrospective
+
+Keep:
+
+- Nissan was right to flag this: Umbra was researched, but it had not been carried through the executable final-packet guard loop.
+- Umbra belongs in the final story as a planned privacy rail, not as current proof.
+
+Stop:
+
+- Treating “planned lane” docs as enough if final packet/handoff/guards do not mention the lane.
+
+Start:
+
+- Add privacy-rail boundary checks before any future recording/submission pass.
+
+### Plan refinement
+
+Next useful Umbra work is a separate BDD lane: SDK feasibility spike with mocked adapter first, then approval-gated devnet smoke only after local tests pass. It should not block the current Quasar/Pay.sh recording handoff.

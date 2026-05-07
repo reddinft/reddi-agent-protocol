@@ -10,6 +10,7 @@ Use `main` at `4cbed5f6` or later before this handoff patch, and the next commit
 - Final recording packet: `artifacts/final-recording-packet-20260507.md`
 - Latest run report: `artifacts/economic-demo-run-report/20260507T073104Z/RUN-REPORT.md`
 - Latest submission prep: `artifacts/economic-demo-submission-prep/20260507T073116Z/SUBMISSION-PREP.md`
+- Umbra private-payment plan: `docs/UMBRA-PRIVACY-PAYMENTS-BOUNTY-FIT-2026-05-07.md`
 
 ## Proven claims to use
 
@@ -17,6 +18,7 @@ Use `main` at `4cbed5f6` or later before this handoff patch, and the next commit
 - `reddi-x402` is the key user package/payment surface.
 - Quasar devnet is the final demo-critical on-chain proof path.
 - Pay.sh / `reddi-x402` proves sandbox HTTP 402 → Pay.sh sandbox payment → HTTP 200 Solana receipt compatibility for the single-recipient charge flow.
+- Umbra is the planned private x402 settlement adapter lane; current evidence is architecture/bounty-fit analysis only.
 - Surfpool/mock-Jupiter proves a no-real-funds swap-shaped local invoke path.
 - Jupiter public evidence is quote/build/sign boundary evidence, not a successful devnet swap.
 - MagicBlock has live Quasar-native delegation/integration evidence, not successful PER settlement.
@@ -28,6 +30,8 @@ Use `main` at `4cbed5f6` or later before this handoff patch, and the next commit
 - Pay.sh split-payment settlement completed.
 - Pay.sh evidence proves Umbra private settlement.
 - Pay.sh evidence proves MagicBlock PER settlement.
+- Umbra SDK live/devnet integration is complete.
+- Umbra private settlement executed.
 - Successful public Jupiter devnet swap.
 - Live/mainnet Jupiter swap.
 - Judge wallet charged.
@@ -55,8 +59,8 @@ Use `main` at `4cbed5f6` or later before this handoff patch, and the next commit
 3. Open payment readiness and show Pay.sh / `reddi-x402` sandbox compatibility.
 4. Show local evidence paths / run report / submission prep.
 5. State Quasar devnet is the final on-chain path.
-6. State boundaries clearly: Pay.sh sessions/splits probe-only; Jupiter not executed on devnet; MagicBlock delegation only, no PER settlement.
+6. State boundaries clearly: Umbra is planned/not executed; Pay.sh sessions/splits probe-only; Jupiter not executed on devnet; MagicBlock delegation only, no PER settlement.
 
 ## Current recommendation
 
-This is ready for recording/submission handoff from the evidence-boundary perspective. If we want an even stronger packet, the next step is not more copy polishing; it is either approved mainnet/Jupiter execution, Pay.sh maintainer clarification for sessions/splits, or deeper MagicBlock TEE compatibility work.
+This is ready for recording/submission handoff from the evidence-boundary perspective. If we want an even stronger packet, the next step is not more copy polishing; it is either Umbra SDK/devnet feasibility, approved mainnet/Jupiter execution, Pay.sh maintainer clarification for sessions/splits, or deeper MagicBlock TEE compatibility work.
