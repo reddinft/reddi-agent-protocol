@@ -28,9 +28,9 @@ use instructions::*;
 #[cfg(test)]
 mod tests;
 
-// Fresh PER-specific program ID placeholder. Phase 4 deploys this program ID to devnet
-// and records deployment evidence separately from the reusable Quasar escrow ID.
-declare_id!("5BJxgZY7CLAooVFCpFanTvGwR9fNwBQoXbcrrAwtBAWJ");
+// Fresh PER-specific devnet program ID generated for the Quasar-native MagicBlock PER path.
+// Recorded separately from the reusable Quasar escrow ID.
+declare_id!("7ra8FZAHQ6F4SGfJJdjfgLuVnSN8HsGLx5iXq8qxSCpb");
 
 #[program]
 mod quasar_escrow_per_poc {

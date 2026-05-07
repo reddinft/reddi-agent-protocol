@@ -144,6 +144,17 @@ Retrospective template:
 
 **Validation:** read-only executable account check after devnet deploy; tx/deploy signature captured. Devnet approval is already granted for this workstream.
 
+### Retrospective — Phase 5
+
+- **Expected:** The PER-specific Quasar program deploys to devnet under a new program ID, recorded separately from the reusable Quasar escrow ID.
+- **Observed:** Generated a fresh PER program keypair and updated the PER crate `declare_id!` to `7ra8FZAHQ6F4SGfJJdjfgLuVnSN8HsGLx5iXq8qxSCpb`. Local SBF build and tests passed with the generated ID. Devnet deployment was attempted but blocked by payer balance: current payer had `0.01630384 SOL`; deploy required `0.18901272 SOL + 0.000155 SOL` fee. Devnet airdrop attempts for 2, 1, 0.5, and 0.25 SOL were rate-limited. The transient deploy buffer account was not found afterward; deploy log artifact was redacted to remove the ephemeral buffer recovery phrase.
+- **Validation:** `cargo build-sbf --manifest-path experiments/quasar-escrow-per/Cargo.toml` passed; `cargo test --manifest-path experiments/quasar-escrow-per/Cargo.toml` passed 18/18; deploy evidence captured under `artifacts/quasar-escrow-per-devnet/20260507-140241/`; `solana account` confirmed the suggested transient buffer account is not present.
+- **What worked:** Deployment prep is ready: real program ID generated, source ID aligned, build/test clean, and exact funding blocker quantified.
+- **What failed / surprised us:** Devnet faucet rate-limit blocked top-up. The Solana deploy command emitted a transient buffer recovery phrase on failure; we redacted the artifact and must avoid pasting raw deploy failure logs into chat/docs.
+- **Safety / approval review:** Devnet signing/deploy attempt was within Nissan's approval. No mainnet, paid provider, or external environment mutation. No program deployed because funding was insufficient.
+- **Decision:** block Phase 5 until devnet payer has at least ~0.20 SOL available.
+- **Plan changes for next phase:** Resume Phase 5 by topping up the configured devnet payer or switching to an approved funded devnet keypair, then rerun deploy and executable-account verification. Phase 6 must not start until deployment succeeds.
+
 ### Phase 6 — Devnet MagicBlock Permission/PER transaction loop
 
 **Expectation:** Devnet txs create permission/delegation state for the PER escrow PDA using Quasar-native CPI and route through the MagicBlock PER/TEE boundary.
