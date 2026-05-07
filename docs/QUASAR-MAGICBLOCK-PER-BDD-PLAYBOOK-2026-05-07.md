@@ -125,6 +125,17 @@ Retrospective template:
 
 **Validation:** local Rust tests, SBF build, PER ABI guard.
 
+### Retrospective — Phase 4
+
+- **Expected:** The PER crate can build concrete MagicBlock CPI descriptors/calls from Quasar-native data without Anchor macros, including PDA signer seed intent.
+- **Observed:** Added const `CpiDescriptor` builders for createPermission, delegatePermission, delegateEscrow, and commitAndUndelegatePermission. Each descriptor carries the target MagicBlock program role, exact account specs, exact instruction data, and the account role requiring PDA signer seeds. This is the safe intermediate layer before mapping roles to live `AccountView`s and invoking `DynCpiCall`.
+- **Validation:** `cargo build-sbf --manifest-path experiments/quasar-escrow-per/Cargo.toml` passed; `cargo test --manifest-path experiments/quasar-escrow-per/Cargo.toml` passed 18/18; `npm run check:quasar:per-abi` passed; `git diff --check` passed after trimming a trailing blank line.
+- **What worked:** Descriptor builders preserve no-std/const determinism and make signer-seed expectations explicit without needing live MagicBlock accounts or CPI side effects.
+- **What failed / surprised us:** Direct `DynCpiCall` construction requires concrete `AccountView`s from the instruction context, so doing that generically before wiring a PER instruction would be artificial. Descriptor-first is the cleaner Quasar-native seam.
+- **Safety / approval review:** Local compile/tests only; no signing, deployment, wallet mutation, or devnet txs in Phase 4.
+- **Decision:** continue.
+- **Plan changes for next phase:** Phase 5 can now prepare deployment, but before sending txs confirm the devnet deploy key/program ID inventory and capture artifact paths. If deploy tooling exposes a program-ID mismatch with the placeholder, update the plan/status before deployment.
+
 ### Phase 5 — Devnet deployment prep and bounded deploy
 
 **Expectation:** The PER-specific Quasar program deploys to devnet under a new program ID, recorded separately from the reusable Quasar escrow ID.
