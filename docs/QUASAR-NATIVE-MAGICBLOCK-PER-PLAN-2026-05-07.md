@@ -207,13 +207,13 @@ Exit: devnet Quasar PER-enabled escrow program ID recorded; old non-PER Quasar p
 
 Exit: successful Quasar-native PER settlement evidence pack.
 
-### Phase 5 — bounty/judge presentation (0.5 day)
+### Phase 5 — bounty/judge presentation / current boundary (0.5 day)
 
-- Update homepage ecosystem proof map: MagicBlock = Quasar-native PER settlement, not boundary-only.
-- Update judge packet and final operator checklist.
+- Update homepage ecosystem proof map: MagicBlock = Quasar-native permission/delegation proof, not successful PER settlement.
+- Update judge packet and final operator checklist to cite `docs/MAGICBLOCK-QUASAR-TEE-REPRO-2026-05-07.md`.
 - Add one screenshot/video capture if available.
 
-Exit: bounty submission can honestly claim Quasar-native MagicBlock PER usage.
+Exit: bounty submission can honestly claim Quasar-native MagicBlock delegation and a reproducible TEE execution blocker; it cannot claim successful PER settlement unless a later loop fixes TEE execution and reruns settlement evidence.
 
 ## Risks / mitigations
 

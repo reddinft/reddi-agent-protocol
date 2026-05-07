@@ -1,8 +1,8 @@
 # Narrative Strategy — Colosseum Frontier (Quasar Variant)
 
-**Phase 2 — Pitch-Flow Playbook**  
-_Audience: Colosseum Frontier hackathon judges (primary), investors / technical evaluators (secondary)_  
-_Time limit: 180 seconds_  
+**Phase 2 — Pitch-Flow Playbook**
+_Audience: Colosseum Frontier hackathon judges (primary), investors / technical evaluators (secondary)_
+_Time limit: 180 seconds_
 _Date: 2026-04-12_
 _Official X profile: [@reddiagent](https://x.com/reddiagent)_
 
@@ -10,7 +10,7 @@ _Official X profile: [@reddiagent](https://x.com/reddiagent)_
 
 ## One-Sentence Core Pitch
 
-> **Colosseum Frontier is the trustless commerce layer for AI agents — shipping a complete escrow, registry, reputation, and attestation stack on Solana today, with a parallel Quasar branch that proves the critical execution path can get 80% leaner without touching the live submission.**
+> **Reddi Agent Protocol is the trustless commerce layer for AI agents — shipping Quasar-native escrow, registry, reputation, and attestation on Solana devnet, with privacy and x402-compatible payment lanes presented through explicit evidence boundaries.**
 
 ---
 
@@ -61,7 +61,7 @@ Colosseum Frontier ships five interlocking layers:
 2. **Permissionless on-chain agent registry** — any agent can register, update, and be discovered.
 3. **Blind commit-reveal reputation** — scores that resist gaming and collusion.
 4. **Attestation judges** — quality verification on delivery, not just payment confirmation.
-5. **MagicBlock PER** — private settlement so agents don't leak trade intent at execution.
+5. **MagicBlock PER boundary** — Quasar-native MagicBlock permission/delegation succeeds live; private settlement is not claimed because the delegated Quasar program currently fails at TEE instruction start.
 
 Think Stripe Connect escrow, rebuilt as programmable trust rails on Solana, with privacy-aware settlement. That is what we are shipping today.
 
@@ -69,20 +69,20 @@ Think Stripe Connect escrow, rebuilt as programmable trust rails on Solana, with
 
 ## 4. Technical Mechanism
 
-### What ships now (Anchor — canonical submission)
+### What ships now (Quasar — canonical submission)
 
-The live submission runs on Anchor 1.0.0 across all five protocol layers. Every phase has passed QA:
+The live submission path now targets Quasar-compiled Solana programs for all demo-critical on-chain modules:
 
-- 30+ passing Rust tests across escrow, registry, reputation, attestation, and MagicBlock PER.
-- End-to-end demo agent pair running on devnet.
-- ElizaOS plugin (`@reddi/eliza-plugin-x402`) and SendAI integration (`@reddi/sendai-x402`) both tested and merged.
-- MagicBlock PER wired for private settlement with L1 fallback path confirmed.
+- Escrow, registry, reputation, and attestation are deployed on devnet as Quasar programs.
+- The A→B→C demo flow completes with Quasar escrow settlement, reputation, and attestation.
+- ElizaOS/SendAI/x402-compatible adapters remain supporting distribution and payment-boundary evidence.
+- MagicBlock PER is presented honestly as successful Quasar-native permission/delegation plus a reproducible TEE execution blocker, not as successful private settlement.
 
-**This is the submission path. It is stable, integrated, and ready.**
+**This is the submission path. It is Quasar-native for the critical proof and explicit about unsupported settlement claims.**
 
-### Where Quasar enters (parallel, fork-isolated)
+### Quasar receipts
 
-After the main submission was secured, we ran a parallel Quasar validation in a fork-isolated repo. The question: can we prove the critical execution path gets materially leaner without destabilising what we built?
+The question: can we prove the critical execution path gets materially leaner while remaining honest about privacy-rail boundaries?
 
 The answer is yes — with receipts.
 
@@ -104,9 +104,9 @@ The answer is yes — with receipts.
 
 The release and cancel savings are structural: Quasar's `set_lamports` eliminates a System Program CPI on the hot path. This is not a benchmark trick. It is a different execution model with real per-transaction cost implications at scale.
 
-**What remains on the Quasar side:** PER parity is the next phase. Privacy-aware settlement is fully proven in the Anchor submission today. We are not claiming end-to-end Quasar private settlement — that work is scoped and sequenced.
+**What remains on the Quasar side:** MagicBlock PER settlement is not complete. Quasar-native MagicBlock permission/delegation succeeds live on devnet, but the delegated Quasar program image fails at MagicBlock TEE instruction start. We do not claim end-to-end private settlement.
 
-**The disciplined call:** we kept the Anchor submission intact and ran Quasar in isolation. That is how you build an optimisation roadmap without shipping risk.
+**The disciplined call:** we keep the final proof Quasar-native and boundary-labeled rather than falling back to Anchor or overclaiming a privacy rail that has not settled.
 
 ---
 
@@ -114,13 +114,13 @@ The release and cancel savings are structural: Quasar's `set_lamports` eliminate
 
 | Claim | Evidence |
 |---|---|
-| Full protocol works end-to-end | 30+ Rust tests + 6 Jest tests passing; devnet demo agent pair live |
-| ElizaOS + SendAI integration complete | Oli QA PASS on both plugins |
-| Quasar escrow, registry, reputation, attestation parity | 41/41 QuasarSVM tests across four parity reports |
+| Quasar critical protocol path works end-to-end | Devnet A→B→C completes across Quasar escrow, registry, reputation, and attestation |
+| ElizaOS + SendAI integration present | Adapter evidence remains supporting distribution, not the final on-chain proof |
+| Quasar escrow, registry, reputation, attestation readiness | Quasar deployment inventory + critical success guard + devnet evidence |
 | Hot-path CU reduction is real | Measured via QuasarSVM `compute_units_consumed`; release 649 CU, cancel 626 CU |
 | Binary reduction is real | 13 KB Quasar POC vs 377 KB full Anchor build (hot path only, documented scope) |
-| Submission path is stable | Fork isolation confirmed; zero changes to canonical `nissan/reddi-agent-protocol` |
-| Quasar migration is viable post-hackathon | Decision memo documents Phase 8 path; nonce seed blocker resolved via u64 counter model |
+| Submission path is scoped and stable | Final critical proof uses Quasar devnet programs; privacy rails are boundary-labeled rather than overclaimed |
+| MagicBlock PER next step is precise | Repro documents TEE execution blocker after live Quasar-native delegation succeeds |
 
 ---
 
@@ -128,15 +128,15 @@ The release and cancel savings are structural: Quasar's `set_lamports` eliminate
 
 **What we are asking judges to believe:**
 
-This is not a hackathon wrapper. This is the infrastructure layer that agent commerce needs to scale beyond centralised facilitators. We have shipped the full protocol, validated the performance path in parallel, and documented exactly what comes next.
+This is not a hackathon wrapper. This is the infrastructure layer that agent commerce needs to scale beyond centralised facilitators. We have shipped the scoped Quasar-native proof path, validated supporting payment/privacy boundaries, and documented exactly what remains unsupported.
 
-**If you are scoring on technical credibility:** 41/41 cross-module Quasar parity tests and measured CU reductions give you a concrete signal that the efficiency roadmap is real, not aspirational.
+**If you are scoring on technical credibility:** Quasar devnet execution plus measured CU reductions give you a concrete signal that the efficiency roadmap is real, not aspirational.
 
-**If you are scoring on execution discipline:** we made the harder call — kept the stable submission intact, ran the optimisation branch in isolation, and resisted the temptation to rewrite the night before submission.
+**If you are scoring on execution discipline:** we made the harder call — shipped the Quasar critical path while refusing to overclaim MagicBlock PER settlement or Jupiter devnet execution.
 
-**What comes next:** PER parity on the Quasar side (Phase 8), post-hackathon migration to Quasar-native across the full protocol, and the "Quasar-native from day one" story for the production launch.
+**What comes next:** resolve the MagicBlock TEE execution compatibility blocker, expand privacy rails beyond bounded evidence, and harden the production Reddi Agent Protocol launch path.
 
-The ask: **recognise Colosseum Frontier as the category winner for trustless agent commerce infrastructure on Solana.**
+The ask: **recognise Reddi Agent Protocol as the category winner for trustless agent commerce infrastructure on Solana.**
 
 ---
 
@@ -144,10 +144,10 @@ The ask: **recognise Colosseum Frontier as the category winner for trustless age
 
 | Do say | Don't say |
 |---|---|
-| Anchor is the production-ready hackathon submission | "We switched" or "we are migrating now" |
-| Quasar is the validated optimisation branch | "Quasar replaces Anchor" |
-| 41/41 parity tests with fork-only isolation | "Full Quasar migration is complete" |
-| PER parity is the next phase on Quasar | "Privacy is solved on Quasar" |
+| Quasar is the final critical on-chain proof path | "Anchor is the final demo path" |
+| MagicBlock delegation succeeds live; settlement is blocked at TEE execution | "MagicBlock PER settlement succeeded" |
+| Jupiter has quote/build/sign and local invoke evidence | "Jupiter devnet swap succeeded" |
+| Umbra adapter + devnet encrypted-balance deposit evidence | "Umbra production/private settlement completed" |
 | Measured CU gains: release 649, cancel 626 | Inflated or unqualified CU claims |
 | Binary comparison is hot-path-only, documented | "13x smaller program" without scope context |
 
@@ -155,19 +155,19 @@ The ask: **recognise Colosseum Frontier as the category winner for trustless age
 
 ## Objection Handling
 
-**"Is this just another payment wrapper with a new framework attached?"**  
+**"Is this just another payment wrapper with a new framework attached?"**
 No. The differentiator is the full trust stack — escrow + blind reputation + attestations — not Quasar by itself. Quasar is the performance evidence. The product story is the five-layer protocol.
 
-**"If Anchor is still the submission, why should we care about Quasar?"**  
-Because it shows the hot path can get materially leaner without the current product delivery at risk. That is engineering depth, not framework switching.
+**"If Anchor is still the submission, why should we care about Quasar?"**
+Because the critical proof path now runs Quasar-native, and the supporting evidence shows why that matters for agent-commerce throughput and cost.
 
-**"Are you introducing submission risk by talking about a Beta framework?"**  
-Only if we pitch it as a migration — which we are not. The documented decision is Anchor now, Quasar fork-isolated, Phase 8 migration candidate. The proofs are in separate repos.
+**"Are you introducing submission risk by talking about a Beta framework?"**
+Only if we hide the boundaries — which we do not. The documented decision is Quasar for the critical proof path, with MagicBlock/Jupiter/Umbra claims scoped to the evidence actually produced.
 
-**"Is the privacy story fully proven on Quasar?"**  
-Not yet, and we say so clearly. PER parity is the next phase. Privacy-aware settlement is proven in the Anchor submission today.
+**"Is the privacy story fully proven on Quasar?"**
+Not yet, and we say so clearly. Quasar-native MagicBlock permission/delegation succeeds live, but successful PER settlement is not claimed because delegated Quasar execution currently fails on MagicBlock TEE.
 
 ---
 
-_Narrative approved: 2026-04-12_  
-_Next step: Phase 3 — Deck Architecture (Belle)_
+_Narrative refreshed: 2026-05-08_
+_Next step: use this only with current claim-boundary guard passing._

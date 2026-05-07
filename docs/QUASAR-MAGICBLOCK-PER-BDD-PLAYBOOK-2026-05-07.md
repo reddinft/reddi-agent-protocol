@@ -251,6 +251,17 @@ Retrospective template:
 
 **Validation:** `npm run check:quasar:submission`, relevant MagicBlock smoke, BDD index, build/lint if UI touched.
 
+### Retrospective — Phase 7 loop 1
+
+- **Expected:** Submission-facing docs should not describe MagicBlock as successful PER settlement while Phase 6D shows delegated Quasar execution fails on TEE.
+- **Observed:** `docs/COLOSSEUM-FINAL-QUASAR-PROOF-MAP-2026-05-06.md` already had an honest boundary, but older narrative collateral still described Anchor as canonical and MagicBlock private settlement as proven. The submission claim-boundary guard also did not scan that older narrative or the final proof map.
+- **Validation:** `npm run check:submission:claim-boundaries` passed after expanding the guard to 7 files; `npm run test:bdd:index` passed; `git diff --check` passed.
+- **What worked:** Updating the guard first enough to include the stale narrative makes future copy drift cheaper to catch. The current safe claim is crisp: Quasar-native MagicBlock permission/delegation succeeds live; successful PER settlement is not claimed because delegated Quasar execution fails at MagicBlock TEE instruction start.
+- **What failed / surprised us:** The stale narrative still framed Anchor as the canonical submission path and said MagicBlock private settlement was proven. That was previously safe historical collateral, but it is now dangerous if reused for judges.
+- **Safety / approval review:** Docs and local guard changes only; no signing, deployment, wallet mutation, paid provider, or external posting.
+- **Decision:** continue with evidence-boundary packaging, not more live PER spending, unless MagicBlock/Quasar guidance appears or we explicitly choose a native delegated-control probe.
+- **Plan changes for next phase:** Keep `check:submission:claim-boundaries` in the pre-recording/submission loop. If more public copy is edited, add it to the guard before trusting it.
+
 ## Phase retrospectives
 
 ### Retrospective — Phase 0

@@ -8,6 +8,8 @@ const files = process.argv.slice(2).length
       "docs/ECONOMIC-DEMO-JUDGE-PACKET-2026-05-05.md",
       "docs/ECONOMIC-DEMO-PROOF-HIERARCHY-2026-05-07.md",
       "docs/HACKATHON-BOUNTY-SHOWCASE-AUDIT-2026-05-07.md",
+      "docs/COLOSSEUM-FINAL-QUASAR-PROOF-MAP-2026-05-06.md",
+      "docs/verifiable-agent-protocol/colosseum-frontier-2026-04/NARRATIVE.md",
       "artifacts/economic-demo-submission-prep/latest/SUBMISSION-PREP.md",
     ];
 
@@ -42,6 +44,16 @@ const requiredByFile = {
     "Umbra devnet encrypted-balance deposit evidence",
     "sessions/splits are probe-only",
     "not a successful PER settlement proof",
+  ],
+  "docs/COLOSSEUM-FINAL-QUASAR-PROOF-MAP-2026-05-06.md": [
+    "Live Quasar-native permission/delegation proof, not successful settlement claim",
+    "delegated Quasar program execution fails at MagicBlock TEE instruction start",
+    "we do not claim successful PER settlement",
+  ],
+  "docs/verifiable-agent-protocol/colosseum-frontier-2026-04/NARRATIVE.md": [
+    "Quasar-native MagicBlock permission/delegation succeeds live",
+    "private settlement is not claimed",
+    "We do not claim end-to-end private settlement",
   ],
   "artifacts/economic-demo-submission-prep/latest/SUBMISSION-PREP.md": [
     "Pay.sh / reddi-x402 proves sandbox HTTP 402 → payment → HTTP 200 receipt compatibility",
