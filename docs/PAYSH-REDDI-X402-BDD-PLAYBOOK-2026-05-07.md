@@ -424,3 +424,45 @@ Start:
 ### Plan refinement
 
 Next loop should wire Pay.sh compatibility into the generated economic demo run report or submission-prep artifact. That creates a single machine-readable evidence bundle for the UI, docs, and final packet while preserving the same claim boundary.
+
+## Phase 7 — Generated run-report evidence bundle
+
+### BDD scenario
+
+Given the UI now surfaces Pay.sh / `reddi-x402` compatibility, when the economic demo run report is generated, then the report should include the same proven sandbox flow, registry metadata path, extension-probe blockers, and claim boundary for judge/evidence packet reuse.
+
+### Implementation
+
+- Extended `scripts/generate-economic-demo-run-report.mjs` to attach `payShReddix402Compatibility` from `artifacts/pay-sh-reddi-x402/20260507T064842Z/SUMMARY.json`.
+- Attached extension-probe summaries from:
+  - `artifacts/pay-sh-reddi-x402/20260507T065805Z-session-splits/SUMMARY.json`
+  - `artifacts/pay-sh-reddi-x402/20260507T065908Z-splits/SUMMARY.json`
+- Added a Pay.sh / `reddi-x402` section to generated `RUN-REPORT.md`.
+- Generated latest artifact: `artifacts/economic-demo-run-report/20260507T072501Z/`.
+
+### Validation
+
+- `node --check scripts/generate-economic-demo-run-report.mjs` — PASS.
+- `npm run report:economic-demo:run` — PASS, `payShReddix402Compatibility: true`.
+- JSON assertions over latest `run-report.json` — PASS for package, HTTP statuses, receipt status, extension probes, and claim boundary.
+- `npm run check:product:naming` — PASS across 11 files.
+- `git diff --check` — PASS.
+
+### Retrospective
+
+Keep:
+
+- One canonical evidence shape shared by UI, docs, and generated report.
+- Explicit probe blockers in machine-readable artifacts, not only prose.
+
+Stop:
+
+- Letting the final run report omit Pay.sh evidence after the UI already claims it.
+
+Start:
+
+- Add submission-prep/judge packet checks that fail closed if Pay.sh evidence is missing or if session/split probes are represented as completed settlement.
+
+### Plan refinement
+
+Next loop should add a lightweight submission-prep guard for Pay.sh evidence boundaries: proven single-charge required, extension probes allowed only as `probe_only`, and no mainnet/Umbra/MagicBlock settlement claim from the Pay.sh lane.
