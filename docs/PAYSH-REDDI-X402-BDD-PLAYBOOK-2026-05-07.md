@@ -466,3 +466,55 @@ Start:
 ### Plan refinement
 
 Next loop should add a lightweight submission-prep guard for Pay.sh evidence boundaries: proven single-charge required, extension probes allowed only as `probe_only`, and no mainnet/Umbra/MagicBlock settlement claim from the Pay.sh lane.
+
+## Phase 8 — Submission-prep Pay.sh boundary guard
+
+### BDD scenario
+
+Given Pay.sh compatibility is now visible in the UI and run report, when submission prep is generated and checked, then the prep pack must reference the proven `reddi-x402` evidence, must read a run report with `payShReddix402Compatibility`, and must fail closed if session/split probes are represented as completed settlement.
+
+### Implementation
+
+- Extended `scripts/generate-economic-demo-submission-prep.mjs` to include:
+  - economic demo run report JSON
+  - proven Pay.sh / `reddi-x402` summary
+  - capped-session probe summary
+  - split-payment probe summary
+  - safe/not-safe Pay.sh claims
+- Extended `scripts/check-economic-demo-submission-prep.mjs` to validate:
+  - run report includes `payShReddix402Compatibility`
+  - package is `reddi-x402`
+  - proof status is `sandbox_http_402_to_pay_sh_200_receipt`
+  - statuses are HTTP 402 → HTTP 200 with receipt success
+  - claim boundary includes no-mainnet and no-MagicBlock-PER constraints
+  - extension probes stay `probe_only` with `Server returned 402 again after payment`
+  - safe-claims section does not overclaim Pay.sh session/split/mainnet/Umbra/MagicBlock settlement
+- Generated latest prep artifact: `artifacts/economic-demo-submission-prep/20260507T072628Z/SUBMISSION-PREP.md`.
+
+### Validation
+
+- `node --check scripts/generate-economic-demo-submission-prep.mjs` — PASS.
+- `node --check scripts/check-economic-demo-submission-prep.mjs` — PASS.
+- `npm run generate:economic-demo:submission-prep` — PASS.
+- `npm run check:economic-demo:submission-prep` — PASS, 12 evidence paths.
+- `npm run check:product:naming` — PASS across 11 files.
+- `git diff --check` — PASS.
+
+### Retrospective
+
+Keep:
+
+- Submission prep should enforce evidence boundaries, not just list links.
+- Safe claims and unsafe claims should be separated so the checker can inspect only the safe-claims section for overclaim patterns.
+
+Stop:
+
+- Treating `latest` symlinks as plain directories with `lstatSync`; use `statSync` when the target directory is what matters.
+
+Start:
+
+- Use this guard as the final packet gate before any public submission copy is produced.
+
+### Plan refinement
+
+Next loop should inspect the final submission/evidence packet surfaces and ensure they call the product Reddi Agent Protocol, package `reddi-x402`, and preserve the same Pay.sh/Quasar/MagicBlock/Jupiter claim boundaries.

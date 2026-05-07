@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { existsSync, lstatSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { resolve, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -37,6 +37,10 @@ const requiredPhrases = [
   "No wallet mutation",
   "No devnet transfer",
   "No Coolify/env mutation",
+  "Pay.sh / reddi-x402 sandbox charge",
+  "Pay.sh capped sessions and split payments are probe-only extension evidence",
+  "Pay.sh capped sessions or split-payment settlement completed",
+  "Pay.sh evidence proves Umbra private settlement or MagicBlock PER settlement",
 ];
 
 function relativeToRepo(path) {
@@ -53,7 +57,7 @@ if (!existsSync(prepRoot)) {
   fail("submission prep root is missing", relativeToRepo(prepRoot));
 }
 
-if (!lstatSync(prepRoot).isDirectory()) {
+if (!statSync(prepRoot).isDirectory()) {
   fail("submission prep root is not a directory", relativeToRepo(prepRoot));
 }
 
@@ -76,6 +80,46 @@ if (evidencePaths.length === 0) {
 const missingPaths = evidencePaths.filter((artifactPath) => !existsSync(resolve(repoRoot, artifactPath)));
 if (missingPaths.length > 0) {
   fail("prep pack references missing local evidence paths", missingPaths.map((p) => `- ${p}`).join("\n"));
+}
+
+const runReportPath = evidencePaths.find((artifactPath) => /artifacts\/economic-demo-run-report\/\d{8}T\d{6}Z\/run-report\.json$/.test(artifactPath));
+if (!runReportPath) {
+  fail("prep pack does not reference an economic demo run report JSON artifact");
+}
+
+const runReport = JSON.parse(readFileSync(resolve(repoRoot, runReportPath), "utf8"));
+const paySh = runReport.payShReddix402Compatibility;
+if (!paySh) {
+  fail("run report is missing payShReddix402Compatibility", runReportPath);
+}
+if (paySh.packageName !== "reddi-x402") {
+  fail("Pay.sh run-report package is not reddi-x402", paySh.packageName);
+}
+if (paySh.proofStatus !== "sandbox_http_402_to_pay_sh_200_receipt") {
+  fail("Pay.sh run-report proof status is not the proven single-charge sandbox flow", paySh.proofStatus);
+}
+if (paySh.plainCurlStatus !== "402 Payment Required" || paySh.paidRetryStatus !== "200 OK" || paySh.receiptStatus !== "success") {
+  fail("Pay.sh run-report statuses do not match proven sandbox evidence", JSON.stringify({ plainCurlStatus: paySh.plainCurlStatus, paidRetryStatus: paySh.paidRetryStatus, receiptStatus: paySh.receiptStatus }));
+}
+if (!paySh.claimBoundary?.includes("no mainnet funds") || !paySh.claimBoundary?.includes("no MagicBlock PER settlement")) {
+  fail("Pay.sh run-report claim boundary is missing no-mainnet/no-MagicBlock constraints", paySh.claimBoundary);
+}
+const invalidExtension = (paySh.extensionProbes ?? []).find((probe) => probe.status !== "probe_only" || probe.paySandboxRetryError !== "Server returned 402 again after payment");
+if (invalidExtension) {
+  fail("Pay.sh extension probe is not represented as blocked probe-only evidence", JSON.stringify(invalidExtension, null, 2));
+}
+if ((paySh.extensionProbes ?? []).length < 2) {
+  fail("Pay.sh run report is missing session/split extension probe blockers");
+}
+
+const forbiddenClaimPatterns = [
+  /Pay\.sh[^\n]*(?:mainnet|Umbra private|MagicBlock PER)[^\n]*(?:settled|settlement completed|proven)/i,
+  /Pay\.sh[^\n]*(?:session|split)[^\n]*(?:settled|settlement completed|completed settlement)/i,
+];
+const safeClaimsMarkdown = markdown.split("Not safe to say yet:")[0] ?? markdown;
+const forbiddenClaim = forbiddenClaimPatterns.find((pattern) => pattern.test(safeClaimsMarkdown));
+if (forbiddenClaim) {
+  fail("prep pack appears to overclaim Pay.sh settlement in its safe-claims section", String(forbiddenClaim));
 }
 
 console.log(`[submission-prep-check] OK: ${relativeToRepo(prepFile)}`);

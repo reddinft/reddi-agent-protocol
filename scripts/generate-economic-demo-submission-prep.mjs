@@ -34,12 +34,19 @@ const evidence = {
   livePaymentGate: required(latestArtifact("artifacts/economic-demo-live-payment-gate", "gate.json"), "live_payment_gate"),
   devnetUsdcReceipt: required(latestArtifact("artifacts/economic-demo-devnet-usdc-receipt", "receipt-verification.json"), "devnet_usdc_receipt_verification"),
   senderPlan: required(latestArtifact("artifacts/economic-demo-devnet-usdc-sender-plan", "sender-plan.json"), "sender_plan"),
+  runReport: required(latestArtifact("artifacts/economic-demo-run-report", "run-report.json"), "economic_demo_run_report"),
+  payShReddix402: "artifacts/pay-sh-reddi-x402/20260507T064842Z/SUMMARY.json",
+  payShSessionProbe: "artifacts/pay-sh-reddi-x402/20260507T065805Z-session-splits/SUMMARY.json",
+  payShSplitProbe: "artifacts/pay-sh-reddi-x402/20260507T065908Z-splits/SUMMARY.json",
   proofHierarchy: "docs/ECONOMIC-DEMO-PROOF-HIERARCHY-2026-05-07.md",
   bdd: "docs/bdd/features/bucket-j-end-user-economic-demo.feature",
 };
 
 if (!existsSync(join(rootDir, evidence.proofHierarchy))) throw new Error("missing_proof_hierarchy_doc");
 if (!existsSync(join(rootDir, evidence.bdd))) throw new Error("missing_bdd_feature");
+if (!existsSync(join(rootDir, evidence.payShReddix402))) throw new Error("missing_pay_sh_reddi_x402_summary");
+if (!existsSync(join(rootDir, evidence.payShSessionProbe))) throw new Error("missing_pay_sh_session_probe_summary");
+if (!existsSync(join(rootDir, evidence.payShSplitProbe))) throw new Error("missing_pay_sh_split_probe_summary");
 
 mkdirSync(outDir, { recursive: true });
 const prepPath = join(outDir, "SUBMISSION-PREP.md");
@@ -65,6 +72,8 @@ Scope: safe local/demo prep only. Generated: ${new Date().toISOString()}.
 - Live payment gate: \`npm run check:economic-demo:live-payment-gate\` (blocked by default, safe)
 - Devnet USDC receipt verifier: \`npm run verify:economic-demo:devnet-usdc-receipt\` (blocked by default, safe)
 - Devnet USDC sender plan: \`npm run plan:economic-demo:devnet-usdc-sender\` (blocked by default, safe)
+- Economic demo run report: \`npm run report:economic-demo:run\`
+- Pay.sh / reddi-x402 evidence: \`npm run evidence:pay-sh:reddi-x402 -- artifacts/pay-sh-reddi-x402/20260507T064842Z\`
 
 ## Local evidence paths to mention/demo
 
@@ -76,6 +85,10 @@ Scope: safe local/demo prep only. Generated: ${new Date().toISOString()}.
 - Live payment gate artifact: \`${evidence.livePaymentGate}\`
 - Devnet USDC receipt verification artifact: \`${evidence.devnetUsdcReceipt}\`
 - Devnet USDC sender plan artifact: \`${evidence.senderPlan}\`
+- Economic demo run report: \`${evidence.runReport}\`
+- Pay.sh / reddi-x402 sandbox charge: \`${evidence.payShReddix402}\`
+- Pay.sh capped session probe: \`${evidence.payShSessionProbe}\`
+- Pay.sh split-payment probe: \`${evidence.payShSplitProbe}\`
 - Proof hierarchy doc: \`${evidence.proofHierarchy}\`
 
 ## Five-beat recording outline
@@ -84,7 +97,7 @@ Scope: safe local/demo prep only. Generated: ${new Date().toISOString()}.
 2. Show the upfront quote, user payment edge, downstream specialist/attestor fees, and retained markup.
 3. Show communication graph and payment graph together: user → orchestrator → specialists/attestors → final output.
 4. Show evidence hierarchy: deterministic UI, Surfpool local payment semantics, Surfpool/mock-Jupiter successful no-real-funds invoke proof, public Jupiter quote/build/sign boundary, devnet USDC receipt verifier, live payment gate/sender plan.
-5. Close with the hard boundary: Surfpool/mock-Jupiter is local proof, public Jupiter quote/build/sign is not successful devnet execution, blocked verifier/gate artifacts are safety evidence, and live signing/spend requires explicit approval.
+5. Close with the hard boundary: Surfpool/mock-Jupiter is local proof, Pay.sh / reddi-x402 is sandbox charge compatibility, public Jupiter quote/build/sign is not successful devnet execution, blocked verifier/gate artifacts are safety evidence, and live signing/spend requires explicit approval.
 
 ## Hard no-go list unless Nissan explicitly approves
 
@@ -108,6 +121,8 @@ Safe to say:
 - Public Jupiter quote proof proves live route availability only; public Jupiter devnet execution is not claimed.
 - Devnet USDC receipt verification is ready and fail-closed, but default artifacts are blocked until a real signature is supplied.
 - Sender/swap execution is planned and gated, not claimed.
+- Pay.sh / reddi-x402 proves sandbox HTTP 402 → payment → HTTP 200 receipt compatibility for the single-recipient charge flow.
+- Pay.sh capped sessions and split payments are probe-only extension evidence because Pay.sh 0.16.0 returned 402 again after sandbox payment.
 
 Not safe to say yet:
 
@@ -116,6 +131,8 @@ Not safe to say yet:
 - The app transferred devnet or mainnet USDC by itself.
 - A judge wallet was charged.
 - Mainnet settlement is supported.
+- Pay.sh capped sessions or split-payment settlement completed.
+- Pay.sh evidence proves Umbra private settlement or MagicBlock PER settlement.
 `;
 writeFileSync(prepPath, content);
 
