@@ -20,6 +20,7 @@ extern crate alloc;
 
 mod events;
 mod instructions;
+mod magicblock;
 mod state;
 
 use instructions::*;

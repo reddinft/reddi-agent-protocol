@@ -87,6 +87,17 @@ Retrospective template:
 
 **Validation:** fixture generation, Rust unit tests, no Anchor macro imports.
 
+### Retrospective — Phase 2
+
+- **Expected:** MagicBlock permission/delegation instruction bytes and account metas are generated from deterministic Quasar-native codecs and match known SDK-derived fixtures.
+- **Observed:** Added `experiments/quasar-escrow-per/src/magicblock/` with constants, no-heap instruction data layout helpers, and static account-meta plans for createPermission, delegatePermission, delegateEscrow, and commitAndUndelegatePermission. Tests pin the SDK fixture data hex and account signer/writable flags.
+- **Validation:** `npm run evidence:magicblock:cpi-layout` regenerated the offline SDK fixture; `cargo build-sbf --manifest-path experiments/quasar-escrow-per/Cargo.toml` passed; `cargo test --manifest-path experiments/quasar-escrow-per/Cargo.toml` passed 15/15; `npm run check:quasar:per-abi` passed; `git diff --check` passed.
+- **What worked:** Separating byte layout and account-meta plans before invoking CPI keeps Phase 2 deterministic and avoids live-network side effects. The existing Anchor-side fixture was useful as a byte/account reference without becoming final runtime code.
+- **What failed / surprised us:** The new MagicBlock modules generate dead-code warnings until Phase 3/4 starts using them from CPI builders. This is acceptable for now; don't hide the warnings until the code is either used or intentionally library-exported.
+- **Safety / approval review:** Offline fixture generation + local compile/tests only; no signing, deployment, wallet mutation, or devnet txs in Phase 2.
+- **Decision:** continue.
+- **Plan changes for next phase:** Phase 3 should convert the static plans into concrete local-only validation/builder tests first. If direct `DynCpiCall` integration proves awkward, use a small intermediate builder that produces account/data descriptors before invoking.
+
 ### Phase 3 — Local PER lifecycle tests
 
 **Expectation:** Local QuasarSVM/LiteSVM tests can execute the PER program's escrow lifecycle and verify PDA signer/account validation boundaries without live MagicBlock network dependency.
