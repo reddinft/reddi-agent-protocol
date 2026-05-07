@@ -1,0 +1,13 @@
+== plain curl ==
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+100   270  100   270    0     0    841      0 --:--:-- --:--:-- --:--:--   843
+HTTP/1.1 402 Payment Required
+content-type: application/json
+www-authenticate: Payment id="xuLpBIHKVprzsab6Q3nz9fQwbQih-5GtCb0jCbgdhLU", realm="Reddi Agent Protocol capped session and split-payment smoke", method="solana", intent="session", request="eyJjYXAiOiIxMDAwMDAwIiwiY3VycmVuY3kiOiJFUGpGV2RkNUF1ZnFTU3FlTTJxTjF4enliYXBDOEc0d0VHR2tad3lURHQxdiIsImRlY2ltYWxzIjo2LCJuZXR3b3JrIjoibG9jYWxuZXQiLCJvcGVyYXRvciI6Ikd1elNuVXhGZ3BVNnVuZFQ0eGd5aU1pNGNjU1NHdFp3R1lrQWZSa1Npdm91IiwicmVjZW50QmxvY2toYXNoIjoiU1VSRk5FVHhTQUZFSEFTSHh4eHh4eHh4eHh4eHh4eHh4eHgxOGVhYTJiZSIsInJlY2lwaWVudCI6Ikd1elNuVXhGZ3BVNnVuZFQ0eGd5aU1pNGNjU1NHdFp3R1lrQWZSa1Npdm91In0"
+content-length: 270
+date: Thu, 07 May 2026 06:58:05 GMT
+
+{"endpoint":{"method":"GET","path":"api/economic-demo/reddi-x402/pay-sh-session-splits-smoke"},"error":"payment_required","message":"This endpoint requires a session payment.","pricing":{"dimensions":[{"direction":"usage","price_usd":0.02,"scale":1,"unit":"requests"}]}}

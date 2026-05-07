@@ -1,0 +1,3 @@
+
+== pay sandbox curl ==
+{"error":{"message":"Server returned 402 again after payment"}}

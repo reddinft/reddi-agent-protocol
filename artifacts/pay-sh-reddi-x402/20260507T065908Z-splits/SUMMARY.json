@@ -1,0 +1,76 @@
+{
+  "schema": "reddi-x402.pay-sh.phase3-extension-evidence.v1",
+  "product": "Reddi Agent Protocol",
+  "package": "reddi-x402",
+  "mode": "pay-sh-sandbox-extension-smoke",
+  "artifactDir": "artifacts/pay-sh-reddi-x402/20260507T065908Z-splits",
+  "url": "http://127.0.0.1:1404/api/economic-demo/reddi-x402/pay-sh-splits-smoke",
+  "plainCurl": {
+    "status": "402 Payment Required",
+    "challengeCount": 2,
+    "intents": [
+      "charge"
+    ],
+    "challenges": [
+      {
+        "intent": "charge",
+        "method": "solana",
+        "realm": "MPP Payment",
+        "decodedRequest": {
+          "amount": "20000",
+          "currency": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          "description": "Return a sandbox Reddi Agent Protocol paid API smoke response after Pay.sh charge verification with split metadata.",
+          "methodDetails": {
+            "decimals": 6,
+            "feePayer": true,
+            "feePayerKey": "GuzSnUxFgpU6undT4xgyiMi4ccSSGtZwGYkAfRkSivou",
+            "network": "localnet",
+            "recentBlockhash": "SURFNETxSAFEHASHxxxxxxxxxxxxxxxxxxx18eaa35c",
+            "splits": [
+              {
+                "amount": "4000",
+                "label": "Reddi Agent Protocol specialist sandbox recipient",
+                "memo": "Sandbox specialist revenue share for Reddi Agent Protocol evidence.",
+                "recipient": "d4ST3N4Vkio1Xsg2NaF6Zox7Xq8MdqWihvyip9AHioR"
+              }
+            ],
+            "tokenProgram": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+          },
+          "recipient": "GuzSnUxFgpU6undT4xgyiMi4ccSSGtZwGYkAfRkSivou"
+        }
+      },
+      {
+        "intent": "charge",
+        "method": "solana",
+        "realm": "MPP Payment",
+        "decodedRequest": {
+          "amount": "20000",
+          "currency": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+          "description": "Return a sandbox Reddi Agent Protocol paid API smoke response after Pay.sh charge verification with split metadata.",
+          "methodDetails": {
+            "decimals": 6,
+            "feePayer": true,
+            "feePayerKey": "GuzSnUxFgpU6undT4xgyiMi4ccSSGtZwGYkAfRkSivou",
+            "network": "localnet",
+            "recentBlockhash": "SURFNETxSAFEHASHxxxxxxxxxxxxxxxxxxx18eaa35d",
+            "splits": [
+              {
+                "amount": "4000",
+                "label": "Reddi Agent Protocol specialist sandbox recipient",
+                "memo": "Sandbox specialist revenue share for Reddi Agent Protocol evidence.",
+                "recipient": "d4ST3N4Vkio1Xsg2NaF6Zox7Xq8MdqWihvyip9AHioR"
+              }
+            ],
+            "tokenProgram": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+          },
+          "recipient": "GuzSnUxFgpU6undT4xgyiMi4ccSSGtZwGYkAfRkSivou"
+        }
+      }
+    ]
+  },
+  "paySandboxCurl": {
+    "status": "blocked",
+    "error": "Server returned 402 again after payment"
+  },
+  "claimBoundary": "Phase 3 extension evidence only: Pay.sh emitted session/split challenge metadata, but sandbox retry did not complete; do not claim working capped session or split settlement yet."
+}

@@ -6,6 +6,10 @@ const defaultFiles = [
   "docs/PAYSH-AGENT-PAYMENTS-LEVERAGE-2026-05-07.md",
   "docs/PAYSH-REDDI-X402-BDD-PLAYBOOK-2026-05-07.md",
   "docs/UMBRA-PRIVACY-PAYMENTS-BOUNTY-FIT-2026-05-07.md",
+  "config/pay-sh/reddi-x402-economic-demo-provider.yml",
+  "config/pay-sh/reddi-x402-economic-demo-splits.yml",
+  "config/pay-sh/reddi-x402-economic-demo-session-splits.yml",
+  "providers/redditech/reddi-agent-protocol/reddi-x402-economic-demo-provider.md",
 ];
 
 const files = process.argv.slice(2).length ? process.argv.slice(2) : defaultFiles;

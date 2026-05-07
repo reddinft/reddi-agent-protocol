@@ -1,0 +1,46 @@
+name: reddi-x402-economic-demo-session-splits
+subdomain: reddi-x402-economic-demo-session-splits
+title: 'Reddi Agent Protocol capped session and split-payment smoke'
+description: 'Sandbox Pay.sh gateway spec demonstrating a reddi-x402 capped repeated-call authorization and downstream specialist split metadata.'
+category: productivity
+version: v1
+routing:
+  type: respond
+  status: 200
+  headers:
+    content-type: application/json
+  body: |
+    {
+      "ok": true,
+      "product": "Reddi Agent Protocol",
+      "package": "reddi-x402",
+      "mode": "pay-sh-sandbox-session-splits-smoke",
+      "claimBoundary": "Sandbox gateway compatibility only; no mainnet funds, no Umbra private settlement, and no MagicBlock PER settlement claimed."
+    }
+operator:
+  currencies:
+    usd: ['USDC', 'USDT']
+  network: localnet
+  fee_payer: true
+recipients:
+  specialist:
+    account: 'd4ST3N4Vkio1Xsg2NaF6Zox7Xq8MdqWihvyip9AHioR'
+    label: 'Reddi Agent Protocol specialist sandbox recipient'
+session:
+  cap_usdc: 1.00
+endpoints:
+  - method: GET
+    path: 'api/economic-demo/reddi-x402/pay-sh-session-splits-smoke'
+    resource: 'reddi-x402-pay-sh-session-splits-smoke'
+    description: 'Return a sandbox Reddi Agent Protocol paid API smoke response after Pay.sh capped session authorization and split metadata verification.'
+    metering:
+      dimensions:
+        - direction: usage
+          unit: requests
+          scale: 1
+          tiers:
+            - price_usd: 0.02
+      splits:
+        - recipient: specialist
+          percent: 20
+          memo: 'Sandbox specialist revenue share for Reddi Agent Protocol evidence.'

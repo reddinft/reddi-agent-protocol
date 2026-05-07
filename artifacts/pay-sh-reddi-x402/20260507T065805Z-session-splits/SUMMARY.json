@@ -1,0 +1,36 @@
+{
+  "schema": "reddi-x402.pay-sh.phase3-extension-evidence.v1",
+  "product": "Reddi Agent Protocol",
+  "package": "reddi-x402",
+  "mode": "pay-sh-sandbox-extension-smoke",
+  "artifactDir": "artifacts/pay-sh-reddi-x402/20260507T065805Z-session-splits",
+  "url": "http://127.0.0.1:1403/api/economic-demo/reddi-x402/pay-sh-session-splits-smoke",
+  "plainCurl": {
+    "status": "402 Payment Required",
+    "challengeCount": 1,
+    "intents": [
+      "session"
+    ],
+    "challenges": [
+      {
+        "intent": "session",
+        "method": "solana",
+        "realm": "Reddi Agent Protocol capped session and split-payment smoke",
+        "decodedRequest": {
+          "cap": "1000000",
+          "currency": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          "decimals": 6,
+          "network": "localnet",
+          "operator": "GuzSnUxFgpU6undT4xgyiMi4ccSSGtZwGYkAfRkSivou",
+          "recentBlockhash": "SURFNETxSAFEHASHxxxxxxxxxxxxxxxxxxx18eaa2be",
+          "recipient": "GuzSnUxFgpU6undT4xgyiMi4ccSSGtZwGYkAfRkSivou"
+        }
+      }
+    ]
+  },
+  "paySandboxCurl": {
+    "status": "blocked",
+    "error": "Server returned 402 again after payment"
+  },
+  "claimBoundary": "Phase 3 extension evidence only: Pay.sh emitted session/split challenge metadata, but sandbox retry did not complete; do not claim working capped session or split settlement yet."
+}

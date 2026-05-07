@@ -206,11 +206,29 @@ Reddi Agent Protocol can demonstrate a safe spend envelope for repeated agent ca
 
 ### Retrospective
 
-Write after first cap/split validation.
+Phase 3 produced mixed but valuable results. Static specs for session+split and split-only both validated. Runtime behavior in Pay.sh 0.16.0:
+
+- `session` spec emitted an MPP `intent="session"` challenge with cap `1000000` base units, but `pay --sandbox curl` returned `Server returned 402 again after payment`.
+- split-only charge spec emitted an MPP `intent="charge"` challenge with split metadata embedded (`amount: 4000`, recipient `d4ST3N4Vkio1Xsg2NaF6Zox7Xq8MdqWihvyip9AHioR`), but `pay --sandbox curl` also returned `Server returned 402 again after payment`.
+
+Keep:
+
+- Working Phase 2 single-recipient charge flow as the primary demo path.
+- Session/split specs as extension evidence and compatibility probes.
+- Explicit claim boundary: metadata observed, completed settlement not proven for session/split variants.
+
+Stop:
+
+- Treating sessions/splits as submission-critical until Pay.sh runtime behavior is clarified.
+
+Start:
+
+- Draft a concise maintainer question/repro if we need session/split support for the final demo.
+- Move next to Pay-skills discovery draft using the working single-recipient charge endpoint.
 
 ### Plan refinement
 
-If splits add too much complexity for submission, keep them as documented extension and focus demo on single-recipient metering.
+For submission/demo, use the successful single-recipient Pay.sh sandbox charge flow. Keep capped sessions and split payments as documented roadmap/probe evidence unless Pay.sh maintainers confirm the retry behavior or we find a spec adjustment that completes the flow. Phase 4 should draft pay-skills discovery around the proven endpoint first, with sessions/splits marked as planned extensions.
 
 ## Phase 4 — Pay-skills discovery draft
 
@@ -290,3 +308,70 @@ Begin Phase 0 now:
 3. Run naming/whitespace gates.
 4. Write Phase 0 retrospective.
 5. Move to Phase 1 provider-spec scaffold.
+
+## Phase 4 — Pay-skills discovery metadata
+
+### BDD scenario
+
+Given the working `reddi-x402` single-recipient charge provider spec, when we sync it into Pay.sh skills registry markdown, then agents can discover the endpoint metadata without depending on handwritten registry structure.
+
+### Implementation
+
+- Use installed CLI path: `pay skills provider sync --operator redditech --origin reddi-agent-protocol --out providers --sandbox-service-url 'http://127.0.0.1:1402/{name}' config/pay-sh/reddi-x402-economic-demo-provider.yml`.
+- Generated registry file: `providers/redditech/reddi-agent-protocol/reddi-x402-economic-demo-provider.md`.
+- Guard: `npm run check:pay-skills:registry`.
+
+### Retrospective
+
+Installed `pay 0.16.0` does not expose the docs-ingested `pay skills build`, `pay skills probe`, or `pay skills validate` commands. It does expose `pay skills provider sync`, which generates registry markdown from runtime YAML. The hand-written registry draft was therefore replaced by generated output, and validation moved to repo-local static checks.
+
+Keep:
+
+- Runtime YAML remains source-of-truth.
+- Registry markdown is generated/discovery metadata, not manually authored truth.
+- Public publishing remains gated until the target pay-skills CLI/repo workflow is confirmed.
+
+Stop:
+
+- Assuming docs command names match the installed Homebrew CLI.
+
+Start:
+
+- Run `pay skills provider sync` as the registry update path for local evidence.
+- Track CLI-version-dependent commands explicitly in retrospectives.
+
+### Plan refinement
+
+Next loop should package a maintainer-ready compatibility note: working single-recipient charge evidence, session/split 402-after-payment repro, installed CLI command differences, and the exact generated provider markdown path. That note can become a GitHub issue/PR body later, but do not publish externally without Nissan approval.
+
+## Phase 5 — Compatibility note and maintainer-ready repro
+
+### BDD scenario
+
+Given the BDD loops have produced one working charge path and two extension blockers, when we package a compatibility note, then future agents and humans can resume from evidence instead of re-discovering CLI/runtime behavior.
+
+### Implementation
+
+- Note: `docs/PAYSH-REDDI-X402-COMPATIBILITY-NOTE-2026-05-07.md`.
+- Includes working single-recipient charge path, session/split repros, CLI command differences, generated registry path, and a maintainer-ready question.
+
+### Retrospective
+
+The strongest artifact is not another speculative build step; it is a compatibility note that separates proven behavior from extension probes. This protects the final demo narrative and gives us a clean external question later without publishing prematurely.
+
+Keep:
+
+- Evidence-first claims.
+- Maintainer questions as drafts until Nissan approves external posting.
+
+Stop:
+
+- Expanding Phase 3 until the retry behavior is understood.
+
+Start:
+
+- Use the compatibility note as the handoff artifact for Pay.sh integration decisions.
+
+### Plan refinement
+
+Next loop should move back into product-facing Reddi Agent Protocol demo integration: wire the working Pay.sh evidence into the economic-demo/readiness docs or UI, while clearly labelling sessions/splits as planned extensions.
