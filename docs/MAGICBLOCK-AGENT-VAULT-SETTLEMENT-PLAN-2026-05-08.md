@@ -71,6 +71,7 @@ TEE/payment instruction.
 - Moves the escrowed amount from escrow PDA into the agent vault PDA.
 - Marks escrow released.
 - Increments vault balance/lifetime credited.
+- Leaves escrow rent/cleanup out of Phase A so the delegated-account lifecycle stays simple; Phase C should either explicitly close/refund after commit/undelegate or document the retained-rent accounting as protocol overhead.
 
 For MagicBlock, both escrow and vault must be delegated writable accounts.
 

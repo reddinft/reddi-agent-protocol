@@ -612,7 +612,93 @@ fn test_agent_vault_wrong_authority_rejected() {
     );
 }
 
-/// Test 13: agent cannot double-withdraw beyond vault balance.
+/// Test 13: wrong signer cannot withdraw from an agent vault.
+#[test]
+fn test_agent_vault_wrong_withdraw_signer_rejected() {
+    let mut svm = setup();
+
+    let payer = Pubkey::new_unique();
+    let agent = Pubkey::new_unique();
+    let wrong_agent = Pubkey::new_unique();
+    let counter = counter_pda(&payer);
+    let escrow_id = 0u64;
+    let escrow = escrow_pda(&payer, escrow_id);
+    let vault = agent_vault_pda(&agent);
+    let amount: u64 = 250_000_000;
+
+    let lock_result = svm.process_instruction(
+        &lock_ix(payer, agent, counter, escrow, amount, escrow_id),
+        &[funded(payer), empty(agent), empty(counter), empty(escrow)],
+    );
+    lock_result.assert_success();
+
+    let prepare_result = svm.process_instruction(
+        &prepare_agent_vault_ix(payer, agent, vault),
+        &[
+            lock_result.account(&payer).unwrap().clone(),
+            lock_result.account(&agent).cloned().unwrap_or(empty(agent)),
+            empty(vault),
+        ],
+    );
+    prepare_result.assert_success();
+
+    let credit_result = svm.process_instruction(
+        &take_to_agent_vault_ix(payer, escrow, vault, escrow_id),
+        &[
+            prepare_result.account(&payer).unwrap().clone(),
+            lock_result.account(&escrow).unwrap().clone(),
+            prepare_result.account(&vault).unwrap().clone(),
+        ],
+    );
+    credit_result.assert_success();
+
+    let withdraw_result = svm.process_instruction(
+        &withdraw_agent_vault_ix(wrong_agent, vault, 1),
+        &[
+            empty(wrong_agent),
+            credit_result.account(&vault).unwrap().clone(),
+        ],
+    );
+
+    assert!(
+        withdraw_result.is_err(),
+        "wrong signer must not withdraw from another agent's vault"
+    );
+}
+
+/// Test 14: agent cannot withdraw before the vault has been credited.
+#[test]
+fn test_agent_vault_withdraw_before_credit_rejected() {
+    let mut svm = setup();
+
+    let payer = Pubkey::new_unique();
+    let agent = Pubkey::new_unique();
+    let vault = agent_vault_pda(&agent);
+
+    let prepare_result = svm.process_instruction(
+        &prepare_agent_vault_ix(payer, agent, vault),
+        &[funded(payer), empty(agent), empty(vault)],
+    );
+    prepare_result.assert_success();
+
+    let withdraw_result = svm.process_instruction(
+        &withdraw_agent_vault_ix(agent, vault, 1),
+        &[
+            prepare_result
+                .account(&agent)
+                .cloned()
+                .unwrap_or(empty(agent)),
+            prepare_result.account(&vault).unwrap().clone(),
+        ],
+    );
+
+    assert!(
+        withdraw_result.is_err(),
+        "uncredited vault must reject withdrawals"
+    );
+}
+
+/// Test 15: agent cannot double-withdraw beyond vault balance.
 #[test]
 fn test_agent_vault_double_withdraw_rejected() {
     let mut svm = setup();
