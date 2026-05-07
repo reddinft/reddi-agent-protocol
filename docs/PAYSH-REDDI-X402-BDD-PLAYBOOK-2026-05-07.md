@@ -562,3 +562,52 @@ Start:
 ### Plan refinement
 
 Next loop should run the combined final gate set and, if it stays green, produce a concise current-state handoff for recording/submission. If any stale artifact path remains, refresh it before handoff.
+
+## Phase 10 — Combined final gate and handoff
+
+### BDD scenario
+
+Given the UI, run report, submission prep, and final packet surfaces all include Pay.sh / `reddi-x402` evidence, when the combined final gate set runs, then all evidence and claim-boundary checks must pass before producing a recording/submission handoff.
+
+### Validation
+
+Initial combined gate set passed:
+
+- `npm run check:product:naming` — PASS, 15 files.
+- `npm run check:submission:claim-boundaries` — PASS, 5 packet surfaces.
+- `npm run check:economic-demo:submission-prep` — PASS, 12 evidence paths.
+- `npm run evidence:pay-sh:reddi-x402 -- artifacts/pay-sh-reddi-x402/20260507T064842Z` — PASS.
+- `npm run report:economic-demo:run` — PASS, generated `artifacts/economic-demo-run-report/20260507T073104Z/` with `payShReddix402Compatibility=true`.
+- `npm run test:bdd:index` — PASS.
+- `npx jest --runTestsByPath lib/__tests__/economic-demo-payment-readiness.test.ts --runInBand` — PASS 2/2.
+- `npm run check:quasar:submission` — PASS.
+
+After the run-report step generated a newer artifact, submission prep was refreshed and the boundary checks were rerun:
+
+- `npm run generate:economic-demo:submission-prep` — PASS, generated `artifacts/economic-demo-submission-prep/20260507T073116Z/`.
+- `npm run check:economic-demo:submission-prep` — PASS.
+- `npm run check:submission:claim-boundaries` — PASS.
+- `npm run check:product:naming` — PASS.
+
+### Handoff
+
+Recording/submission handoff is drafted at `docs/RECORDING-SUBMISSION-HANDOFF-2026-05-07.md`.
+
+### Retrospective
+
+Keep:
+
+- Always refresh submission prep after generating a newer run report.
+- Final handoff should quote the latest artifacts, not just the latest committed script state.
+
+Stop:
+
+- Running run-report generation after submission-prep validation without a follow-up prep refresh.
+
+Start:
+
+- Treat the combined final gate set as the pre-recording checklist.
+
+### Plan refinement
+
+From an evidence-boundary perspective, the packet is ready for recording/submission handoff. Stronger proof now requires new approved external action: mainnet/Jupiter execution, Pay.sh maintainer clarification for session/split settlement, or deeper MagicBlock TEE compatibility work.

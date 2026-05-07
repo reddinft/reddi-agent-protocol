@@ -1,6 +1,6 @@
 # Final Recording Packet — 2026-05-07
 
-Use clean `main` at `6f2b1213` or later.
+Use clean `main` at `4cbed5f6` or later.
 
 ## Entry points
 
@@ -9,8 +9,9 @@ Use clean `main` at `6f2b1213` or later.
 - Proof map: `docs/COLOSSEUM-FINAL-QUASAR-PROOF-MAP-2026-05-06.md`
 - Proof hierarchy: `docs/ECONOMIC-DEMO-PROOF-HIERARCHY-2026-05-07.md`
 - Latest submission prep: `artifacts/economic-demo-submission-prep/latest/SUBMISSION-PREP.md`
-- Latest run report: `artifacts/economic-demo-run-report/20260507T072501Z/RUN-REPORT.md`
+- Latest run report: `artifacts/economic-demo-run-report/20260507T073104Z/RUN-REPORT.md`
 - Latest Pay.sh / `reddi-x402` compatibility evidence: `artifacts/pay-sh-reddi-x402/20260507T064842Z/SUMMARY.md`
+- Recording/submission handoff: `docs/RECORDING-SUBMISSION-HANDOFF-2026-05-07.md`
 
 ## Latest local gates
 
