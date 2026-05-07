@@ -1,0 +1,46 @@
+URL: https://quasar-lang.com/docs
+FETCHED_FINAL: https://quasar-lang.com/llms.txt
+DEPTH: 0
+
+# Quasar Documentation
+
+Quasar is a Solana program development framework for writing blazing fast SVM programs.
+
+
+- Getting Started
+  - [Installation](/docs/getting-started/installation.mdx): Install Quasar and set up your development environment.
+  - [Quickstart](/docs/getting-started/quickstart.mdx): Build your first Quasar program in minutes.
+  - [Migrating from Anchor](/docs/getting-started/migrating-from-anchor.mdx): What changes when you port an Anchor program to Quasar.
+- Core Concepts
+  - [Program Structure](/docs/core-concepts/program-structure.mdx): The `#[program]` macro, module layout, allocator configuration, and debug mode.
+  - [Accounts and Validation](/docs/core-concepts/accounts-and-validation.mdx): Account types, zero-copy mechanics, the `#[account]` macro, and `#[derive(Accounts)]`.
+  - [Instructions](/docs/core-concepts/instructions.mdx): Instruction handlers, discriminators, zero-copy arguments, context types, and return data.
+  - [Program Derived Addresses](/docs/core-concepts/pda.mdx): PDA derivation, seed verification, bump discovery, and PDA signing.
+  - [Cross-Program Invocations](/docs/core-concepts/cpi.mdx): Method-style CPI calls, PDA signing, declare_program!, and events.
+  - [IDL Generation](/docs/core-concepts/idl.mdx): How Quasar generates program interface descriptions and client code from your Rust source.
+- SPL Tokens
+  - [Token Program](/docs/spl-tokens/token-program.mdx): Zero-copy token accounts, typed CPI, and declarative initialization.
+  - [Token-2022 and Interfaces](/docs/spl-tokens/token-2022.mdx): Supporting both SPL Token and Token-2022 with Quasar's interface abstraction.
+  - [Associated Token Accounts](/docs/spl-tokens/associated-token-accounts.mdx): Deterministic token accounts derived from wallet + mint.
+- Clients & Testing
+  - [TypeScript Client](/docs/clients/typescript.mdx): Auto-generated TypeScript clients for interacting with Quasar programs.
+  - [Rust Client](/docs/clients/rust.mdx): Auto-generated Rust instruction builders for off-chain use and testing.
+  - [Testing](/docs/clients/testing.mdx): Testing Quasar programs with QuasarSVM and Mollusk.
+- Profiling & Performance
+  - [CU Profiler](/docs/profiling/cu-profiler.mdx): Static compute unit analysis with per-function breakdown and delta tracking.
+  - [Flamegraphs](/docs/profiling/flamegraphs.mdx): Interactive flamegraph viewer for visualizing compute unit hotspots.
+  - [Benchmarks](/docs/profiling/benchmarks.mdx): CU benchmarks and optimization strategies for Quasar programs.
+- Guides
+  - [Build a Vault](/docs/guides/build-a-vault.mdx): Step-by-step guide to building a SOL vault program with Quasar.
+  - [Build an Escrow](/docs/guides/build-an-escrow.mdx): Step-by-step guide to building a token escrow program with Quasar.
+  - [Build a Multisig](/docs/guides/build-a-multisig.mdx): Step-by-step guide to building a multisig wallet program with Quasar.
+- Zero-Copy Deep Dive
+  - [Pod Types](/docs/zero-copy/pod-types.mdx): How Quasar solves the alignment problem with transparent byte-array wrappers.
+  - [Account Layout](/docs/zero-copy/account-layout.mdx): How the `#[account]` macro generates zero-copy companion structs and lays out data in memory.
+  - [Dynamic Fields](/docs/zero-copy/dynamic-fields.mdx): Variable-length strings and vectors stored inline in account data, zero-copy.
+- References
+  - [Account Types](/docs/references/account-types.mdx): Reference for all built-in account types in Quasar.
+  - [Account Constraints](/docs/references/account-constraints.mdx): Reference for all `#[account(...)]` constraint attributes in Quasar.
+  - [CLI Reference](/docs/references/cli.mdx): Reference for the Quasar command-line interface.
+  - [Type Mapping](/docs/references/type-mapping.mdx): Mapping between Rust types, zero-copy Pod representations, and IDL/TypeScript types.
+  - [Configuration](/docs/references/configuration.mdx): Quasar.toml project configuration and global config reference.

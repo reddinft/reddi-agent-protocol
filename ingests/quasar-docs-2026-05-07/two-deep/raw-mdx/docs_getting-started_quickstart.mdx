@@ -1,0 +1,74 @@
+URL: https://quasar-lang.com/docs/getting-started/quickstart
+FETCHED_FINAL: https://quasar-lang.com/docs/getting-started/quickstart.mdx
+DEPTH: 1
+
+# Quickstart (/docs/getting-started/quickstart.mdx)
+
+> Build your first Quasar program in minutes.
+
+## Scaffold a new project
+
+```bash
+quasar init my-program
+```
+
+The CLI prompts for toolchain, testing framework, and template. Skip prompts with flags:
+
+```bash
+quasar init my-program --toolchain solana --framework quasarsvm-rust --template minimal
+```
+
+## Templates
+
+|               | Minimal                    | Full                                             |
+| ------------- | -------------------------- | ------------------------------------------------ |
+| **Use when**  | Quick start, prototyping   | Production programs with multiple instructions   |
+| **Structure** | Everything in `src/lib.rs` | `state.rs`, `errors.rs`, `instructions/` modules |
+
+## Key macros
+
+| Macro                               | What it does                                           |
+| ----------------------------------- | ------------------------------------------------------ |
+| `declare_id!`                       | Sets the program's on-chain address                    |
+| `#[program]`                        | Generates the entrypoint and dispatch table            |
+| `#[instruction(discriminator = N)]` | Routes an instruction by its discriminator             |
+| `#[derive(Accounts)]`               | Generates account parsing and validation               |
+| `#[account(discriminator = N)]`     | Defines an on-chain account type                       |
+| `#[error_code]`                     | Defines custom program errors (`ProgramError::Custom`) |
+
+## Scaffold with `quasar add`
+
+Add instructions, state, and errors to your project. Flags can be combined:
+
+```bash
+quasar add -i transfer -s vault -e access
+```
+
+| Flag          | What it creates                                                                     |
+| ------------- | ----------------------------------------------------------------------------------- |
+| `-i transfer` | `src/instructions/transfer.rs` + wires it into `lib.rs` with the next discriminator |
+| `-s vault`    | `#[account]` struct in `src/state.rs` with auto-incremented discriminator           |
+| `-e access`   | `#[error_code]` enum in `src/errors.rs`                                             |
+
+Works on both templates. On minimal projects, `-i` creates the `src/instructions/` directory and wires the module automatically.
+
+## Build, test, deploy
+
+```bash
+quasar build                # compile → target/deploy/my_program.so
+quasar build --debug        # with debug symbols
+
+quasar test                 # builds then runs the test suite
+quasar test -f test_init    # filter by name
+quasar test --features debug
+
+quasar deploy --url devnet  # builds then deploys
+quasar deploy --url devnet --skip-build --keypair ./payer.json
+```
+
+## Next steps
+
+* **[Core Concepts](/docs/core-concepts/program-structure.mdx)** -- Zero-copy accounts, discriminators, CPI, and PDAs.
+* **[Account Constraints](/docs/references/account-constraints.mdx)** -- `seeds`, `has_one`, `constraint`, `init`, `close`, and more.
+* **[Build an Escrow](/docs/guides/build-an-escrow.mdx)** -- Full tutorial with token CPIs, PDAs, and events.
+* **[Migrating from Anchor](./migrating-from-anchor)** -- Maps every Anchor concept to its Quasar equivalent.

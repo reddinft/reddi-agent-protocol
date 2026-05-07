@@ -1,0 +1,57 @@
+URL: https://quasar-lang.com/docs/profiling/cu-profiler
+FETCHED_FINAL: https://quasar-lang.com/docs/profiling/cu-profiler.mdx
+DEPTH: 0
+
+# CU Profiler (/docs/profiling/cu-profiler.mdx)
+
+> Static compute unit analysis with per-function breakdown and delta tracking.
+
+`quasar profile` statically walks every sBPF instruction in your compiled binary. Each instruction = one compute unit, so the count directly maps to CU usage. Function names are resolved via DWARF debug info.
+
+## Running It
+
+```bash
+quasar profile                              # auto-builds with debug symbols
+quasar profile target/deploy/my_program.so  # explicit ELF path
+```
+
+Debug symbols are required -- the profiler errors on stripped binaries. Use the unstripped binary from `target/sbf-solana-solana/release/` if needed.
+
+## Output
+
+First run shows the top 5 functions by cost:
+
+```
+  my_program  2,816 CU
+     1,200  42.6%  Initialize::verify
+       800  28.4%  Deposit::process
+       400  14.2%  entrypoint
+       300  10.6%  Withdraw::process
+       116   4.1%  +3 more (--expand)
+```
+
+On subsequent runs, the profiler loads the previous baseline from `target/profile/.last-profile.<program>` and shows deltas -- red `(+N)` for regressions, green `(-N)` for improvements:
+
+```
+  my_program  2,816 CU (+42)
+     1,200 (+200)   5.0%  Initialize::verify
+       800 (-158)   3.0%  Deposit::process
+```
+
+## Flags
+
+**`--expand`** — Full function table with bar charts:
+
+```
+  my_program  2,816 CU
+     1,200  42.6%  ████████████████████  Initialize::verify
+       800  28.4%  █████████████░░░░░░░  Deposit::process
+       400  14.2%  ██████░░░░░░░░░░░░░░  entrypoint
+  6 functions, 2,816 CU total
+```
+
+**`--watch`** (`-w`) — Re-profiles on every source file change. Combine with `--expand` for a live CU dashboard.
+
+**`--diff <PROGRAM>`** — Opens the flamegraph diff view in the foreground. Press Ctrl-C to stop.
+
+**`--share`** — Uploads the profile to a public GitHub Gist (requires `gh` CLI).

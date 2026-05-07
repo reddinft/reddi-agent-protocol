@@ -28,7 +28,7 @@ export const PER_DEVNET_RPC = pickEnv("NEXT_PUBLIC_PER_RPC", "DEMO_PER_RPC") ?? 
 
 /** Devnet TEE validator pubkey (for identity verification) */
 export const PER_DEVNET_VALIDATOR_PUBKEY =
-  "FnE6VJT5QNZdedZPnCoLsARgBwoE6DeJNjBs2H1gySXA";
+  "MTEWGuqxUpYZGFJQcp8tLN7x5v9BSeoFHYWQQ3n3xzo";
 
 /** MagicBlock Permission Program address */
 export const PERMISSION_PROGRAM_ID =

@@ -1,0 +1,129 @@
+URL: https://quasar-lang.com/docs/spl-tokens/token-program
+FETCHED_FINAL: https://quasar-lang.com/docs/spl-tokens/token-program.mdx
+DEPTH: 0
+
+# Token Program (/docs/spl-tokens/token-program.mdx)
+
+> Zero-copy token accounts, typed CPI, and declarative initialization.
+
+The `quasar-spl` crate provides zero-copy wrappers and typed CPI for the SPL Token program. Token accounts and mints are pointer-cast directly from the SVM input buffer -- no deserialization.
+
+## Account Types
+
+Two marker types: `Token` for token accounts (165 bytes) and `Mint` for mint accounts (82 bytes). Use them with `Account<T>`:
+
+```rust
+use quasar_spl::{Mint, Token, TokenCpi};
+
+#[derive(Accounts)]
+pub struct TransferTokens<'info> {
+    pub authority: &'info Signer,
+    pub from: &'info mut Account<Token>,
+    pub to: &'info mut Account<Token>,
+    pub token_program: &'info Program<Token>,
+}
+```
+
+`Account<Token>` validates that the account is owned by the SPL Token program and has at least 165 bytes. `Account<Mint>` does the same for 82-byte mint accounts. Both deref to zero-copy structs with typed field accessors:
+
+```rust
+// TokenAccountState fields
+token_account.mint()           // &Address
+token_account.owner()          // &Address
+token_account.amount()         // u64
+token_account.delegate()       // Option<&Address>
+token_account.is_frozen()      // bool
+
+// MintAccountState fields
+mint.mint_authority()          // Option<&Address>
+mint.supply()                  // u64
+mint.decimals()                // u8
+mint.freeze_authority()        // Option<&Address>
+```
+
+## CPI
+
+`Program<Token>` implements the `TokenCpi` trait, giving you method-style calls that return `CpiCall` values:
+
+```rust
+// Transfer
+self.token_program
+    .transfer(self.from, self.to, self.authority, amount)
+    .invoke()?;
+
+// Transfer with decimal verification
+self.token_program
+    .transfer_checked(self.from, self.mint, self.to, self.authority, amount, decimals)
+    .invoke()?;
+
+// Mint new tokens
+self.token_program
+    .mint_to(self.mint, self.destination, self.mint_authority, amount)
+    .invoke()?;
+
+// Burn
+self.token_program
+    .burn(self.source, self.mint, self.authority, amount)
+    .invoke()?;
+
+// Approve / revoke delegate
+self.token_program.approve(self.source, self.delegate, self.authority, amount).invoke()?;
+self.token_program.revoke(self.source, self.authority).invoke()?;
+```
+
+All CPI methods work with `.invoke()` for regular signers and `.invoke_signed(&seeds)` for PDA signers.
+
+## Initializing Token Accounts
+
+Use `init` with `token::mint` and `token::authority` to declaratively create and initialize token accounts:
+
+```rust
+#[account(init, token::mint = mint, token::authority = payer)]
+pub token_account: &'info mut Account<Token>,
+```
+
+This chains `System::create_account` + `InitializeAccount3` in a single step. For conditional creation, use `init_if_needed` -- it skips creation if the account already exists and validates that mint and authority match:
+
+```rust
+#[account(init_if_needed, payer = maker, token::mint = mint_a, token::authority = escrow)]
+pub vault: &'info mut Account<Token>,
+```
+
+## Initializing Mints
+
+Use `mint::decimals` and `mint::authority`. Optional `mint::freeze_authority`:
+
+```rust
+#[account(init, mint::decimals = 6, mint::authority = mint_authority)]
+pub mint: &'info mut Account<Mint>,
+```
+
+## Closing Token Accounts
+
+Token accounts are owned by the SPL Token program, not yours. Use the `TokenClose` trait instead of `Account::close()` -- it performs a CPI to the token program's `CloseAccount` instruction:
+
+```rust
+use quasar_spl::TokenClose;
+
+self.vault_ta_a
+    .close(self.token_program, self.taker, self.escrow)
+    .invoke_signed(&seeds)?;
+```
+
+## PDA-Signed Operations
+
+When a PDA owns tokens, pass the seeds to `invoke_signed`. From the escrow refund:
+
+```rust
+pub fn withdraw_tokens_and_close(&mut self, bumps: &RefundBumps) -> Result<(), ProgramError> {
+    let seeds = bumps.escrow_seeds();
+
+    self.token_program
+        .transfer(self.vault_ta_a, self.maker_ta_a, self.escrow, self.vault_ta_a.amount())
+        .invoke_signed(&seeds)?;
+
+    self.vault_ta_a
+        .close(self.token_program, self.maker, self.escrow)
+        .invoke_signed(&seeds)
+}
+```

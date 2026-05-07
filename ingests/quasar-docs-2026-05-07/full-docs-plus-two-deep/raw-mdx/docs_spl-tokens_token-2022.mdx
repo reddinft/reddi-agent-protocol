@@ -1,0 +1,106 @@
+URL: https://quasar-lang.com/docs/spl-tokens/token-2022
+FETCHED_FINAL: https://quasar-lang.com/docs/spl-tokens/token-2022.mdx
+DEPTH: 0
+
+# Token-2022 and Interfaces (/docs/spl-tokens/token-2022.mdx)
+
+> Supporting both SPL Token and Token-2022 with Quasar's interface abstraction.
+
+Token-2022 (Token Extensions) is a superset of SPL Token with the same base account layouts plus extensions like transfer fees and confidential transfers. Quasar supports it through dedicated types and a unified interface abstraction that accepts either program.
+
+## Dedicated Token-2022 Types
+
+`Token2022` and `Mint2022` are identical to `Token` and `Mint` but validate that the owner is the Token-2022 program:
+
+```rust
+use quasar_spl::{Token2022, Mint2022, TokenCpi};
+
+#[derive(Accounts)]
+pub struct Transfer2022<'info> {
+    pub authority: &'info Signer,
+    pub from: &'info mut Account<Token2022>,
+    pub to: &'info mut Account<Token2022>,
+    pub token_program: &'info Program<Token2022>,
+}
+```
+
+Same zero-copy layouts, same CPI methods via `TokenCpi`. Use these when your program only supports Token-2022.
+
+## Interface Types
+
+When your program should accept tokens from **either** SPL Token or Token-2022, use `InterfaceAccount<T>` for data accounts and `Interface<TokenInterface>` for the program:
+
+```rust
+use quasar_spl::{InterfaceAccount, Token, TokenCpi, TokenInterface};
+
+#[derive(Accounts)]
+pub struct InterfaceTransfer<'info> {
+    pub authority: &'info Signer,
+    pub from: &'info mut InterfaceAccount<Token>,
+    pub to: &'info mut InterfaceAccount<Token>,
+    pub token_program: &'info Interface<TokenInterface>,
+}
+
+impl<'info> InterfaceTransfer<'info> {
+    pub fn handler(&self, amount: u64) -> Result<(), ProgramError> {
+        self.token_program
+            .transfer(self.from, self.to, self.authority, amount)
+            .invoke()
+    }
+}
+```
+
+`InterfaceAccount<Token>` validates that the account is owned by either SPL Token or Token-2022. `Interface<TokenInterface>` accepts either program ID. The SVM routes the CPI to whichever program was passed in the transaction -- your code stays identical.
+
+Works for mints too:
+
+```rust
+pub mint: &'info InterfaceAccount<Mint>,
+```
+
+## Choosing the Right Types
+
+| Scenario        | Account type                                         | Program type                |
+| --------------- | ---------------------------------------------------- | --------------------------- |
+| SPL Token only  | `Account<Token>` / `Account<Mint>`                   | `Program<Token>`            |
+| Token-2022 only | `Account<Token2022>` / `Account<Mint2022>`           | `Program<Token2022>`        |
+| Both programs   | `InterfaceAccount<Token>` / `InterfaceAccount<Mint>` | `Interface<TokenInterface>` |
+
+If you have no reason to restrict to one program, prefer the interface types.
+
+## Init with Interfaces
+
+The `token::mint` and `token::authority` attributes work with interface types. The token program used for initialization is inferred from the program account in your struct:
+
+```rust
+#[derive(Accounts)]
+pub struct InitVault<'info> {
+    pub payer: &'info mut Signer,
+    #[account(init, token::mint = mint, token::authority = authority)]
+    pub vault: &'info mut InterfaceAccount<Token>,
+    pub mint: &'info InterfaceAccount<Mint>,
+    pub authority: &'info Signer,
+    pub token_program: &'info Interface<TokenInterface>,
+    pub system_program: &'info Program<System>,
+}
+```
+
+## Migrating from Token to Interface
+
+Swap the types -- no business logic changes needed:
+
+```rust
+// Before: SPL Token only
+pub from: &'info mut Account<Token>,
+pub token_program: &'info Program<Token>,
+
+// After: both programs
+pub from: &'info mut InterfaceAccount<Token>,
+pub token_program: &'info Interface<TokenInterface>,
+```
+
+CPI method signatures are identical across all three program wrappers.
+
+## Extensions
+
+The zero-copy types read the base token/mint data (first 165 or 82 bytes). Token-2022 extensions live after the base data and don't affect the standard field accessors. Extensions are handled by the Token-2022 program during CPI execution -- for most operations (transfers, minting, burning, closing), the base data and standard CPI methods are all you need.

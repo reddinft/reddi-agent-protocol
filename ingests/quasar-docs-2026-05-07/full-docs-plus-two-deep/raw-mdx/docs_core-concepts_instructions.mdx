@@ -1,0 +1,185 @@
+URL: https://quasar-lang.com/docs/core-concepts/instructions
+FETCHED_FINAL: https://quasar-lang.com/docs/core-concepts/instructions.mdx
+DEPTH: 0
+
+# Instructions (/docs/core-concepts/instructions.mdx)
+
+> Instruction handlers, discriminators, zero-copy arguments, context types, and return data.
+
+Instructions are functions inside a `#[program]` module. Each one is annotated with `#[instruction(discriminator = N)]`, which generates the discriminator matching, zero-copy argument parsing, and account context construction.
+
+## Defining Instructions
+
+```rust
+#[program]
+mod quasar_vault {
+    use super::*;
+
+    #[instruction(discriminator = 0)]
+    pub fn deposit(ctx: Ctx<Deposit>, amount: u64) -> Result<(), ProgramError> {
+        ctx.accounts.deposit(amount)
+    }
+
+    #[instruction(discriminator = 1)]
+    pub fn withdraw(ctx: Ctx<Withdraw>, amount: u64) -> Result<(), ProgramError> {
+        ctx.accounts.withdraw(amount)
+    }
+}
+```
+
+Every instruction function must:
+
+* Take `Ctx<T>` or `CtxWithRemaining<T>` as its first parameter
+* Have an explicit `discriminator` value
+* Return `Result<(), ProgramError>` (or `Result<T, ProgramError>` for return data)
+
+The handler itself should be thin -- just dispatch to methods on the accounts struct. Business logic lives in `impl` blocks on your `#[derive(Accounts)]` type, keeping the `#[program]` module as a clean dispatch table.
+
+## Discriminators
+
+Discriminators are developer-specified integers that prefix the instruction data on the wire. When a transaction arrives, the entrypoint reads the discriminator and dispatches to the matching handler.
+
+```rust
+#[instruction(discriminator = 0)]    // wire: [0x00, ...args]
+pub fn deposit(...) -> Result<(), ProgramError> { ... }
+
+#[instruction(discriminator = 1)]    // wire: [0x01, ...args]
+pub fn withdraw(...) -> Result<(), ProgramError> { ... }
+```
+
+Unlike Anchor, which defaults to an 8-byte SHA-256 hash, Quasar requires you to choose the discriminator explicitly. This gives you full control over the wire format and keeps instruction data compact -- most programs only need a single byte.
+
+**Rules** (all enforced at compile time):
+
+* All discriminators in a program must have the **same byte length**. Single-byte gives you 255 possible instructions (0x00 through 0xFE).
+* **No duplicates**.
+* **No 0xFF prefix** -- reserved for the event self-CPI protocol.
+* For programs needing more than 255 instructions, use multi-byte discriminators: `discriminator = [0, 1]`.
+
+## Arguments
+
+Arguments come after the discriminator in the instruction data buffer. Like account fields, instruction arguments are zero-copy -- the macro generates a `#[repr(C)]` struct with Pod types and pointer-casts directly into the instruction data. You write `u64`, the generated code reads a `PodU64` and converts it back transparently.
+
+### Fixed-size arguments
+
+Fixed-size types (`u64`, `u32`, `u16`, `u8`, `i64`, `bool`, `Address`, etc.) are read directly from the instruction data buffer via pointer cast. No copying, no deserialization:
+
+```rust
+#[instruction(discriminator = 0)]
+pub fn make(ctx: Ctx<Make>, deposit: u64, receive: u64) -> Result<(), ProgramError> {
+    ctx.accounts.make_escrow(receive, &ctx.bumps)?;
+    ctx.accounts.deposit_tokens(deposit)
+}
+```
+
+Wire format:
+
+```text
+[0x00]                    <- discriminator (1 byte)
+[deposit: 8 bytes LE]    <- u64
+[receive: 8 bytes LE]    <- u64
+```
+
+### Dynamic arguments
+
+Variable-length arguments use `String<MAX>` and `Vec<T, MAX>`. These are read from instruction data with a length prefix (default `u32`), validated, and produced as `&str` or `&[T]` slices pointing directly into the buffer:
+
+```rust
+#[instruction(discriminator = 2)]
+pub fn set_label(ctx: Ctx<SetLabel>, label: String<32>) -> Result<(), ProgramError> {
+    ctx.accounts.update_label(label)
+}
+```
+
+Inside the handler, `label` is a `&str` -- the macro reads the u32 length prefix, validates that the length doesn't exceed `MAX`, checks UTF-8, and produces a slice into the instruction data. No allocation.
+
+Wire format:
+
+```text
+[0x02]                         <- discriminator (1 byte)
+[len: 4 bytes LE]              <- u32 string length
+[label: len bytes UTF-8]       <- string data
+```
+
+`Vec<T, MAX>` works the same way, producing a `&[T]` slice. Element types must have alignment 1 (enforced at compile time).
+
+### Tail arguments
+
+A tail argument consumes all remaining instruction data after the fixed and dynamic fields. Use `&[u8]` for raw bytes or `&str` for UTF-8 validated text:
+
+```rust
+#[instruction(discriminator = 0)]
+pub fn process(ctx: Ctx<Process>, data: &[u8]) -> Result<(), ProgramError> {
+    // data contains everything after the discriminator
+}
+```
+
+Only one tail argument is allowed and it must be the last parameter. No length prefix -- the field gets everything that's left.
+
+## Context Types
+
+### `Ctx<T>`
+
+The standard context. Holds the parsed accounts, PDA bumps, program ID, and instruction data:
+
+```rust
+pub struct Ctx<'info, T: ParseAccounts<'info> + AccountCount> {
+    pub accounts: T,           // your validated accounts struct
+    pub bumps: T::Bumps,       // discovered PDA bump seeds
+    pub program_id: &'info [u8; 32],
+    pub data: &'info [u8],     // instruction data (discriminator already consumed)
+}
+```
+
+### `CtxWithRemaining<T>`
+
+Same as `Ctx`, but also captures accounts beyond the declared set. Use this for instructions that forward a variable number of accounts to CPIs -- token transfers with extra signers, route swaps, or multi-party approval flows:
+
+```rust
+#[instruction(discriminator = 0)]
+pub fn create(ctx: CtxWithRemaining<Create>, threshold: u8) -> Result<(), ProgramError> {
+    ctx.accounts.create_multisig(threshold, &ctx.bumps, ctx.remaining_accounts())
+}
+```
+
+`ctx.remaining_accounts()` returns a `RemainingAccounts` iterator that lazily parses accounts from the input buffer. Each account is validated on access -- no upfront cost for accounts you don't use.
+
+## Instruction Data in Account Validation
+
+Use `#[instruction(...)]` on the accounts struct to access instruction arguments during account construction. This is useful when constraint expressions or init attributes need values from the instruction data:
+
+```rust
+#[derive(Accounts)]
+#[instruction(name: String<32>, symbol: String<10>)]
+pub struct CreateNft<'info> {
+    #[account(init, payer = authority, metadata::name = name, metadata::symbol = symbol)]
+    pub metadata: &'info mut Account<Metadata>,
+    pub authority: &'info mut Signer,
+}
+```
+
+The parameter names and types must match the instruction handler's signature.
+
+## Return Data
+
+To return data to the caller (useful for CPI return values or simulation), use a non-unit `Ok` type. The return type must have alignment 1 (Pod types):
+
+```rust
+#[instruction(discriminator = 0)]
+pub fn compute_value(ctx: Ctx<Compute>) -> Result<PodU64, ProgramError> {
+    Ok(PodU64::from(42u64))
+}
+```
+
+The framework runs `close` operations before setting return data, so closed accounts are cleaned up regardless of the return value.
+
+## Epilogue
+
+After the handler returns `Ok(())`, the framework runs the epilogue -- `close` operations execute for any accounts marked with `close = destination`. If the handler returns an error, the epilogue is skipped and the entire transaction rolls back.
+
+## Next Steps
+
+* [Accounts and Validation](./accounts-and-validation) -- account types and constraint attributes
+* [Program Derived Addresses](./pda) -- seeds, bumps, and PDA verification
+* [Cross-Program Invocations](./cpi) -- CPI method patterns and PDA signing
+* [IDL](./idl) -- how instruction signatures map to the generated IDL

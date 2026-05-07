@@ -15,6 +15,7 @@ fi
 
 programs=(
   quasar-escrow
+  quasar-escrow-per
   quasar-registry
   quasar-reputation
   quasar-attestation

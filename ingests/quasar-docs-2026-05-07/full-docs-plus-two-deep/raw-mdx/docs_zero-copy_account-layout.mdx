@@ -1,0 +1,108 @@
+URL: https://quasar-lang.com/docs/zero-copy/account-layout
+FETCHED_FINAL: https://quasar-lang.com/docs/zero-copy/account-layout.mdx
+DEPTH: 0
+
+# Account Layout (/docs/zero-copy/account-layout.mdx)
+
+> How the `#[account]` macro generates zero-copy companion structs and lays out data in memory.
+
+The `#[account]` macro generates a zero-copy companion struct, a view type that pointer-casts directly into account data, and all the plumbing to make field access feel like a normal Rust struct.
+
+## From source to memory
+
+Given this account:
+
+```rust
+#[account(discriminator = 1)]
+pub struct Escrow {
+    pub maker: Address,
+    pub mint_a: Address,
+    pub mint_b: Address,
+    pub maker_ta_b: Address,
+    pub receive: u64,
+    pub bump: u8,
+}
+```
+
+The macro generates three things:
+
+**1. A ZC companion struct** (`EscrowZc`) -- `#[repr(C)]`, all fields at alignment 1, overlays the raw bytes:
+
+```rust
+#[repr(C)]
+pub struct EscrowZc {
+    pub maker: Address,      // 32 bytes
+    pub mint_a: Address,     // 32 bytes
+    pub mint_b: Address,     // 32 bytes
+    pub maker_ta_b: Address, // 32 bytes
+    pub receive: PodU64,     // 8 bytes
+    pub bump: u8,            // 1 byte
+}
+```
+
+**2. A view type** (`Escrow`) -- a `#[repr(transparent)]` wrapper over `AccountView` with `Deref`/`DerefMut` to the companion:
+
+```rust
+impl Deref for Escrow {
+    type Target = EscrowZc;
+    fn deref(&self) -> &EscrowZc {
+        // pointer-cast into account data, skipping the discriminator
+    }
+}
+```
+
+**3. Trait impls** -- `Discriminator` (the `[1]` byte), `Space` (total account size), `Owner` (your program's `crate::ID`), and `set_inner()` for writing all fields at once.
+
+## Memory layout
+
+Account data is laid out as discriminator followed by the companion struct fields, contiguous, no padding:
+
+```
+Offset  Size   Field
+------  ----   -----
+0       1      discriminator (0x01)
+1       32     maker: Address
+33      32     mint_a: Address
+65      32     mint_b: Address
+97      32     maker_ta_b: Address
+129     8      receive: PodU64
+137     1      bump: u8
+------
+Total: 138 bytes
+```
+
+Because every field has alignment 1, there is zero padding. The on-disk layout matches the `#[repr(C)]` struct layout byte-for-byte. `Space::SPACE` reports this total (discriminator + companion size).
+
+## Reading and writing
+
+Field reads go through the `Deref` pointer cast -- zero-copy, directly into account data:
+
+```rust
+let maker: &Address = &escrow.maker;
+let amount: PodU64 = escrow.receive;
+```
+
+Writing with `set_inner()` accepts native types and converts to Pod internally:
+
+```rust
+self.escrow.set_inner(
+    *self.maker.address(),    // Address
+    *self.mint_a.address(),   // Address
+    *self.mint_b.address(),   // Address
+    *self.maker_ta_b.address(), // Address
+    receive,                   // u64 -> PodU64 internally
+    bumps.escrow,             // u8
+);
+```
+
+Individual field writes go through `DerefMut`, directly to the account data buffer:
+
+```rust
+escrow.receive = PodU64::from(new_amount);
+```
+
+No intermediate copy, no serialization step.
+
+## Validation before access
+
+Before any pointer cast, `AccountCheck::check()` validates that the buffer is large enough for the companion struct and that the discriminator matches. All-zero discriminators are banned at compile time, so uninitialized accounts never pass validation.

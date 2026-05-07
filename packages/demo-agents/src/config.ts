@@ -108,7 +108,7 @@ export function explorerTxUrl(signature: string): string {
 /** MagicBlock critical addresses */
 export const PERMISSION_PROGRAM_ID = "ACLseoPoyC3cBqoUtkbjZ4aDrkurZW86v19pXz2XQnp1";
 export const DELEGATION_PROGRAM_ID = "DELeGGvXpWV2fqJUhqcF5ZSYMS4JTLjteaAMARRSaeSh";
-export const PER_VALIDATOR_PUBKEY = "FnE6VJT5QNZdedZPnCoLsARgBwoE6DeJNjBs2H1gySXA";
+export const PER_VALIDATOR_PUBKEY = "MTEWGuqxUpYZGFJQcp8tLN7x5v9BSeoFHYWQQ3n3xzo";
 
 /** PDA seeds — must match the on-chain program */
 export const ESCROW_SEED = Buffer.from("escrow");

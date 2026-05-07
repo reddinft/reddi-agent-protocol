@@ -1,0 +1,173 @@
+URL: https://quasar-lang.com/docs/core-concepts/program-structure
+FETCHED_FINAL: https://quasar-lang.com/docs/core-concepts/program-structure.mdx
+DEPTH: 2
+
+# Program Structure (/docs/core-concepts/program-structure.mdx)
+
+> The `#[program]` macro, module layout, allocator configuration, and debug mode.
+
+The `#[program]` macro generates the on-chain entrypoint, instruction dispatch, event authority PDA, and allocator configuration.
+
+## Module Layout
+
+A typical Quasar program:
+
+```
+my-program/
+  Cargo.toml
+  src/
+    lib.rs              # Program entry, declare_id!, #[program] module
+    instructions/       # One file per instruction handler
+      mod.rs
+      deposit.rs
+      withdraw.rs
+    state.rs            # #[account] definitions
+    errors.rs           # #[error_code] enum
+    events.rs           # #[event] definitions
+```
+
+Example `lib.rs` from the escrow program:
+
+```rust
+#![no_std]
+
+use quasar_lang::prelude::*;
+
+mod instructions;
+use instructions::*;
+mod events;
+mod state;
+
+declare_id!("22222222222222222222222222222222222222222222");
+
+#[program]
+mod quasar_escrow {
+    use super::*;
+
+    #[instruction(discriminator = 0)]
+    pub fn make(ctx: Ctx<Make>, deposit: u64, receive: u64) -> Result<(), ProgramError> {
+        ctx.accounts.make_escrow(receive, &ctx.bumps)?;
+        ctx.accounts.emit_event(deposit, receive)?;
+        ctx.accounts.deposit_tokens(deposit)
+    }
+
+    #[instruction(discriminator = 1)]
+    pub fn take(ctx: Ctx<Take>) -> Result<(), ProgramError> {
+        ctx.accounts.transfer_tokens()?;
+        ctx.accounts.withdraw_tokens_and_close(&ctx.bumps)?;
+        ctx.accounts.emit_event()
+    }
+
+    #[instruction(discriminator = 2)]
+    pub fn refund(ctx: Ctx<Refund>) -> Result<(), ProgramError> {
+        ctx.accounts.withdraw_tokens_and_close(&ctx.bumps)?;
+        ctx.accounts.emit_event()
+    }
+}
+```
+
+* **`#![no_std]`** is required. Quasar programs do not link `std`.
+* **`declare_id!`** sets the `crate::ID` constant used for owner checks and PDA derivation.
+* **`#[program]`** annotates a module containing `#[instruction]` functions. The module name (`quasar_escrow`) determines the generated program type name (`QuasarEscrow`). A `client` submodule with typed instruction builders is also generated (compiled only for off-chain targets).
+
+## What `#[program]` Generates
+
+### Entrypoint
+
+The entry function that the runtime calls when your program is invoked. Initializes the allocator (if `alloc` is enabled) and dispatches to the matched instruction handler.
+
+### Dispatch table
+
+Reads the discriminator prefix from instruction data and matches it against a compile-time table of handlers. `0xFF` prefix routes to the self-CPI event handler.
+
+Compile-time rules:
+
+* All instruction discriminators must have the same byte length.
+* No duplicates.
+* No discriminator may start with `0xFF` (reserved for events).
+
+### Program type and event authority
+
+* A **program type** (e.g., `QuasarEscrow`) that validates the executable flag and address. Implements the `Id` trait.
+* An &#x2A;*`EventAuthority`** PDA (seeds: `["__event_authority"]`) used by `emit_cpi!` to sign self-CPI event emissions.
+
+### Panic handler
+
+A minimal panic handler that logs `"PANIC"` on-chain.
+
+## Allocator Configuration
+
+By default, `#[program]` installs a global allocator that panics on any allocation attempt. Most programs never need heap allocation because Quasar provides zero-copy alternatives for dynamic data:
+
+**`String<'a, MAX>`*&#x2A; and &#x2A;*`Vec<'a, T, MAX>`** -- stored inline in account data with a length prefix, accessed as `&str` and `&[T]` slices. No allocation, no deserialization:
+
+```rust
+#[account(discriminator = 1)]
+pub struct MultisigConfig<'a> {
+    pub creator: Address,
+    pub threshold: u8,
+    pub label: String<'a, 32>,         // max 32 bytes
+    pub signers: Vec<'a, Address, 10>, // max 10 elements
+}
+```
+
+If you only have **one** dynamic field and it's the last field in the struct, use a bare `&'a str` or `&'a [u8]` instead. This avoids the length prefix entirely -- the field consumes all remaining bytes in the account, which is slightly more efficient:
+
+```rust
+#[account(discriminator = 1)]
+pub struct Note<'a> {
+    pub author: Address,
+    pub content: &'a str, // tail field -- no prefix, uses remaining space
+}
+```
+
+If your program genuinely requires heap allocation, enable the `alloc` feature:
+
+```toml
+[dependencies]
+quasar-lang = { version = "...", features = ["alloc"] }
+```
+
+With `alloc` enabled, a bump allocator is installed instead.
+
+## Debug Mode
+
+Build with `debug` to enable detailed error logging:
+
+```bash
+quasar build --debug
+```
+
+Validation failures produce log messages like:
+
+```
+Account 'escrow' (index 1): must be writable, no duplicates
+```
+
+Without `--debug`, these log statements are compiled out. Always build without `--debug` for production deployments.
+
+## Instruction Handler Pattern
+
+Each handler takes `ctx: Ctx<T>` (or `ctx: CtxWithRemaining<T>`) as its first parameter, plus any typed arguments, and returns `Result<(), ProgramError>`. Business logic goes in `impl` blocks on the accounts struct:
+
+```rust
+#[instruction(discriminator = 0)]
+pub fn deposit(ctx: Ctx<Deposit>, amount: u64) -> Result<(), ProgramError> {
+    ctx.accounts.deposit(amount)
+}
+```
+
+For instructions that forward a variable number of accounts to CPIs, use `CtxWithRemaining`:
+
+```rust
+#[instruction(discriminator = 0)]
+pub fn create(ctx: CtxWithRemaining<Create>, threshold: u8) -> Result<(), ProgramError> {
+    ctx.accounts.create_multisig(threshold, &ctx.bumps, ctx.remaining_accounts())
+}
+```
+
+## Next Steps
+
+* [Accounts and Validation](./accounts-and-validation) -- how account types and `#[derive(Accounts)]` work
+* [Instructions](./instructions) -- the `#[instruction]` macro and argument handling
+* [IDL](./idl) -- generating the program interface description
