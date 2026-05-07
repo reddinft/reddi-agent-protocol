@@ -68,6 +68,17 @@ Retrospective template:
 
 **Validation:** cargo test/check for new PER crate, full Quasar program test script if cheap enough, discriminator guard.
 
+### Retrospective — Phase 1
+
+- **Expected:** A separate `experiments/quasar-escrow-per` crate compiles locally and exposes an 8-byte discriminator map including the MagicBlock undelegate callback.
+- **Observed:** New PER crate is scaffolded separately from `experiments/quasar-escrow`, uses a fresh PER-specific program ID placeholder, keeps make/take/refund behavior via 8-byte discriminators, and adds a minimal `undelegate_callback` entrypoint with MagicBlock's exact discriminator.
+- **Validation:** `npm run check:quasar:per-abi` passed; `cargo build-sbf --manifest-path experiments/quasar-escrow-per/Cargo.toml` passed; `cargo test --manifest-path experiments/quasar-escrow-per/Cargo.toml` passed 8/8; `npm run test:bdd:index` passed; full `scripts/run-quasar-program-tests.sh` passed for escrow, escrow-per, registry, reputation, and attestation.
+- **What worked:** Quasar accepts 8-byte instruction discriminator arrays cleanly. The PER-specific crate can reuse the tested escrow lifecycle without altering the base escrow ABI.
+- **What failed / surprised us:** An empty callback `Accounts` struct did not derive required Quasar traits; the callback needs at least a concrete account context. For Phase 1 we used a minimal unchecked mutable `escrow` account and documented that later phases must validate it as the delegated escrow PDA.
+- **Safety / approval review:** Local compile/tests only; no signing, deployment, wallet mutation, or devnet txs in Phase 1.
+- **Decision:** continue.
+- **Plan changes for next phase:** Phase 2 should not add live network behavior yet. First build deterministic MagicBlock CPI layout fixtures and account-meta tests around the PER crate, then wire CPI calls once byte/account parity is proven.
+
 ### Phase 2 — MagicBlock layout fixtures and manual CPI codec
 
 **Expectation:** MagicBlock permission/delegation instruction bytes and account metas are generated from deterministic Quasar-native codecs and match known SDK-derived fixtures.
