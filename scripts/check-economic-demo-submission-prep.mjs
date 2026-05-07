@@ -41,6 +41,10 @@ const requiredPhrases = [
   "Pay.sh capped sessions and split payments are probe-only extension evidence",
   "Pay.sh capped sessions or split-payment settlement completed",
   "Pay.sh evidence proves Umbra private settlement or MagicBlock PER settlement",
+  "Umbra private x402 adapter contract",
+  "Umbra private x402 adapter contract evidence proves the dependency-injected receiver-claimable UTXO call path",
+  "Umbra SDK/devnet private settlement completed",
+  "Umbra evidence proves live private settlement",
 ];
 
 function relativeToRepo(path) {
@@ -111,10 +115,24 @@ if (invalidExtension) {
 if ((paySh.extensionProbes ?? []).length < 2) {
   fail("Pay.sh run report is missing session/split extension probe blockers");
 }
+const umbra = runReport.umbraPrivateX402;
+if (!umbra) {
+  fail("run report is missing umbraPrivateX402", runReportPath);
+}
+if (umbra.rail !== "private-umbra" || umbra.proofStatus !== "mocked_adapter_contract") {
+  fail("Umbra run-report status is not adapter-contract proof", JSON.stringify({ rail: umbra.rail, proofStatus: umbra.proofStatus }));
+}
+if (umbra.liveSettlementClaimed !== false || umbra.devnetTransactionsSubmitted !== false) {
+  fail("Umbra run-report overclaims live/devnet settlement", JSON.stringify({ liveSettlementClaimed: umbra.liveSettlementClaimed, devnetTransactionsSubmitted: umbra.devnetTransactionsSubmitted }));
+}
+if (!umbra.claimBoundary?.includes("mocked/local proof only") && !umbra.claimBoundary?.includes("no live/devnet Umbra settlement")) {
+  fail("Umbra run-report claim boundary is missing mocked/no-live constraint", umbra.claimBoundary);
+}
 
 const forbiddenClaimPatterns = [
   /Pay\.sh[^\n]*(?:mainnet|Umbra private|MagicBlock PER)[^\n]*(?:settled|settlement completed|proven)/i,
   /Pay\.sh[^\n]*(?:session|split)[^\n]*(?:settled|settlement completed|completed settlement)/i,
+  /Umbra[^\n]*(?:live private settlement|devnet private settlement|settlement completed)[^\n]*(?:proves|proved|completed|executed)/i,
 ];
 const safeClaimsMarkdown = markdown.split("Not safe to say yet:")[0] ?? markdown;
 const forbiddenClaim = forbiddenClaimPatterns.find((pattern) => pattern.test(safeClaimsMarkdown));

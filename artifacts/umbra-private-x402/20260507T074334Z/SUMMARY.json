@@ -1,0 +1,71 @@
+{
+  "ok": true,
+  "generatedAt": "2026-05-07T07:49:21.936Z",
+  "artifactType": "reddi.umbra-private-x402.adapter-contract.v1",
+  "package": "reddi-x402",
+  "receipt": {
+    "schemaVersion": "reddi.umbra-private-x402.receipt.v1",
+    "x402Package": "reddi-x402",
+    "payerProfileId": "agentic-workflow-system",
+    "recipientProfileId": "code-generation-agent",
+    "recipientAddress": "RecipientWalletAddressHere",
+    "mint": "devnet-usdc-placeholder",
+    "amount": "10000",
+    "currency": "USDC",
+    "status": "mocked_adapter_contract",
+    "registrationSignatures": [
+      "mock-umbra-devnet-register:code-generation-agent"
+    ],
+    "createUtxoSignatures": [
+      "mock-umbra-devnet-create-utxo:agentic-workflow-system:code-generation-agent:10000"
+    ],
+    "scan": {
+      "receivedCount": 1,
+      "publicReceivedCount": 0,
+      "treeStart": 0,
+      "cursorStart": 0
+    },
+    "claimSignatures": [
+      "mock-umbra-devnet-claim-encrypted:code-generation-agent"
+    ],
+    "evidence": {
+      "sdkPackages": {
+        "sdk": "@umbra-privacy/sdk",
+        "webZkProver": "@umbra-privacy/web-zk-prover"
+      },
+      "docsPath": "ingests/umbra-docs-2026-05-07/two-deep-sdk/raw-md/llms_full_txt.md",
+      "generatedBy": "dependency-injected-mock"
+    },
+    "rail": "private-umbra",
+    "network": "devnet",
+    "operation": "public-balance-to-receiver-claimable-utxo",
+    "protocolProgramId": "DSuKkyqGVGgo4QtPABfxKJKygUDACbUhirnuv63mEpAJ",
+    "indexerApiEndpoint": "https://utxo-indexer.api-devnet.umbraprivacy.com",
+    "relayerApiEndpoint": "https://relayer.api-devnet.umbraprivacy.com",
+    "requiresRegistration": true,
+    "requiresZkProver": true,
+    "selectiveDisclosure": {
+      "receiptType": "reddi.umbra-private-x402.receipt.v1",
+      "reveals": [
+        "rail",
+        "network",
+        "mint",
+        "amount",
+        "recipientProfileId",
+        "operation",
+        "signatures"
+      ],
+      "hides": [
+        "payerPublicAta",
+        "recipientFinalWalletLink",
+        "encryptedBalance",
+        "utxoSecret"
+      ]
+    },
+    "claimBoundary": "Umbra private x402 adapter contract: mocked/local proof only until an approval-gated devnet SDK smoke submits registration, UTXO creation, scan, and claim transactions."
+  },
+  "claimBoundary": "Umbra private x402 adapter contract: mocked/local proof only until an approval-gated devnet SDK smoke submits registration, UTXO creation, scan, and claim transactions.",
+  "liveSettlementClaimed": false,
+  "devnetTransactionsSubmitted": false,
+  "nextGate": "approval-gated Umbra devnet SDK smoke: register, create receiver-claimable UTXO, scan, claim via relayer"
+}

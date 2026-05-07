@@ -36,6 +36,7 @@ const walletBackedJupiterSwapPath = latestArtifact("artifacts/economic-demo-devn
 const payShReddix402Path = join(rootDir, "artifacts", "pay-sh-reddi-x402", "20260507T064842Z", "SUMMARY.json");
 const payShSessionProbePath = join(rootDir, "artifacts", "pay-sh-reddi-x402", "20260507T065805Z-session-splits", "SUMMARY.json");
 const payShSplitProbePath = join(rootDir, "artifacts", "pay-sh-reddi-x402", "20260507T065908Z-splits", "SUMMARY.json");
+const umbraPrivateX402Path = latestArtifact("artifacts/umbra-private-x402", "SUMMARY.json");
 
 if (!surfpoolPath) throw new Error("missing_surfpool_rehearsal_summary");
 const surfpool = readJson(surfpoolPath);
@@ -47,6 +48,7 @@ const walletBackedJupiterSwap = walletBackedJupiterSwapPath ? readJson(walletBac
 const payShReddix402 = existsSync(payShReddix402Path) ? readJson(payShReddix402Path) : null;
 const payShSessionProbe = existsSync(payShSessionProbePath) ? readJson(payShSessionProbePath) : null;
 const payShSplitProbe = existsSync(payShSplitProbePath) ? readJson(payShSplitProbePath) : null;
+const umbraPrivateX402 = umbraPrivateX402Path ? readJson(umbraPrivateX402Path) : null;
 
 const downstreamPayments = surfpool.executedTransfers.filter((transfer) => transfer.category === "downstream_agent_payment");
 const attestationTransfers = downstreamPayments.filter((transfer) => /verification|attest|explain/i.test(transfer.toProfileId));
@@ -89,6 +91,7 @@ const report = {
     payShReddix402: payShReddix402 ? relative(rootDir, payShReddix402Path) : null,
     payShSessionProbe: payShSessionProbe ? relative(rootDir, payShSessionProbePath) : null,
     payShSplitProbe: payShSplitProbe ? relative(rootDir, payShSplitProbePath) : null,
+    umbraPrivateX402: umbraPrivateX402Path ? relative(rootDir, umbraPrivateX402Path) : null,
   },
   story: [
     "User starts with SOL when they do not have the required downstream USDC budget.",
@@ -164,6 +167,23 @@ const report = {
             : null,
         ].filter(Boolean),
         claimBoundary: payShReddix402.claimBoundary,
+      }
+    : null,
+  umbraPrivateX402: umbraPrivateX402
+    ? {
+        packageName: umbraPrivateX402.package,
+        rail: umbraPrivateX402.receipt?.rail ?? "private-umbra",
+        network: umbraPrivateX402.receipt?.network ?? "devnet",
+        operation: umbraPrivateX402.receipt?.operation ?? "public-balance-to-receiver-claimable-utxo",
+        proofStatus: umbraPrivateX402.receipt?.status ?? "mocked_adapter_contract",
+        evidenceArtifactPath: relative(rootDir, umbraPrivateX402Path),
+        protocolProgramId: umbraPrivateX402.receipt?.protocolProgramId ?? null,
+        indexerApiEndpoint: umbraPrivateX402.receipt?.indexerApiEndpoint ?? null,
+        relayerApiEndpoint: umbraPrivateX402.receipt?.relayerApiEndpoint ?? null,
+        selectiveDisclosure: umbraPrivateX402.receipt?.selectiveDisclosure ?? null,
+        claimBoundary: umbraPrivateX402.claimBoundary,
+        liveSettlementClaimed: umbraPrivateX402.liveSettlementClaimed,
+        devnetTransactionsSubmitted: umbraPrivateX402.devnetTransactionsSubmitted,
       }
     : null,
   paymentReceipts: surfpool.executedTransfers.map((transfer) => ({
@@ -247,6 +267,21 @@ writeFileSync(
       : null,
     report.payShReddix402Compatibility
       ? `- claim boundary: ${report.payShReddix402Compatibility.claimBoundary}`
+      : null,
+    "",
+    "## Umbra private x402 adapter",
+    "",
+    report.umbraPrivateX402
+      ? `- rail: ${report.umbraPrivateX402.rail} · operation ${report.umbraPrivateX402.operation} · status ${report.umbraPrivateX402.proofStatus}`
+      : "- Umbra private x402 evidence: not attached",
+    report.umbraPrivateX402
+      ? `- program: ${report.umbraPrivateX402.protocolProgramId}`
+      : null,
+    report.umbraPrivateX402
+      ? `- evidence: ${report.umbraPrivateX402.evidenceArtifactPath}`
+      : null,
+    report.umbraPrivateX402
+      ? `- claim boundary: ${report.umbraPrivateX402.claimBoundary}`
       : null,
     "",
     "## Payment receipts",

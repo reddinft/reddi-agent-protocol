@@ -33,10 +33,11 @@ This is the judge/operator map for what the current economic demo evidence prove
    - Proves: Pay.sh 0.16.0 emits richer MPP challenge metadata for session and split variants.
    - Does not prove: successful paid retry or settlement; both probes returned `Server returned 402 again after payment`.
 
-6. **Umbra private x402 settlement plan**
+6. **Umbra private x402 adapter-contract proof**
    - Artifact: `docs/UMBRA-PRIVACY-PAYMENTS-BOUNTY-FIT-2026-05-07.md`
-   - Proves: architecture and bounty-fit analysis for using Umbra as a private settlement adapter lane alongside Quasar public settlement and Pay.sh / `reddi-x402` sandbox compatibility.
-   - Does not prove: Umbra SDK import/type integration, devnet registration/deposit/claim, live private settlement, Quasar-native Umbra execution, or selective-disclosure receipt generation.
+   - Executable artifact: `artifacts/umbra-private-x402/20260507T074334Z/SUMMARY.md`
+   - Proves: SDK packages are installed/import-verified; the dependency-injected adapter contract runs the intended receiver-claimable UTXO lifecycle; the generated receipt carries rail/network/operation/signature metadata and selective-disclosure boundaries.
+   - Does not prove: Umbra devnet registration/deposit/claim transaction submission, live private settlement, Quasar-native Umbra execution, or real encrypted-balance mutation.
 
 7. **Live Jupiter quote-only proof**
    - Script: `npm run smoke:economic-demo:jupiter-quote`
@@ -82,7 +83,7 @@ Safe claims:
 - “Surfpool/mock-Jupiter evidence proves a successful no-real-funds swap-shaped invoke path.”
 - “Pay.sh / `reddi-x402` evidence proves sandbox HTTP 402-to-paid-receipt compatibility for a single-recipient charge.”
 - “Pay.sh capped sessions and split payments are extension probes only.”
-- “Umbra is the planned private x402 settlement adapter lane; current packet contains architecture/bounty-fit analysis only.”
+- “Umbra private x402 adapter-contract evidence proves the SDK-facing receiver-claimable UTXO call path and selective-disclosure receipt shape.”
 - “Public Jupiter quote evidence proves route availability, not an executed devnet swap.”
 - “Devnet USDC receipt verification is ready and fail-closed; a verified receipt requires a supplied devnet transaction signature.”
 
@@ -96,7 +97,7 @@ Do not claim yet:
 - “Pay.sh capped-session settlement completed.”
 - “Pay.sh split-payment settlement completed.”
 - “Pay.sh evidence proves Umbra private settlement or MagicBlock PER settlement.”
-- “Umbra SDK live/devnet integration is complete.”
+- “Umbra SDK devnet transaction flow is complete.”
 - “Umbra private settlement executed.”
 
 ## Current default boundary

@@ -68,6 +68,11 @@ const localEvidenceArtifacts = [
     path: "artifacts/pay-sh-reddi-x402/20260507T064842Z/SUMMARY.md",
     detail: "Proven sandbox HTTP 402 → Pay.sh payment → HTTP 200 receipt evidence for Reddi Agent Protocol's reddi-x402 package surface.",
   },
+  {
+    label: "Umbra private x402 adapter contract",
+    path: "artifacts/umbra-private-x402/20260507T074334Z/SUMMARY.md",
+    detail: "Executable adapter-contract evidence for receiver-claimable Umbra UTXO payments; no live/devnet private settlement claimed yet.",
+  },
 ] as const;
 
 function statusClass(status: EconomicDemoScenario["edges"][number]["status"]) {
@@ -858,6 +863,39 @@ export default function EconomicDemoPage() {
                       </div>
                     </div>
                     <p className="mt-3 text-xs leading-5 text-yellow-50/90">{paymentReadiness.payShCompatibility.claimBoundary}</p>
+                  </div>
+                  <div className="mt-4 rounded-lg border border-accent-purple/30 bg-accent-purple/10 p-3" data-testid="umbra-private-x402-readiness">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className="text-xs uppercase tracking-wide text-accent-purple">Umbra private x402 adapter</p>
+                        <p className="mt-1 text-sm leading-6 text-gray-200">
+                          Reddi Agent Protocol now has an executable private-payment adapter contract for {paymentReadiness.umbraPrivatePayment.packageName}: payer creates a receiver-claimable Umbra UTXO, the recipient scans claimable UTXOs, then claims into an encrypted balance via relayer.
+                        </p>
+                      </div>
+                      <span className="rounded-full border border-accent-purple/40 bg-accent-purple/10 px-2 py-0.5 text-xs text-accent-purple">
+                        {paymentReadiness.umbraPrivatePayment.status.replaceAll("_", " ")}
+                      </span>
+                    </div>
+                    <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                      <div className="rounded border border-white/10 bg-black/30 p-2">
+                        <p className="text-xs text-gray-500">operation</p>
+                        <p className="mt-1 font-mono text-xs text-white">{paymentReadiness.umbraPrivatePayment.operation}</p>
+                      </div>
+                      <div className="rounded border border-white/10 bg-black/30 p-2">
+                        <p className="text-xs text-gray-500">program</p>
+                        <p className="mt-1 break-all font-mono text-xs text-white">{paymentReadiness.umbraPrivatePayment.programId}</p>
+                      </div>
+                      <div className="rounded border border-white/10 bg-black/30 p-2">
+                        <p className="text-xs text-gray-500">evidence</p>
+                        <p className="mt-1 break-all font-mono text-xs text-gray-300">{paymentReadiness.umbraPrivatePayment.evidenceArtifactPath}</p>
+                      </div>
+                    </div>
+                    <div className="mt-3 rounded border border-white/10 bg-black/30 p-2 text-xs leading-5 text-gray-300">
+                      <p className="text-accent-purple">Selective disclosure receipt: {paymentReadiness.umbraPrivatePayment.selectiveDisclosure.receiptType}</p>
+                      <p className="mt-1">Reveals: {paymentReadiness.umbraPrivatePayment.selectiveDisclosure.reveals.join(", ")}</p>
+                      <p className="mt-1 text-yellow-100">Hides: {paymentReadiness.umbraPrivatePayment.selectiveDisclosure.hides.join(", ")}</p>
+                    </div>
+                    <p className="mt-3 text-xs leading-5 text-yellow-50/90">{paymentReadiness.umbraPrivatePayment.claimBoundary}</p>
                   </div>
                 </div>
               )}

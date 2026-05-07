@@ -9,9 +9,10 @@ Use clean `main` at `4cbed5f6` or later.
 - Proof map: `docs/COLOSSEUM-FINAL-QUASAR-PROOF-MAP-2026-05-06.md`
 - Proof hierarchy: `docs/ECONOMIC-DEMO-PROOF-HIERARCHY-2026-05-07.md`
 - Latest submission prep: `artifacts/economic-demo-submission-prep/latest/SUBMISSION-PREP.md`
-- Latest run report: `artifacts/economic-demo-run-report/20260507T073104Z/RUN-REPORT.md`
+- Latest run report: `artifacts/economic-demo-run-report/20260507T074452Z/RUN-REPORT.md`
 - Latest Pay.sh / `reddi-x402` compatibility evidence: `artifacts/pay-sh-reddi-x402/20260507T064842Z/SUMMARY.md`
 - Umbra private-payment plan: `docs/UMBRA-PRIVACY-PAYMENTS-BOUNTY-FIT-2026-05-07.md`
+- Umbra private x402 adapter evidence: `artifacts/umbra-private-x402/20260507T074334Z/SUMMARY.md`
 - Recording/submission handoff: `docs/RECORDING-SUBMISSION-HANDOFF-2026-05-07.md`
 
 ## Latest local gates
@@ -32,7 +33,8 @@ Safe claim:
 - Public Jupiter devnet is quote/build/sign boundary evidence only.
 - Signed devnet budget-lane tx is not a Jupiter swap receipt.
 - Pay.sh / `reddi-x402` proves sandbox HTTP 402 → payment → HTTP 200 receipt compatibility for the single-recipient charge flow.
-- Umbra is the planned private-settlement adapter lane for future private x402 payments; it is not live proof in this recording packet.
+- Umbra is the planned private-settlement adapter lane.
+- Umbra private x402 adapter contract is implemented for receiver-claimable UTXO payments; it is not live settlement proof in this recording packet.
 
 Do not claim:
 - successful public Jupiter devnet swap
@@ -42,7 +44,7 @@ Do not claim:
 - Pay.sh capped-session or split-payment settlement completed
 - Pay.sh evidence proving Umbra private settlement or MagicBlock PER settlement
 - Umbra private settlement executed
-- Umbra SDK live/devnet integration completed
+- Umbra SDK devnet transaction flow completed
 
 ## Quasar program IDs
 
