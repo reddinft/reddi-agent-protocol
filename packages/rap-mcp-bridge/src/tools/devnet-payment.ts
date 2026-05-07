@@ -16,7 +16,7 @@ import type { ReddiQuote } from "../schemas.js";
 import type { BridgeStore, DevnetReceipt } from "../store.js";
 
 const DEFAULT_DEVNET_RPC_URL = clusterApiUrl("devnet");
-const DEFAULT_MAX_TOTAL_DEBIT_LAMPORTS = 100_050;
+const DEFAULT_MAX_TOTAL_DEBIT_LAMPORTS = 3_300_000;
 const APPROVAL_PHRASE = "EXECUTE_DEVNET_RAP_PAYMENT";
 
 function keypairFor(profileId: string): Keypair {
@@ -59,8 +59,11 @@ function assertDevnetConfigured(config: BridgeConfig) {
 }
 
 function assertDevnetQuote(quote: ReddiQuote) {
-  if (quote.terms.network !== "solana-devnet" && quote.terms.network !== "local-surfpool") {
+  if (quote.terms.network !== "solana-devnet") {
     throw new Error("quote_not_devnet_eligible");
+  }
+  if (quote.terms.currency !== "SOL") {
+    throw new Error("quote_currency_must_be_SOL_for_devnet_lamport_payment");
   }
   if (quote.binding !== false || quote.quoteAuthority !== "bridge_synthetic") {
     throw new Error("unsupported_quote_authority");
@@ -91,19 +94,28 @@ export async function prepareDevnetPayment(args: { quoteId: string; maxTotalDebi
   assertDevnetQuote(quote);
   const funder = loadKeypair(config.devnetFunderKeypairPath);
   if (!funder) throw new Error("devnet_funder_keypair_unavailable");
-  const connection = new Connection(config.devnetRpcUrl ?? DEFAULT_DEVNET_RPC_URL, "confirmed");
+  const connection = new Connection(config.devnetRpcUrl || DEFAULT_DEVNET_RPC_URL, "confirmed");
   const { payer, specialist, treasury } = quoteDevnetProfile(quote);
   const downstreamAmountLamports = decimalAmountToLamports(quote.terms.amount);
   const protocolFeeLamports = feeLamportsFor(downstreamAmountLamports);
   const totalDebitLamports = downstreamAmountLamports + protocolFeeLamports;
-  const cap = args.maxTotalDebitLamports ?? config.devnetMaxTotalDebitLamports ?? DEFAULT_MAX_TOTAL_DEBIT_LAMPORTS;
+  const cap = Math.min(args.maxTotalDebitLamports ?? config.devnetMaxTotalDebitLamports ?? DEFAULT_MAX_TOTAL_DEBIT_LAMPORTS, config.devnetMaxTotalDebitLamports ?? DEFAULT_MAX_TOTAL_DEBIT_LAMPORTS);
+  const rentSafetyLamports = 1_000_000;
+  const payerLamports = await connection.getBalance(payer.publicKey);
+  const specialistLamports = await connection.getBalance(specialist.publicKey);
+  const protocolTreasuryLamports = await connection.getBalance(treasury.publicKey);
+  const funderLamports = await connection.getBalance(funder.publicKey);
+  const payerTopUpLamports = Math.max(0, rentSafetyLamports + totalDebitLamports + 20_000 - payerLamports);
+  const specialistTopUpLamports = Math.max(0, rentSafetyLamports - specialistLamports);
+  const treasuryTopUpLamports = Math.max(0, rentSafetyLamports - protocolTreasuryLamports);
+  const totalFunderAndPaymentSpendLamports = totalDebitLamports + payerTopUpLamports + specialistTopUpLamports + treasuryTopUpLamports;
   return {
     schemaVersion: "reddi.rap-mcp-bridge.devnet-payment-readiness.v1",
     quoteId: quote.quoteId,
     boundary: "solana-devnet-only-no-mainnet-no-specialist-http-invocation",
-    rpcUrl: config.devnetRpcUrl ?? DEFAULT_DEVNET_RPC_URL,
+    rpcUrl: config.devnetRpcUrl || DEFAULT_DEVNET_RPC_URL,
     capLamports: cap,
-    spendCapRespected: totalDebitLamports <= cap,
+    spendCapRespected: totalFunderAndPaymentSpendLamports <= cap,
     funderWallet: funder.publicKey.toBase58(),
     wallets: {
       payer: payer.publicKey.toBase58(),
@@ -111,12 +123,12 @@ export async function prepareDevnetPayment(args: { quoteId: string; maxTotalDebi
       protocolTreasury: treasury.publicKey.toBase58(),
     },
     balances: {
-      payerLamports: await connection.getBalance(payer.publicKey),
-      specialistLamports: await connection.getBalance(specialist.publicKey),
-      protocolTreasuryLamports: await connection.getBalance(treasury.publicKey),
-      funderLamports: await connection.getBalance(funder.publicKey),
+      payerLamports,
+      specialistLamports,
+      protocolTreasuryLamports,
+      funderLamports,
     },
-    amounts: { downstreamAmountLamports, protocolFeeBps: 5, protocolFeeLamports, totalDebitLamports },
+    amounts: { downstreamAmountLamports, protocolFeeBps: 5, protocolFeeLamports, totalDebitLamports, payerTopUpLamports, specialistTopUpLamports, treasuryTopUpLamports, totalFunderAndPaymentSpendLamports },
     executeRequiresApprovalPhrase: APPROVAL_PHRASE,
   };
 }
@@ -135,16 +147,24 @@ export async function executeDevnetPayment(args: { quoteId: string; idempotencyK
   }
   const funder = loadKeypair(config.devnetFunderKeypairPath);
   if (!funder) throw new Error("devnet_funder_keypair_unavailable");
-  const connection = new Connection(config.devnetRpcUrl ?? DEFAULT_DEVNET_RPC_URL, "confirmed");
+  const connection = new Connection(config.devnetRpcUrl || DEFAULT_DEVNET_RPC_URL, "confirmed");
   const { payer, specialist, treasury } = quoteDevnetProfile(quote);
   const downstreamAmountLamports = decimalAmountToLamports(quote.terms.amount);
   const protocolFeeLamports = feeLamportsFor(downstreamAmountLamports);
   const totalDebitLamports = downstreamAmountLamports + protocolFeeLamports;
   const cap = Math.min(args.maxTotalDebitLamports, config.devnetMaxTotalDebitLamports ?? DEFAULT_MAX_TOTAL_DEBIT_LAMPORTS);
-  if (totalDebitLamports > cap) throw new Error(`devnet_spend_cap_exceeded:${totalDebitLamports}>${cap}`);
+
+  if (store.listDevnetReceipts(quote.quoteId).length > 0) throw new Error("quote_already_paid");
 
   const rentSafetyLamports = 1_000_000;
-  const payerFunding = await ensureBalance(connection, funder, payer.publicKey, rentSafetyLamports + totalDebitLamports + 20_000, "payer_top_up");
+  const payerMinimumLamports = rentSafetyLamports + totalDebitLamports + 20_000;
+  const payerTopUpLamports = Math.max(0, payerMinimumLamports - await connection.getBalance(payer.publicKey));
+  const specialistTopUpLamports = Math.max(0, rentSafetyLamports - await connection.getBalance(specialist.publicKey));
+  const treasuryTopUpLamports = Math.max(0, rentSafetyLamports - await connection.getBalance(treasury.publicKey));
+  const totalFunderAndPaymentSpendLamports = totalDebitLamports + payerTopUpLamports + specialistTopUpLamports + treasuryTopUpLamports;
+  if (totalFunderAndPaymentSpendLamports > cap) throw new Error(`devnet_spend_cap_exceeded:${totalFunderAndPaymentSpendLamports}>${cap}`);
+
+  const payerFunding = await ensureBalance(connection, funder, payer.publicKey, payerMinimumLamports, "payer_top_up");
   const specialistSetup = await ensureBalance(connection, funder, specialist.publicKey, rentSafetyLamports, "specialist_rent_safety");
   const treasurySetup = await ensureBalance(connection, funder, treasury.publicKey, rentSafetyLamports, "treasury_rent_safety");
   const before = {
@@ -161,12 +181,13 @@ export async function executeDevnetPayment(args: { quoteId: string; idempotencyK
   };
   const receipt: DevnetReceipt = {
     schemaVersion: "reddi.rap-mcp-bridge.devnet-payment-receipt.v1",
+    receiptId: `devnet_receipt_${createHash("sha256").update(`${quote.quoteId}:${args.idempotencyKey}`).digest("hex").slice(0, 24)}`,
     quoteId: quote.quoteId,
     createdAt: new Date().toISOString(),
     boundary: "solana-devnet-only-no-mainnet-no-specialist-http-invocation",
     quoteTermsHash: quote.termsHash,
     spendCapLamports: cap,
-    amounts: { downstreamAmountLamports, protocolFeeBps: 5, protocolFeeLamports, totalDebitLamports },
+    amounts: { downstreamAmountLamports, protocolFeeBps: 5, protocolFeeLamports, totalDebitLamports, payerTopUpLamports, specialistTopUpLamports, treasuryTopUpLamports, totalFunderAndPaymentSpendLamports },
     funding: { payerFunding, specialistSetup, treasurySetup },
     wallets: {
       payer: payer.publicKey.toBase58(),

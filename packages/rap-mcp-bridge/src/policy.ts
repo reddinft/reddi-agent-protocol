@@ -7,7 +7,8 @@ export type BridgePolicyState = {
   toolNames: readonly string[];
 };
 
-export function currentPolicy(mode: "dry_run" | "devnet" = "dry_run"): BridgePolicyState {
+export function currentPolicy(mode: "dry_run" | "devnet" = "dry_run", gatesReady = mode === "dry_run"): BridgePolicyState {
+  const effectiveMode = mode === "devnet" && gatesReady ? "devnet" : "dry_run";
   const dryRunTools = [
     "reddi.discover_specialists",
     "reddi.request_quote",
@@ -15,12 +16,12 @@ export function currentPolicy(mode: "dry_run" | "devnet" = "dry_run"): BridgePol
     "reddi.export_disclosure_ledger",
   ] as const;
   return {
-    mode,
-    allowPayment: mode === "devnet",
+    mode: effectiveMode,
+    allowPayment: effectiveMode === "devnet",
     allowInvoke: false,
     allowPrivatePayloads: false,
     allowMainnet: false,
-    toolNames: mode === "devnet" ? [
+    toolNames: effectiveMode === "devnet" ? [
       ...dryRunTools,
       "reddi.prepare_devnet_payment",
       "reddi.execute_devnet_payment",
