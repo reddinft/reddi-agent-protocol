@@ -5,9 +5,27 @@ import type { ReddiQuote } from "./schemas.js";
 type StoreData = {
   quotes: ReddiQuote[];
   idempotency: Record<string, { quoteId: string; requestHash: string }>;
+  devnetReceipts: DevnetReceipt[];
+  devnetIdempotency: Record<string, { quoteId: string; requestHash: string }>;
 };
 
-const EMPTY: StoreData = { quotes: [], idempotency: {} };
+export type DevnetReceipt = {
+  schemaVersion: "reddi.rap-mcp-bridge.devnet-payment-receipt.v1";
+  quoteId: string;
+  createdAt: string;
+  boundary: "solana-devnet-only-no-mainnet-no-specialist-http-invocation";
+  quoteTermsHash: string;
+  spendCapLamports: number;
+  amounts: { downstreamAmountLamports: number; protocolFeeBps: 5; protocolFeeLamports: number; totalDebitLamports: number };
+  funding: Record<string, unknown>;
+  wallets: { payer: string; specialist: string; protocolTreasury: string; funder: string };
+  balances: Record<string, unknown>;
+  transactions: { downstreamSignature: string; feeSignature: string };
+  verification: { devnetPaymentSemantics: "pass" | "fail"; mainnetSettlement: "not_applicable" };
+  disclosureLedgerEntry: Record<string, unknown>;
+};
+
+const EMPTY: StoreData = { quotes: [], idempotency: {}, devnetReceipts: [], devnetIdempotency: {} };
 
 export class BridgeStore {
   constructor(private readonly dir: string) {}
@@ -16,9 +34,10 @@ export class BridgeStore {
 
   read(): StoreData {
     try {
-      return JSON.parse(readFileSync(this.path(), "utf8")) as StoreData;
+      const data = JSON.parse(readFileSync(this.path(), "utf8")) as Partial<StoreData>;
+      return { quotes: data.quotes ?? [], idempotency: data.idempotency ?? {}, devnetReceipts: data.devnetReceipts ?? [], devnetIdempotency: data.devnetIdempotency ?? {} };
     } catch {
-      return { ...EMPTY, quotes: [], idempotency: {} };
+      return { ...EMPTY, quotes: [], idempotency: {}, devnetReceipts: [], devnetIdempotency: {} };
     }
   }
 
@@ -54,5 +73,25 @@ export class BridgeStore {
     if (ids.length === 0) return data.quotes.slice(-10);
     const wanted = new Set(ids);
     return data.quotes.filter((quote) => wanted.has(quote.quoteId));
+  }
+
+  getDevnetReceiptByIdempotency(idempotencyKey: string): { requestHash: string; receipt: DevnetReceipt } | undefined {
+    const data = this.read();
+    const prior = data.devnetIdempotency[idempotencyKey];
+    if (!prior) return undefined;
+    const receipt = data.devnetReceipts.find((candidate) => candidate.quoteId === prior.quoteId);
+    return receipt ? { requestHash: prior.requestHash, receipt } : undefined;
+  }
+
+  upsertDevnetReceipt(idempotencyKey: string, requestHash: string, receipt: DevnetReceipt): DevnetReceipt {
+    const data = this.read();
+    data.devnetReceipts.push(receipt);
+    data.devnetIdempotency[idempotencyKey] = { quoteId: receipt.quoteId, requestHash };
+    this.write(data);
+    return receipt;
+  }
+
+  listDevnetReceipts(quoteId: string): DevnetReceipt[] {
+    return this.read().devnetReceipts.filter((receipt) => receipt.quoteId === quoteId);
   }
 }
