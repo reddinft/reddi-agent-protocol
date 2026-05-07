@@ -43,7 +43,7 @@ const requiredByFile = {
     "Umbra is now a strong private-payments adapter-contract lane",
     "Umbra devnet encrypted-balance deposit evidence",
     "sessions/splits are probe-only",
-    "not a successful PER settlement proof",
+    "not a successful private payee settlement proof",
   ],
   "docs/COLOSSEUM-FINAL-QUASAR-PROOF-MAP-2026-05-06.md": [
     "Live Quasar-native permission/delegation + TEE private authorization proof, not successful private payee settlement claim",
@@ -52,8 +52,8 @@ const requiredByFile = {
   ],
   "docs/verifiable-agent-protocol/colosseum-frontier-2026-04/NARRATIVE.md": [
     "Quasar-native MagicBlock permission/delegation succeeds live",
-    "private settlement is not claimed",
-    "We do not claim end-to-end private settlement",
+    "private payee lamport settlement is not claimed",
+    "We do not claim end-to-end private payee lamport settlement",
   ],
   "artifacts/economic-demo-submission-prep/latest/SUBMISSION-PREP.md": [
     "Pay.sh / reddi-x402 proves sandbox HTTP 402 → payment → HTTP 200 receipt compatibility",
@@ -63,6 +63,13 @@ const requiredByFile = {
     "Umbra devnet encrypted-balance deposit completed",
   ],
 };
+
+const forbiddenStaleMagicBlockPatterns = [
+  /delegated Quasar (?:program )?(?:execution|image)[^\n]*(?:fails|failed|currently fails)/i,
+  /MagicBlock TEE[^\n]*(?:fails|failed) at instruction start/i,
+  /settlement is blocked at TEE execution/i,
+  /Quasar-on-MagicBlock-TEE execution is blocked/i,
+];
 
 const forbiddenSafeClaimPatterns = [
   /successful public Jupiter devnet swap(?![\s\S]{0,120}(?:not|No|without))/i,
@@ -85,6 +92,9 @@ for (const file of files) {
   const safeSection = text.split(/(?:Do not claim|Not safe to say yet|What is explicitly not claimed|Hard no-go list unless Nissan explicitly approves)/i)[0] ?? text;
   for (const pattern of forbiddenSafeClaimPatterns) {
     if (pattern.test(safeSection)) failures.push(`${file}: forbidden overclaim in safe/proven section: ${pattern}`);
+  }
+  for (const pattern of forbiddenStaleMagicBlockPatterns) {
+    if (pattern.test(text)) failures.push(`${file}: stale MagicBlock TEE execution boundary phrase: ${pattern}`);
   }
   for (const [index, line] of safeSection.split(/\r?\n/).entries()) {
     if (/MagicBlock/i.test(line) && /(?:successful PER settlement|settled PER|PER settlement proof)/i.test(line) && !/(?:not|No|without|blocked|weak)/i.test(line)) {
