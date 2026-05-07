@@ -27,6 +27,7 @@ const OUT_DIR = process.env.OUT_DIR || path.join("artifacts", "quasar-per-magicb
 const DEVNET_TEE_VALIDATOR = new PublicKey(process.env.MAGICBLOCK_TEE_VALIDATOR || "MTEWGuqxUpYZGFJQcp8tLN7x5v9BSeoFHYWQQ3n3xzo");
 
 const QPERLOCK = Buffer.from([81, 80, 69, 82, 76, 79, 67, 75]);
+const QPERTAKE = Buffer.from([81, 80, 69, 82, 84, 65, 75, 69]);
 const QPERDELG = Buffer.from([81, 80, 69, 82, 68, 69, 76, 71]);
 const QPERCMIT = Buffer.from([81, 80, 69, 82, 67, 77, 73, 84]);
 
@@ -147,6 +148,18 @@ const addresses = {
 writeJson("00-addresses.json", addresses);
 
 const before = await connection.getBalance(payer.publicKey, "confirmed");
+const fundPayeeResult = await sendCaptured(
+  connection,
+  new Transaction().add(
+    SystemProgram.transfer({
+      fromPubkey: payer.publicKey,
+      toPubkey: payee,
+      lamports: 1_000_000,
+    }),
+  ),
+  [payer],
+  "01-fund-payee",
+);
 
 const lockIx = {
   programId: PROGRAM_ID,
@@ -159,9 +172,9 @@ const lockIx = {
   ],
   data: Buffer.concat([QPERLOCK, u64le(AMOUNT_LAMPORTS), escrowIdBytes]),
 };
-const lockResult = await sendCaptured(connection, new Transaction().add(lockIx), [payer], "01-lock");
-if (!lockResult.ok) {
-  const summary = { ok: false, stage: "lock", addresses, payerBalanceBefore: before, lockResult };
+const lockResult = await sendCaptured(connection, new Transaction().add(lockIx), [payer], "02-lock");
+if (!lockResult.ok || !fundPayeeResult.ok) {
+  const summary = { ok: false, stage: "setup", addresses, payerBalanceBefore: before, fundPayeeResult, lockResult };
   writeJson("summary.json", summary);
   console.log(JSON.stringify(summary, null, 2));
   process.exit(1);
@@ -187,7 +200,7 @@ const delegateIx = {
   ],
   data: Buffer.concat([QPERDELG, escrowIdBytes]),
 };
-const delegateResult = await sendCaptured(connection, new Transaction().add(delegateIx), [payer], "02-delegate-per");
+const delegateResult = await sendCaptured(connection, new Transaction().add(delegateIx), [payer], "03-delegate-per");
 const postDelegateAccounts = {
   escrow: accountSummary(await connection.getAccountInfo(escrow, "confirmed")),
   permission: accountSummary(await connection.getAccountInfo(permission, "confirmed")),
@@ -200,8 +213,20 @@ const postDelegateAccounts = {
 };
 writeJson("03-post-delegate-accounts.json", postDelegateAccounts);
 
+let releaseResult = { ok: false, skipped: true, reason: "delegate_per did not succeed" };
 let commitResult = { ok: false, skipped: true, reason: "delegate_per did not succeed" };
 if (delegateResult.ok) {
+  const releaseIx = {
+    programId: PROGRAM_ID,
+    keys: [
+      { pubkey: payer.publicKey, isSigner: true, isWritable: true },
+      { pubkey: payee, isSigner: false, isWritable: false },
+      { pubkey: escrow, isSigner: false, isWritable: true },
+    ],
+    data: Buffer.concat([QPERTAKE, escrowIdBytes]),
+  };
+  releaseResult = await sendCaptured(teeConnection, new Transaction().add(releaseIx), [payer], "04-release-private");
+
   const commitIx = {
     programId: PROGRAM_ID,
     keys: [
@@ -214,20 +239,29 @@ if (delegateResult.ok) {
     ],
     data: Buffer.concat([QPERCMIT, escrowIdBytes]),
   };
-  commitResult = await sendCaptured(teeConnection, new Transaction().add(commitIx), [payer], "04-commit-undelegate-per");
+  commitResult = await sendCaptured(teeConnection, new Transaction().add(commitIx), [payer], "05-commit-undelegate-per");
 }
 
 const after = await connection.getBalance(payer.publicKey, "confirmed");
+const postCommitAccounts = {
+  escrow: accountSummary(await connection.getAccountInfo(escrow, "confirmed")),
+  payee: accountSummary(await connection.getAccountInfo(payee, "confirmed")),
+  permission: accountSummary(await connection.getAccountInfo(permission, "confirmed")),
+};
+writeJson("06-post-commit-accounts.json", postCommitAccounts);
 const summary = {
-  ok: Boolean(lockResult.ok && delegateResult.ok && commitResult.ok),
+  ok: Boolean(lockResult.ok && delegateResult.ok && releaseResult.ok && commitResult.ok),
   addresses,
   payerBalanceBefore: before,
   payerBalanceAfter: after,
   amountLamports: AMOUNT_LAMPORTS.toString(),
+  fundPayeeResult,
   lockResult,
   delegateResult,
+  releaseResult,
   commitResult,
   postDelegateAccounts,
+  postCommitAccounts,
 };
 writeJson("summary.json", summary);
 console.log(JSON.stringify(summary, null, 2));

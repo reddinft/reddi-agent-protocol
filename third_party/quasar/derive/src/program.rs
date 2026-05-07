@@ -361,6 +361,37 @@ pub(crate) fn program(_attr: TokenStream, item: TokenStream) -> TokenStream {
             });
         }
 
+
+        items.push(syn::parse_quote! {
+            #[inline(always)]
+            #[cfg(any(target_os = "solana", target_arch = "bpf"))]
+            #[allow(unexpected_cfgs)]
+            unsafe fn __instruction_data_from_input(ptr: *mut u8) -> &'static [u8] {
+                const __U64_SIZE: usize = core::mem::size_of::<u64>();
+                const __ACCOUNT_HEADER: usize =
+                    core::mem::size_of::<quasar_lang::__internal::RuntimeAccount>()
+                    + quasar_lang::__internal::MAX_PERMITTED_DATA_INCREASE
+                    + __U64_SIZE;
+                let __num_accounts = unsafe { *(ptr as *const u64) } as usize;
+                let mut __cursor = unsafe { ptr.add(__U64_SIZE) };
+                let mut __i = 0usize;
+                while __i < __num_accounts {
+                    let __header = unsafe { *(__cursor as *const u32) };
+                    if (__header & 0xFF) == quasar_lang::__internal::NOT_BORROWED as u32 {
+                        let __raw = __cursor as *const quasar_lang::__internal::RuntimeAccount;
+                        __cursor = unsafe { __cursor.add(__ACCOUNT_HEADER.wrapping_add((*__raw).data_len as usize)) };
+                        __cursor = unsafe { __cursor.add((__cursor as usize).wrapping_neg() & 7) };
+                    } else {
+                        __cursor = unsafe { __cursor.add(__U64_SIZE) };
+                    }
+                    __i += 1;
+                }
+                let __instruction_len = unsafe { *(__cursor as *const u64) } as usize;
+                let __instruction_ptr = unsafe { __cursor.add(__U64_SIZE) };
+                unsafe { core::slice::from_raw_parts(__instruction_ptr, __instruction_len) }
+            }
+        });
+
         if any_heap {
             // When per-endpoint heap is used, cursor init is in the dispatch
             // arms — the entrypoint does NOT init the cursor.
@@ -368,16 +399,8 @@ pub(crate) fn program(_attr: TokenStream, item: TokenStream) -> TokenStream {
                 #[unsafe(no_mangle)]
                 #[cfg(any(target_os = "solana", target_arch = "bpf"))]
                 #[allow(unexpected_cfgs)]
-                pub unsafe extern "C" fn entrypoint(ptr: *mut u8, instruction_data: *const u8) -> u64 {
-                    // SAFETY: SVM places instruction data length as u64 at offset -8 from the data
-                    // pointer. The read is technically misaligned in the abstract machine, but the SVM
-                    // buffer is 8-byte aligned and SBF handles unaligned access natively.
-                    let instruction_data = unsafe {
-                        core::slice::from_raw_parts(
-                            instruction_data,
-                            *(instruction_data.sub(8) as *const u64) as usize,
-                        )
-                    };
+                pub unsafe extern "C" fn entrypoint(ptr: *mut u8) -> u64 {
+                    let instruction_data = unsafe { __instruction_data_from_input(ptr) };
                     match __dispatch(ptr, instruction_data) {
                         Ok(_) => 0,
                         Err(e) => e.into(),
@@ -390,7 +413,7 @@ pub(crate) fn program(_attr: TokenStream, item: TokenStream) -> TokenStream {
                 #[unsafe(no_mangle)]
                 #[cfg(any(target_os = "solana", target_arch = "bpf"))]
                 #[allow(unexpected_cfgs)]
-                pub unsafe extern "C" fn entrypoint(ptr: *mut u8, instruction_data: *const u8) -> u64 {
+                pub unsafe extern "C" fn entrypoint(ptr: *mut u8) -> u64 {
                     // SAFETY: Initialize bump allocator cursor. The SVM maps and zero-inits the heap
                     // region before execution. This write sets the cursor past the 8-byte cursor slot
                     // itself, eliminating the per-allocation zero-check branch in BumpAllocator::alloc.
@@ -402,15 +425,7 @@ pub(crate) fn program(_attr: TokenStream, item: TokenStream) -> TokenStream {
                         *(heap_start as *mut usize) = heap_start + core::mem::size_of::<usize>();
                     }
 
-                    // SAFETY: SVM places instruction data length as u64 at offset -8 from the data
-                    // pointer. The read is technically misaligned in the abstract machine, but the SVM
-                    // buffer is 8-byte aligned and SBF handles unaligned access natively.
-                    let instruction_data = unsafe {
-                        core::slice::from_raw_parts(
-                            instruction_data,
-                            *(instruction_data.sub(8) as *const u64) as usize,
-                        )
-                    };
+                    let instruction_data = unsafe { __instruction_data_from_input(ptr) };
                     match __dispatch(ptr, instruction_data) {
                         Ok(_) => 0,
                         Err(e) => e.into(),
