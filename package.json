@@ -62,7 +62,8 @@
     "check:pay-sh:provider-spec": "node ./scripts/check-pay-sh-provider-spec.mjs",
     "evidence:pay-sh:reddi-x402": "node ./scripts/generate-pay-sh-reddi-x402-evidence.mjs",
     "check:pay-skills:registry": "node ./scripts/check-pay-skills-registry.mjs",
-    "check:submission:claim-boundaries": "node ./scripts/check-submission-claim-boundaries.mjs"
+    "check:submission:claim-boundaries": "node ./scripts/check-submission-claim-boundaries.mjs",
+    "check:final-recording": "node ./scripts/check-final-recording-submission.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",

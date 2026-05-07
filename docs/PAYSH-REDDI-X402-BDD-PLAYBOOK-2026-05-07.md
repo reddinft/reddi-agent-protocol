@@ -611,3 +611,48 @@ Start:
 ### Plan refinement
 
 From an evidence-boundary perspective, the packet is ready for recording/submission handoff. Stronger proof now requires new approved external action: mainnet/Jupiter execution, Pay.sh maintainer clarification for session/split settlement, or deeper MagicBlock TEE compatibility work.
+
+## Phase 11 — Single-command final recording gate
+
+### BDD scenario
+
+Given the combined final gate set is now known-good, when an operator wants to record or submit, then one command should run the safe pre-recording checks and confirm the latest submission prep points at a timestamped run report with Pay.sh / `reddi-x402` compatibility.
+
+### Implementation
+
+- Added `scripts/check-final-recording-submission.mjs`.
+- Added npm script `check:final-recording`.
+- The command runs:
+  - product naming guard
+  - final claim-boundary guard
+  - submission-prep guard
+  - Pay.sh / `reddi-x402` evidence generator
+  - BDD index guard
+  - payment-readiness Jest test
+  - Quasar submission guard
+- It also verifies `artifacts/economic-demo-submission-prep/latest/SUBMISSION-PREP.md` references a timestamped run report JSON and that the report includes `payShReddix402Compatibility`.
+
+### Validation
+
+- `node --check scripts/check-final-recording-submission.mjs` — PASS.
+- `npm run check:final-recording` — PASS.
+- Confirmed latest prep references `artifacts/economic-demo-run-report/20260507T073104Z/run-report.json` with proof status `sandbox_http_402_to_pay_sh_200_receipt`.
+
+### Retrospective
+
+Keep:
+
+- A single pre-recording command reduces operator error.
+- The final command should not generate fresh artifacts; generation order remains explicit so evidence timestamps do not drift unexpectedly.
+
+Stop:
+
+- Repeating long manual command chains in chat as the only source of truth.
+
+Start:
+
+- Use `npm run check:final-recording` before any recording/submission pass.
+
+### Plan refinement
+
+The final packet now has a stable pre-recording gate. Further autonomous work should shift from evidence-boundary hardening to either rehearsal/capture prep or an explicitly approved stronger-proof lane.

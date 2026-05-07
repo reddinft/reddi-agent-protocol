@@ -36,6 +36,8 @@ Use `main` at `4cbed5f6` or later before this handoff patch, and the next commit
 
 ## Final gate set just run
 
+- `npm run check:final-recording` — PASS.
+
 - `npm run check:product:naming` — PASS, 15 files.
 - `npm run check:submission:claim-boundaries` — PASS, 5 packet surfaces.
 - `npm run check:economic-demo:submission-prep` — PASS, 12 evidence paths.
