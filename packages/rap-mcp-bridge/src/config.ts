@@ -6,7 +6,7 @@ export type BridgeConfig = {
   storeDir: string;
   devnetProofApproved: boolean;
   devnetFunderKeypairPath?: string;
-  devnetRpcUrl?: string;
+  devnetRpcUrl: string;
   devnetMaxTotalDebitLamports?: number;
 };
 
@@ -37,6 +37,37 @@ export function assertLocalRapBaseUrl(rawUrl: string): string {
   return parsed.toString().replace(/\/$/, "");
 }
 
+
+export function assertDevnetRpcUrl(rawUrl: string): string {
+  let parsed: URL;
+  try {
+    parsed = new URL(rawUrl);
+  } catch {
+    throw new Error("invalid_devnet_rpc_url");
+  }
+  if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
+    throw new Error("unsupported_devnet_rpc_url_protocol");
+  }
+  if (parsed.hostname.includes("mainnet")) {
+    throw new Error("mainnet_rpc_url_forbidden");
+  }
+  if (parsed.hostname !== "api.devnet.solana.com" && parsed.hostname !== "localhost" && parsed.hostname !== "127.0.0.1" && parsed.hostname !== "::1") {
+    throw new Error(`unsupported_devnet_rpc_url_host:${parsed.hostname}`);
+  }
+  parsed.hash = "";
+  parsed.search = "";
+  return parsed.toString().replace(/\/$/, "");
+}
+
+function parsePositiveSafeInteger(value: string | undefined, fallback: number): number {
+  if (!value) return fallback;
+  const parsed = Number(value);
+  if (!Number.isSafeInteger(parsed) || parsed <= 0) {
+    throw new Error("invalid_positive_integer_env");
+  }
+  return parsed;
+}
+
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): BridgeConfig {
   const policyMode = env.REDDI_RAP_MCP_MODE ?? env.REDDI_MCP_POLICY_MODE ?? "dry_run";
   if (policyMode !== "dry_run" && policyMode !== "devnet") {
@@ -53,7 +84,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): BridgeConfig {
     storeDir: env.REDDI_MCP_STORE_DIR ?? `${home}/.reddi/rap-mcp-bridge`,
     devnetProofApproved: env.RAP_MCP_DEVNET_PROOF_APPROVED === "1",
     devnetFunderKeypairPath: sanitizeSmallText(env.RAP_MCP_DEVNET_FUNDER_KEYPAIR, 512),
-    devnetRpcUrl: env.RAP_MCP_DEVNET_RPC_URL,
-    devnetMaxTotalDebitLamports: env.RAP_MCP_DEVNET_MAX_TOTAL_DEBIT_LAMPORTS ? Number(env.RAP_MCP_DEVNET_MAX_TOTAL_DEBIT_LAMPORTS) : undefined,
+    devnetRpcUrl: assertDevnetRpcUrl(env.RAP_MCP_DEVNET_RPC_URL ?? "https://api.devnet.solana.com"),
+    devnetMaxTotalDebitLamports: parsePositiveSafeInteger(env.RAP_MCP_DEVNET_MAX_TOTAL_DEBIT_LAMPORTS, 3_200_000),
   };
 }

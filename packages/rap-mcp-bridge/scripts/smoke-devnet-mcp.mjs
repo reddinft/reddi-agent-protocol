@@ -21,7 +21,7 @@ const transport = new StdioClientTransport({
     ...process.env,
     REDDI_RAP_MCP_MODE: 'devnet',
     REDDI_MCP_STORE_DIR: storeDir,
-    RAP_MCP_DEVNET_MAX_TOTAL_DEBIT_LAMPORTS: process.env.RAP_MCP_DEVNET_MAX_TOTAL_DEBIT_LAMPORTS ?? '100050',
+    RAP_MCP_DEVNET_MAX_TOTAL_DEBIT_LAMPORTS: process.env.RAP_MCP_DEVNET_MAX_TOTAL_DEBIT_LAMPORTS ?? '3300000',
   },
   stderr: 'pipe',
 });
@@ -59,7 +59,7 @@ try {
 
   const prepareResult = await client.callTool({
     name: 'reddi.prepare_devnet_payment',
-    arguments: { quoteId: quote.quoteId, maxTotalDebitLamports: 100050 },
+    arguments: { quoteId: quote.quoteId, maxTotalDebitLamports: 3300000 },
   });
   const readiness = parseToolJson(prepareResult, 'prepare_devnet_payment');
   if (!readiness.spendCapRespected) throw new Error('readiness cap not respected');
@@ -69,7 +69,7 @@ try {
     arguments: {
       quoteId: quote.quoteId,
       idempotencyKey: `devnet-mcp-exec-${quote.quoteId}`,
-      maxTotalDebitLamports: 100050,
+      maxTotalDebitLamports: 3300000,
       approvalPhrase: 'EXECUTE_DEVNET_RAP_PAYMENT',
     },
   });
