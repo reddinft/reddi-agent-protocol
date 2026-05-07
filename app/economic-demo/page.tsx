@@ -63,6 +63,11 @@ const localEvidenceArtifacts = [
     path: "artifacts/economic-demo-surfpool-rehearsal/20260505T021309Z/SUMMARY.md",
     detail: "Local/offline SOL rehearsal evidence; no hosted/devnet mutation claim.",
   },
+  {
+    label: "Pay.sh / reddi-x402 sandbox charge",
+    path: "artifacts/pay-sh-reddi-x402/20260507T064842Z/SUMMARY.md",
+    detail: "Proven sandbox HTTP 402 → Pay.sh payment → HTTP 200 receipt evidence for Reddi Agent Protocol's reddi-x402 package surface.",
+  },
 ] as const;
 
 function statusClass(status: EconomicDemoScenario["edges"][number]["status"]) {
@@ -227,7 +232,7 @@ export default function EconomicDemoPage() {
               Watch one user request become a paid agent workflow
             </h1>
             <p className="max-w-3xl text-base leading-7 text-gray-400">
-              This fixture slice shows the demo we are wiring next: an end user asks for work, a consumer-capable specialist hires other specialists through Reddi/x402, attestors verify the result, and the ledger shows the before/after impact for every wallet.
+              This fixture slice shows the demo we are wiring next: an end user asks for work, a consumer-capable specialist hires other specialists through Reddi Agent Protocol / x402-compatible payment rails, attestors verify the result, and the ledger shows the before/after impact for every wallet.
             </p>
             <div className="flex flex-wrap gap-3">
               {economicDemoScenarios.map((candidate) => (
@@ -813,6 +818,47 @@ export default function EconomicDemoPage() {
                       ? "Controlled demo-paid completion reached HTTP 200 against the deployed code-generation specialist. The UI still will not auto-retry live payment; the next demo loop can promote this from one paid edge to a multi-edge workflow."
                       : "Paid completion is blocked because the deployed specialist rejects demo receipts. The UI will not auto-retry live payment; choose controlled demo receipts or real devnet receipt verification next."}
                   </p>
+                  <div className="mt-4 rounded-lg border border-white/10 bg-black/20 p-3" data-testid="pay-sh-reddi-x402-readiness">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className="text-xs uppercase tracking-wide text-[#14F195]">Pay.sh / reddi-x402 compatibility</p>
+                        <p className="mt-1 text-sm leading-6 text-gray-200">
+                          Proven sandbox charge flow for Reddi Agent Protocol: plain curl returns {paymentReadiness.payShCompatibility.plainCurlStatus}, then Pay.sh sandbox retry returns {paymentReadiness.payShCompatibility.paidRetryStatus} with a {paymentReadiness.payShCompatibility.receiptMethod} receipt marked {paymentReadiness.payShCompatibility.receiptStatus}.
+                        </p>
+                      </div>
+                      <span className="rounded-full border border-[#14F195]/40 bg-[#14F195]/10 px-2 py-0.5 text-xs text-[#14F195]">
+                        {paymentReadiness.payShCompatibility.sandboxStatus.replaceAll("_", " ")}
+                      </span>
+                    </div>
+                    <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                      <div className="rounded border border-white/10 bg-black/30 p-2">
+                        <p className="text-xs text-gray-500">package</p>
+                        <p className="mt-1 font-mono text-sm text-white">{paymentReadiness.payShCompatibility.packageName}</p>
+                      </div>
+                      <div className="rounded border border-white/10 bg-black/30 p-2">
+                        <p className="text-xs text-gray-500">price</p>
+                        <p className="mt-1 font-mono text-sm text-white">${paymentReadiness.payShCompatibility.priceUsd.toFixed(2)} · {paymentReadiness.payShCompatibility.currencies.join("/")}</p>
+                      </div>
+                      <div className="rounded border border-white/10 bg-black/30 p-2">
+                        <p className="text-xs text-gray-500">evidence</p>
+                        <p className="mt-1 break-all font-mono text-xs text-gray-300">{paymentReadiness.payShCompatibility.evidenceArtifactPath}</p>
+                      </div>
+                    </div>
+                    <div className="mt-3 rounded border border-yellow-400/30 bg-yellow-400/10 p-3">
+                      <p className="text-xs uppercase tracking-wide text-yellow-100">Extension probes, not final demo claims</p>
+                      <div className="mt-2 grid gap-2 md:grid-cols-2">
+                        {paymentReadiness.payShCompatibility.extensions.map((extension) => (
+                          <div key={extension.id} className="rounded border border-white/10 bg-black/30 p-2 text-xs leading-5 text-gray-300">
+                            <p className="font-mono text-white">{extension.id.replaceAll("_", " ")}: {extension.status.replaceAll("_", " ")}</p>
+                            <p className="mt-1">{extension.observed}</p>
+                            <p className="mt-1 text-yellow-100">blocker: {extension.blocker}</p>
+                            <p className="mt-1 break-all font-mono text-gray-500">{extension.evidenceArtifactPath}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <p className="mt-3 text-xs leading-5 text-yellow-50/90">{paymentReadiness.payShCompatibility.claimBoundary}</p>
+                  </div>
                 </div>
               )}
 

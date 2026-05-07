@@ -375,3 +375,52 @@ Start:
 ### Plan refinement
 
 Next loop should move back into product-facing Reddi Agent Protocol demo integration: wire the working Pay.sh evidence into the economic-demo/readiness docs or UI, while clearly labelling sessions/splits as planned extensions.
+
+## Phase 6 — Product-facing economic-demo evidence wiring
+
+### BDD scenario
+
+Given the Pay.sh single-recipient charge flow has proven HTTP 402 → sandbox payment → HTTP 200 receipt behavior, when a judge or operator opens the economic demo payment readiness panel, then the UI should show the proven `reddi-x402` evidence path and should label capped sessions/splits as extension probes, not final demo claims.
+
+### Implementation
+
+- Extended `lib/economic-demo/payment-readiness.ts` with `payShCompatibility` metadata:
+  - package: `reddi-x402`
+  - provider spec: `config/pay-sh/reddi-x402-economic-demo-provider.yml`
+  - generated registry metadata: `providers/redditech/reddi-agent-protocol/reddi-x402-economic-demo-provider.md`
+  - proven artifact: `artifacts/pay-sh-reddi-x402/20260507T064842Z/SUMMARY.md`
+  - extension probes: capped sessions and split payments, both blocked by `pay_sh_0_16_returns_402_after_payment`
+- Added a Pay.sh / `reddi-x402` compatibility panel inside `/economic-demo` payment readiness.
+- Added the proven Pay.sh artifact to the local evidence list.
+- Expanded `npm run check:product:naming` coverage to the economic demo UI/payment readiness files.
+
+### Validation
+
+- `npm run check:product:naming` — PASS across 11 files.
+- `npm run check:pay-sh:provider-spec` — PASS.
+- `npm run check:pay-skills:registry` — PASS.
+- `npm run evidence:pay-sh:reddi-x402 -- artifacts/pay-sh-reddi-x402/20260507T064842Z` — PASS.
+- `npx jest --runTestsByPath lib/__tests__/economic-demo-payment-readiness.test.ts --runInBand` — PASS 2/2.
+- Targeted ESLint over changed UI/lib/test/script files — PASS.
+- `npm run build` — PASS. Existing Turbopack broad filesystem tracing warnings remain unrelated to this slice.
+- `git diff --check` — PASS.
+
+### Retrospective
+
+Keep:
+
+- Show the working Pay.sh path directly in the demo instead of burying it in docs.
+- Keep the extension-probe blocker visible so nobody accidentally claims session/split settlement.
+- Guard naming in actual product-facing files, not just planning docs.
+
+Stop:
+
+- Using generic “x402 readiness” alone when the concrete proof is specifically Pay.sh sandbox compatibility for `reddi-x402`.
+
+Start:
+
+- Add a generated run-report/evidence-pack attachment for Pay.sh compatibility so the judge packet can consume the same metadata as the UI.
+
+### Plan refinement
+
+Next loop should wire Pay.sh compatibility into the generated economic demo run report or submission-prep artifact. That creates a single machine-readable evidence bundle for the UI, docs, and final packet while preserving the same claim boundary.

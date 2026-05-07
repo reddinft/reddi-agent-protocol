@@ -30,8 +30,29 @@ export type EconomicDemoPaymentReadiness = {
     pr?: string;
     operationalChange?: string;
   };
+  payShCompatibility: {
+    packageName: "reddi-x402";
+    providerSpecPath: string;
+    registryMetadataPath: string;
+    evidenceArtifactPath: string;
+    sandboxStatus: "proven_single_charge";
+    plainCurlStatus: "402 Payment Required";
+    paidRetryStatus: "200 OK";
+    receiptStatus: "success";
+    receiptMethod: "solana";
+    priceUsd: 0.01;
+    currencies: ["USDC", "USDT"];
+    claimBoundary: string;
+    extensions: Array<{
+      id: "capped_sessions" | "split_payments";
+      status: "probe_only";
+      observed: string;
+      blocker: "pay_sh_0_16_returns_402_after_payment";
+      evidenceArtifactPath: string;
+    }>;
+  };
   nextOptions: Array<{
-    id: "multi_edge_webpage_workflow" | "real_devnet_receipt_verifier";
+    id: "multi_edge_webpage_workflow" | "real_devnet_receipt_verifier" | "pay_sh_registry_publish";
     label: string;
     tradeoff: string;
   }>;
@@ -68,6 +89,37 @@ export function getEconomicDemoPaymentReadiness(): EconomicDemoPaymentReadiness 
       pr: "https://github.com/nissan/reddi-agent-protocol/pull/195",
       operationalChange: "Controlled demo receipts enabled for the hosted code-generation specialist in Coolify; code-generation model slug corrected from unavailable anthropic/claude-3.5-sonnet to openai/gpt-4.1-mini.",
     },
+    payShCompatibility: {
+      packageName: "reddi-x402",
+      providerSpecPath: "config/pay-sh/reddi-x402-economic-demo-provider.yml",
+      registryMetadataPath: "providers/redditech/reddi-agent-protocol/reddi-x402-economic-demo-provider.md",
+      evidenceArtifactPath: "artifacts/pay-sh-reddi-x402/20260507T064842Z/SUMMARY.md",
+      sandboxStatus: "proven_single_charge",
+      plainCurlStatus: "402 Payment Required",
+      paidRetryStatus: "200 OK",
+      receiptStatus: "success",
+      receiptMethod: "solana",
+      priceUsd: 0.01,
+      currencies: ["USDC", "USDT"],
+      claimBoundary:
+        "Sandbox Pay.sh gateway compatibility only: no mainnet funds, no Umbra private settlement, and no MagicBlock PER settlement claimed from this lane.",
+      extensions: [
+        {
+          id: "capped_sessions",
+          status: "probe_only",
+          observed: "Pay.sh emitted MPP session challenge metadata with a capped authorization request.",
+          blocker: "pay_sh_0_16_returns_402_after_payment",
+          evidenceArtifactPath: "artifacts/pay-sh-reddi-x402/20260507T065805Z-session-splits/SUMMARY.md",
+        },
+        {
+          id: "split_payments",
+          status: "probe_only",
+          observed: "Pay.sh emitted MPP charge challenge metadata with downstream specialist split details.",
+          blocker: "pay_sh_0_16_returns_402_after_payment",
+          evidenceArtifactPath: "artifacts/pay-sh-reddi-x402/20260507T065908Z-splits/SUMMARY.md",
+        },
+      ],
+    },
     nextOptions: [
       {
         id: "multi_edge_webpage_workflow",
@@ -78,6 +130,11 @@ export function getEconomicDemoPaymentReadiness(): EconomicDemoPaymentReadiness 
         id: "real_devnet_receipt_verifier",
         label: "Implement real devnet receipt verification",
         tradeoff: "Stronger protocol proof; takes longer because the runtime must verify paid receipt semantics before OpenRouter execution.",
+      },
+      {
+        id: "pay_sh_registry_publish",
+        label: "Prepare public Pay.sh skills publishing",
+        tradeoff: "Useful for agent discovery, but publish only after the external pay-skills workflow/version is confirmed and Nissan approves the external PR or registry action.",
       },
     ],
   };

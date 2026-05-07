@@ -10,6 +10,9 @@ const defaultFiles = [
   "config/pay-sh/reddi-x402-economic-demo-splits.yml",
   "config/pay-sh/reddi-x402-economic-demo-session-splits.yml",
   "providers/redditech/reddi-agent-protocol/reddi-x402-economic-demo-provider.md",
+  "app/economic-demo/page.tsx",
+  "lib/economic-demo/payment-readiness.ts",
+  "lib/__tests__/economic-demo-payment-readiness.test.ts",
 ];
 
 const files = process.argv.slice(2).length ? process.argv.slice(2) : defaultFiles;
