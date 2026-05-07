@@ -17,7 +17,19 @@ Why:
 - The escrow account is a PDA, so the program must sign MagicBlock CPI instructions via `invoke_signed`.
 - Quasar CPI/signing semantics need separate investigation and are too risky for this sprint.
 
-## Required program changes
+## Implemented non-mutating scaffolding
+
+`programs/escrow/src/magicblock_cpi.rs` now pins the SDK-derived constants and instruction data serializers for the legacy Anchor escrow path. This does **not** invoke MagicBlock programs and does **not** change live settlement semantics yet; it gives the next implementation slice byte-accurate Rust layouts.
+
+Validation:
+
+```bash
+PATH="$HOME/.cargo/bin:$PATH" cargo test -p escrow magicblock_cpi -- --nocapture
+```
+
+Result: 2/2 tests passed, asserting Rust layouts match the JS SDK fixture for permission and delegate-account instruction data.
+
+## Required remaining program changes
 
 ### 1. Add MagicBlock PDA helpers
 
