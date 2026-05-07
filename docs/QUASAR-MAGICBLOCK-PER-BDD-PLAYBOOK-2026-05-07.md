@@ -106,7 +106,26 @@ Retrospective template:
 
 **Validation:** local cargo tests and program test script.
 
-### Phase 4 — Devnet deployment prep and bounded deploy
+### Retrospective — Phase 3
+
+- **Expected:** Local QuasarSVM tests can execute the PER program's escrow lifecycle and verify the MagicBlock callback dispatch boundary before any live network dependency.
+- **Observed:** Existing PER lifecycle tests still pass, and two callback tests now prove the exact MagicBlock undelegate callback discriminator dispatches locally while a mutated discriminator is rejected. This validates the PER ABI boundary without invoking MagicBlock programs yet.
+- **Validation:** `cargo build-sbf --manifest-path experiments/quasar-escrow-per/Cargo.toml` passed; `cargo test --manifest-path experiments/quasar-escrow-per/Cargo.toml` passed 17/17; `npm run check:quasar:per-abi` passed; `npm run test:bdd:index` passed; `git diff --check` passed.
+- **What worked:** The callback test is a cheap guard for the highest-risk compatibility detail: MagicBlock's exact 8-byte callback discriminator.
+- **What failed / surprised us:** A first negative test assumed omitting the account payload would fail, but QuasarSVM did not fail that way for this minimal unchecked-account callback. The better local guard is discriminator rejection; account/PDA validation must be added when the callback mutates real escrow state.
+- **Safety / approval review:** Local compile/tests only; no signing, deployment, wallet mutation, or devnet txs in Phase 3.
+- **Decision:** adjust and continue.
+- **Plan changes for next phase:** Insert a CPI builder integration phase before devnet deployment. Phase 4 should turn static MagicBlock layouts/account-meta plans into concrete Quasar-native CPI builders or descriptor builders, with tests for PDA signer seed propagation. Deployment moves to Phase 5.
+
+### Phase 4 — Quasar-native CPI builder integration
+
+**Expectation:** The PER crate can build concrete MagicBlock CPI descriptors/calls from Quasar-native data without Anchor macros, including PDA signer seed intent.
+
+**Implementation slice:** Convert static account-meta plans into callable builder helpers (or descriptor builders if direct `DynCpiCall` requires live `AccountView`s), then test data bytes, account role order/flags, program IDs, and signer-seed metadata.
+
+**Validation:** local Rust tests, SBF build, PER ABI guard.
+
+### Phase 5 — Devnet deployment prep and bounded deploy
 
 **Expectation:** The PER-specific Quasar program deploys to devnet under a new program ID, recorded separately from the reusable Quasar escrow ID.
 
@@ -114,7 +133,7 @@ Retrospective template:
 
 **Validation:** read-only executable account check after devnet deploy; tx/deploy signature captured. Devnet approval is already granted for this workstream.
 
-### Phase 5 — Devnet MagicBlock Permission/PER transaction loop
+### Phase 6 — Devnet MagicBlock Permission/PER transaction loop
 
 **Expectation:** Devnet txs create permission/delegation state for the PER escrow PDA using Quasar-native CPI and route through the MagicBlock PER/TEE boundary.
 
@@ -122,9 +141,9 @@ Retrospective template:
 
 **Validation:** evidence pack with tx signatures, RPC readbacks, MagicBlock PER router/TEE request evidence, and explicit success/failure boundary.
 
-### Phase 6 — Final evidence + demo integration guard
+### Phase 7 — Final evidence + demo integration guard
 
-**Expectation:** Judge/operator evidence can honestly claim Quasar-native MagicBlock PER only if Phase 5 proves settlement; otherwise it clearly presents the remaining boundary without overstating.
+**Expectation:** Judge/operator evidence can honestly claim Quasar-native MagicBlock PER only if Phase 6 proves settlement; otherwise it clearly presents the remaining boundary without overstating.
 
 **Implementation slice:** update judge packet, operator checklist, demo evidence generator, and readiness guard.
 

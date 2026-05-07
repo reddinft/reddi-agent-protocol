@@ -113,6 +113,37 @@ fn cancel_ix(payer: Pubkey, escrow: Pubkey, escrow_id: u64) -> Instruction {
     }
 }
 
+
+fn undelegate_callback_ix(escrow: Pubkey) -> Instruction {
+    Instruction {
+        program_id: crate::ID,
+        accounts: vec![AccountMeta::new(escrow, false)],
+        data: crate::magicblock::constants::UNDELEGATE_CALLBACK_DISCRIMINATOR.to_vec(),
+    }
+}
+
+/// Test 9: MagicBlock undelegate callback discriminator dispatches locally.
+#[test]
+fn test_magicblock_undelegate_callback_dispatches() {
+    let mut svm = setup();
+    let escrow = Pubkey::new_unique();
+
+    let result = svm.process_instruction(&undelegate_callback_ix(escrow), &[empty(escrow)]);
+    result.assert_success();
+}
+
+/// Test 10: MagicBlock undelegate callback requires the exact discriminator.
+#[test]
+fn test_magicblock_undelegate_callback_rejects_wrong_discriminator() {
+    let mut svm = setup();
+    let escrow = Pubkey::new_unique();
+    let mut ix = undelegate_callback_ix(escrow);
+    ix.data[0] ^= 0xff;
+
+    let result = svm.process_instruction(&ix, &[empty(escrow)]);
+    assert!(result.is_err(), "wrong MagicBlock callback discriminator must fail");
+}
+
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 /// Test 1: lock → release happy path.
