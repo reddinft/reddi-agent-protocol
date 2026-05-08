@@ -61,7 +61,7 @@ npm run test:surfpool:quasar-critical
    - balance snapshot
    - Surfpool rehearsal plan/evidence
    - x402 readiness / disclosure evidence
-   - 30-agent OpenRouter metadata/use-case triggers
+   - 30-agent OpenRouter metadata/use-case triggers, with `docs/OPENROUTER-30-SPECIALIST-READINESS-2026-05-08.md` as the configured/devnet-registered vs hosted-live boundary
 6. Supporting Torque beat: open `/leaderboard`, then cite `artifacts/torque-reputation-ranking/20260508T052500Z/SUMMARY.md` to show the story: specialist completions + submitted ratings + onboarding milestones become Torque-compatible reputation/retention signals feeding leaderboard rankings. Say explicitly that this is not a live production rewards campaign or paid Torque incentive distribution.
 7. Supporting Umbra beat: cite `artifacts/umbra-devnet-smoke/20260507T075904Z/SUMMARY.md` and `artifacts/umbra-devnet-receiver-claimable-utxo/20260507T092405Z/SUMMARY.md` as devnet-only evidence for encrypted-balance deposit and receiver-claimable UTXO create→scan→claim. Say explicitly that this is not mainnet/live-production private settlement.
 8. Optional supporting beat: open `/testers` for ElizaOS/SendAI-style x402 adapter distribution evidence.
@@ -71,6 +71,7 @@ npm run test:surfpool:quasar-critical
    - Quasar-native devnet proof is live.
    - Surfpool localnet confidence passed.
    - x402/OpenRouter/Jupiter evidence is visible with exact boundaries.
+   - OpenRouter: all 30 specialists are configured/tested/devnet-registered; all-30 live paid hosted endpoint readiness is not claimed without a fresh endpoint/Coolify/funding pass.
    - Jupiter: Surfpool/mock-Jupiter is the successful no-real-funds visual; public Jupiter devnet is quote/build/sign boundary only.
    - MagicBlock PER/TEE: Quasar-native permission/delegation succeeds live on devnet, and bounded Quasar-owned AgentVault settlement through MagicBlock TEE is proven; arbitrary-wallet/private payee settlement is not claimed. Successful live Jupiter swap is not a final claim unless separately run with explicit approval.
    - Umbra: devnet-only private-payment evidence is strong, including receiver-claimable UTXO create→scan→claim, but no mainnet/live-production private settlement claim.

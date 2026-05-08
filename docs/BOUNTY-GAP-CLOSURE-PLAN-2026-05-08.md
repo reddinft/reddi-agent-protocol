@@ -15,7 +15,7 @@ We are close to a strong, defensible submission, but the remaining work is not e
 - **Pay.sh / `reddi-x402`:** strong for single-charge sandbox compatibility. Do not claim session/split settlement.
 - **Umbra:** strong adapter + devnet encrypted-balance evidence; receiver-claimable UTXO devnet-only evidence is being aligned into the closure PR and may be featured with strict devnet-only boundaries.
 - **Torque:** credible story already exists through reputation/ranking events and leaderboard UI, but needs a recording/evidence beat to become bounty-strong.
-- **30 specialists / OpenRouter runtime:** configured, tested, and devnet-registered; not all currently production-hosted/live endpoint-ready under the latest deployment readiness check.
+- **30 specialists / OpenRouter runtime:** configured, tested, and devnet-registered; `docs/OPENROUTER-30-SPECIALIST-READINESS-2026-05-08.md` now captures the boundary that all-30 production-hosted/live paid endpoint readiness is not proven under the latest deployment readiness check.
 - **Jupiter:** keep as bounded payment-flexibility/simulation/research lane only unless mainnet execution is approved. No reliable public devnet swap claim.
 
 ## Fair bounty-by-bounty assessment
@@ -155,6 +155,7 @@ What we have:
 
 Latest caveat:
 - Current `deployment:readiness` reports `blocked` for all 30 because it requires public endpoints/Coolify deployment/funding/deployment confirmations under the latest checker.
+- Closure note added: `docs/OPENROUTER-30-SPECIALIST-READINESS-2026-05-08.md`.
 
 Safe claim:
 - “All 30 specialist profiles are configured, manifest-valid, tested, and devnet-registered.”
@@ -167,7 +168,7 @@ Remaining gap:
 - If live all-30 is needed, refresh endpoint/Coolify/funding readiness and rerun hosted smoke.
 
 Close-out work:
-1. Add an explicit “30 specialists: configured vs hosted-live” note to final packet.
+1. Add an explicit “30 specialists: configured vs hosted-live” note to final packet. ✅
 2. If we want live-hosted claim: configure/confirm public endpoints, Coolify deployments, funding, and rerun hosted manifest smoke.
 3. Rerun `npm --prefix packages/openrouter-specialists run manifest:parity` and `npm --prefix packages/openrouter-specialists test`.
 4. Do not run paid live specialist calls without explicit approval.
