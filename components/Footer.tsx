@@ -29,13 +29,22 @@ export default function Footer() {
             Governed by math.
           </p>
           <div className="flex items-center gap-6 text-sm text-muted-foreground">
-            <Link href="/setup" className="hover:text-foreground transition-colors">
+            <Link
+              href="/setup"
+              className="hover:text-foreground transition-colors"
+            >
               Setup Guide
             </Link>
-            <Link href="/agents" className="hover:text-foreground transition-colors">
+            <Link
+              href="/agents"
+              className="hover:text-foreground transition-colors"
+            >
               Browse Agents
             </Link>
-            <Link href="/faq" className="hover:text-foreground transition-colors">
+            <Link
+              href="/faq"
+              className="hover:text-foreground transition-colors"
+            >
               FAQ
             </Link>
             <a
@@ -57,8 +66,11 @@ export default function Footer() {
           </div>
         </div>
         <p className="text-xs text-muted-foreground/50 text-center mt-4">
-          Reddi Agent Protocol · Hackathon Demo · March 2026 ·{" "}
-          <a href="https://reddi.tech" className="hover:text-muted-foreground transition-colors">
+          Reddi Agent Protocol · Colosseum Frontier Hackathon · May 2026 ·{" "}
+          <a
+            href="https://reddi.tech"
+            className="hover:text-muted-foreground transition-colors"
+          >
             reddi.tech
           </a>
         </p>

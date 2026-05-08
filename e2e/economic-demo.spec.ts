@@ -70,11 +70,14 @@ test.describe("/economic-demo judge-facing story", () => {
       page.getByText(/no wallet required in the default demo path/i),
     ).toBeVisible();
     await expect(page.getByTestId("economic-proof-pills")).toContainText(
-      "30 hosted specialists",
+      "4 specialists paid on devnet",
     );
     await expect(page.getByTestId("economic-proof-pills")).toContainText(
-      "No wallet required by default",
+      "0.13 USDC spent",
     );
+    await expect(
+      page.getByTestId("funded-devnet-judge-proof"),
+    ).toContainText("402 → 0.03 USDC → HTTP 200");
 
     await expect(
       page.getByRole("button", { name: /^run controlled demo$/i }),

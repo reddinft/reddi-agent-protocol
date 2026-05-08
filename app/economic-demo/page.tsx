@@ -26,16 +26,13 @@ import type { EconomicDemoLivePaidDevnetRun } from "@/lib/economic-demo/live-pai
 import type { ResearchWorkflowDesign } from "@/lib/economic-demo/research-workflow-design";
 import type { PictureStoryboardDesign } from "@/lib/economic-demo/picture-storyboard-design";
 import {
-  ESCROW_PROGRAM_ID,
-  REGISTRY_PROGRAM_ID,
-  REPUTATION_PROGRAM_ID,
-  ATTESTATION_PROGRAM_ID,
   PROGRAM_COMPATIBILITY,
   PROGRAM_FRAMEWORK,
   PROGRAM_KNOWN_GAPS,
   PROGRAM_SUBMISSION_READY,
   PROGRAM_TARGET,
 } from "@/lib/program";
+import quasarDeployments from "@/config/quasar/deployments.json";
 
 function shortWallet(wallet: string) {
   return `${wallet.slice(0, 8)}…${wallet.slice(-6)}`;
@@ -50,6 +47,39 @@ const WalletMultiButton = dynamic(
     (await import("@solana/wallet-adapter-react-ui")).WalletMultiButton,
   { ssr: false },
 );
+
+const quasarJudgeProgramIds =
+  quasarDeployments.quasarDeployments.devnet.programIds;
+
+const fundedDevnetJudgeProof = {
+  status: "complete",
+  spentUsdc: "0.130000",
+  artifact:
+    "artifacts/economic-demo-live-paid-devnet/20260508T104751Z-funded-hosted-run/hosted-live-run-summary.json",
+  boundary: "Bounded Solana devnet proof only — no mainnet settlement claim.",
+  specialists: [
+    {
+      name: "planning-agent",
+      amount: "0.03",
+      tx: "4onxCVsg4hBLFq3fJJN4AucidRXwzEnKeqJ1ebY3nTrKHU8b2i6YwedBUTuHUTN4RNVKxTvuxhQ1FZZD7SBfGnVi",
+    },
+    {
+      name: "content-creation-agent",
+      amount: "0.025",
+      tx: "5yewyevX8kCZSeB3iRpNueESbHfgFjKsWMGAyvjuP4gQvhSs9uH8pqcttYnYx9fBtftBT6tm4vA39MkoLznq4BUf",
+    },
+    {
+      name: "code-generation-agent",
+      amount: "0.05",
+      tx: "4wemS8r5iEDnN8dPxYP8Nfe53Q4tGVduHEwrNsv4fGxnUqrHcQx7JAad67AzQp3BHohJqBezJfoVvKXnbgfP8nto",
+    },
+    {
+      name: "verification-validation-agent",
+      amount: "0.025",
+      tx: "41riCtDUQfc6ZFzF539Rvnf795TtixSkdoLuWf9x1g6FmswXXBsZHnTbQL3fYfZTPUMWuVE7r1PKyPHBEKWwMLp",
+    },
+  ],
+} as const;
 
 const localEvidenceArtifacts = [
   {
@@ -449,11 +479,11 @@ export default function EconomicDemoPage() {
               className="flex flex-wrap gap-2"
             >
               {[
-                "Live devnet x402/SPL paid run",
-                "30 hosted specialists",
-                "Quasar devnet archive",
-                "Attestation + reputation",
-                "No wallet required by default",
+                "4 specialists paid on devnet",
+                "0.13 USDC spent",
+                "HTTP 402 → SPL payment → HTTP 200",
+                "Receipts + attestation",
+                "No mainnet claim",
               ].map((pill) => (
                 <span
                   key={pill}
@@ -463,6 +493,61 @@ export default function EconomicDemoPage() {
                 </span>
               ))}
             </div>
+            <div
+              data-testid="funded-devnet-judge-proof"
+              className="rounded-2xl border border-[#14F195]/25 bg-black/30 p-5 shadow-card"
+            >
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-[#14F195]">
+                    Judge proof: funded devnet paid run
+                  </p>
+                  <h2 className="mt-2 text-2xl font-semibold text-white">
+                    One request paid 4 specialist agents and received 4
+                    completions
+                  </h2>
+                  <p className="mt-2 max-w-3xl text-sm leading-6 text-gray-300">
+                    The strongest submission evidence is a bounded Solana devnet
+                    run: each specialist returned an HTTP 402 challenge,
+                    received an SPL/USDC payment, then returned HTTP 200
+                    completion evidence.
+                  </p>
+                </div>
+                <div className="rounded-xl border border-[#14F195]/25 bg-[#14F195]/10 p-4 text-right">
+                  <p className="text-xs uppercase tracking-wide text-gray-400">
+                    completed spend
+                  </p>
+                  <p className="mt-1 font-mono text-3xl text-[#14F195]">
+                    {fundedDevnetJudgeProof.spentUsdc} USDC
+                  </p>
+                  <p className="mt-1 text-xs text-yellow-100">
+                    {fundedDevnetJudgeProof.boundary}
+                  </p>
+                </div>
+              </div>
+              <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                {fundedDevnetJudgeProof.specialists.map((specialist) => (
+                  <div
+                    key={specialist.name}
+                    className="rounded-xl border border-white/10 bg-white/5 p-3 text-xs leading-5"
+                  >
+                    <p className="font-semibold text-white">
+                      {specialist.name}
+                    </p>
+                    <p className="mt-1 text-gray-300">
+                      402 → {specialist.amount} USDC → HTTP 200
+                    </p>
+                    <p className="mt-1 font-mono text-[#14F195]">
+                      tx {shortWallet(specialist.tx)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-4 break-all font-mono text-xs text-gray-500">
+                Evidence: {fundedDevnetJudgeProof.artifact}
+              </p>
+            </div>
+
             <div className="flex flex-wrap gap-3 pt-1">
               <button
                 type="button"
@@ -1160,43 +1245,45 @@ export default function EconomicDemoPage() {
               <h3 className="mt-2 text-xl font-semibold text-white">
                 {PROGRAM_TARGET === "quasar"
                   ? "Quasar hackathon target active"
-                  : "Legacy Anchor reference target"}
+                  : "Historical reference mode — not final judge proof"}
               </h3>
               <p className="mt-3 text-sm leading-6 text-gray-300">
-                This panel separates economic workflow evidence from final
-                Quasar on-chain proof. Controlled x402/OpenRouter evidence,
-                Surfpool local rehearsal evidence, and storyboard dry-runs are
-                not automatically final Quasar submission proof.
+                Final judge claims use the Quasar devnet proof path and the
+                funded devnet x402/SPL run above. Historical/reference program
+                modes remain below the fold and are not the final submission
+                claim.
               </p>
               <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
                 <div className="rounded-xl border border-white/10 bg-black/20 p-3">
                   <dt className="text-gray-500">Quasar Escrow program</dt>
                   <dd className="mt-1 break-all font-mono text-[#14F195]">
-                    {ESCROW_PROGRAM_ID.toBase58()}
+                    {quasarJudgeProgramIds.escrow}
                   </dd>
                 </div>
                 <div className="rounded-xl border border-white/10 bg-black/20 p-3">
                   <dt className="text-gray-500">Quasar Registry program</dt>
                   <dd className="mt-1 break-all font-mono text-[#14F195]">
-                    {REGISTRY_PROGRAM_ID.toBase58()}
+                    {quasarJudgeProgramIds.registry}
                   </dd>
                 </div>
                 <div className="rounded-xl border border-white/10 bg-black/20 p-3">
                   <dt className="text-gray-500">Quasar Reputation program</dt>
                   <dd className="mt-1 break-all font-mono text-[#14F195]">
-                    {REPUTATION_PROGRAM_ID.toBase58()}
+                    {quasarJudgeProgramIds.reputation}
                   </dd>
                 </div>
                 <div className="rounded-xl border border-white/10 bg-black/20 p-3">
                   <dt className="text-gray-500">Quasar Attestation program</dt>
                   <dd className="mt-1 break-all font-mono text-[#14F195]">
-                    {ATTESTATION_PROGRAM_ID.toBase58()}
+                    {quasarJudgeProgramIds.attestation}
                   </dd>
                 </div>
                 <div className="rounded-xl border border-white/10 bg-black/20 p-3">
                   <dt className="text-gray-500">Target / framework</dt>
                   <dd className="mt-1 font-mono text-gray-200">
-                    {PROGRAM_TARGET} · {PROGRAM_FRAMEWORK}
+                    final proof: quasar · quasar
+                    <br />
+                    runtime config: {PROGRAM_TARGET} · {PROGRAM_FRAMEWORK}
                   </dd>
                 </div>
                 <div className="rounded-xl border border-white/10 bg-black/20 p-3">
