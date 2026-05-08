@@ -61,7 +61,7 @@ Colosseum Frontier ships five interlocking layers:
 2. **Permissionless on-chain agent registry** — any agent can register, update, and be discovered.
 3. **Blind commit-reveal reputation** — scores that resist gaming and collusion.
 4. **Attestation judges** — quality verification on delivery, not just payment confirmation.
-5. **MagicBlock PER boundary** — Quasar-native MagicBlock permission/delegation succeeds live, and patched Quasar PER executes inside MagicBlock TEE for private authorization/commit evidence; private payee lamport settlement is not claimed.
+5. **MagicBlock PER boundary** — Quasar-native MagicBlock permission/delegation succeeds live, and patched Quasar PER proves bounded AgentVault settlement through MagicBlock TEE; arbitrary-wallet/private payee lamport settlement is not claimed.
 
 Think Stripe Connect escrow, rebuilt as programmable trust rails on Solana, with privacy-aware settlement. That is what we are shipping today.
 
@@ -76,7 +76,7 @@ The live submission path now targets Quasar-compiled Solana programs for all dem
 - Escrow, registry, reputation, and attestation are deployed on devnet as Quasar programs.
 - The A→B→C demo flow completes with Quasar escrow settlement, reputation, and attestation.
 - ElizaOS/SendAI/x402-compatible adapters remain supporting distribution and payment-boundary evidence.
-- MagicBlock PER is presented honestly as successful Quasar-native permission/delegation plus a reproducible TEE execution blocker, not as successful private settlement.
+- MagicBlock PER is presented honestly as successful Quasar-native permission/delegation plus bounded Quasar-owned AgentVault settlement, not as arbitrary-wallet/private payee settlement.
 
 **This is the submission path. It is Quasar-native for the critical proof and explicit about unsupported settlement claims.**
 
@@ -104,7 +104,7 @@ The answer is yes — with receipts.
 
 The release and cancel savings are structural: Quasar's `set_lamports` eliminates a System Program CPI on the hot path. This is not a benchmark trick. It is a different execution model with real per-transaction cost implications at scale.
 
-**What remains on the Quasar side:** MagicBlock PER settlement is not complete. Quasar-native MagicBlock permission/delegation succeeds live on devnet, and patched Quasar PER executes inside MagicBlock TEE for private authorization/commit evidence. We do not claim end-to-end private payee lamport settlement.
+**What remains on the Quasar side:** MagicBlock PER now proves the bounded Quasar-owned AgentVault settlement route, but broad private-payee settlement is not complete. We do not claim end-to-end arbitrary-wallet/private payee lamport settlement.
 
 **The disciplined call:** we keep the final proof Quasar-native and boundary-labeled rather than falling back to Anchor or overclaiming a privacy rail that has not settled.
 
@@ -120,7 +120,7 @@ The release and cancel savings are structural: Quasar's `set_lamports` eliminate
 | Hot-path CU reduction is real | Measured via QuasarSVM `compute_units_consumed`; release 649 CU, cancel 626 CU |
 | Binary reduction is real | 13 KB Quasar POC vs 377 KB full Anchor build (hot path only, documented scope) |
 | Submission path is scoped and stable | Final critical proof uses Quasar devnet programs; privacy rails are boundary-labeled rather than overclaimed |
-| MagicBlock PER next step is precise | Repro documents TEE execution blocker after live Quasar-native delegation succeeds |
+| MagicBlock PER boundary is precise | Bounded Quasar-owned AgentVault settlement is proven; delegated-payee/private settlement remains a separate next step |
 
 ---
 
@@ -134,7 +134,7 @@ This is not a hackathon wrapper. This is the infrastructure layer that agent com
 
 **If you are scoring on execution discipline:** we made the harder call — shipped the Quasar critical path while refusing to overclaim MagicBlock PER settlement or Jupiter devnet execution.
 
-**What comes next:** design delegated-payee/private settlement beyond the current MagicBlock TEE authorization proof, expand privacy rails beyond bounded evidence, and harden the production Reddi Agent Protocol launch path.
+**What comes next:** extend the proven MagicBlock AgentVault route into delegated-payee/private settlement, expand privacy rails beyond bounded evidence, and harden the production Reddi Agent Protocol launch path.
 
 The ask: **recognise Reddi Agent Protocol as the category winner for trustless agent commerce infrastructure on Solana.**
 
@@ -145,7 +145,7 @@ The ask: **recognise Reddi Agent Protocol as the category winner for trustless a
 | Do say | Don't say |
 |---|---|
 | Quasar is the final critical on-chain proof path | "Anchor is the final demo path" |
-| MagicBlock delegation + TEE private authorization succeed live; private payee settlement is not claimed | "MagicBlock PER settlement succeeded" |
+| MagicBlock delegation + bounded AgentVault settlement succeed live; private arbitrary-wallet payee settlement is not claimed | "MagicBlock PER settlement succeeded" |
 | Jupiter has quote/build/sign and local invoke evidence | "Jupiter devnet swap succeeded" |
 | Umbra adapter + devnet encrypted-balance deposit evidence | "Umbra production/private settlement completed" |
 | Measured CU gains: release 649, cancel 626 | Inflated or unqualified CU claims |
@@ -165,7 +165,7 @@ Because the critical proof path now runs Quasar-native, and the supporting evide
 Only if we hide the boundaries — which we do not. The documented decision is Quasar for the critical proof path, with MagicBlock/Jupiter/Umbra claims scoped to the evidence actually produced.
 
 **"Is the privacy story fully proven on Quasar?"**
-Not yet, and we say so clearly. Quasar-native MagicBlock permission/delegation succeeds live, and patched Quasar PER executes inside MagicBlock TEE for private authorization/commit evidence, but successful private payee lamport settlement is not claimed.
+Not yet, and we say so clearly. Quasar-native MagicBlock permission/delegation succeeds live, and patched Quasar PER proves bounded AgentVault settlement through MagicBlock TEE, but successful arbitrary-wallet/private payee lamport settlement is not claimed.
 
 ---
 
