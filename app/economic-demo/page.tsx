@@ -20,6 +20,7 @@ import {
   type WebpageLiveWorkflowEvidence,
 } from "@/lib/economic-demo/webpage-live-workflow-evidence";
 import type { EconomicDemoLedgerReconciliation } from "@/lib/economic-demo/ledger-reconciliation";
+import type { EconomicDemoLiveRun } from "@/lib/economic-demo/live-run";
 import type { ResearchWorkflowDesign } from "@/lib/economic-demo/research-workflow-design";
 import type { PictureStoryboardDesign } from "@/lib/economic-demo/picture-storyboard-design";
 import {
@@ -132,6 +133,8 @@ export default function EconomicDemoPage() {
   const [pictureStoryboardStatus, setPictureStoryboardStatus] = useState<
     "idle" | "loading" | "loaded" | "error"
   >("idle");
+  const [controlledLiveRun, setControlledLiveRun] =
+    useState<EconomicDemoLiveRun | null>(null);
   const [paymentAsset, setPaymentAsset] = useState<"USDC" | "SOL">("USDC");
   const [runStarted, setRunStarted] = useState(false);
   const { connected, publicKey } = useWallet();
@@ -308,7 +311,32 @@ export default function EconomicDemoPage() {
 
   async function runControlledDemo() {
     setRunStarted(true);
-    await loadWebpageLiveEvidence();
+    setWebpageLiveEvidenceStatus("loading");
+    try {
+      const res = await fetch("/api/economic-demo/live-run", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          scenarioId: scenario.id,
+          prompt: scenario.prompt,
+          mode: "controlled_hosted_evidence",
+          clientRunNonce: `ui-${Date.now()}`,
+        }),
+      });
+      const payload = (await res.json()) as {
+        ok?: boolean;
+        run?: EconomicDemoLiveRun;
+      };
+      if (!res.ok || !payload.ok || !payload.run) {
+        throw new Error("controlled_live_run_failed");
+      }
+      setControlledLiveRun(payload.run);
+      setWebpageLiveEvidence(payload.run.evidence);
+      setWebpageLiveEvidenceStatus("loaded");
+    } catch {
+      setControlledLiveRun(null);
+      setWebpageLiveEvidenceStatus("error");
+    }
   }
 
   return (
@@ -598,13 +626,44 @@ export default function EconomicDemoPage() {
                     className="mt-4 rounded-lg border border-[#14F195]/30 bg-black/20 p-3"
                   >
                     <p className="text-xs uppercase tracking-wide text-[#14F195]">
-                      Run timeline started
+                      Controlled live-run timeline started
                     </p>
                     <p className="mt-2 text-sm leading-6 text-gray-200">
                       Prompt selected → quote boundary accepted → hosted x402
                       evidence requested → returned output and evidence drawer
                       shown below.
                     </p>
+                    {controlledLiveRun && (
+                      <div
+                        data-testid="controlled-live-run-envelope"
+                        className="mt-3 space-y-2"
+                      >
+                        <div className="rounded border border-white/10 bg-black/30 p-2 text-xs leading-5 text-gray-300">
+                          <p className="font-mono text-white">
+                            run: {controlledLiveRun.runId}
+                          </p>
+                          <p className="break-all">
+                            prompt hash: {controlledLiveRun.promptHash}
+                          </p>
+                          <p className="text-yellow-100">
+                            {controlledLiveRun.claimBoundary}
+                          </p>
+                        </div>
+                        <div className="grid gap-2 md:grid-cols-2">
+                          {controlledLiveRun.timeline.map((step) => (
+                            <div
+                              key={step.id}
+                              className="rounded border border-white/10 bg-white/5 p-2 text-xs leading-5 text-gray-300"
+                            >
+                              <p className="font-semibold text-white">
+                                {step.label}
+                              </p>
+                              <p>{step.detail}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
