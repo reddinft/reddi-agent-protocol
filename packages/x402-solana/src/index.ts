@@ -10,3 +10,4 @@ export * from './nonce';
 export * from './payment';
 export * from './middleware';
 export * from './jupiter';
+export * from './client';

@@ -9,16 +9,20 @@ import { BridgeStore } from "./store.js";
 import {
   discoverInputSchema,
   executeDevnetPaymentInputSchema,
+  executeX402SpecialistCallInputSchema,
   exportDisclosureLedgerInputSchema,
   prepareDevnetPaymentInputSchema,
+  prepareX402SpecialistCallInputSchema,
   requestQuoteInputSchema,
   verifyDevnetReceiptInputSchema,
   verifyReceiptInputSchema,
+  verifyX402SpecialistReceiptInputSchema,
 } from "./schemas.js";
 import { requestQuote } from "./tools/request-quote.js";
 import { verifyReceipt } from "./tools/verify-receipt.js";
 import { exportDisclosureLedger } from "./tools/export-disclosure-ledger.js";
 import { executeDevnetPayment, prepareDevnetPayment, verifyDevnetReceipt } from "./tools/devnet-payment.js";
+import { executeX402SpecialistCall, prepareX402SpecialistCall, verifyX402SpecialistReceipt } from "./tools/x402-specialist-call.js";
 
 function jsonContent(value: unknown) {
   return { content: [{ type: "text" as const, text: JSON.stringify(value, null, 2) }] };
@@ -27,7 +31,8 @@ function jsonContent(value: unknown) {
 export function createServer(env: NodeJS.ProcessEnv = process.env) {
   const config = loadConfig(env);
   const devnetToolsEnabled = config.policyMode === "devnet" && config.devnetProofApproved && Boolean(config.devnetFunderKeypairPath);
-  const policy = currentPolicy(config.policyMode, devnetToolsEnabled);
+  const specialistInvokeEnabled = config.policyMode === "devnet" && config.devnetProofApproved && config.allowSpecialistInvoke && Boolean(config.devnetWalletKeypairPath) && Boolean(config.devnetUsdcMint) && config.specialistEndpointAllowlist.length > 0;
+  const policy = currentPolicy(config.policyMode, devnetToolsEnabled, specialistInvokeEnabled);
   const client = new RapClient(config);
   const store = new BridgeStore(config.storeDir);
   const server = new McpServer({ name: "reddi-rap-mcp-bridge", version: "0.1.0" });
@@ -69,12 +74,29 @@ export function createServer(env: NodeJS.ProcessEnv = process.env) {
     }, async (args) => jsonContent(await verifyDevnetReceipt(args, store)));
   }
 
+  if (specialistInvokeEnabled) {
+    server.registerTool("reddi.prepare_x402_specialist_call", {
+      description: "Prepare a bounded devnet USDC x402 specialist call from a 402 challenge. Non-mutating readiness check; devnet only.",
+      inputSchema: prepareX402SpecialistCallInputSchema,
+    }, async (args) => jsonContent(await prepareX402SpecialistCall(args, config)));
+
+    server.registerTool("reddi.execute_x402_specialist_call", {
+      description: "Execute a bounded devnet USDC x402 specialist call. Requires approval phrase; devnet only; no mainnet.",
+      inputSchema: executeX402SpecialistCallInputSchema,
+    }, async (args) => jsonContent(await executeX402SpecialistCall(args, config, store)));
+
+    server.registerTool("reddi.verify_x402_specialist_receipt", {
+      description: "Verify a bridge-stored devnet x402 specialist receipt. Never claims mainnet settlement.",
+      inputSchema: verifyX402SpecialistReceiptInputSchema,
+    }, async (args) => jsonContent(verifyX402SpecialistReceipt(args, store)));
+  }
+
   server.registerResource("reddi-policy-current", "reddi://policy/current", {
     title: "Current RAP MCP Bridge policy",
     description: "Current policy state for the RAP MCP Bridge.",
     mimeType: "application/json",
   }, async (uri) => ({
-    contents: [{ uri: uri.href, mimeType: "application/json", text: JSON.stringify({ config: { rapBaseUrl: config.rapBaseUrl, hostFramework: config.hostFramework, agentName: config.agentName, policyMode: config.policyMode, devnetProofApproved: config.devnetProofApproved, devnetFunderConfigured: Boolean(config.devnetFunderKeypairPath) }, policy }, null, 2) }],
+    contents: [{ uri: uri.href, mimeType: "application/json", text: JSON.stringify({ config: { rapBaseUrl: config.rapBaseUrl, hostFramework: config.hostFramework, agentName: config.agentName, policyMode: config.policyMode, devnetProofApproved: config.devnetProofApproved, devnetFunderConfigured: Boolean(config.devnetFunderKeypairPath), specialistInvokeConfigured: specialistInvokeEnabled }, policy }, null, 2) }],
   }));
 
   return server;

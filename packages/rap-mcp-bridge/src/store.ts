@@ -7,6 +7,8 @@ type StoreData = {
   idempotency: Record<string, { quoteId: string; requestHash: string }>;
   devnetReceipts: DevnetReceipt[];
   devnetIdempotency: Record<string, { receiptId: string; quoteId: string; requestHash: string }>;
+  x402SpecialistReceipts: X402SpecialistReceipt[];
+  x402SpecialistIdempotency: Record<string, { receiptId: string; requestHash: string }>;
 };
 
 export type DevnetReceipt = {
@@ -26,7 +28,19 @@ export type DevnetReceipt = {
   disclosureLedgerEntry: Record<string, unknown>;
 };
 
-const EMPTY: StoreData = { quotes: [], idempotency: {}, devnetReceipts: [], devnetIdempotency: {} };
+export type X402SpecialistReceipt = {
+  schemaVersion: "reddi.rap-mcp-bridge.x402-specialist-call-receipt.v1";
+  receiptId: string;
+  createdAt: string;
+  boundary: "solana-devnet-only-no-mainnet";
+  endpoint: string;
+  requestHash: string;
+  paymentReceipt: Record<string, unknown>;
+  response: { status: 200; bodyHash: string; outputPreview: string };
+  verification: { specialistHttpCompletion: "pass"; mainnetSettlement: "not_applicable" };
+};
+
+const EMPTY: StoreData = { quotes: [], idempotency: {}, devnetReceipts: [], devnetIdempotency: {}, x402SpecialistReceipts: [], x402SpecialistIdempotency: {} };
 
 export class BridgeStore {
   constructor(private readonly dir: string) {}
@@ -36,9 +50,9 @@ export class BridgeStore {
   read(): StoreData {
     try {
       const data = JSON.parse(readFileSync(this.path(), "utf8")) as Partial<StoreData>;
-      return { quotes: data.quotes ?? [], idempotency: data.idempotency ?? {}, devnetReceipts: data.devnetReceipts ?? [], devnetIdempotency: data.devnetIdempotency ?? {} };
+      return { quotes: data.quotes ?? [], idempotency: data.idempotency ?? {}, devnetReceipts: data.devnetReceipts ?? [], devnetIdempotency: data.devnetIdempotency ?? {}, x402SpecialistReceipts: data.x402SpecialistReceipts ?? [], x402SpecialistIdempotency: data.x402SpecialistIdempotency ?? {} };
     } catch {
-      return { ...EMPTY, quotes: [], idempotency: {}, devnetReceipts: [], devnetIdempotency: {} };
+      return { ...EMPTY, quotes: [], idempotency: {}, devnetReceipts: [], devnetIdempotency: {}, x402SpecialistReceipts: [], x402SpecialistIdempotency: {} };
     }
   }
 
@@ -97,5 +111,38 @@ export class BridgeStore {
 
   listDevnetReceipts(quoteId: string): DevnetReceipt[] {
     return this.read().devnetReceipts.filter((receipt) => receipt.quoteId === quoteId);
+  }
+
+  getX402SpecialistReceiptByIdempotency(idempotencyKey: string): { requestHash: string; receipt: X402SpecialistReceipt } | undefined {
+    const data = this.read();
+    const prior = data.x402SpecialistIdempotency[idempotencyKey];
+    if (!prior) return undefined;
+    const receipt = data.x402SpecialistReceipts.find((candidate) => candidate.receiptId === prior.receiptId);
+    return receipt ? { requestHash: prior.requestHash, receipt } : undefined;
+  }
+
+  getX402SpecialistReceipt(receiptId: string): X402SpecialistReceipt | undefined {
+    return this.read().x402SpecialistReceipts.find((receipt) => receipt.receiptId === receiptId);
+  }
+
+  listX402SpecialistReceipts(ids: string[]): X402SpecialistReceipt[] {
+    const data = this.read();
+    if (ids.length === 0) return data.x402SpecialistReceipts.slice(-10);
+    const wanted = new Set(ids);
+    return data.x402SpecialistReceipts.filter((receipt) => wanted.has(receipt.receiptId));
+  }
+
+  upsertX402SpecialistReceipt(idempotencyKey: string, requestHash: string, receipt: X402SpecialistReceipt): X402SpecialistReceipt {
+    const data = this.read();
+    if (data.x402SpecialistIdempotency[idempotencyKey]) {
+      const prior = data.x402SpecialistIdempotency[idempotencyKey];
+      if (prior.requestHash !== requestHash) throw new Error("idempotency_key_conflict");
+      const existing = data.x402SpecialistReceipts.find((candidate) => candidate.receiptId === prior.receiptId);
+      if (existing) return existing;
+    }
+    data.x402SpecialistReceipts.push(receipt);
+    data.x402SpecialistIdempotency[idempotencyKey] = { receiptId: receipt.receiptId, requestHash };
+    this.write(data);
+    return receipt;
   }
 }
