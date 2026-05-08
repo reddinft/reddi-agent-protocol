@@ -2,7 +2,10 @@ import { buildRapMcpBridgeSurfpoolProof } from "@/lib/mcp-bridge-demo/surfpool-p
 
 const surfpoolProof = buildRapMcpBridgeSurfpoolProof();
 
-export type McpBridgeDemoMode = "quote_only" | "surfpool_local" | "devnet_ready";
+export type McpBridgeDemoMode =
+  | "quote_only"
+  | "surfpool_local"
+  | "devnet_ready";
 
 export type McpBridgeDemoCheck = {
   id: string;
@@ -80,16 +83,17 @@ export type McpBridgeDemoFixture = {
 
 export const mcpBridgeDemoFixture: McpBridgeDemoFixture = {
   generatedAt: "2026-05-08T00:00:00+10:00",
-  title: "RAP MCP Bridge",
+  title: "Reddi Agent Protocol MCP Bridge",
   subtitle:
-    "A payment and verification bridge that lets OpenSwarm, OpenClaw, Cursor, and Claude discover, quote, verify, and disclose paid specialist-agent work.",
+    "A payment and verification bridge that lets OpenClaw, Claude/MCP agents, OpenSwarm-style systems, Cursor, and custom agent stacks discover, quote, verify, and disclose paid specialist-agent work.",
   permissionBoundary:
     "Devnet spends are allowed only after the same flow is proven in the local Surfpool validator environment. Mainnet is out of scope.",
   proofArtifacts: [
     {
       label: "Surfpool local transaction proof",
       boundary: "local_validator_only_no_devnet_no_mainnet",
-      artifactPath: "artifacts/rap-mcp-bridge-surfpool-local/20260507T145133Z/SUMMARY.md",
+      artifactPath:
+        "artifacts/rap-mcp-bridge-surfpool-local/20260507T145133Z/SUMMARY.md",
       result: "local payment semantics: pass",
       txSignatures: [
         "5KFhkP2tHHEQ5RVVRJymbmKrMVWCF4Vu9RTioVc5eqd3chEdW7CxRtuhAZ6fxU6fSzzQX3pUXLEthURkQSymu4P6",
@@ -99,7 +103,8 @@ export const mcpBridgeDemoFixture: McpBridgeDemoFixture = {
     {
       label: "Bounded devnet payment proof",
       boundary: "solana_devnet_only_no_mainnet_no_specialist_http_invocation",
-      artifactPath: "artifacts/rap-mcp-bridge-devnet-proof/20260507T145907Z/SUMMARY.md",
+      artifactPath:
+        "artifacts/rap-mcp-bridge-devnet-proof/20260507T145907Z/SUMMARY.md",
       result: "devnet payment semantics: pass; cap: 100050 lamports",
       txSignatures: [
         "62CP7sHi9KyUDbnVFgM5WCvwiSq2p5WCkThsTkNrpqYnUxLGN9QNRDjye1nBDB7UWjgqtonoYbuKxawjzAvWrUgD",
@@ -118,59 +123,68 @@ export const mcpBridgeDemoFixture: McpBridgeDemoFixture = {
           id: "discover",
           label: "Discover specialists",
           status: "pass",
-          detail: "RAP registry/planner can rank eligible specialists by capability, price, health, and trust signals.",
+          detail:
+            "The Reddi Agent Protocol registry/planner can rank eligible specialists by capability, price, health, and trust signals.",
         },
         {
           id: "quote",
           label: "Synthetic quote",
           status: "pass",
-          detail: "Quote is explicitly bridge_synthetic and non-binding; it is a governance artifact, not a commercial commitment.",
+          detail:
+            "Quote is explicitly bridge_synthetic and non-binding; it is a governance artifact, not a commercial commitment.",
         },
         {
           id: "payment",
           label: "Payment",
           status: "blocked",
-          detail: "Dry-run MCP policy blocks all payment and invoke tools in the first PR.",
+          detail:
+            "Dry-run MCP policy blocks all payment and invoke tools in the first PR.",
         },
       ],
     },
     {
       id: "surfpool_local",
       label: "2. Surfpool local proof",
-      claimBoundary: "Local validator proof only. No devnet/mainnet settlement claimed.",
+      claimBoundary:
+        "Local validator proof only. No devnet/mainnet settlement claimed.",
       spendBoundary: "Local test-validator semantics",
       checks: [
         {
           id: "local-settlement",
           label: "Local settlement semantics",
           status: "pass",
-          detail: "Local Surfpool artifact proves quote → local transfer semantics → receipt → disclosure ledger before devnet.",
+          detail:
+            "Local Surfpool artifact proves quote → local transfer semantics → receipt → disclosure ledger before devnet.",
         },
         {
           id: "local-verifier",
           label: "Local verifier",
           status: "pass",
-          detail: "Local verifier passed with specialist credit and 0.05% protocol fee semantics.",
+          detail:
+            "Local verifier passed with specialist credit and 0.05% protocol fee semantics.",
         },
       ],
     },
     {
       id: "devnet_ready",
       label: "3. Bounded devnet proof",
-      claimBoundary: "Devnet proof only after Surfpool succeeds and is reviewed.",
+      claimBoundary:
+        "Devnet proof only after Surfpool succeeds and is reviewed.",
       spendBoundary: "Explicit bounded devnet spend; no mainnet",
       checks: [
         {
           id: "surfpool-gate",
           label: "Surfpool gate",
           status: "pass",
-          detail: "Surfpool proof artifact exists; bounded devnet proof was executed separately under a tiny spend cap.",
+          detail:
+            "Surfpool proof artifact exists; bounded devnet proof was executed separately under a tiny spend cap.",
         },
         {
           id: "devnet-receipt",
           label: "Devnet receipt verification",
           status: "pass",
-          detail: "Bounded devnet proof captured tx signatures, terms hash, spend cap, payment boundary, and disclosure ledger entry.",
+          detail:
+            "Bounded devnet proof captured tx signatures, terms hash, spend cap, payment boundary, and disclosure ledger entry.",
         },
       ],
     },
@@ -212,13 +226,16 @@ export const mcpBridgeDemoFixture: McpBridgeDemoFixture = {
         currency: "USDC",
         network: "demo",
         verificationStatus: "planned",
-        evidenceRefs: ["quote_demo_mcp_bridge_research_001", surfpoolProof.quote.termsHash],
+        evidenceRefs: [
+          "quote_demo_mcp_bridge_research_001",
+          surfpoolProof.quote.termsHash,
+        ],
       },
     ],
   },
   recordingScript: [
     "Agent swarms can orchestrate work, but paid specialist work needs pricing, policy, receipts, and disclosure.",
-    "The RAP MCP Bridge lets any MCP host discover candidates and request a quote before spend.",
+    "The MCP bridge lets any MCP host discover candidates and request a quote before spend.",
     "This first quote is synthetic and non-binding. The policy correctly blocks payment and invocation.",
     "Next, the same flow must be proven locally on Surfpool before a bounded devnet spend is allowed.",
     "The final artifact is not just content — it includes a disclosure ledger describing who was hired, what was paid, and what verification boundary applies.",
