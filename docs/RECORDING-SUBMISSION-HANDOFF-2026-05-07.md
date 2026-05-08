@@ -22,7 +22,7 @@ Use `main` at `4cbed5f6` or later before this handoff patch, and the next commit
 - Umbra private x402 adapter contract is implemented for receiver-claimable UTXO payments; current evidence proves SDK-facing call path and receipt shape only.
 - Surfpool/mock-Jupiter proves a no-real-funds swap-shaped local invoke path.
 - Jupiter public evidence is quote/build/sign boundary evidence, not a successful devnet swap.
-- MagicBlock has live Quasar-native delegation/integration evidence, not successful PER settlement.
+- MagicBlock has live Quasar-native delegation/integration evidence plus bounded AgentVault settlement proof, not arbitrary-wallet/private payee settlement.
 
 ## Do not claim
 
@@ -37,7 +37,7 @@ Use `main` at `4cbed5f6` or later before this handoff patch, and the next commit
 - Live/mainnet Jupiter swap.
 - Judge wallet charged.
 - Mainnet settlement supported.
-- Successful MagicBlock PER settlement.
+- Arbitrary-wallet/private payee MagicBlock PER settlement.
 
 ## Final gate set just run
 
@@ -60,7 +60,7 @@ Use `main` at `4cbed5f6` or later before this handoff patch, and the next commit
 3. Open payment readiness and show Pay.sh / `reddi-x402` sandbox compatibility.
 4. Show local evidence paths / run report / submission prep.
 5. State Quasar devnet is the final on-chain path.
-6. State boundaries clearly: Umbra adapter contract implemented but live settlement not executed; Pay.sh sessions/splits probe-only; Jupiter not executed on devnet; MagicBlock delegation only, no PER settlement.
+6. State boundaries clearly: Umbra adapter contract implemented but live settlement not executed; Pay.sh sessions/splits probe-only; Jupiter not executed on devnet; MagicBlock bounded AgentVault settlement only; no arbitrary-wallet/private payee settlement.
 
 ## Current recommendation
 

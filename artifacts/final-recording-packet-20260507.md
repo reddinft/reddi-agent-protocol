@@ -37,6 +37,7 @@ Safe claim:
 - Umbra is the private-settlement adapter lane.
 - Umbra private x402 adapter contract is implemented for receiver-claimable UTXO payments.
 - Umbra devnet encrypted-balance deposit completed: tiny devnet wSOL was deposited into an Umbra encrypted balance with queue/callback tx evidence; this is not mainnet/live-production settlement proof.
+- MagicBlock PER bounded agent-vault settlement is proven for the Quasar-owned AgentVault route: MagicBlock TEE restored the delegated vault to base devnet and withdraw-after-settlement succeeded. This is not an arbitrary-wallet/private payee settlement proof.
 
 Do not claim:
 - successful public Jupiter devnet swap

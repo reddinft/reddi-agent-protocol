@@ -36,24 +36,24 @@ const requiredByFile = {
     "Pay.sh capped-session and split-payment probes",
     "Umbra private x402 adapter-contract proof",
     "Umbra devnet encrypted-balance deposit proof",
-    "Does not prove: mainnet payment, production Umbra private settlement, MagicBlock PER settlement",
+    "Does not prove: mainnet payment, production Umbra private settlement, arbitrary-wallet/private payee MagicBlock PER settlement",
   ],
   "docs/HACKATHON-BOUNTY-SHOWCASE-AUDIT-2026-05-07.md": [
     "x402 + Pay.sh / `reddi-x402`",
     "Umbra is now a strong private-payments adapter-contract lane",
     "Umbra devnet encrypted-balance deposit evidence",
     "sessions/splits are probe-only",
-    "not a successful private payee settlement proof",
+    "not a successful arbitrary-wallet/private payee settlement proof",
   ],
   "docs/COLOSSEUM-FINAL-QUASAR-PROOF-MAP-2026-05-06.md": [
-    "Live Quasar-native permission/delegation + TEE private authorization proof, not successful private payee settlement claim",
-    "patched Quasar PER executes inside MagicBlock TEE for private authorization/commit evidence",
-    "we do not claim successful PER settlement",
+    "Live Quasar-native permission/delegation + bounded MagicBlock TEE agent-vault settlement proof; not an arbitrary-wallet/private payee settlement claim",
+    "patched Quasar PER executes inside MagicBlock TEE and restores a Quasar-owned AgentVault to base devnet with withdraw-after-settlement evidence",
+    "we do not claim arbitrary-wallet/private payee settlement",
   ],
   "docs/verifiable-agent-protocol/colosseum-frontier-2026-04/NARRATIVE.md": [
     "Quasar-native MagicBlock permission/delegation succeeds live",
-    "private payee lamport settlement is not claimed",
-    "We do not claim end-to-end private payee lamport settlement",
+    "arbitrary-wallet/private payee lamport settlement is not claimed",
+    "We do not claim end-to-end arbitrary-wallet/private payee lamport settlement",
   ],
   "artifacts/economic-demo-submission-prep/latest/SUBMISSION-PREP.md": [
     "Pay.sh / reddi-x402 proves sandbox HTTP 402 → payment → HTTP 200 receipt compatibility",
@@ -69,6 +69,11 @@ const forbiddenStaleMagicBlockPatterns = [
   /MagicBlock TEE[^\n]*(?:fails|failed) at instruction start/i,
   /settlement is blocked at TEE execution/i,
   /Quasar-on-MagicBlock-TEE execution is blocked/i,
+  /TEE execution blocker/i,
+  /current MagicBlock TEE authorization proof/i,
+  /private authorization proof/i,
+  /MagicBlock delegation only,? no PER settlement/i,
+  /base-layer vault settlement remain unclaimed/i,
 ];
 
 const forbiddenSafeClaimPatterns = [
