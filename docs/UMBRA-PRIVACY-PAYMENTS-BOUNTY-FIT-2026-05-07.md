@@ -155,7 +155,9 @@ Confirmed devnet flow:
 - Submitted public-balance-to-encrypted-balance deposit queue transaction; Umbra callback finalized; rent cleanup transaction submitted.
 - Encrypted balance query returned `1000000` base units for the wSOL mint.
 
-Claim boundary: this proves a bounded Umbra devnet encrypted-balance deposit, not mainnet payment, production/live private settlement, receiver-claimable UTXO claim flow, Quasar-native Umbra execution, or MagicBlock PER settlement.
+Claim boundary: this proves a bounded Umbra devnet encrypted-balance deposit, not mainnet payment, production/live private settlement, Quasar-native Umbra execution, or MagicBlock PER settlement.
+
+Receiver-claimable UTXO follow-up evidence: `artifacts/umbra-devnet-receiver-claimable-utxo/20260507T092405Z/SUMMARY.md` proves a separate devnet-only create→scan→claim path with receiver encrypted-balance update. This strengthens the Umbra bounty lane but still does not prove mainnet/live-production private settlement, Quasar-native Umbra execution, MagicBlock PER settlement, or general arbitrary receiver/payee settlement.
 
 ### Phase 0 — BDD claim boundary
 

@@ -15,6 +15,7 @@ Record the Colosseum Frontier submission with Quasar-compiled Solana programs as
 - Do not claim mainnet-ready; architectural audit blockers remain.
 - MagicBlock PER/TEE has live Quasar-native delegation plus bounded Quasar-owned AgentVault settlement proof (`artifacts/quasar-per-agent-vault-settlement-smoke/20260508T031640Z/summary.json`, `docs/notes/MAGICBLOCK-COMMIT-SEMANTICS-LOOP-2026-05-08.md`) plus earlier PER/TEE boundary lineage (`docs/MAGICBLOCK-PER-TEE-VALIDATION-2026-05-07.md`), but do not claim arbitrary-wallet/private payee lamport settlement.
 - Do not claim successful public Jupiter devnet execution. Current safe Jupiter framing is: local Surfpool/mock-Jupiter invoke success plus public Jupiter quote/build/sign boundary. A real successful Jupiter swap requires separately approved mainnet-beta execution.
+- Umbra safe framing: adapter contract + bounded devnet encrypted-balance deposit + devnet-only receiver-claimable UTXO create→scan→claim evidence. Do not claim mainnet/live-production private settlement, Quasar-native Umbra execution, or MagicBlock PER settlement.
 - Legacy Anchor registrations/artifacts are reference-only.
 
 ## Recording environment
@@ -60,16 +61,20 @@ npm run test:surfpool:quasar-critical
    - balance snapshot
    - Surfpool rehearsal plan/evidence
    - x402 readiness / disclosure evidence
-   - 30-agent OpenRouter metadata/use-case triggers
-6. Optional supporting beat: open `/leaderboard` for Torque retention/leaderboard evidence and `/testers` for ElizaOS/SendAI-style x402 adapter distribution evidence.
-7. Switch to terminal proof and run/show the Quasar A→B→C devnet demo output.
-8. Highlight latest proof map: `docs/COLOSSEUM-FINAL-QUASAR-PROOF-MAP-2026-05-06.md` and `docs/HACKATHON-BOUNTY-SHOWCASE-AUDIT-2026-05-07.md`.
-9. Close with honest boundaries:
+   - 30-agent OpenRouter metadata/use-case triggers, with `docs/OPENROUTER-30-SPECIALIST-READINESS-2026-05-08.md` as the configured/devnet-registered vs hosted-live boundary
+6. Supporting Torque beat: open `/leaderboard`, then cite `artifacts/torque-reputation-ranking/20260508T052500Z/SUMMARY.md` to show the story: specialist completions + submitted ratings + onboarding milestones become Torque-compatible reputation/retention signals feeding leaderboard rankings. Say explicitly that this is not a live production rewards campaign or paid Torque incentive distribution.
+7. Supporting Umbra beat: cite `artifacts/umbra-devnet-smoke/20260507T075904Z/SUMMARY.md` and `artifacts/umbra-devnet-receiver-claimable-utxo/20260507T092405Z/SUMMARY.md` as devnet-only evidence for encrypted-balance deposit and receiver-claimable UTXO create→scan→claim. Say explicitly that this is not mainnet/live-production private settlement.
+8. Optional supporting beat: open `/testers` for ElizaOS/SendAI-style x402 adapter distribution evidence.
+9. Switch to terminal proof and run/show the Quasar A→B→C devnet demo output.
+10. Highlight latest proof map: `docs/COLOSSEUM-FINAL-QUASAR-PROOF-MAP-2026-05-06.md` and `docs/HACKATHON-BOUNTY-SHOWCASE-AUDIT-2026-05-07.md`.
+11. Close with honest boundaries:
    - Quasar-native devnet proof is live.
    - Surfpool localnet confidence passed.
    - x402/OpenRouter/Jupiter evidence is visible with exact boundaries.
+   - OpenRouter: all 30 specialists are configured/tested/devnet-registered and have hosted Coolify endpoint evidence; May 6 inventory verified 30/30 well-known manifests and 30/30 unpaid x402 challenge endpoints. They can respond to devnet/demo request flows when targeted. Do not claim production-paid settlement readiness without a fresh endpoint/funding/secrets/live paid-call pass.
    - Jupiter: Surfpool/mock-Jupiter is the successful no-real-funds visual; public Jupiter devnet is quote/build/sign boundary only.
    - MagicBlock PER/TEE: Quasar-native permission/delegation succeeds live on devnet, and bounded Quasar-owned AgentVault settlement through MagicBlock TEE is proven; arbitrary-wallet/private payee settlement is not claimed. Successful live Jupiter swap is not a final claim unless separately run with explicit approval.
+   - Umbra: devnet-only private-payment evidence is strong, including receiver-claimable UTXO create→scan→claim, but no mainnet/live-production private settlement claim.
    - Not mainnet-ready until architectural audit blockers are resolved and re-reviewed.
 
 ## Latest green evidence

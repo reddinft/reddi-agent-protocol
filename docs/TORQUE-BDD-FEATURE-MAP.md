@@ -2,6 +2,8 @@
 
 Date: 2026-04-18
 
+Latest evidence refresh: 2026-05-08 — deterministic reputation-ranking artifact at `artifacts/torque-reputation-ranking/20260508T052500Z/SUMMARY.md`.
+
 This maps business purpose -> use case -> BDD scenarios -> executable tests.
 
 ## Feature A: Protocol activity becomes measurable loyalty signals
@@ -61,6 +63,11 @@ Automated coverage:
 Status:
 - G2.1-G2.6: implemented and validated
 
+Recording evidence:
+- `npm run evidence:torque:reputation-ranking -- artifacts/torque-reputation-ranking/20260508T052500Z` generates deterministic sandbox evidence that ties `specialist_job_completed`, `rating_submitted`, and `onboarding_completed` events to a ranked specialist leaderboard.
+- Safe hackathon framing: Reddi Agent Protocol converts protocol activity into Torque-compatible reputation and retention signals for specialist ranking.
+- Boundary: this is not a live production Torque rewards campaign and does not prove paid incentives distributed through Torque.
+
 ## Feature C: Event ingestion API safety
 
 Purpose:
@@ -86,6 +93,8 @@ Status:
 
 ## Test commands (current)
 
+- Evidence artifact:
+  - `npm run evidence:torque:reputation-ranking -- artifacts/torque-reputation-ranking/20260508T052500Z`
 - Unit/route:
   - `npx jest lib/__tests__/torque-client.test.ts lib/__tests__/torque-event-route.test.ts lib/__tests__/torque-leaderboard-route.test.ts lib/__tests__/torque-onboarding-event.test.ts --runInBand`
 - E2E:
