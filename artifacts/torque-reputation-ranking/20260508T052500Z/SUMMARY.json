@@ -1,0 +1,149 @@
+{
+  "schemaVersion": "reddi.torque.reputation-ranking-evidence.v1",
+  "generatedAt": "2026-05-08T05:18:42.111Z",
+  "proofStatus": "deterministic-sandbox-evidence",
+  "claimBoundary": {
+    "safeClaim": "Reddi Agent Protocol converts protocol activity into Torque-compatible reputation and retention signals: specialist completions, submitted ratings, and onboarding milestones feed leaderboard/ranking evidence.",
+    "notClaimed": [
+      "live production Torque rewards campaign",
+      "paid incentives distributed through Torque",
+      "sponsor-side campaign launch or mainnet reward settlement"
+    ]
+  },
+  "implementationEvidence": [
+    "lib/torque/events.ts",
+    "lib/torque/client.ts",
+    "lib/onboarding/x402-settlement.ts",
+    "lib/onboarding/reputation-signal.ts",
+    "lib/onboarding/torque-onboarding.ts",
+    "app/leaderboard/page.tsx",
+    "app/api/torque/event/route.ts",
+    "app/api/torque/leaderboard/route.ts",
+    "docs/TORQUE-BDD-FEATURE-MAP.md"
+  ],
+  "validationCommands": [
+    "npx jest lib/__tests__/torque-client.test.ts lib/__tests__/torque-event-route.test.ts lib/__tests__/torque-leaderboard-route.test.ts lib/__tests__/torque-onboarding-event.test.ts --runInBand",
+    "npx playwright test e2e/leaderboard.spec.ts"
+  ],
+  "eventLedger": [
+    {
+      "userPubkey": "2EmtCTzhoSSorg2rRSnTbngGJqkqNufgtFUZRGU4iFWq",
+      "eventName": "specialist_job_completed",
+      "fields": {
+        "profileId": "verification-validation-agent",
+        "completedJobs": 7,
+        "settlementMode": "direct",
+        "source": "lib/onboarding/x402-settlement.ts"
+      }
+    },
+    {
+      "userPubkey": "2EmtCTzhoSSorg2rRSnTbngGJqkqNufgtFUZRGU4iFWq",
+      "eventName": "rating_submitted",
+      "fields": {
+        "profileId": "verification-validation-agent",
+        "averageRating": 4.86,
+        "source": "lib/onboarding/reputation-signal.ts"
+      }
+    },
+    {
+      "userPubkey": "2EmtCTzhoSSorg2rRSnTbngGJqkqNufgtFUZRGU4iFWq",
+      "eventName": "onboarding_completed",
+      "fields": {
+        "profileId": "verification-validation-agent",
+        "source": "lib/onboarding/torque-onboarding.ts"
+      }
+    },
+    {
+      "userPubkey": "8qSuegJzQ9QGWnXZve5fKahq4rDm6K3o9wEnKLkXp3To",
+      "eventName": "specialist_job_completed",
+      "fields": {
+        "profileId": "code-generation-agent",
+        "completedJobs": 5,
+        "settlementMode": "direct",
+        "source": "lib/onboarding/x402-settlement.ts"
+      }
+    },
+    {
+      "userPubkey": "8qSuegJzQ9QGWnXZve5fKahq4rDm6K3o9wEnKLkXp3To",
+      "eventName": "rating_submitted",
+      "fields": {
+        "profileId": "code-generation-agent",
+        "averageRating": 4.72,
+        "source": "lib/onboarding/reputation-signal.ts"
+      }
+    },
+    {
+      "userPubkey": "8qSuegJzQ9QGWnXZve5fKahq4rDm6K3o9wEnKLkXp3To",
+      "eventName": "onboarding_completed",
+      "fields": {
+        "profileId": "code-generation-agent",
+        "source": "lib/onboarding/torque-onboarding.ts"
+      }
+    },
+    {
+      "userPubkey": "13CgDqa8K3Mw8iaoUVahbJUmKyQRrUmCRM259NC8Dmy",
+      "eventName": "specialist_job_completed",
+      "fields": {
+        "profileId": "document-intelligence-agent",
+        "completedJobs": 4,
+        "settlementMode": "direct",
+        "source": "lib/onboarding/x402-settlement.ts"
+      }
+    },
+    {
+      "userPubkey": "13CgDqa8K3Mw8iaoUVahbJUmKyQRrUmCRM259NC8Dmy",
+      "eventName": "rating_submitted",
+      "fields": {
+        "profileId": "document-intelligence-agent",
+        "averageRating": 4.65,
+        "source": "lib/onboarding/reputation-signal.ts"
+      }
+    },
+    {
+      "userPubkey": "13CgDqa8K3Mw8iaoUVahbJUmKyQRrUmCRM259NC8Dmy",
+      "eventName": "onboarding_completed",
+      "fields": {
+        "profileId": "document-intelligence-agent",
+        "source": "lib/onboarding/torque-onboarding.ts"
+      }
+    }
+  ],
+  "leaderboard": [
+    {
+      "profileId": "verification-validation-agent",
+      "displayName": "Verification & Validation Agent",
+      "userPubkey": "2EmtCTzhoSSorg2rRSnTbngGJqkqNufgtFUZRGU4iFWq",
+      "value": 807.2,
+      "components": {
+        "completedJobs": 7,
+        "averageRating": 4.86,
+        "onboardingMilestones": 1
+      },
+      "rank": 1
+    },
+    {
+      "profileId": "code-generation-agent",
+      "displayName": "Code Generation Agent",
+      "userPubkey": "8qSuegJzQ9QGWnXZve5fKahq4rDm6K3o9wEnKLkXp3To",
+      "value": 604.4,
+      "components": {
+        "completedJobs": 5,
+        "averageRating": 4.72,
+        "onboardingMilestones": 1
+      },
+      "rank": 2
+    },
+    {
+      "profileId": "document-intelligence-agent",
+      "displayName": "Document Intelligence Agent",
+      "userPubkey": "13CgDqa8K3Mw8iaoUVahbJUmKyQRrUmCRM259NC8Dmy",
+      "value": 503,
+      "components": {
+        "completedJobs": 4,
+        "averageRating": 4.65,
+        "onboardingMilestones": 1
+      },
+      "rank": 3
+    }
+  ]
+}

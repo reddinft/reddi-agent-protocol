@@ -61,7 +61,8 @@ npm run test:surfpool:quasar-critical
    - Surfpool rehearsal plan/evidence
    - x402 readiness / disclosure evidence
    - 30-agent OpenRouter metadata/use-case triggers
-6. Optional supporting beat: open `/leaderboard` for Torque retention/leaderboard evidence and `/testers` for ElizaOS/SendAI-style x402 adapter distribution evidence.
+6. Supporting Torque beat: open `/leaderboard`, then cite `artifacts/torque-reputation-ranking/20260508T052500Z/SUMMARY.md` to show the story: specialist completions + submitted ratings + onboarding milestones become Torque-compatible reputation/retention signals feeding leaderboard rankings. Say explicitly that this is not a live production rewards campaign or paid Torque incentive distribution.
+7. Optional supporting beat: open `/testers` for ElizaOS/SendAI-style x402 adapter distribution evidence.
 7. Switch to terminal proof and run/show the Quasar A→B→C devnet demo output.
 8. Highlight latest proof map: `docs/COLOSSEUM-FINAL-QUASAR-PROOF-MAP-2026-05-06.md` and `docs/HACKATHON-BOUNTY-SHOWCASE-AUDIT-2026-05-07.md`.
 9. Close with honest boundaries:

@@ -14,6 +14,7 @@ Use clean `main` at `f3000708` or later.
 - Umbra private-payment plan: `docs/UMBRA-PRIVACY-PAYMENTS-BOUNTY-FIT-2026-05-07.md`
 - Umbra private x402 adapter evidence: `artifacts/umbra-private-x402/20260507T074334Z/SUMMARY.md`
 - Umbra devnet encrypted-balance deposit completed: `artifacts/umbra-devnet-smoke/20260507T075904Z/SUMMARY.md`
+- Torque reputation-ranking evidence: `artifacts/torque-reputation-ranking/20260508T052500Z/SUMMARY.md`
 - Recording/submission handoff: `docs/RECORDING-SUBMISSION-HANDOFF-2026-05-07.md`
 
 ## Latest local gates
@@ -38,6 +39,7 @@ Safe claim:
 - Umbra private x402 adapter contract is implemented for receiver-claimable UTXO payments.
 - Umbra devnet encrypted-balance deposit completed: tiny devnet wSOL was deposited into an Umbra encrypted balance with queue/callback tx evidence; this is not mainnet/live-production settlement proof.
 - MagicBlock PER bounded agent-vault settlement is proven for the Quasar-owned AgentVault route: MagicBlock TEE restored the delegated vault to base devnet and withdraw-after-settlement succeeded. This is not an arbitrary-wallet/private payee settlement proof.
+- Torque reputation rankings are a supporting retention layer: Reddi Agent Protocol converts specialist completions, submitted ratings, and onboarding milestones into Torque-compatible events that feed leaderboard/ranking evidence. This is not a live production rewards campaign proof.
 
 Do not claim:
 - successful public Jupiter devnet swap
@@ -48,6 +50,7 @@ Do not claim:
 - Pay.sh evidence proving Umbra private settlement or MagicBlock PER settlement
 - Umbra private settlement executed
 - Umbra mainnet or production settlement completed
+- live production Torque rewards campaign or paid incentives distributed through Torque
 
 ## Quasar program IDs
 
