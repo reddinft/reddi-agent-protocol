@@ -22,6 +22,7 @@ import {
 import type { EconomicDemoLedgerReconciliation } from "@/lib/economic-demo/ledger-reconciliation";
 import type { EconomicDemoHostedChallengeProbe } from "@/lib/economic-demo/hosted-challenge-probe";
 import type { EconomicDemoLiveRun } from "@/lib/economic-demo/live-run";
+import type { EconomicDemoLivePaidDevnetRun } from "@/lib/economic-demo/live-paid-devnet-run";
 import type { ResearchWorkflowDesign } from "@/lib/economic-demo/research-workflow-design";
 import type { PictureStoryboardDesign } from "@/lib/economic-demo/picture-storyboard-design";
 import {
@@ -136,6 +137,11 @@ export default function EconomicDemoPage() {
   >("idle");
   const [controlledLiveRun, setControlledLiveRun] =
     useState<EconomicDemoLiveRun | null>(null);
+  const [livePaidDevnetRun, setLivePaidDevnetRun] =
+    useState<EconomicDemoLivePaidDevnetRun | null>(null);
+  const [livePaidDevnetStatus, setLivePaidDevnetStatus] = useState<
+    "idle" | "loading" | "loaded" | "error"
+  >("idle");
   const [hostedChallengeProbe, setHostedChallengeProbe] =
     useState<EconomicDemoHostedChallengeProbe | null>(null);
   const [hostedChallengeProbeStatus, setHostedChallengeProbeStatus] = useState<
@@ -369,6 +375,35 @@ export default function EconomicDemoPage() {
     }
   }
 
+  async function runLivePaidDevnetDemo() {
+    setRunStarted(true);
+    setLivePaidDevnetStatus("loading");
+    try {
+      const res = await fetch("/api/economic-demo/live-run", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          scenarioId: scenario.id,
+          prompt: scenario.prompt,
+          mode: "live_paid_devnet",
+          clientRunNonce: `ui-paid-${Date.now()}`,
+        }),
+      });
+      const payload = (await res.json()) as {
+        ok?: boolean;
+        livePaidDevnetRun?: EconomicDemoLivePaidDevnetRun;
+      };
+      if (!res.ok || !payload.ok || !payload.livePaidDevnetRun) {
+        throw new Error("live_paid_devnet_run_failed");
+      }
+      setLivePaidDevnetRun(payload.livePaidDevnetRun);
+      setLivePaidDevnetStatus("loaded");
+    } catch {
+      setLivePaidDevnetRun(null);
+      setLivePaidDevnetStatus("error");
+    }
+  }
+
   async function probeHostedChallenges() {
     setHostedChallengeProbeStatus("loading");
     try {
@@ -446,6 +481,16 @@ export default function EconomicDemoPage() {
                 {hostedChallengeProbeStatus === "loading"
                   ? "Probing hosted 402s…"
                   : "Probe hosted 402s"}
+              </button>
+              <button
+                type="button"
+                onClick={runLivePaidDevnetDemo}
+                disabled={livePaidDevnetStatus === "loading"}
+                className="rounded-lg border border-accent-purple/40 bg-accent-purple/10 px-5 py-3 text-sm font-semibold text-accent-purple transition hover:bg-accent-purple/15 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {livePaidDevnetStatus === "loading"
+                  ? "Running live paid devnet…"
+                  : "Run live paid devnet demo"}
               </button>
               <a
                 href="#evidence-archive"
@@ -772,6 +817,79 @@ export default function EconomicDemoPage() {
                             </div>
                           ))}
                         </div>
+                      </div>
+                    )}
+                    {livePaidDevnetStatus !== "idle" && (
+                      <div
+                        data-testid="live-paid-devnet-run-envelope"
+                        className="mt-3 space-y-2 rounded-lg border border-accent-purple/30 bg-accent-purple/10 p-3"
+                      >
+                        <p className="text-xs uppercase tracking-wide text-accent-purple">
+                          Live paid devnet lane
+                        </p>
+                        {livePaidDevnetStatus === "error" && (
+                          <p className="text-sm text-yellow-100">
+                            Live paid devnet run failed before returning a
+                            bounded envelope.
+                          </p>
+                        )}
+                        {livePaidDevnetRun && (
+                          <>
+                            <div className="rounded border border-white/10 bg-black/30 p-2 text-xs leading-5 text-gray-300">
+                              <p className="font-mono text-white">
+                                status: {livePaidDevnetRun.status}
+                              </p>
+                              <p className="break-all">
+                                orchestrator: {livePaidDevnetRun.orchestratorWallet ?? "not armed"}
+                              </p>
+                              <p>
+                                spent: {livePaidDevnetRun.spentUsdc} USDC / cap {livePaidDevnetRun.maxUsdc} USDC
+                              </p>
+                              <p className="text-yellow-100">
+                                {livePaidDevnetRun.claimBoundary}
+                              </p>
+                            </div>
+                            <div className="grid gap-2 md:grid-cols-2">
+                              {livePaidDevnetRun.timeline.map((step) => (
+                                <div
+                                  key={step.id}
+                                  className="rounded border border-white/10 bg-white/5 p-2 text-xs leading-5 text-gray-300"
+                                >
+                                  <p className="font-semibold text-white">
+                                    {step.profileId} · {step.status}
+                                  </p>
+                                  <p className="break-all text-gray-500">
+                                    {step.endpoint}
+                                  </p>
+                                  {step.amountUsdc && <p>{step.amountUsdc} USDC</p>}
+                                  {step.txSignature && (
+                                    <p className="break-all text-[#14F195]">
+                                      tx: {step.txSignature}
+                                    </p>
+                                  )}
+                                  {step.outputPreview && (
+                                    <p>{step.outputPreview}</p>
+                                  )}
+                                  {step.error && (
+                                    <p className="text-yellow-100">
+                                      {step.error}
+                                    </p>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                            <details className="rounded border border-white/10 bg-black/20 p-2 text-xs text-gray-300">
+                              <summary className="cursor-pointer font-semibold text-white">
+                                Future guardrails noted, not demo blockers
+                              </summary>
+                              <ul className="mt-2 list-disc space-y-1 pl-5">
+                                {livePaidDevnetRun.futureGuardrails.map((item) => (
+                                  <li key={item}>{item}</li>
+                                ))}
+                              </ul>
+                            </details>
+                          </>
+                        )}
                       </div>
                     )}
                   </div>
