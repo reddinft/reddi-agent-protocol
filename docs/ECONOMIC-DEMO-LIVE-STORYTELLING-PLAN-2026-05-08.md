@@ -325,3 +325,60 @@ Validation gates:
 - No hidden arbitrary endpoint calls.
 - No private prompt/payload storage in public evidence artifacts.
 - No “live” label for historical snapshots; call those “evidence archive.”
+
+## Belle UX review incorporation
+
+Belle confirmed the core problem: the page is evidence-rich but judge-hostile. The current UX gives too many equal-weight CTAs and makes historical evidence feel like the product. Her recommended story spine is now the implementation target:
+
+> Prompt → quote/approval boundary → specialist endpoint challenge → controlled/devnet evidence → attested returned output → evidence drawer.
+
+### UX decisions adopted
+
+1. **No wallet by default.** Wallet connect should be hidden unless the user explicitly chooses a user-funded devnet mode. It should not appear for historical artifacts, controlled demo receipts, unpaid x402 challenge proof, server-funded devnet proof, or archive browsing.
+2. **One primary CTA.** Replace the current multi-button evidence cockpit with a single “Run demo” action and a secondary “Open evidence archive.”
+3. **Rendered output is the hero proof.** The main judge payoff should be the returned webpage/plan/code/attestation output, not artifact links.
+4. **Live language must be precise.** Historical snapshots become “Evidence archive.” “Live” is reserved for fresh API run state or freshly fetched endpoint/challenge evidence.
+5. **Proof lanes must be labelled.** Controlled hosted workflow, server-funded devnet proof, and historical archive need separate lane labels so we do not overclaim production settlement.
+
+### Belle-recommended smallest clean PR
+
+1. Add no-wallet default “Run demo” page layout.
+2. Reframe existing `webpage-live-workflow` evidence into:
+   - quote card,
+   - timeline,
+   - rendered output panel,
+   - evidence drawer.
+3. Move current proof panels into collapsed archive.
+4. Hide wallet connect unless `user_devnet_wallet` mode is selected.
+5. Add tests asserting:
+   - wallet button is not visible in default judge mode,
+   - primary CTA is unique,
+   - evidence archive is collapsed by default,
+   - controlled/historical lanes are not labelled as production settlement,
+   - rendered output appears above raw artifact links.
+
+### Final next-activity sequence
+
+After PR #280/current task work is complete:
+
+1. **PR A — UX restructure using existing evidence only**
+   - No new payment path.
+   - No live spend.
+   - Convert the page to the Belle IA: hero → prompt/template → quote → timeline → rendered output → archive.
+   - Hide wallet by default.
+
+2. **PR B — Fresh hosted live-run API**
+   - Add `POST /api/economic-demo/live-run` for controlled hosted workflow.
+   - Use exact allowlisted Coolify specialist endpoints.
+   - Return fresh output and evidence bundle.
+   - Still no production settlement claim.
+
+3. **PR C — Server-funded devnet proof lane**
+   - Use approved devnet treasury/demo signer.
+   - Show tx signatures, caps, receipt verification, and fail-closed status.
+   - Keep judge wallet optional.
+
+4. **PR D — Recording rehearsal + clutter cut**
+   - Run cold-page-load rehearsal.
+   - Remove any remaining “debug cockpit” content from the default viewport.
+   - Keep appendix/evidence drawer for judges who want proof depth.
