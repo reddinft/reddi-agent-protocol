@@ -32,6 +32,12 @@ The harness writes:
 - per-step logs
 - copied Playwright recording video as `marketplace-recording.webm` when available
 
+Recording pace can be tuned with:
+
+```bash
+MARKETPLACE_RECORDING_PACE_MS=1500 npm run demo:marketplace:readiness -- --skip-surfpool
+```
+
 ## Fast mode
 
 Use this while iterating on UI/recording choreography:
@@ -71,7 +77,7 @@ The Playwright recording route follows:
 5. Attestor verification path.
 6. Economic demo proof/evidence page.
 
-The narration script should be based on the captured video and readiness artifacts, not aspirational copy.
+The narration script should be based on the captured video and readiness artifacts, not aspirational copy. A draft storyboard/script lives in `docs/MARKETPLACE-DEMO-STORYBOARD-2026-05-08.md`.
 
 ## Guardrails
 

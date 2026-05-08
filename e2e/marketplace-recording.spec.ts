@@ -1,6 +1,16 @@
 import { expect, test } from "@playwright/test";
 import { connectMockWallet, enableMockWallet } from "./helpers/wallet";
 
+const recordingPaceMs = Number(
+  process.env.MARKETPLACE_RECORDING_PACE_MS ?? 900,
+);
+
+async function recordingBeat(page: {
+  waitForTimeout: (ms: number) => Promise<void>;
+}) {
+  if (recordingPaceMs > 0) await page.waitForTimeout(recordingPaceMs);
+}
+
 test.describe("marketplace demo recording journey", () => {
   test("records existing-agent to specialist to attestor onboarding flow", async ({
     page,
@@ -13,6 +23,7 @@ test.describe("marketplace demo recording journey", () => {
         name: /let your agents hire trusted specialist agents/i,
       }),
     ).toBeVisible();
+    await recordingBeat(page);
 
     await page
       .getByRole("link", { name: "Connect your agent system", exact: true })
@@ -21,6 +32,7 @@ test.describe("marketplace demo recording journey", () => {
       page.getByRole("heading", { name: /Reddi Agent Protocol MCP Bridge/i }),
     ).toBeVisible();
     await expect(page.getByText(/local-first evidence trail/i)).toBeVisible();
+    await recordingBeat(page);
 
     await page.getByRole("link", { name: /try planner path/i }).click();
     await connectMockWallet(page);
@@ -41,6 +53,7 @@ test.describe("marketplace demo recording journey", () => {
       }),
     ).toBeVisible();
     await expect(page.getByText(/gate work with x402/i)).toBeVisible();
+    await recordingBeat(page);
 
     await page.route("**/api/onboarding/audit", async (route) => {
       await route.fulfill({
@@ -81,6 +94,7 @@ test.describe("marketplace demo recording journey", () => {
     ).toBeVisible();
     await page.getByRole("button", { name: /resolve attestor/i }).click();
     await expect(page.getByText(/resolved attestor/i)).toBeVisible();
+    await recordingBeat(page);
 
     await page.goto("/economic-demo");
     await expect(
@@ -88,5 +102,6 @@ test.describe("marketplace demo recording journey", () => {
     ).toBeVisible();
     await expect(page.getByText(/money \+ work graph/i)).toBeVisible();
     await expect(page.getByText(/boundary:/i).first()).toBeVisible();
+    await recordingBeat(page);
   });
 });
