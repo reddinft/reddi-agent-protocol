@@ -1,8 +1,10 @@
 # MagicBlock PER/TEE Validation Lane — 2026-05-07
 
+> **2026-05-08 supersession note:** This page records the earlier validation lane before PR #274. Current MagicBlock claim boundary is stronger and narrower: bounded MagicBlock PER AgentVault settlement is proven for the Quasar-owned agent-vault route; arbitrary-wallet/private payee settlement remains unclaimed. Do not reuse the older broad no-settlement sentence without the AgentVault-route qualifier.
+
 ## Verdict
 
-A bounded MagicBlock validation lane was run after explicit approval and then re-run after patching the demo to use MagicBlock's `ConnectionMagicRouter` blockhash path. The project now has judge-visible MagicBlock evidence, but **successful live PER settlement is not claimed**.
+A bounded MagicBlock validation lane was run after explicit approval and then re-run after patching the demo to use MagicBlock's `ConnectionMagicRouter` blockhash path. This historical page captured judge-visible MagicBlock boundary evidence before the later AgentVault settlement proof landed.
 
 What we can honestly claim:
 
@@ -72,7 +74,7 @@ The validation exposed a real integration gap rather than a generic endpoint fai
 
 Use this wording:
 
-> “We integrated and live-tested the MagicBlock PER/TEE lane. The proof shows authenticated access to the TEE endpoint, a PER-routed settlement attempt with fallback disabled, and no public devnet visibility for a submitted TEE signature. The TEE rejected settlement because the current legacy escrow path still needs MagicBlock’s full permission/delegation hooks for PDA state, so we do not claim successful live PER settlement. The final demo remains Quasar-native, with MagicBlock shown as a validated integration boundary and concrete next-step privacy rail.”
+> Historical framing at this point was: “We integrated and live-tested the MagicBlock PER/TEE lane and found the missing permission/delegation lifecycle.” Current framing after PR #274 is: “Bounded MagicBlock PER AgentVault settlement is proven for the Quasar-owned agent-vault route; arbitrary-wallet/private payee settlement remains unclaimed.”
 
 Avoid these claims:
 

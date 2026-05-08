@@ -176,7 +176,7 @@ Pay.sh appears faster to leverage because sandbox mode exists specifically for t
 
 ### Better bounty/commercial story than MagicBlock right now
 
-MagicBlock remains technically interesting: Quasar-native delegation and patched Quasar-on-MagicBlock-TEE private authorization now work, but private payee lamport settlement is not yet claimed. Pay.sh does not require private TEE settlement; it wraps HTTP payment flows and can sit above our existing app/API layer.
+MagicBlock remains technically interesting and stronger after PR #274: Quasar-native delegation plus bounded Quasar-owned AgentVault settlement through MagicBlock TEE are proven, but arbitrary-wallet/private payee lamport settlement is not yet claimed. Pay.sh does not require private TEE settlement; it wraps HTTP payment flows and can sit above our existing app/API layer.
 
 ## Recommended architecture
 
