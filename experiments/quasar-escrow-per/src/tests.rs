@@ -291,37 +291,202 @@ fn commit_agent_vault_per_ix(
     }
 }
 
-fn undelegate_callback_ix(escrow: Pubkey) -> Instruction {
+fn owned_account(mut account: Account, owner: Pubkey) -> Account {
+    account.owner = owner;
+    account
+}
+
+fn system_prefunded_account(address: Pubkey, lamports: u64) -> Account {
+    Account {
+        address,
+        lamports,
+        data: vec![],
+        owner: quasar_svm::system_program::ID,
+        executable: false,
+    }
+}
+
+fn undelegate_callback_ix(authority: Pubkey, vault: Pubkey, buffer: Pubkey) -> Instruction {
     Instruction {
         program_id: crate::ID,
-        accounts: vec![AccountMeta::new(escrow, false)],
+        accounts: vec![
+            AccountMeta::new(vault, false),
+            AccountMeta::new(buffer, false),
+            AccountMeta::new(authority, false),
+            AccountMeta::new_readonly(quasar_svm::system_program::ID, false),
+        ],
         data: crate::magicblock::constants::UNDELEGATE_CALLBACK_DISCRIMINATOR.to_vec(),
     }
 }
 
-/// Test 9: MagicBlock undelegate callback discriminator dispatches locally.
-#[test]
-fn test_magicblock_undelegate_callback_dispatches() {
-    let mut svm = setup();
-    let escrow = Pubkey::new_unique();
+fn delegate_buffer_pda(vault: &Pubkey) -> Pubkey {
+    Pubkey::find_program_address(&[b"buffer", vault.as_ref()], &crate::ID).0
+}
 
-    let result = svm.process_instruction(&undelegate_callback_ix(escrow), &[empty(escrow)]);
+fn undelegate_buffer_pda(vault: &Pubkey) -> Pubkey {
+    Pubkey::find_program_address(
+        &[b"undelegate-buffer", vault.as_ref()],
+        &crate::magicblock::constants::DELEGATION_PROGRAM_ID,
+    )
+    .0
+}
+
+/// Test 9: MagicBlock undelegate callback validates committed agent-vault bytes.
+#[test]
+fn test_magicblock_undelegate_callback_validates_agent_vault_buffer() {
+    let mut svm = setup();
+    let payer = Pubkey::new_unique();
+    let agent = Pubkey::new_unique();
+    let vault = agent_vault_pda(&agent);
+    let buffer = undelegate_buffer_pda(&vault);
+
+    let prepare_result = svm.process_instruction(
+        &prepare_agent_vault_ix(payer, agent, vault),
+        &[funded(payer), funded(agent), empty(vault)],
+    );
+    prepare_result.assert_success();
+    let restored_vault = prepare_result.account(&vault).unwrap().clone();
+
+    let mut delegated_vault = restored_vault.clone();
+    delegated_vault.data.clear();
+    delegated_vault.owner = quasar_svm::system_program::ID;
+
+    let mut delegation_buffer = restored_vault.clone();
+    delegation_buffer.address = buffer;
+    delegation_buffer.owner = crate::magicblock::constants::DELEGATION_PROGRAM_ID;
+
+    let result = svm.process_instruction(
+        &undelegate_callback_ix(agent, vault, buffer),
+        &[
+            delegated_vault,
+            delegation_buffer,
+            prepare_result.account(&agent).unwrap().clone(),
+        ],
+    );
     result.assert_success();
+
+    let vault_after = result.account(&vault).unwrap();
+    assert_eq!(vault_after.owner, crate::ID);
+    assert_eq!(vault_after.data, restored_vault.data);
+}
+
+/// Test 9b: MagicBlock undelegate callback rejects the SDK delegate-buffer PDA.
+#[test]
+fn test_magicblock_undelegate_callback_rejects_delegate_buffer_pda() {
+    let mut svm = setup();
+    let payer = Pubkey::new_unique();
+    let agent = Pubkey::new_unique();
+    let vault = agent_vault_pda(&agent);
+    let buffer = delegate_buffer_pda(&vault);
+    assert_ne!(buffer, undelegate_buffer_pda(&vault));
+
+    let prepare_result = svm.process_instruction(
+        &prepare_agent_vault_ix(payer, agent, vault),
+        &[funded(payer), funded(agent), empty(vault)],
+    );
+    prepare_result.assert_success();
+    let restored_vault = prepare_result.account(&vault).unwrap().clone();
+
+    let mut delegated_vault = restored_vault.clone();
+    delegated_vault.data.clear();
+    delegated_vault.owner = quasar_svm::system_program::ID;
+
+    let mut delegation_buffer = restored_vault.clone();
+    delegation_buffer.address = buffer;
+    delegation_buffer.owner = crate::magicblock::constants::DELEGATION_PROGRAM_ID;
+
+    let result = svm.process_instruction(
+        &undelegate_callback_ix(agent, vault, buffer),
+        &[
+            delegated_vault,
+            delegation_buffer,
+            prepare_result.account(&agent).unwrap().clone(),
+        ],
+    );
+    assert!(
+        result.is_err(),
+        "delegate-buffer PDA must not be accepted by public callback"
+    );
 }
 
 /// Test 10: MagicBlock undelegate callback requires the exact discriminator.
 #[test]
 fn test_magicblock_undelegate_callback_rejects_wrong_discriminator() {
     let mut svm = setup();
-    let escrow = Pubkey::new_unique();
-    let mut ix = undelegate_callback_ix(escrow);
+    let agent = Pubkey::new_unique();
+    let vault = agent_vault_pda(&agent);
+    let buffer = undelegate_buffer_pda(&vault);
+    let mut ix = undelegate_callback_ix(agent, vault, buffer);
     ix.data[0] ^= 0xff;
 
-    let result = svm.process_instruction(&ix, &[empty(escrow)]);
+    let result = svm.process_instruction(
+        &ix,
+        &[
+            owned_account(
+                system_prefunded_account(vault, 1_301_520),
+                quasar_svm::system_program::ID,
+            ),
+            owned_account(
+                zeroed_program_account(buffer, 1_301_520, 59),
+                crate::magicblock::constants::DELEGATION_PROGRAM_ID,
+            ),
+            funded(agent),
+        ],
+    );
     assert!(
         result.is_err(),
         "wrong MagicBlock callback discriminator must fail"
     );
+}
+
+/// Test 10b: MagicBlock undelegate callback rejects wrong vault PDA seeds.
+#[test]
+fn test_magicblock_undelegate_callback_rejects_wrong_vault_seed() {
+    let mut svm = setup();
+    let agent = Pubkey::new_unique();
+    let wrong_vault = Pubkey::new_unique();
+    let buffer = undelegate_buffer_pda(&wrong_vault);
+
+    let result = svm.process_instruction(
+        &undelegate_callback_ix(agent, wrong_vault, buffer),
+        &[
+            owned_account(
+                system_prefunded_account(wrong_vault, 1_301_520),
+                quasar_svm::system_program::ID,
+            ),
+            owned_account(
+                zeroed_program_account(buffer, 1_301_520, 59),
+                crate::magicblock::constants::DELEGATION_PROGRAM_ID,
+            ),
+            funded(agent),
+        ],
+    );
+    assert!(result.is_err(), "wrong vault PDA seed must fail");
+}
+
+/// Test 10c: MagicBlock undelegate callback requires the deterministic buffer PDA.
+#[test]
+fn test_magicblock_undelegate_callback_rejects_wrong_buffer_pda() {
+    let mut svm = setup();
+    let agent = Pubkey::new_unique();
+    let vault = agent_vault_pda(&agent);
+    let buffer = Pubkey::new_unique();
+
+    let result = svm.process_instruction(
+        &undelegate_callback_ix(agent, vault, buffer),
+        &[
+            owned_account(
+                system_prefunded_account(vault, 1_301_520),
+                quasar_svm::system_program::ID,
+            ),
+            owned_account(
+                zeroed_program_account(buffer, 1_301_520, 59),
+                crate::magicblock::constants::DELEGATION_PROGRAM_ID,
+            ),
+            funded(agent),
+        ],
+    );
+    assert!(result.is_err(), "wrong buffer PDA must fail");
 }
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
@@ -763,7 +928,10 @@ fn test_private_take_to_agent_vault_accepts_zeroed_delegated_mirrors() {
         &[
             prepare_result.account(&payer).unwrap().clone(),
             lock_result.account(&escrow).unwrap().clone(),
-            prepare_result.account(&agent).cloned().unwrap_or(empty(agent)),
+            prepare_result
+                .account(&agent)
+                .cloned()
+                .unwrap_or(empty(agent)),
             prepare_result.account(&vault).unwrap().clone(),
             zeroed_program_account(intent, 1_000_000, 145),
         ],
@@ -830,7 +998,10 @@ fn test_private_take_to_agent_vault_rejects_wrong_authority_vault() {
         &[
             prepare_result.account(&payer).unwrap().clone(),
             lock_result.account(&escrow).unwrap().clone(),
-            prepare_result.account(&agent).cloned().unwrap_or(empty(agent)),
+            prepare_result
+                .account(&agent)
+                .cloned()
+                .unwrap_or(empty(agent)),
             prepare_result.account(&vault).unwrap().clone(),
             zeroed_program_account(intent, 1_000_000, 145),
         ],
@@ -875,7 +1046,12 @@ fn test_private_take_to_agent_vault_rejects_same_amount_wrong_escrow_intent() {
 
     let lock_one_result = svm.process_instruction(
         &lock_ix(payer, agent_one, counter, escrow_one, amount, escrow_one_id),
-        &[funded(payer), empty(agent_one), empty(counter), empty(escrow_one)],
+        &[
+            funded(payer),
+            empty(agent_one),
+            empty(counter),
+            empty(escrow_one),
+        ],
     );
     lock_one_result.assert_success();
 
@@ -894,7 +1070,10 @@ fn test_private_take_to_agent_vault_rejects_same_amount_wrong_escrow_intent() {
         &prepare_agent_vault_ix(payer, agent_one, vault_one),
         &[
             lock_two_result.account(&payer).unwrap().clone(),
-            lock_one_result.account(&agent_one).cloned().unwrap_or(empty(agent_one)),
+            lock_one_result
+                .account(&agent_one)
+                .cloned()
+                .unwrap_or(empty(agent_one)),
             empty(vault_one),
         ],
     );

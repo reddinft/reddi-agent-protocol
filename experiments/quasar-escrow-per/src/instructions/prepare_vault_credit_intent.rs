@@ -71,8 +71,7 @@ impl<'info> PrepareVaultCreditIntent<'info> {
                 != self.escrow.address().as_ref()
             || &data[INTENT_AUTHORITY_OFFSET..INTENT_VAULT_OFFSET]
                 != self.authority.address().as_ref()
-            || &data[INTENT_VAULT_OFFSET..INTENT_ESCROW_ID_OFFSET]
-                != self.vault.address().as_ref()
+            || &data[INTENT_VAULT_OFFSET..INTENT_ESCROW_ID_OFFSET] != self.vault.address().as_ref()
             || u64::from_le_bytes(
                 data[INTENT_ESCROW_ID_OFFSET..INTENT_AMOUNT_OFFSET]
                     .try_into()

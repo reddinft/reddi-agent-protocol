@@ -43,7 +43,7 @@ const MIN_VAULT_LEN: usize = VAULT_BUMP_OFFSET + 1;
 /// fallback while targeting the self-custodied agent vault instead of an arbitrary
 /// wallet account.
 #[derive(Accounts)]
-#[instruction(escrow_id: u64)]
+#[instruction(_escrow_id: u64)]
 pub struct PrivateTakeToAgentVault<'info> {
     /// Original payer authorizes the release.
     pub payer: &'info mut Signer,
@@ -137,7 +137,8 @@ impl<'info> PrivateTakeToAgentVault<'info> {
                 add_u64(data, VAULT_LIFETIME_CREDITED_OFFSET, amount)?;
             } else if data.iter().all(|b| *b == 0) {
                 data[0] = AGENT_VAULT_DISCRIMINATOR;
-                data[VAULT_AUTHORITY_OFFSET..VAULT_BALANCE_OFFSET].copy_from_slice(authority.as_ref());
+                data[VAULT_AUTHORITY_OFFSET..VAULT_BALANCE_OFFSET]
+                    .copy_from_slice(authority.as_ref());
                 data[VAULT_BALANCE_OFFSET..VAULT_LIFETIME_CREDITED_OFFSET]
                     .copy_from_slice(&amount.to_le_bytes());
                 data[VAULT_LIFETIME_CREDITED_OFFSET..VAULT_LIFETIME_WITHDRAWN_OFFSET]
@@ -184,10 +185,8 @@ impl<'info> PrivateTakeToAgentVault<'info> {
             &[b"escrow", self.payer.address().as_ref(), &escrow_id_bytes],
             &crate::ID,
         )?;
-        let (expected_vault, vault_bump) = based_try_find_program_address(
-            &[b"agent_vault", authority.as_ref()],
-            &crate::ID,
-        )?;
+        let (expected_vault, vault_bump) =
+            based_try_find_program_address(&[b"agent_vault", authority.as_ref()], &crate::ID)?;
         if expected_escrow != *self.escrow.address() || expected_vault != *self.vault.address() {
             return Err(ProgramError::InvalidAccountData);
         }
@@ -207,8 +206,7 @@ impl<'info> PrivateTakeToAgentVault<'info> {
             || &data[INTENT_ESCROW_OFFSET..INTENT_AUTHORITY_OFFSET]
                 != self.escrow.address().as_ref()
             || &data[INTENT_AUTHORITY_OFFSET..INTENT_VAULT_OFFSET] != authority.as_ref()
-            || &data[INTENT_VAULT_OFFSET..INTENT_ESCROW_ID_OFFSET]
-                != self.vault.address().as_ref()
+            || &data[INTENT_VAULT_OFFSET..INTENT_ESCROW_ID_OFFSET] != self.vault.address().as_ref()
             || u64::from_le_bytes(
                 data[INTENT_ESCROW_ID_OFFSET..INTENT_AMOUNT_OFFSET]
                     .try_into()
