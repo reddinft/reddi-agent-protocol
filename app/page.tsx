@@ -8,7 +8,7 @@ import { StatsBar } from "@/components/ui/stats-bar";
 import { SpecialistCard } from "@/components/SpecialistCard";
 import type { SpecialistListing } from "@/lib/registry/bridge";
 
-const FALLBACK = { agents: 42, transactions: 128, volume: 18.4 };
+const JUDGE_METRICS = { specialists: 30, paidCalls: 4, devnetUsdc: "0.13" };
 
 const ECOSYSTEM_PROOFS = [
   {
@@ -61,70 +61,26 @@ const ECOSYSTEM_PROOFS = [
   },
 ];
 
-type HeartbeatData = {
-  ok: boolean;
-  total?: number;
-  online?: number;
-};
-
-type RunsData = {
-  ok: boolean;
-  result?: {
-    results?: Array<{ paymentSatisfied?: boolean; selectedWallet?: string }>;
-  };
-};
-
-function solValue(count: number) {
-  return (count * 0.0125).toFixed(2);
-}
-
 export default function Home() {
   const [agents, setAgents] = useState<SpecialistListing[]>([]);
-  const [stats, setStats] = useState(FALLBACK);
+  const stats = JUDGE_METRICS;
 
   useEffect(() => {
     let cancelled = false;
 
-    async function load() {
+    async function loadFeaturedSpecialists() {
       try {
-        const [registryRes, heartbeatRes, runsRes] = await Promise.all([
-          fetch("/api/registry"),
-          fetch("/api/heartbeat"),
-          fetch("/api/planner/runs"),
-        ]);
-
-        const [registry, heartbeat, runs]: [
-          { listings?: SpecialistListing[]; total?: number },
-          HeartbeatData,
-          RunsData,
-        ] = await Promise.all([
-          registryRes.json(),
-          heartbeatRes.json(),
-          runsRes.json(),
-        ]);
-
-        if (cancelled) return;
-
-        const listings = registry.listings ?? [];
-        setAgents(listings.slice(0, 4));
-
-        const transactions = runs.result?.results?.length ?? listings.length;
-        const paid =
-          runs.result?.results?.filter((run) => run.paymentSatisfied).length ??
-          0;
-        setStats({
-          agents: registry.total ?? listings.length,
-          transactions,
-          volume: Number(solValue(Math.max(paid, heartbeat.online ?? 0))),
-        });
+        const registryRes = await fetch("/api/registry");
+        const registry = (await registryRes.json()) as {
+          listings?: SpecialistListing[];
+        };
+        if (!cancelled) setAgents((registry.listings ?? []).slice(0, 4));
       } catch {
-        if (!cancelled) {
-          setStats(FALLBACK);
-        }
+        if (!cancelled) setAgents([]);
       }
     }
 
-    void load();
+    void loadFeaturedSpecialists();
     return () => {
       cancelled = true;
     };
@@ -240,9 +196,9 @@ export default function Home() {
       <div className="mx-auto -mt-6 max-w-6xl px-4 sm:px-6 lg:px-8 relative z-20">
         <StatsBar
           stats={[
-            { label: "Agents Registered", value: stats.agents },
-            { label: "Transactions", value: stats.transactions },
-            { label: "Volume (SOL)", value: stats.volume },
+            { label: "Hosted specialists", value: stats.specialists },
+            { label: "Paid devnet calls", value: stats.paidCalls },
+            { label: "Devnet USDC spent", value: stats.devnetUsdc },
           ]}
         />
       </div>
