@@ -269,6 +269,28 @@ fn delegate_agent_vault_per_ix(
     }
 }
 
+fn commit_agent_vault_per_ix(
+    authority: Pubkey,
+    vault: Pubkey,
+    permission: Pubkey,
+    permission_program: Pubkey,
+    magic_program: Pubkey,
+    magic_context: Pubkey,
+) -> Instruction {
+    Instruction {
+        program_id: crate::ID,
+        accounts: vec![
+            AccountMeta::new(authority, true),
+            AccountMeta::new(vault, false),
+            AccountMeta::new(permission, false),
+            AccountMeta::new_readonly(permission_program, false),
+            AccountMeta::new_readonly(magic_program, false),
+            AccountMeta::new(magic_context, false),
+        ],
+        data: vec![81, 80, 69, 82, 86, 67, 77, 84], // QPERVCMT
+    }
+}
+
 fn undelegate_callback_ix(escrow: Pubkey) -> Instruction {
     Instruction {
         program_id: crate::ID,
@@ -1329,5 +1351,148 @@ fn test_delegate_agent_vault_per_rejects_wrong_owner_program() {
     assert!(
         result.is_err(),
         "wrong owner program must be rejected before vault PDA signing"
+    );
+}
+
+/// Test 20: vault commit rejects an unpinned Permission Program before PDA signing.
+#[test]
+fn test_commit_agent_vault_per_rejects_wrong_permission_program() {
+    let mut svm = setup();
+
+    let agent = Pubkey::new_unique();
+    let vault = agent_vault_pda(&agent);
+    let permission = Pubkey::new_unique();
+    let wrong_permission_program = Pubkey::new_unique();
+    let magic_program = Pubkey::new_unique();
+    let magic_context = Pubkey::new_unique();
+
+    let result = svm.process_instruction(
+        &commit_agent_vault_per_ix(
+            agent,
+            vault,
+            permission,
+            wrong_permission_program,
+            magic_program,
+            magic_context,
+        ),
+        &[
+            funded(agent),
+            empty(vault),
+            empty(permission),
+            empty(wrong_permission_program),
+            empty(magic_program),
+            empty(magic_context),
+        ],
+    );
+
+    assert!(
+        result.is_err(),
+        "wrong Permission Program must be rejected before vault commit PDA signing"
+    );
+}
+
+/// Test 21: vault commit is pinned to the authority-derived AgentVault PDA.
+#[test]
+fn test_commit_agent_vault_per_rejects_wrong_vault_pda() {
+    let mut svm = setup();
+
+    let agent = Pubkey::new_unique();
+    let wrong_vault = Pubkey::new_unique();
+    let permission = Pubkey::new_unique();
+    let magic_program = Pubkey::new_unique();
+    let magic_context = Pubkey::new_unique();
+
+    let result = svm.process_instruction(
+        &commit_agent_vault_per_ix(
+            agent,
+            wrong_vault,
+            permission,
+            crate::magicblock::constants::PERMISSION_PROGRAM_ID,
+            magic_program,
+            magic_context,
+        ),
+        &[
+            funded(agent),
+            empty(wrong_vault),
+            empty(permission),
+            empty(crate::magicblock::constants::PERMISSION_PROGRAM_ID),
+            empty(magic_program),
+            empty(magic_context),
+        ],
+    );
+
+    assert!(
+        result.is_err(),
+        "vault commit must reject a vault PDA not derived from the authority"
+    );
+}
+
+/// Test 22: vault commit rejects an unpinned MagicBlock program before PDA signing.
+#[test]
+fn test_commit_agent_vault_per_rejects_wrong_magic_program() {
+    let mut svm = setup();
+
+    let agent = Pubkey::new_unique();
+    let vault = agent_vault_pda(&agent);
+    let permission = Pubkey::new_unique();
+    let wrong_magic_program = Pubkey::new_unique();
+
+    let result = svm.process_instruction(
+        &commit_agent_vault_per_ix(
+            agent,
+            vault,
+            permission,
+            crate::magicblock::constants::PERMISSION_PROGRAM_ID,
+            wrong_magic_program,
+            crate::magicblock::constants::MAGIC_CONTEXT_ID,
+        ),
+        &[
+            funded(agent),
+            empty(vault),
+            empty(permission),
+            empty(crate::magicblock::constants::PERMISSION_PROGRAM_ID),
+            empty(wrong_magic_program),
+            empty(crate::magicblock::constants::MAGIC_CONTEXT_ID),
+        ],
+    );
+
+    assert!(
+        result.is_err(),
+        "wrong MagicBlock program must be rejected before vault commit PDA signing"
+    );
+}
+
+/// Test 23: vault commit rejects an unpinned MagicBlock context before PDA signing.
+#[test]
+fn test_commit_agent_vault_per_rejects_wrong_magic_context() {
+    let mut svm = setup();
+
+    let agent = Pubkey::new_unique();
+    let vault = agent_vault_pda(&agent);
+    let permission = Pubkey::new_unique();
+    let wrong_magic_context = Pubkey::new_unique();
+
+    let result = svm.process_instruction(
+        &commit_agent_vault_per_ix(
+            agent,
+            vault,
+            permission,
+            crate::magicblock::constants::PERMISSION_PROGRAM_ID,
+            crate::magicblock::constants::MAGIC_PROGRAM_ID,
+            wrong_magic_context,
+        ),
+        &[
+            funded(agent),
+            empty(vault),
+            empty(permission),
+            empty(crate::magicblock::constants::PERMISSION_PROGRAM_ID),
+            empty(crate::magicblock::constants::MAGIC_PROGRAM_ID),
+            empty(wrong_magic_context),
+        ],
+    );
+
+    assert!(
+        result.is_err(),
+        "wrong MagicBlock context must be rejected before vault commit PDA signing"
     );
 }

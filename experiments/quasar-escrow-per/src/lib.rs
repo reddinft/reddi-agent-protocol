@@ -15,6 +15,7 @@
 //! | `[81, 80, 69, 82, 67, 77, 73, 84]` | MagicBlock commit/undelegate PER CPI |
 //! | `[81, 80, 69, 82, 86, 65, 76, 84]` | Prepare self-custodied agent vault |
 //! | `[81, 80, 69, 82, 86, 68, 69, 76]` | MagicBlock delegate agent vault PER CPI |
+//! | `[81, 80, 69, 82, 86, 67, 77, 84]` | MagicBlock commit/undelegate agent vault PER CPI |
 //! | `[81, 80, 69, 82, 86, 84, 65, 75]` | Release escrow into agent vault |
 //! | `[81, 80, 69, 82, 86, 87, 68, 82]` | Withdraw from agent vault |
 //! | `[196, 28, 41, 206, 48, 37, 51, 167]` | MagicBlock undelegate callback |
@@ -92,6 +93,12 @@ mod quasar_escrow_per_poc {
     #[instruction(discriminator = [81, 80, 69, 82, 86, 68, 69, 76])]
     pub fn delegate_agent_vault_per(ctx: Ctx<DelegateAgentVaultPer>) -> Result<(), ProgramError> {
         ctx.accounts.delegate_agent_vault_per(&ctx.bumps)
+    }
+
+    /// Commit and undelegate a self-custodied agent vault from MagicBlock PER.
+    #[instruction(discriminator = [81, 80, 69, 82, 86, 67, 77, 84])]
+    pub fn commit_agent_vault_per(ctx: Ctx<CommitAgentVaultPer>) -> Result<(), ProgramError> {
+        ctx.accounts.commit_agent_vault_per(&ctx.bumps)
     }
 
     /// Credit an escrow release into the payee's self-custodied agent vault.
