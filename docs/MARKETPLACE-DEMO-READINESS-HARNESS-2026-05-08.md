@@ -86,3 +86,15 @@ The narration script should be based on the captured video and readiness artifac
 - Surfpool local validator gates must pass before bounded devnet recording.
 - Keep Jupiter devnet execution framed as unreliable unless separately proven.
 - Keep wallet delegation bounded by spend cap, expiry, network, allowed specialists/programs, and receipt logging.
+
+## Live product recording requirement
+
+The final hackathon demo video should be recorded against the published live product link:
+
+```text
+https://agent-protocol.reddi.tech
+```
+
+Use localhost only for rehearsal/debugging. The submitted 3-minute demo should show the live product, compressing low-value waiting with fast-forward where needed.
+
+After the live-product recording is captured, generate narration from the actual footage, then use Jarvis voice in chunked Chatterbox runs to avoid memory pressure.

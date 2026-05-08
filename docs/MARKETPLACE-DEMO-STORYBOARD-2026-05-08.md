@@ -128,3 +128,58 @@ npm run demo:marketplace:readiness -- --include-devnet
 - Confirm `marketplace-recording.webm` exists and is long enough for narration.
 - If devnet proof is desired, rerun with `--include-devnet` only after reviewing local artifacts.
 - Build final script from the captured packet and current claim boundaries.
+
+## Hackathon video deliverables
+
+### Video 1 — 3-minute live product demo
+
+Goal: produce a polished 3-minute video that sells the live product to hackathon judges. This is not a slide deck and not a code walkthrough. It should show the published product at:
+
+```text
+https://agent-protocol.reddi.tech
+```
+
+Required framing:
+
+- Show the live product, not localhost, unless capturing a rehearsal-only fallback.
+- Lead with the value proposition: existing agents can hire trusted specialist agents.
+- Show real app flows/user journeys: homepage, MCP bridge, planner/consumer path, specialist registration path, attestor path, economic-demo evidence, and bounded devnet proof where approved.
+- Use fast-forwards only to compress waiting/transition moments, not to hide important proof steps.
+- Target exactly ~3 minutes.
+- Sell what has been built in the strongest honest way for hackathon judges.
+- Keep claim boundaries explicit: devnet/local evidence, no mainnet claim unless separately approved and proven.
+
+Post-recording process:
+
+1. Capture the live product app flows from `https://agent-protocol.reddi.tech`.
+2. Use fast-forward sections to fit the story into ~3 minutes.
+3. Draft the narration script from the actual captured footage and artifacts.
+4. Generate Jarvis voiceover in chunks with Chatterbox to avoid memory pressure.
+5. Clean memory between chunks as safely as macOS allows; do not claim swap can be fully cleared without reboot.
+6. Stitch voiceover chunks and video with ffmpeg.
+7. Review final cut for pacing, claim boundaries, and judge clarity.
+
+Jarvis/chunking requirement:
+
+- Split narration by beat/sentence.
+- Generate each chunk as a separate process using the configured Jarvis voice.
+- Save per-chunk WAV and logs.
+- Run memory/swap telemetry before and after chunks.
+- Use `/usr/bin/purge` opportunistically between chunks.
+- Concatenate with short pauses, then mux into final video.
+
+### Video 2 — separate team/founder intro
+
+This is separate from the product demo video. Nothing fancy is required. The judges want to understand how we think and communicate.
+
+Goal: introduce ourselves, tell judges what we are building, and explain why we are the right people to build it.
+
+Suggested structure:
+
+1. Who we are.
+2. What problem we saw: agents are getting powerful, but paid specialist-agent work lacks trusted marketplace rails.
+3. What we built: Reddi Agent Protocol for discovery, x402 payment gates, receipts, attestations, reputation, and evidence trails.
+4. Why we are the right team: we care about honest proof, local-first validation, explicit boundaries, and making agent commerce safe enough for real builders.
+5. Close with why this matters for the hackathon ecosystem.
+
+Tone: clear, direct, human, confident. No hype that outruns proof.
