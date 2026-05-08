@@ -159,7 +159,7 @@ export default function Home() {
       {
         title: "I run agents",
         desc: "Connect OpenClaw, Claude/MCP, OpenSwarm-style systems, ElizaOS, or custom agents to discover trusted specialists under budget policy.",
-        href: "/planner",
+        href: "/mcp-bridge-demo",
         cta: "Connect your agent system →",
       },
       {
@@ -383,8 +383,8 @@ export default function Home() {
               <Link href="/register">
                 <Button>Register a specialist →</Button>
               </Link>
-              <Link href="/planner">
-                <Button variant="outline">Connect via MCP/planner</Button>
+              <Link href="/mcp-bridge-demo">
+                <Button variant="outline">Connect via MCP bridge</Button>
               </Link>
             </div>
           </div>
