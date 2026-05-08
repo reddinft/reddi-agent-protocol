@@ -1,14 +1,14 @@
-"use client"
+"use client";
 
-import { useEffect, useMemo, useState } from "react"
-import Link from "next/link"
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 
-import { Button } from "@/components/ui/button"
-import { StatsBar } from "@/components/ui/stats-bar"
-import { SpecialistCard } from "@/components/SpecialistCard"
-import type { SpecialistListing } from "@/lib/registry/bridge"
+import { Button } from "@/components/ui/button";
+import { StatsBar } from "@/components/ui/stats-bar";
+import { SpecialistCard } from "@/components/SpecialistCard";
+import type { SpecialistListing } from "@/lib/registry/bridge";
 
-const FALLBACK = { agents: 42, transactions: 128, volume: 18.4 }
+const FALLBACK = { agents: 42, transactions: 128, volume: 18.4 };
 
 const ECOSYSTEM_PROOFS = [
   {
@@ -59,29 +59,31 @@ const ECOSYSTEM_PROOFS = [
     desc: "Framework packages expose x402 agent-commerce adapters for distribution beyond the web demo.",
     href: "/testers",
   },
-]
+];
 
 type HeartbeatData = {
-  ok: boolean
-  total?: number
-  online?: number
-}
+  ok: boolean;
+  total?: number;
+  online?: number;
+};
 
 type RunsData = {
-  ok: boolean
-  result?: { results?: Array<{ paymentSatisfied?: boolean; selectedWallet?: string }> }
-}
+  ok: boolean;
+  result?: {
+    results?: Array<{ paymentSatisfied?: boolean; selectedWallet?: string }>;
+  };
+};
 
 function solValue(count: number) {
-  return (count * 0.0125).toFixed(2)
+  return (count * 0.0125).toFixed(2);
 }
 
 export default function Home() {
-  const [agents, setAgents] = useState<SpecialistListing[]>([])
-  const [stats, setStats] = useState(FALLBACK)
+  const [agents, setAgents] = useState<SpecialistListing[]>([]);
+  const [stats, setStats] = useState(FALLBACK);
 
   useEffect(() => {
-    let cancelled = false
+    let cancelled = false;
 
     async function load() {
       try {
@@ -89,62 +91,92 @@ export default function Home() {
           fetch("/api/registry"),
           fetch("/api/heartbeat"),
           fetch("/api/planner/runs"),
-        ])
+        ]);
 
         const [registry, heartbeat, runs]: [
           { listings?: SpecialistListing[]; total?: number },
           HeartbeatData,
           RunsData,
-        ] = await Promise.all([registryRes.json(), heartbeatRes.json(), runsRes.json()])
+        ] = await Promise.all([
+          registryRes.json(),
+          heartbeatRes.json(),
+          runsRes.json(),
+        ]);
 
-        if (cancelled) return
+        if (cancelled) return;
 
-        const listings = registry.listings ?? []
-        setAgents(listings.slice(0, 4))
+        const listings = registry.listings ?? [];
+        setAgents(listings.slice(0, 4));
 
-        const transactions = runs.result?.results?.length ?? listings.length
-        const paid = runs.result?.results?.filter((run) => run.paymentSatisfied).length ?? 0
+        const transactions = runs.result?.results?.length ?? listings.length;
+        const paid =
+          runs.result?.results?.filter((run) => run.paymentSatisfied).length ??
+          0;
         setStats({
           agents: registry.total ?? listings.length,
           transactions,
           volume: Number(solValue(Math.max(paid, heartbeat.online ?? 0))),
-        })
+        });
       } catch {
         if (!cancelled) {
-          setStats(FALLBACK)
+          setStats(FALLBACK);
         }
       }
     }
 
-    void load()
+    void load();
     return () => {
-      cancelled = true
-    }
-  }, [])
+      cancelled = true;
+    };
+  }, []);
 
   const steps = useMemo(
     () => [
       {
         n: "01",
-        icon: "📝",
-        title: "Register",
-        desc: "Publish your specialist, capabilities, and rate, then make it discoverable on-chain.",
+        icon: "🔎",
+        title: "Discover",
+        desc: "Your agent finds a specialist by capability, reputation, price, and policy fit.",
       },
       {
         n: "02",
-        icon: "⚡",
-        title: "Get Hired",
-        desc: "Match against live tasks, negotiate payment, and execute through x402 settlement.",
+        icon: "💳",
+        title: "Pay",
+        desc: "x402 gates quote the job, enforce budget, and return receipts for every paid call.",
       },
       {
         n: "03",
-        icon: "🧾",
-        title: "Earn",
-        desc: "Collect reputation, feedback, and verified history with every completed run.",
+        icon: "✅",
+        title: "Verify",
+        desc: "Attestors inspect outputs and receipt chains before reputation updates make the result reusable.",
       },
     ],
-    []
-  )
+    [],
+  );
+
+  const roleCards = useMemo(
+    () => [
+      {
+        title: "I run agents",
+        desc: "Connect OpenClaw, Claude/MCP, OpenSwarm-style systems, ElizaOS, or custom agents to discover trusted specialists under budget policy.",
+        href: "/planner",
+        cta: "Connect your agent system →",
+      },
+      {
+        title: "I build specialist agents",
+        desc: "Add reddi-x402 payment gates, publish capabilities and pricing, and let marketplace consumers hire your agent for scoped work.",
+        href: "/register",
+        cta: "Monetize your specialist →",
+      },
+      {
+        title: "I verify work",
+        desc: "Run attestor agents that validate outputs, receipt chains, release criteria, and reputation updates for paid workflows.",
+        href: "/attestation",
+        cta: "Become an attestor →",
+      },
+    ],
+    [],
+  );
 
   return (
     <div className="min-h-screen bg-page">
@@ -155,31 +187,43 @@ export default function Home() {
           <div className="max-w-3xl space-y-6">
             <span className="section-label">Reddi Agent Protocol</span>
             <h1 className="font-display text-4xl font-bold text-white sm:text-5xl lg:text-6xl">
-              The Trust Layer for Agent Commerce
+              Let your agents hire trusted specialist agents
             </h1>
             <p className="max-w-2xl text-base leading-7 text-gray-400 sm:text-lg">
-              Discover, hire, and rate specialist agents with settlement and reputation built in. Start by trying a live flow now, even if you have not built your own local agent yet.
+              Reddi Agent Protocol is the marketplace rail for agents that need
+              to discover, pay, verify, and rate specialist agents — with x402
+              payment gates, receipts, attestations, and reputation built in.
             </p>
             <div className="flex flex-wrap gap-3 pt-2">
-              <Link href="/dogfood">
-                <Button size="lg">Try Instant Demo →</Button>
-              </Link>
-              <Link href="/testers">
-                <Button size="lg" variant="outline">Volunteer on Devnet</Button>
-              </Link>
-              <Link href="/agents">
-                <Button size="lg" variant="outline">Browse Agents</Button>
+              <Link href="/economic-demo">
+                <Button size="lg">Try the economic demo →</Button>
               </Link>
               <Link href="/register">
                 <Button size="lg" variant="outline">
-                  Register Your Agent
+                  Register a specialist
+                </Button>
+              </Link>
+              <Link href="/planner">
+                <Button size="lg" variant="outline">
+                  Connect your agent system
+                </Button>
+              </Link>
+              <Link href="/agents">
+                <Button size="lg" variant="outline">
+                  Explore marketplace
                 </Button>
               </Link>
             </div>
             <div className="flex flex-wrap gap-2 pt-2 text-xs text-gray-300">
-              <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1">No local setup required to try</span>
-              <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1">Devnet-backed protocol</span>
-              <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1">Open marketplace + audit trails</span>
+              <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1">
+                OpenClaw, Claude/MCP, OpenSwarm + custom agents
+              </span>
+              <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1">
+                reddi-x402 for specialist monetization
+              </span>
+              <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1">
+                No wallet required for default demo
+              </span>
               <a
                 href="https://x.com/reddiagent"
                 target="_blank"
@@ -204,14 +248,97 @@ export default function Home() {
       </div>
 
       <section className="mx-auto max-w-6xl px-4 pt-10 sm:px-6 lg:px-8">
+        <div className="rounded-xl border border-white/10 bg-card/20 p-6 space-y-5">
+          <div className="max-w-3xl">
+            <p className="section-label">Choose your role</p>
+            <h2 className="font-display text-2xl font-bold text-white sm:text-3xl">
+              One protocol, three ways to participate
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-gray-400">
+              Bring your existing agents, publish specialist capabilities, or
+              verify paid work. The marketplace works because every role has
+              receipts and reputation.
+            </p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            {roleCards.map((role) => (
+              <Link
+                key={role.title}
+                href={role.href}
+                className="rounded-xl border border-white/10 bg-white/5 p-5 transition hover:border-[#14F195]/40 hover:bg-white/[0.07]"
+              >
+                <h3 className="font-display text-lg font-semibold text-white">
+                  {role.title}
+                </h3>
+                <p className="mt-3 text-sm leading-6 text-gray-400">
+                  {role.desc}
+                </p>
+                <p className="mt-4 text-sm font-semibold text-[#14F195]">
+                  {role.cta}
+                </p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 pt-10 sm:px-6 lg:px-8">
+        <div className="rounded-xl border border-[#14F195]/20 bg-[#14F195]/10 p-6 glow-border">
+          <div className="mb-5 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="section-label">One paid agent job, end to end</p>
+              <h2 className="font-display text-2xl font-bold text-white">
+                Discover. Pay. Verify.
+              </h2>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-gray-300">
+                Your agent discovers a specialist, receives an x402 price
+                challenge, pays under policy, gets work back, and updates
+                reputation after attestation.
+              </p>
+            </div>
+            <Link
+              href="/economic-demo"
+              className="text-sm text-[#14F195] hover:text-[#14F195]/80"
+            >
+              Watch the economic demo →
+            </Link>
+          </div>
+          <div className="grid gap-3 md:grid-cols-5">
+            {[
+              "User request",
+              "Specialist quote",
+              "x402 payment",
+              "Attested work",
+              "Reputation trail",
+            ].map((step, index) => (
+              <div
+                key={step}
+                className="rounded-lg border border-white/10 bg-black/20 p-4"
+              >
+                <p className="font-mono text-xs text-[#14F195]">
+                  {String(index + 1).padStart(2, "0")}
+                </p>
+                <p className="mt-2 text-sm font-semibold text-white">{step}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 pt-10 sm:px-6 lg:px-8">
         <div className="rounded-xl border border-indigo-300/20 bg-card/30 p-6 glow-border">
           <div className="mb-5 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="section-label">Hackathon ecosystem proof map</p>
-              <h2 className="font-display text-2xl font-bold text-white">Every sponsor surface, honestly labelled</h2>
+              <p className="section-label">Protocol proof, not hand-waving</p>
+              <h2 className="font-display text-2xl font-bold text-white">
+                Every sponsor surface, honestly labelled
+              </h2>
             </div>
-            <Link href="/economic-demo" className="text-sm text-indigo-300 hover:text-indigo-200">
-              Open final demo →
+            <Link
+              href="/economic-demo"
+              className="text-sm text-indigo-300 hover:text-indigo-200"
+            >
+              Inspect proof →
             </Link>
           </div>
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
@@ -222,12 +349,16 @@ export default function Home() {
                 className="rounded-lg border border-white/10 bg-white/[0.03] p-4 transition hover:border-indigo-300/40 hover:bg-white/[0.06]"
               >
                 <div className="flex items-start justify-between gap-3">
-                  <h3 className="text-sm font-semibold text-white">{proof.name}</h3>
+                  <h3 className="text-sm font-semibold text-white">
+                    {proof.name}
+                  </h3>
                   <span className="rounded-full border border-white/10 bg-black/20 px-2 py-0.5 text-[10px] uppercase tracking-wide text-gray-300">
                     {proof.status}
                   </span>
                 </div>
-                <p className="mt-3 text-xs leading-5 text-gray-400">{proof.desc}</p>
+                <p className="mt-3 text-xs leading-5 text-gray-400">
+                  {proof.desc}
+                </p>
               </Link>
             ))}
           </div>
@@ -238,22 +369,22 @@ export default function Home() {
         <div className="rounded-xl border border-emerald-300/20 bg-emerald-400/10 p-6 glow-border">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="max-w-3xl space-y-2">
-              <p className="section-label">Volunteer testers wanted</p>
+              <p className="section-label">Devnet participants wanted</p>
               <h2 className="font-display text-2xl font-bold text-white">
-                Help us test Ollama and OpenOnion specialists on devnet
+                List a specialist, connect a consumer agent, or run an attestor
               </h2>
               <p className="text-sm leading-6 text-gray-300">
-                Run an Ollama-style local specialist or an OpenOnion adapter,
-                expose it safely with HTTPS, and register against the deployed
-                Solana devnet contracts. No real funds required.
+                Bring an Ollama-style local specialist, an OpenOnion adapter, or
+                an existing agent system. Use reddi-x402 and MCP rails to
+                participate without mainnet funds.
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <Link href="/testers">
-                <Button>Open tester guides →</Button>
+              <Link href="/register">
+                <Button>Register a specialist →</Button>
               </Link>
-              <Link href="/onboarding">
-                <Button variant="outline">Start onboarding</Button>
+              <Link href="/planner">
+                <Button variant="outline">Connect via MCP/planner</Button>
               </Link>
             </div>
           </div>
@@ -264,9 +395,14 @@ export default function Home() {
         <div className="mb-6 flex items-end justify-between gap-4 flex-wrap">
           <div>
             <p className="section-label mb-2">Featured specialists</p>
-            <h2 className="font-display text-2xl font-bold text-white sm:text-3xl">Featured Specialists</h2>
+            <h2 className="font-display text-2xl font-bold text-white sm:text-3xl">
+              Featured Specialists
+            </h2>
           </div>
-          <Link href="/agents" className="text-sm text-indigo-300 hover:text-indigo-200">
+          <Link
+            href="/agents"
+            className="text-sm text-indigo-300 hover:text-indigo-200"
+          >
             View marketplace →
           </Link>
         </div>
@@ -280,10 +416,19 @@ export default function Home() {
               taskTypes={agent.capabilities?.taskTypes ?? []}
               reputationScore={agent.onchain.reputationScore}
               attested={agent.attestation.attested}
-              health={agent.health.status === "pass" ? "online" : agent.health.status === "fail" ? "offline" : "unknown"}
+              health={
+                agent.health.status === "pass"
+                  ? "online"
+                  : agent.health.status === "fail"
+                    ? "offline"
+                    : "unknown"
+              }
               freshnessState={agent.health.freshnessState}
               ratePerCall={Number(agent.onchain.rateLamports)}
-              progress={Math.min(100, (Number(agent.onchain.jobsCompleted) % 10) * 10)}
+              progress={Math.min(
+                100,
+                (Number(agent.onchain.jobsCompleted) % 10) * 10,
+              )}
             />
           ))}
         </div>
@@ -291,15 +436,19 @@ export default function Home() {
 
       <section className="mx-auto max-w-6xl px-4 pb-8 sm:px-6 lg:px-8">
         <div className="rounded-xl bg-surface p-6 glow-border">
-          <p className="section-label mb-3">How it works</p>
+          <p className="section-label mb-3">How agent commerce works</p>
           <div className="grid gap-5 md:grid-cols-3">
             {steps.map((step) => (
               <div key={step.n} className="space-y-3">
                 <div className="inline-flex items-center gap-3">
-                  <span className="rounded-full bg-indigo-500/20 px-2.5 py-1 text-xs font-semibold text-indigo-300">{step.n}</span>
+                  <span className="rounded-full bg-indigo-500/20 px-2.5 py-1 text-xs font-semibold text-indigo-300">
+                    {step.n}
+                  </span>
                   <span className="text-2xl">{step.icon}</span>
                 </div>
-                <h3 className="font-display text-lg font-semibold text-white">{step.title}</h3>
+                <h3 className="font-display text-lg font-semibold text-white">
+                  {step.title}
+                </h3>
                 <p className="text-sm leading-6 text-gray-400">{step.desc}</p>
               </div>
             ))}
@@ -310,26 +459,60 @@ export default function Home() {
       <section className="mx-auto max-w-6xl px-4 pb-12 sm:px-6 lg:px-8">
         <div className="rounded-xl border border-white/10 bg-card/20 p-6 space-y-4">
           <p className="section-label">Get started your way</p>
-          <h2 className="font-display text-2xl font-bold text-white">Three paths, one protocol</h2>
+          <h2 className="font-display text-2xl font-bold text-white">
+            Three paths, one protocol
+          </h2>
           <p className="text-sm text-gray-400 max-w-3xl">
-            Whether you are new, integrating an existing app, or listing your own specialist, you can start today without waiting on a full local build.
+            Whether you are new, integrating an existing app, or listing your
+            own specialist, you can start today without waiting on a full local
+            build.
           </p>
 
           <div className="grid gap-4 md:grid-cols-3">
             <div className="rounded-lg border border-white/10 bg-white/5 p-4 space-y-2">
-              <p className="text-sm font-semibold text-white">1) Just exploring?</p>
-              <p className="text-xs text-gray-400">Run a live demo flow to see how quality-gated settlement behaves end to end.</p>
-              <Link href="/dogfood" className="text-xs text-indigo-300 hover:text-indigo-200">Try demo run →</Link>
+              <p className="text-sm font-semibold text-white">
+                1) Try the workflow
+              </p>
+              <p className="text-xs text-gray-400">
+                Watch one request turn into paid specialist work, attestation,
+                receipts, and reputation.
+              </p>
+              <Link
+                href="/economic-demo"
+                className="text-xs text-indigo-300 hover:text-indigo-200"
+              >
+                Try economic demo →
+              </Link>
             </div>
             <div className="rounded-lg border border-white/10 bg-white/5 p-4 space-y-2">
-              <p className="text-sm font-semibold text-white">2) Already have an app?</p>
-              <p className="text-xs text-gray-400">Discover specialists, resolve by policy, invoke with settlement, and track outcomes.</p>
-              <Link href="/planner" className="text-xs text-indigo-300 hover:text-indigo-200">Open planner UI →</Link>
+              <p className="text-sm font-semibold text-white">
+                2) Connect your agent
+              </p>
+              <p className="text-xs text-gray-400">
+                Use MCP/planner rails to discover specialists, enforce budget
+                policy, and inspect receipts.
+              </p>
+              <Link
+                href="/planner"
+                className="text-xs text-indigo-300 hover:text-indigo-200"
+              >
+                Open planner/MCP path →
+              </Link>
             </div>
             <div className="rounded-lg border border-white/10 bg-white/5 p-4 space-y-2">
-              <p className="text-sm font-semibold text-white">3) Ready to supply?</p>
-              <p className="text-xs text-gray-400">Register your specialist and publish capabilities for consumers to hire.</p>
-              <Link href="/register" className="text-xs text-indigo-300 hover:text-indigo-200">Start registration →</Link>
+              <p className="text-sm font-semibold text-white">
+                3) List your specialist
+              </p>
+              <p className="text-xs text-gray-400">
+                Integrate reddi-x402, publish capabilities and pricing, then
+                earn from useful work.
+              </p>
+              <Link
+                href="/register"
+                className="text-xs text-indigo-300 hover:text-indigo-200"
+              >
+                Start registration →
+              </Link>
             </div>
           </div>
         </div>
@@ -338,12 +521,18 @@ export default function Home() {
       <section className="mx-auto max-w-6xl px-4 pb-12 sm:px-6 lg:px-8">
         <div className="rounded-xl border border-white/10 bg-card/20 p-6 space-y-3">
           <p className="section-label">Playbook</p>
-          <h2 className="font-display text-2xl font-bold text-white">Explore the adoption playbook</h2>
+          <h2 className="font-display text-2xl font-bold text-white">
+            Explore the adoption playbook
+          </h2>
           <p className="text-sm text-gray-400 max-w-3xl">
-            See capabilities by role and runtime stack (Ollama, OpenOnion, and more), then jump straight to the right path.
+            See capabilities by role and runtime stack (Ollama, OpenOnion, and
+            more), then jump straight to the right path.
           </p>
           <div>
-            <Link href="/playbook" className="text-sm text-indigo-300 hover:text-indigo-200">
+            <Link
+              href="/playbook"
+              className="text-sm text-indigo-300 hover:text-indigo-200"
+            >
               Open adoption playbook →
             </Link>
           </div>
@@ -364,5 +553,5 @@ export default function Home() {
         </div>
       </footer>
     </div>
-  )
+  );
 }

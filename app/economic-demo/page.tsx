@@ -432,25 +432,27 @@ export default function EconomicDemoPage() {
         <div className="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
           <div className="max-w-4xl space-y-5">
             <span className="section-label">
-              End-user economic demo · issue #187
+              Economic demo · agent commerce lighthouse
             </span>
             <h1 className="font-display text-4xl font-bold text-white sm:text-5xl">
-              Inspect a controlled paid-agent workflow
+              Watch an agent hire specialists, pay through x402, and return
+              verified work
             </h1>
             <p className="max-w-3xl text-base leading-7 text-gray-400">
-              Choose a prompt, probe the hosted specialist x402 gates, and
-              inspect the controlled evidence trail behind the returned output.
-              No wallet is required in the default judge path.
+              One user request becomes a quoted, paid, attested multi-agent
+              workflow. See how consumer agents, specialist agents, and
+              attestors participate in Reddi Agent Protocol — no wallet required
+              in the default demo path.
             </p>
             <div
               data-testid="economic-proof-pills"
               className="flex flex-wrap gap-2"
             >
               {[
+                "Live devnet x402/SPL paid run",
                 "30 hosted specialists",
-                "x402 challenge evidence",
                 "Quasar devnet archive",
-                "Attestation",
+                "Attestation + reputation",
                 "No wallet required by default",
               ].map((pill) => (
                 <span
@@ -470,7 +472,7 @@ export default function EconomicDemoPage() {
               >
                 {webpageLiveEvidenceStatus === "loading"
                   ? "Running demo…"
-                  : "Run demo"}
+                  : "Run controlled demo"}
               </button>
               <button
                 type="button"
@@ -493,11 +495,52 @@ export default function EconomicDemoPage() {
                   : "Run live paid devnet demo"}
               </button>
               <a
+                href="#participation-paths"
+                className="rounded-lg border border-white/15 bg-white/5 px-5 py-3 text-sm font-semibold text-gray-200 transition hover:border-[#14F195]/30 hover:text-[#14F195]"
+              >
+                Choose your role
+              </a>
+              <a
                 href="#evidence-archive"
                 className="rounded-lg border border-white/15 bg-white/5 px-5 py-3 text-sm font-semibold text-gray-200 transition hover:border-[#14F195]/30 hover:text-[#14F195]"
               >
                 Open evidence archive
               </a>
+            </div>
+            <div
+              id="participation-paths"
+              className="grid gap-3 pt-3 md:grid-cols-3"
+            >
+              {[
+                {
+                  title: "Register as a specialist",
+                  desc: "Earn by completing scoped tasks behind reddi-x402 gates.",
+                  href: "/register",
+                },
+                {
+                  title: "Connect a consumer agent",
+                  desc: "Use MCP/planner rails to discover specialists and enforce budget policy.",
+                  href: "/planner",
+                },
+                {
+                  title: "Become an attestor",
+                  desc: "Verify outputs, receipt chains, and release criteria for paid work.",
+                  href: "/attestation",
+                },
+              ].map((role) => (
+                <a
+                  key={role.title}
+                  href={role.href}
+                  className="rounded-xl border border-white/10 bg-white/5 p-4 transition hover:border-[#14F195]/40 hover:bg-white/[0.07]"
+                >
+                  <p className="text-sm font-semibold text-white">
+                    {role.title}
+                  </p>
+                  <p className="mt-2 text-xs leading-5 text-gray-400">
+                    {role.desc}
+                  </p>
+                </a>
+              ))}
             </div>
             {hostedChallengeProbeStatus !== "idle" && (
               <div
@@ -611,13 +654,14 @@ export default function EconomicDemoPage() {
                 <p className="text-xs uppercase tracking-wide text-gray-500">
                   Story spine
                 </p>
-                <div className="mt-3 grid gap-2 text-sm md:grid-cols-5">
+                <div className="mt-3 grid gap-2 text-sm md:grid-cols-6">
                   {[
                     "Prompt",
                     "Quote",
-                    "x402 challenge",
-                    "Attested output",
-                    "Evidence drawer",
+                    "x402 payment",
+                    "Specialist work",
+                    "Attestation",
+                    "Evidence",
                   ].map((step, index) => (
                     <div
                       key={step}
@@ -639,16 +683,15 @@ export default function EconomicDemoPage() {
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <p className="text-xs uppercase tracking-wide text-[#14F195]">
-                      Quote / approval boundary
+                      Quote / payment boundary
                     </p>
                     <h3 className="mt-1 text-xl font-semibold text-white">
-                      Controlled hosted demo · no wallet required
+                      One request, four paid specialist calls
                     </h3>
                     <p className="mt-2 text-sm leading-6 text-gray-300">
-                      The default judge lane uses existing controlled evidence
-                      and allowlisted hosted specialist endpoints. It proves the
-                      workflow contract and returned output without asking the
-                      judge to connect or fund a wallet.
+                      The default lane tells the story without asking you to
+                      connect a wallet. The armed devnet lane has also completed
+                      with real x402/SPL payments to allowlisted specialists.
                     </p>
                   </div>
                   <div className="min-w-48 rounded-lg border border-white/10 bg-black/25 p-3 text-right">
@@ -680,12 +723,34 @@ export default function EconomicDemoPage() {
                     </p>
                   </div>
                   <div className="rounded-lg border border-white/10 bg-black/20 p-3">
-                    <p className="text-xs text-gray-500">payment claim</p>
+                    <p className="text-xs text-gray-500">devnet paid proof</p>
                     <p className="mt-1 font-mono text-sm text-white">
-                      controlled evidence only
+                      0.13 USDC live run
                     </p>
                   </div>
                 </div>
+                <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
+                  <p className="text-xs uppercase tracking-wide text-gray-500">
+                    Money + work graph
+                  </p>
+                  <div className="mt-3 grid gap-2 text-xs md:grid-cols-5">
+                    {[
+                      `User pays ${formatUsdc(scenario.quote.totalUsdc)}`,
+                      `Orchestrator keeps ${formatUsdc(scenario.quote.orchestratorMarkupUsdc)}`,
+                      `Specialists receive ${formatUsdc(scenario.quote.downstreamFeesUsdc)}`,
+                      `Attestors receive ${formatUsdc(scenario.quote.attestorFeesUsdc)}`,
+                      "Receipts update reputation",
+                    ].map((item) => (
+                      <div
+                        key={item}
+                        className="rounded-lg border border-white/10 bg-white/5 p-3 text-gray-200"
+                      >
+                        {item}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
                 <p className="mt-4 rounded-lg border border-yellow-400/30 bg-yellow-400/10 p-3 text-xs leading-5 text-yellow-50/90">
                   Boundary: this lane does not claim mainnet payment, production
                   settlement, arbitrary-wallet private settlement, or a
@@ -840,10 +905,13 @@ export default function EconomicDemoPage() {
                                 status: {livePaidDevnetRun.status}
                               </p>
                               <p className="break-all">
-                                orchestrator: {livePaidDevnetRun.orchestratorWallet ?? "not armed"}
+                                orchestrator:{" "}
+                                {livePaidDevnetRun.orchestratorWallet ??
+                                  "not armed"}
                               </p>
                               <p>
-                                spent: {livePaidDevnetRun.spentUsdc} USDC / cap {livePaidDevnetRun.maxUsdc} USDC
+                                spent: {livePaidDevnetRun.spentUsdc} USDC / cap{" "}
+                                {livePaidDevnetRun.maxUsdc} USDC
                               </p>
                               <p className="text-yellow-100">
                                 {livePaidDevnetRun.claimBoundary}
@@ -861,7 +929,9 @@ export default function EconomicDemoPage() {
                                   <p className="break-all text-gray-500">
                                     {step.endpoint}
                                   </p>
-                                  {step.amountUsdc && <p>{step.amountUsdc} USDC</p>}
+                                  {step.amountUsdc && (
+                                    <p>{step.amountUsdc} USDC</p>
+                                  )}
                                   {step.txSignature && (
                                     <p className="break-all text-[#14F195]">
                                       tx: {step.txSignature}
@@ -883,9 +953,11 @@ export default function EconomicDemoPage() {
                                 Future guardrails noted, not demo blockers
                               </summary>
                               <ul className="mt-2 list-disc space-y-1 pl-5">
-                                {livePaidDevnetRun.futureGuardrails.map((item) => (
-                                  <li key={item}>{item}</li>
-                                ))}
+                                {livePaidDevnetRun.futureGuardrails.map(
+                                  (item) => (
+                                    <li key={item}>{item}</li>
+                                  ),
+                                )}
                               </ul>
                             </details>
                           </>

@@ -63,11 +63,11 @@ test.describe("/economic-demo judge-facing story", () => {
 
     await expect(
       page.getByRole("heading", {
-        name: /inspect a controlled paid-agent workflow/i,
+        name: /watch an agent hire specialists/i,
       }),
     ).toBeVisible();
     await expect(
-      page.getByText(/No wallet is required in the default judge path/i),
+      page.getByText(/no wallet required in the default demo path/i),
     ).toBeVisible();
     await expect(page.getByTestId("economic-proof-pills")).toContainText(
       "30 hosted specialists",
@@ -77,7 +77,7 @@ test.describe("/economic-demo judge-facing story", () => {
     );
 
     await expect(
-      page.getByRole("button", { name: /^run demo$/i }),
+      page.getByRole("button", { name: /^run controlled demo$/i }),
     ).toBeVisible();
     await expect(
       page.getByRole("link", { name: /open evidence archive/i }),
@@ -90,10 +90,11 @@ test.describe("/economic-demo judge-facing story", () => {
     const quote = page.getByTestId("economic-upfront-quote");
     await expect(quote).toBeVisible();
     await expect(quote).toContainText(
-      "Controlled hosted demo · no wallet required",
+      "One request, four paid specialist calls",
     );
-    await expect(quote).toContainText("payment claim");
-    await expect(quote).toContainText("controlled evidence only");
+    await expect(quote).toContainText("devnet paid proof");
+    await expect(quote).toContainText("0.13 USDC live run");
+    await expect(quote).toContainText("Money + work graph");
     await expect(quote).toContainText("does not claim mainnet payment");
 
     await expect(
@@ -112,7 +113,7 @@ test.describe("/economic-demo judge-facing story", () => {
       page.getByRole("button", { name: /build dry-run economic graph/i }),
     ).not.toBeVisible();
 
-    await page.getByRole("button", { name: /^run demo$/i }).click();
+    await page.getByRole("button", { name: /^run controlled demo$/i }).click();
     await expect(page.getByTestId("live-run-status")).toContainText(
       "Controlled live-run timeline started",
     );
