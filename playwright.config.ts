@@ -1,24 +1,28 @@
 // playwright.config.ts
-import { defineConfig, devices } from '@playwright/test'
+import { defineConfig, devices } from "@playwright/test";
+
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3010";
+const useExternalBaseURL = Boolean(process.env.PLAYWRIGHT_BASE_URL);
 
 export default defineConfig({
-  testDir: './e2e',
+  testDir: "./e2e",
   fullyParallel: false,
   retries: 1,
   timeout: 30_000,
   use: {
-    baseURL: 'http://127.0.0.1:3010',
-    trace: 'on-first-retry',
-    screenshot: 'on',
-    video: 'on',
+    baseURL,
+    trace: "on-first-retry",
+    screenshot: "on",
+    video: "on",
   },
-  projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } }
-  ],
-  webServer: {
-    command: 'NEXT_PUBLIC_ENABLE_PLAYWRIGHT_WALLET=true node node_modules/next/dist/bin/next dev --port 3010',
-    url: 'http://127.0.0.1:3010',
-    reuseExistingServer: true,
-    timeout: 60_000,
-  },
-})
+  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  webServer: useExternalBaseURL
+    ? undefined
+    : {
+        command:
+          "NEXT_PUBLIC_ENABLE_PLAYWRIGHT_WALLET=true node node_modules/next/dist/bin/next dev --port 3010",
+        url: baseURL,
+        reuseExistingServer: true,
+        timeout: 60_000,
+      },
+});
