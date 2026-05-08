@@ -2,14 +2,14 @@
 
 ## Current clean baseline
 
-Use `main` at `4cbed5f6` or later before this handoff patch, and the next commit containing this handoff once merged/pushed.
+Use clean `main` at `f3000708` or later.
 
 ## Demo entrypoint
 
 - Route: `/economic-demo`
 - Final recording packet: `artifacts/final-recording-packet-20260507.md`
-- Latest run report: `artifacts/economic-demo-run-report/20260507T074452Z/RUN-REPORT.md`
-- Latest submission prep: `artifacts/economic-demo-submission-prep/20260507T074659Z/SUBMISSION-PREP.md`
+- Latest run report: `artifacts/economic-demo-run-report/20260507T084258Z/run-report.json`
+- Latest submission prep: `artifacts/economic-demo-submission-prep/latest/SUBMISSION-PREP.md`
 - Umbra private-payment plan: `docs/UMBRA-PRIVACY-PAYMENTS-BOUNTY-FIT-2026-05-07.md`
 - Umbra private x402 adapter evidence: `artifacts/umbra-private-x402/20260507T074334Z/SUMMARY.md`
 
@@ -44,8 +44,8 @@ Use `main` at `4cbed5f6` or later before this handoff patch, and the next commit
 - `npm run check:final-recording` — PASS.
 
 - `npm run check:product:naming` — PASS, 15 files.
-- `npm run check:submission:claim-boundaries` — PASS, 5 packet surfaces.
-- `npm run check:economic-demo:submission-prep` — PASS, 12 evidence paths.
+- `npm run check:submission:claim-boundaries` — PASS, 7 packet surfaces.
+- `npm run check:economic-demo:submission-prep` — PASS, 14 evidence paths.
 - `npm run evidence:pay-sh:reddi-x402 -- artifacts/pay-sh-reddi-x402/20260507T064842Z` — PASS.
 - `npm run report:economic-demo:run` — PASS with `payShReddix402Compatibility=true`.
 - `npm run test:bdd:index` — PASS.
@@ -64,4 +64,4 @@ Use `main` at `4cbed5f6` or later before this handoff patch, and the next commit
 
 ## Current recommendation
 
-This is ready for recording/submission handoff from the evidence-boundary perspective. If we want an even stronger packet, the next step is not more copy polishing; it is either approval-gated Umbra SDK/devnet smoke, approved mainnet/Jupiter execution, Pay.sh maintainer clarification for sessions/splits, or deeper MagicBlock TEE compatibility work.
+This is ready for recording/submission handoff from the evidence-boundary perspective. If we want an even stronger packet, the next step is not more copy polishing; it is either approval-gated Umbra SDK/devnet expansion, approved mainnet/Jupiter execution, Pay.sh maintainer clarification for sessions/splits, or extending the proven MagicBlock AgentVault route into delegated-payee/private settlement.

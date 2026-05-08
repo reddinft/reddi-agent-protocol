@@ -13,7 +13,7 @@ Record the Colosseum Frontier submission with Quasar-compiled Solana programs as
   - Reputation `nb9rLVjoHMibsgfRGgKuPqm6M8GVcH9r6bYNfg7Yiy6`
   - Attestation `CRGsWWkptdxsH6N6aWAyahLbuMsT58yM624EopEsv1Ex`
 - Do not claim mainnet-ready; architectural audit blockers remain.
-- MagicBlock PER/TEE has live Quasar-native delegation plus patched TEE private-authorization proof (`docs/MAGICBLOCK-QUASAR-TEE-REPRO-2026-05-07.md`, `docs/QUASAR-MAGICBLOCK-PER-BDD-PLAYBOOK-2026-05-07.md`) plus earlier PER/TEE boundary proof (`docs/MAGICBLOCK-PER-TEE-VALIDATION-2026-05-07.md`), but do not claim successful private payee lamport settlement.
+- MagicBlock PER/TEE has live Quasar-native delegation plus bounded Quasar-owned AgentVault settlement proof (`artifacts/quasar-per-agent-vault-settlement-smoke/20260508T031640Z/summary.json`, `docs/notes/MAGICBLOCK-COMMIT-SEMANTICS-LOOP-2026-05-08.md`) plus earlier PER/TEE boundary lineage (`docs/MAGICBLOCK-PER-TEE-VALIDATION-2026-05-07.md`), but do not claim arbitrary-wallet/private payee lamport settlement.
 - Do not claim successful public Jupiter devnet execution. Current safe Jupiter framing is: local Surfpool/mock-Jupiter invoke success plus public Jupiter quote/build/sign boundary. A real successful Jupiter swap requires separately approved mainnet-beta execution.
 - Legacy Anchor registrations/artifacts are reference-only.
 
@@ -69,7 +69,7 @@ npm run test:surfpool:quasar-critical
    - Surfpool localnet confidence passed.
    - x402/OpenRouter/Jupiter evidence is visible with exact boundaries.
    - Jupiter: Surfpool/mock-Jupiter is the successful no-real-funds visual; public Jupiter devnet is quote/build/sign boundary only.
-   - MagicBlock PER/TEE: Quasar-native permission/delegation succeeds live on devnet, and patched Quasar PER executes inside MagicBlock TEE for private authorization/commit evidence; successful private payee lamport settlement is not claimed. Successful live Jupiter swap is not a final claim unless separately run with explicit approval.
+   - MagicBlock PER/TEE: Quasar-native permission/delegation succeeds live on devnet, and bounded Quasar-owned AgentVault settlement through MagicBlock TEE is proven; arbitrary-wallet/private payee settlement is not claimed. Successful live Jupiter swap is not a final claim unless separately run with explicit approval.
    - Not mainnet-ready until architectural audit blockers are resolved and re-reviewed.
 
 ## Latest green evidence
@@ -77,6 +77,9 @@ npm run test:surfpool:quasar-critical
 - PR #244 merged to main as `bbfa0a92`; post-merge main Quasar Program Tests run `25447650320` passed.
 - PR #246 merged to main as `6f0b33c4`: `/economic-demo` UI labels the signed devnet budget-lane tx as **not** a Jupiter swap receipt.
 - PR #247 merged to main as `a51fab80`: generated run report now uses `Jupiter quote and budget-lane proof` / `live_quote_plus_signed_devnet_budget_lane`, not executed devnet swap language.
+- PR #274 merged to main as `c8362f38`: bounded MagicBlock PER AgentVault settlement proof passed with `baseVaultSettled.ok=true` and withdraw-after-settlement success.
+- PR #275 merged to main as `1debc2f3`: active submission docs and guard align to the AgentVault-only MagicBlock claim boundary.
+- PR #276 merged to main as `f3000708`: older MagicBlock docs have supersession notes to avoid stale authorization-only framing.
 - Devnet Reputation upgrade tx: `24bf49dnB9YCiqS6uT21jnQHRy9RveTquffBSNjhUpeHPE663kf7PEMCMch5k4ZR9sADxYUWvVijufEN993PVzqg`.
 - Latest full devnet Quasar A→B→C PASS in 6516ms:
   - Escrow lock tx `22XLto6VVbfYGZfRPvR65KNVEyztw4HAm1c7gPbWNXWpcNbqBdtNHFpAEeGL4L8T6UodT2fxan4yxYdPNb8hDzhx`
