@@ -151,7 +151,7 @@ Required framing:
 
 Post-recording process:
 
-1. Capture the live product app flows from `https://agent-protocol.reddi.tech`.
+1. Capture the live product app flows from `https://agent-protocol.reddi.tech` using `PLAYWRIGHT_BASE_URL=https://agent-protocol.reddi.tech`.
 2. Use fast-forward sections to fit the story into ~3 minutes.
 3. Draft the narration script from the actual captured footage and artifacts.
 4. Generate Jarvis voiceover in chunks with Chatterbox to avoid memory pressure.

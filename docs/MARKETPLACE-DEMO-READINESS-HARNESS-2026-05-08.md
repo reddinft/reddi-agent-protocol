@@ -98,3 +98,15 @@ https://agent-protocol.reddi.tech
 Use localhost only for rehearsal/debugging. The submitted 3-minute demo should show the live product, compressing low-value waiting with fast-forward where needed.
 
 After the live-product recording is captured, generate narration from the actual footage, then use Jarvis voice in chunked Chatterbox runs to avoid memory pressure.
+
+## Live product recording command
+
+For the final public product capture, point Playwright at the deployed app and use slower pacing:
+
+```bash
+PLAYWRIGHT_BASE_URL=https://agent-protocol.reddi.tech \
+MARKETPLACE_RECORDING_PACE_MS=2500 \
+npm run demo:marketplace:readiness -- --skip-surfpool
+```
+
+This skips local Surfpool because the purpose is the live user-flow capture. Keep the Surfpool proof packet from the local-first harness beside the final video packet for evidence.

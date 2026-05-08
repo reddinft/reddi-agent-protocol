@@ -4,6 +4,7 @@ import { connectMockWallet, enableMockWallet } from "./helpers/wallet";
 const recordingPaceMs = Number(
   process.env.MARKETPLACE_RECORDING_PACE_MS ?? 900,
 );
+const liveProductMode = Boolean(process.env.PLAYWRIGHT_BASE_URL);
 
 async function recordingBeat(page: {
   waitForTimeout: (ms: number) => Promise<void>;
@@ -15,7 +16,7 @@ test.describe("marketplace demo recording journey", () => {
   test("records existing-agent to specialist to attestor onboarding flow", async ({
     page,
   }) => {
-    await enableMockWallet(page);
+    if (!liveProductMode) await enableMockWallet(page);
 
     await page.goto("/");
     await expect(
@@ -35,24 +36,43 @@ test.describe("marketplace demo recording journey", () => {
     await recordingBeat(page);
 
     await page.getByRole("link", { name: /try planner path/i }).click();
-    await connectMockWallet(page);
-    await expect(
-      page.getByRole("heading", {
-        name: /connect your agent system to marketplace specialists/i,
-      }),
-    ).toBeVisible();
-    await expect(
-      page.getByText(/policy before payment/i).first(),
-    ).toBeVisible();
+    if (liveProductMode) {
+      await expect(
+        page.getByRole("heading", { name: /connect your wallet/i }),
+      ).toBeVisible();
+      await expect(
+        page.getByText(/use the planner or register as a specialist/i),
+      ).toBeVisible();
+    } else {
+      await connectMockWallet(page);
+      await expect(
+        page.getByRole("heading", {
+          name: /connect your agent system to marketplace specialists/i,
+        }),
+      ).toBeVisible();
+      await expect(
+        page.getByText(/policy before payment/i).first(),
+      ).toBeVisible();
+    }
+    await recordingBeat(page);
 
     await page.goto("/register");
-    await connectMockWallet(page);
-    await expect(
-      page.getByRole("heading", {
-        name: /monetize your specialist agent with reddi-x402/i,
-      }),
-    ).toBeVisible();
-    await expect(page.getByText(/gate work with x402/i)).toBeVisible();
+    if (liveProductMode) {
+      await expect(
+        page.getByRole("heading", { name: /connect your wallet/i }),
+      ).toBeVisible();
+      await expect(
+        page.getByText(/need a Solana wallet to register a specialist/i),
+      ).toBeVisible();
+    } else {
+      await connectMockWallet(page);
+      await expect(
+        page.getByRole("heading", {
+          name: /monetize your specialist agent with reddi-x402/i,
+        }),
+      ).toBeVisible();
+      await expect(page.getByText(/gate work with x402/i)).toBeVisible();
+    }
     await recordingBeat(page);
 
     await page.route("**/api/onboarding/audit", async (route) => {
@@ -86,14 +106,21 @@ test.describe("marketplace demo recording journey", () => {
     });
 
     await page.goto("/attestation");
-    await connectMockWallet(page);
-    await expect(
-      page.getByRole("heading", {
-        name: /verify specialist work and earn trust/i,
-      }),
-    ).toBeVisible();
-    await page.getByRole("button", { name: /resolve attestor/i }).click();
-    await expect(page.getByText(/resolved attestor/i)).toBeVisible();
+    if (liveProductMode) {
+      await expect(
+        page.getByRole("heading", { name: /become an attestor agent/i }),
+      ).toBeVisible();
+      await expect(page.getByText(/connect wallet/i)).toBeVisible();
+    } else {
+      await connectMockWallet(page);
+      await expect(
+        page.getByRole("heading", {
+          name: /verify specialist work and earn trust/i,
+        }),
+      ).toBeVisible();
+      await page.getByRole("button", { name: /resolve attestor/i }).click();
+      await expect(page.getByText(/resolved attestor/i)).toBeVisible();
+    }
     await recordingBeat(page);
 
     await page.goto("/economic-demo");
