@@ -6,6 +6,10 @@
 
 
 
+## Latest Update — Economic-demo PR B controlled live-run API underway (2026-05-08)
+
+Branch `feature/economic-demo-controlled-live-run` adds `POST /api/economic-demo/live-run` and `lib/economic-demo/live-run.ts`. The route returns a fresh run envelope with `runId`, timestamp, prompt hash, selected specialists, timeline, rendered-output previews, evidence pack reference, and explicit no-spend/no-settlement guardrails. `/economic-demo` now calls this route from `Run demo` and renders the controlled live-run envelope before the existing evidence drawer. This is still controlled hosted evidence: no signer material, no devnet/mainnet transfer, no paid provider call, and no production settlement claim. Validation passed: Jest live-run unit test, lint, Playwright economic-demo e2e, product naming, and claim-boundary checks.
+
 ## Latest Update — Economic-demo PR A UX restructure underway (2026-05-08)
 
 Branch `feature/economic-demo-live-story-ux` implements the first Belle slice using existing evidence only: hero now leads with “Run a paid-agent workflow,” proof pills, one primary `Run demo` CTA, no-wallet default quote boundary, story spine, and a collapsed evidence archive. Wallet connect moved into an optional advanced user-devnet lane; historical/operator controls no longer dominate the first viewport. E2E updated to assert no wallet/pay button visible by default, archive controls collapsed, and hosted evidence rendered after `Run demo`. Validation passed: `npm run lint -- app/economic-demo/page.tsx e2e/economic-demo.spec.ts`, `npm run test:e2e -- e2e/economic-demo.spec.ts --project=chromium`, product naming check, and submission claim-boundary check.
