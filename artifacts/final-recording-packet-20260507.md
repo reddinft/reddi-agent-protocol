@@ -1,6 +1,6 @@
 # Final Recording Packet — 2026-05-07
 
-Use clean `main` at `4cbed5f6` or later.
+Use clean `main` at `f3000708` or later.
 
 ## Entry points
 
@@ -9,7 +9,7 @@ Use clean `main` at `4cbed5f6` or later.
 - Proof map: `docs/COLOSSEUM-FINAL-QUASAR-PROOF-MAP-2026-05-06.md`
 - Proof hierarchy: `docs/ECONOMIC-DEMO-PROOF-HIERARCHY-2026-05-07.md`
 - Latest submission prep: `artifacts/economic-demo-submission-prep/latest/SUBMISSION-PREP.md`
-- Latest run report: `artifacts/economic-demo-run-report/20260507T074452Z/RUN-REPORT.md`
+- Latest run report: `artifacts/economic-demo-run-report/20260507T084258Z/run-report.json`
 - Latest Pay.sh / `reddi-x402` compatibility evidence: `artifacts/pay-sh-reddi-x402/20260507T064842Z/SUMMARY.md`
 - Umbra private-payment plan: `docs/UMBRA-PRIVACY-PAYMENTS-BOUNTY-FIT-2026-05-07.md`
 - Umbra private x402 adapter evidence: `artifacts/umbra-private-x402/20260507T074334Z/SUMMARY.md`
@@ -24,7 +24,7 @@ Use clean `main` at `4cbed5f6` or later.
 - `npm run evidence:pay-sh:reddi-x402 -- artifacts/pay-sh-reddi-x402/20260507T064842Z` — PASS
 - `npm run check:economic-demo:submission-prep` — PASS
 - `npm run check:quasar:submission` — PASS
-- Earlier clean-main gates: `npm run test:bdd:index` PASS; `git diff --check` PASS
+- Current clean-main gates: `npm run check:final-recording` PASS; `npm run check:submission:claim-boundaries` PASS; `npm run test:bdd:index` PASS; `git diff --check` PASS
 
 ## Recording language
 
