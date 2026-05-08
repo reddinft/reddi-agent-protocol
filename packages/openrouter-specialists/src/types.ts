@@ -32,6 +32,9 @@ export interface RuntimeConfig {
   mockOpenRouter: boolean;
   requirePayment: boolean;
   allowDemoPayment?: boolean;
+  allowRealPayment?: boolean;
+  solanaRpcUrl?: string;
+  usdcDevnetMint?: string;
   enableAgentToAgentCalls?: boolean;
   enableLiveDelegationExecutor?: boolean;
   maxDownstreamCalls?: number;

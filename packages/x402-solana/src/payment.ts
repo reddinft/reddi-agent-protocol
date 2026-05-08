@@ -1,4 +1,4 @@
-import { PublicKey } from '@solana/web3.js';
+import { LAMPORTS_PER_SOL, PublicKey, SystemProgram } from '@solana/web3.js';
 import { needsAutoSwap, resolveMint, SwapClient } from './jupiter';
 import { X402Request, PaymentReceipt } from './types';
 import type {
@@ -48,16 +48,21 @@ export function buildX402Challenge(input: X402ChallengeInput): X402Challenge {
 export function parseX402Header(header: string): X402Request {
   try {
     const parsed = JSON.parse(header);
-    if (typeof parsed.amount !== 'number' || parsed.amount <= 0) throw new Error('amount must be a positive number');
+    const amount = typeof parsed.amount === 'number' ? parsed.amount : typeof parsed.amount === 'string' ? Number(parsed.amount) : Number.NaN;
+    if (!Number.isFinite(amount) || amount <= 0) throw new Error('amount must be a positive number');
     if (!parsed.currency || typeof parsed.currency !== 'string') throw new Error('currency is required (e.g., "SOL")');
-    if (!parsed.paymentAddress || typeof parsed.paymentAddress !== 'string') throw new Error('paymentAddress is required');
+    const paymentAddress = typeof parsed.paymentAddress === 'string' ? parsed.paymentAddress : typeof parsed.payTo === 'string' ? parsed.payTo : undefined;
+    if (!paymentAddress) throw new Error('paymentAddress is required');
     if (!parsed.nonce || typeof parsed.nonce !== 'string') throw new Error('nonce is required');
-    if (!isValidSolanaPublicKey(parsed.paymentAddress)) throw new Error('paymentAddress must be a valid Solana public key');
+    if (!isValidSolanaPublicKey(paymentAddress)) throw new Error('paymentAddress must be a valid Solana public key');
     return {
-      amount: parsed.amount,
+      amount,
       currency: parsed.currency,
-      paymentAddress: parsed.paymentAddress,
+      paymentAddress,
       nonce: parsed.nonce,
+      network: typeof parsed.network === 'string' ? parsed.network : undefined,
+      endpoint: typeof parsed.endpoint === 'string' ? parsed.endpoint : undefined,
+      memo: typeof parsed.memo === 'string' ? parsed.memo : undefined,
       payerCurrency: typeof parsed.payerCurrency === 'string' ? parsed.payerCurrency : undefined,
       payerAddress: typeof parsed.payerAddress === 'string' ? parsed.payerAddress : undefined,
       autoSwap: typeof parsed.autoSwap === 'boolean' ? parsed.autoSwap : false,
@@ -167,6 +172,88 @@ export class DemoPaymentVerifier implements ReceiptVerifier {
   verifyReceipt(receipt: unknown, challenge: X402Challenge, replayStore?: NonceReplayStore): Promise<ReceiptVerificationResult> {
     return verifyDemoPaymentReceipt({ receipt, challenge, allowDemoPayment: this.allowDemoPayment, replayStore });
   }
+}
+
+export interface ParsedTransactionConnection {
+  getParsedTransaction(signature: string, options?: unknown): Promise<any>;
+}
+
+export interface SolanaReceiptVerifierOptions {
+  allowRealPayment: boolean;
+  connection: ParsedTransactionConnection;
+  /** Required when verifying USDC/SPL-token receipts. */
+  usdcMint?: string;
+}
+
+export class SolanaReceiptVerifier implements ReceiptVerifier {
+  constructor(private readonly options: SolanaReceiptVerifierOptions) {}
+
+  async verifyReceipt(receiptInput: unknown, challenge: X402Challenge, replayStore?: NonceReplayStore): Promise<ReceiptVerificationResult> {
+    if (!this.options.allowRealPayment) {
+      return { ok: false, reason: 'unsupported_receipt', message: 'real Solana receipt verification is disabled' };
+    }
+    const receipt = normalizeReceipt(receiptInput);
+    if (!receipt || receipt.demo) return { ok: false, reason: 'invalid_receipt', message: 'real Solana receipt is required' };
+    const base = validateReceiptShape(receipt, challenge);
+    if (base) return base;
+    const signature = receipt.signature ?? receipt.txSignature;
+    if (!signature) return { ok: false, reason: 'invalid_receipt', message: 'receipt signature is required' };
+
+    const parsed = await this.options.connection.getParsedTransaction(signature, {
+      commitment: 'confirmed',
+      maxSupportedTransactionVersion: 0,
+    });
+    if (!parsed?.meta || parsed.meta.err) return { ok: false, reason: 'invalid_receipt', message: 'transaction is missing or failed' };
+
+    const paid = challenge.currency === 'SOL'
+      ? transactionHasSolTransfer(parsed, receipt.payer, challenge.payTo, Number(challenge.amount))
+      : challenge.currency === 'USDC'
+        ? transactionHasTokenTransfer(parsed, receipt, challenge, this.options.usdcMint)
+        : false;
+    if (!paid) return { ok: false, reason: 'invalid_receipt', message: 'transaction does not satisfy x402 challenge payment terms' };
+
+    if (replayStore) {
+      const accepted = await replayStore.checkAndStore(receipt.nonce);
+      if (!accepted) return { ok: false, reason: 'duplicate_nonce', message: 'receipt nonce has already been used', actual: receipt.nonce };
+    }
+    return { ok: true, receipt, demo: false };
+  }
+}
+
+function validateReceiptShape(receipt: X402PaymentReceipt, challenge: X402Challenge): ReceiptVerificationResult | undefined {
+  if (receipt.network !== challenge.network) return { ok: false, reason: 'wrong_network', message: 'receipt network does not match challenge', expected: challenge.network, actual: receipt.network };
+  if (!isValidSolanaPublicKey(receipt.payTo)) return { ok: false, reason: 'invalid_payee', message: 'receipt payTo is not a valid Solana public key', actual: receipt.payTo };
+  if (receipt.payTo !== challenge.payTo) return { ok: false, reason: 'wrong_payee', message: 'receipt payee does not match challenge', expected: challenge.payTo, actual: receipt.payTo };
+  if (String(receipt.amount) !== String(challenge.amount)) return { ok: false, reason: 'wrong_amount', message: 'receipt amount does not match challenge', expected: challenge.amount, actual: receipt.amount };
+  if (receipt.currency !== challenge.currency) return { ok: false, reason: 'wrong_currency', message: 'receipt currency does not match challenge', expected: challenge.currency, actual: receipt.currency };
+  if (receipt.nonce !== challenge.nonce) return { ok: false, reason: 'invalid_nonce', message: 'receipt nonce does not match challenge', expected: challenge.nonce, actual: receipt.nonce };
+  return undefined;
+}
+
+function transactionHasSolTransfer(parsed: any, payer: string | undefined, payTo: string, amountSol: number): boolean {
+  const lamports = Math.ceil(amountSol * LAMPORTS_PER_SOL);
+  return parsed.transaction?.message?.instructions?.some((ix: any) => {
+    const info = ix?.parsed?.info;
+    return ix?.programId?.toString?.() === SystemProgram.programId.toBase58()
+      && ix?.parsed?.type === 'transfer'
+      && (!payer || info?.source === payer)
+      && info?.destination === payTo
+      && Number(info?.lamports) >= lamports;
+  }) === true;
+}
+
+function transactionHasTokenTransfer(parsed: any, receipt: X402PaymentReceipt, challenge: X402Challenge, expectedMint?: string): boolean {
+  if (!expectedMint && !receipt.mint) return false;
+  const mint = expectedMint ?? receipt.mint;
+  const expectedAmount = String(challenge.amount);
+  return parsed.transaction?.message?.instructions?.some((ix: any) => {
+    const info = ix?.parsed?.info;
+    if (!['transfer', 'transferChecked'].includes(ix?.parsed?.type)) return false;
+    if (info?.mint && info.mint !== mint) return false;
+    if (receipt.destinationTokenAccount && info?.destination !== receipt.destinationTokenAccount) return false;
+    const tokenAmount = info?.tokenAmount?.uiAmountString ?? info?.tokenAmount?.uiAmount ?? info?.amount;
+    return String(tokenAmount) === expectedAmount;
+  }) === true;
 }
 
 export interface SendPaymentOptions {
