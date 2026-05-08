@@ -3,12 +3,8 @@
 import { Suspense } from "react";
 import { useEffect, useRef, useState } from "react";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
+import { Connection, Transaction } from "@solana/web3.js";
 import {
-  Connection,
-  Transaction,
-} from "@solana/web3.js";
-import {
-  ESCROW_PROGRAM_ID,
   REGISTRY_PROGRAM_ID,
   DEVNET_RPC,
   AGENT_TYPE_ENUM,
@@ -60,7 +56,7 @@ import {
 const WalletMultiButton = dynamic(
   async () =>
     (await import("@solana/wallet-adapter-react-ui")).WalletMultiButton,
-  { ssr: false }
+  { ssr: false },
 );
 
 type Step = 1 | 2 | 3;
@@ -117,13 +113,19 @@ function formatSimulationError(err: unknown, logs?: string[] | null) {
 
   let hint = "";
   if (/InvalidInstructionData/i.test(base)) {
-    hint = "\nHint: Program/instruction layout mismatch. Check that NEXT_PUBLIC_ESCROW_PROGRAM_ID points to the current deployed program for this app build.";
+    hint =
+      "\nHint: Program/instruction layout mismatch. Check that NEXT_PUBLIC_ESCROW_PROGRAM_ID points to the current deployed program for this app build.";
   } else if (/AccountNotFound/i.test(base)) {
-    hint = "\nHint: One required account is missing on this RPC (often wrong cluster/RPC or unfunded wallet). Verify RPC endpoint + wallet balance on the same network.";
+    hint =
+      "\nHint: One required account is missing on this RPC (often wrong cluster/RPC or unfunded wallet). Verify RPC endpoint + wallet balance on the same network.";
   }
 
-  if (logTail.length === 0) return truncateMiddle(`Simulation failed: ${base}${hint}`);
-  return truncateMiddle(`Simulation failed: ${base}${hint}\nLogs:\n${logTail.join("\n")}`, 1200);
+  if (logTail.length === 0)
+    return truncateMiddle(`Simulation failed: ${base}${hint}`);
+  return truncateMiddle(
+    `Simulation failed: ${base}${hint}\nLogs:\n${logTail.join("\n")}`,
+    1200,
+  );
 }
 
 function formatRegisterError(err: unknown) {
@@ -175,14 +177,19 @@ function RegisterInner() {
   const [txSig, setTxSig] = useState<string | null>(null);
   const [txError, setTxError] = useState<string | null>(null);
   const [setupModalOpen, setSetupModalOpen] = useState(false);
-  const [endpointProbeStatus, setEndpointProbeStatus] = useState<EndpointProbeStatus>("idle");
+  const [endpointProbeStatus, setEndpointProbeStatus] =
+    useState<EndpointProbeStatus>("idle");
   const [endpointProbeMessage, setEndpointProbeMessage] = useState("");
   const [endpointProbeModels, setEndpointProbeModels] = useState<string[]>([]);
-  const [existingAgent, setExistingAgent] = useState<ExistingAgentState>(INITIAL_EXISTING_AGENT_STATE);
+  const [existingAgent, setExistingAgent] = useState<ExistingAgentState>(
+    INITIAL_EXISTING_AGENT_STATE,
+  );
   const endpointProbeTimeoutRef = useRef<number | null>(null);
   const endpointProbeRequestRef = useRef(0);
   const endpointCompliancePassed = endpointProbeStatus === "reachable";
-  const canAdvanceToReview = Boolean(form.name && form.model && form.endpoint.trim() && endpointCompliancePassed);
+  const canAdvanceToReview = Boolean(
+    form.name && form.model && form.endpoint.trim() && endpointCompliancePassed,
+  );
 
   const runEndpointProbe = async (rawEndpoint: string) => {
     const endpoint = rawEndpoint.trim();
@@ -209,14 +216,17 @@ function RegisterInner() {
 
       if (!data) {
         setEndpointProbeStatus("unreachable");
-        setEndpointProbeMessage("Could not reach endpoint. Use a public https URL from ngrok (recommended) or localtunnel.");
+        setEndpointProbeMessage(
+          "Could not reach endpoint. Use a public https URL from ngrok (recommended) or localtunnel.",
+        );
         return;
       }
 
       if (!res.ok) {
         setEndpointProbeStatus("unreachable");
         setEndpointProbeMessage(
-          data.error || "Could not reach endpoint. Use a public https URL from ngrok (recommended) or localtunnel."
+          data.error ||
+            "Could not reach endpoint. Use a public https URL from ngrok (recommended) or localtunnel.",
         );
         return;
       }
@@ -228,24 +238,31 @@ function RegisterInner() {
           Array.isArray(data.models) && data.models.length > 0
             ? `Ollama detected, models: ${data.models.slice(0, 3).join(", ")}`
             : "Endpoint reachable.";
-        setEndpointProbeMessage(data.warning ? `${base} ${data.warning}` : base);
+        setEndpointProbeMessage(
+          data.warning ? `${base} ${data.warning}` : base,
+        );
         return;
       }
 
       if (data.status === "reachable") {
         setEndpointProbeStatus("no_ollama");
-        setEndpointProbeMessage("Endpoint is reachable, but /api/tags did not return an Ollama model list.");
+        setEndpointProbeMessage(
+          "Endpoint is reachable, but /api/tags did not return an Ollama model list.",
+        );
         return;
       }
 
       setEndpointProbeStatus("unreachable");
       setEndpointProbeMessage(
-        data.error || "Could not reach endpoint. Use a public https URL from ngrok (recommended) or localtunnel."
+        data.error ||
+          "Could not reach endpoint. Use a public https URL from ngrok (recommended) or localtunnel.",
       );
     } catch {
       if (requestId !== endpointProbeRequestRef.current) return;
       setEndpointProbeStatus("unreachable");
-      setEndpointProbeMessage("Could not reach endpoint. Use a public https URL from ngrok (recommended) or localtunnel.");
+      setEndpointProbeMessage(
+        "Could not reach endpoint. Use a public https URL from ngrok (recommended) or localtunnel.",
+      );
     }
   };
 
@@ -256,7 +273,8 @@ function RegisterInner() {
     const primaryRate = searchParams.get("primaryRate")?.trim();
     const attestationRate = searchParams.get("attestationRate")?.trim();
 
-    if (!endpoint && !model && !name && !primaryRate && !attestationRate) return;
+    if (!endpoint && !model && !name && !primaryRate && !attestationRate)
+      return;
 
     setForm((prev) => ({
       ...prev,
@@ -315,7 +333,8 @@ function RegisterInner() {
 
     async function checkExistingAgent() {
       try {
-        const conn = walletConnection ?? new Connection(DEVNET_RPC, "confirmed");
+        const conn =
+          walletConnection ?? new Connection(DEVNET_RPC, "confirmed");
         const account = await conn.getAccountInfo(pda, "confirmed");
         if (cancelled) return;
         setExistingAgent({
@@ -327,7 +346,10 @@ function RegisterInner() {
         setExistingAgent({
           status: "error",
           pda: pda.toBase58(),
-          error: error instanceof Error ? error.message : "Could not check existing registration",
+          error:
+            error instanceof Error
+              ? error.message
+              : "Could not check existing registration",
         });
       }
     }
@@ -347,7 +369,9 @@ function RegisterInner() {
   const handleRegister = async () => {
     if (!publicKey || !sendTransaction) return;
     if (alreadyRegistered) {
-      setTxError("This wallet is already registered. Open My Agent to view the existing registration, or deregister before creating a fresh registration with the same wallet.");
+      setTxError(
+        "This wallet is already registered. Open My Agent to view the existing registration, or deregister before creating a fresh registration with the same wallet.",
+      );
       return;
     }
     setRegistering(true);
@@ -361,17 +385,17 @@ function RegisterInner() {
         form.agentType === "primary"
           ? AGENT_TYPE_ENUM.Primary
           : form.agentType === "attestation"
-          ? AGENT_TYPE_ENUM.Attestation
-          : AGENT_TYPE_ENUM.Both;
+            ? AGENT_TYPE_ENUM.Attestation
+            : AGENT_TYPE_ENUM.Both;
 
       const rateLamports = BigInt(
         Math.round(
           parseFloat(
             form.agentType === "attestation"
               ? form.attestationRate || "0.0005"
-              : form.primaryRate || "0.001"
-          ) * 1_000_000_000
-        )
+              : form.primaryRate || "0.001",
+          ) * 1_000_000_000,
+        ),
       );
 
       const modelName = form.model || "unknown";
@@ -400,7 +424,8 @@ function RegisterInner() {
           throw new Error(formatSimulationError(sim.value.err, sim.value.logs));
         }
       } catch (simErr: unknown) {
-        const simMsg = simErr instanceof Error ? simErr.message : String(simErr);
+        const simMsg =
+          simErr instanceof Error ? simErr.message : String(simErr);
         if (!/invalid arguments/i.test(simMsg)) {
           throw simErr;
         }
@@ -419,7 +444,10 @@ function RegisterInner() {
           .catch(() => null);
 
         throw new Error(
-          formatSimulationError(confirmation.value.err, txMeta?.meta?.logMessages)
+          formatSimulationError(
+            confirmation.value.err,
+            txMeta?.meta?.logMessages,
+          ),
         );
       }
 
@@ -430,11 +458,19 @@ function RegisterInner() {
       const msg = formatRegisterError(err);
       setTxError(msg);
       if (isAlreadyRegisteredError(msg) && publicKey) {
-        setExistingAgent({ status: "registered", pda: agentPda(publicKey).toBase58() });
+        setExistingAgent({
+          status: "registered",
+          pda: agentPda(publicKey).toBase58(),
+        });
       }
       setTxSig(null);
       setSuccess(false);
-      showToast(isAlreadyRegisteredError(msg) ? "Wallet already registered" : "Registration failed", "error");
+      showToast(
+        isAlreadyRegisteredError(msg)
+          ? "Wallet already registered"
+          : "Registration failed",
+        "error",
+      );
     } finally {
       setRegistering(false);
     }
@@ -445,12 +481,16 @@ function RegisterInner() {
       <Modal open={true} onClose={() => {}}>
         <div className="p-8 text-center">
           <div className="mb-4 text-4xl">🔗</div>
-          <h2 className="mb-2 font-display text-xl text-white">Connect Your Wallet</h2>
-          <p className="mb-6 text-sm text-gray-400">You need a Solana wallet to register a specialist.</p>
+          <h2 className="mb-2 font-display text-xl text-white">
+            Connect Your Wallet
+          </h2>
+          <p className="mb-6 text-sm text-gray-400">
+            You need a Solana wallet to register a specialist.
+          </p>
           <WalletMultiButton />
         </div>
       </Modal>
-    )
+    );
   }
 
   if (success) {
@@ -461,15 +501,23 @@ function RegisterInner() {
           {txError ? "Transaction failed." : "Your agent is live."}
         </h1>
         <p className="text-muted-foreground">
-          {txError
-            ? "The on-chain transaction could not be submitted. Check your wallet balance and try again."
-            : <><strong className="text-foreground">{form.name}</strong> has been registered on-chain. Your endpoint is ready to receive requests.</>
-          }
+          {txError ? (
+            "The on-chain transaction could not be submitted. Check your wallet balance and try again."
+          ) : (
+            <>
+              <strong className="text-foreground">{form.name}</strong> has been
+              registered on-chain. Your endpoint is ready to receive requests.
+            </>
+          )}
         </p>
         {txError && (
           <div className="p-4 rounded-lg border border-amber-500/30 bg-amber-500/10 text-left">
-            <p className="text-xs text-amber-400 mb-1">⚠️ On-chain tx failed — showing simulated sig</p>
-            <p className="font-mono text-xs text-amber-200/80 break-all">{txError}</p>
+            <p className="text-xs text-amber-400 mb-1">
+              ⚠️ On-chain tx failed — showing simulated sig
+            </p>
+            <p className="font-mono text-xs text-amber-200/80 break-all">
+              {txError}
+            </p>
           </div>
         )}
         {txSig && (
@@ -487,7 +535,9 @@ function RegisterInner() {
                 {txSig}
               </a>
             ) : (
-              <p className="font-mono text-xs break-all text-[#14F195]">{txSig}</p>
+              <p className="font-mono text-xs break-all text-[#14F195]">
+                {txSig}
+              </p>
             )}
           </div>
         )}
@@ -498,10 +548,21 @@ function RegisterInner() {
           </div>
         )}
         <div className="flex gap-3 justify-center">
-          <LinkButton href="/setup" style={{ background: "linear-gradient(135deg, #9945FF, #14F195)", color: "#000", fontWeight: 600 }}>
+          <LinkButton
+            href="/setup"
+            style={{
+              background: "linear-gradient(135deg, #9945FF, #14F195)",
+              color: "#000",
+              fontWeight: 600,
+            }}
+          >
             View Setup Guide →
           </LinkButton>
-          <LinkButton href="/agents" variant="outline" className="border-white/10">
+          <LinkButton
+            href="/agents"
+            variant="outline"
+            className="border-white/10"
+          >
             Browse Agents
           </LinkButton>
         </div>
@@ -523,46 +584,100 @@ function RegisterInner() {
       <Card className="flex items-center gap-3 p-4 text-sm border-accent-green/20 bg-accent-green/10">
         <span className="text-accent-green text-base">⚡</span>
         <span className="text-muted-foreground">
-          <span className="font-semibold text-accent-green">Devnet</span> — registration submits a real on-chain transaction.
-          Requires a connected wallet with ~0.011 SOL (0.01 fee + rent).
+          <span className="font-semibold text-accent-green">Devnet</span> —
+          registration submits a real on-chain transaction. Requires a connected
+          wallet with ~0.011 SOL (0.01 fee + rent).
         </span>
       </Card>
       <PageHeader
-        label="Registration"
-        title={alreadyRegistered ? "Your wallet already has an agent" : "Register Your Agent"}
-        subtitle={alreadyRegistered ? "Open your existing agent profile, update details, or deregister before creating a fresh registration with this wallet." : "One-time 0.01 SOL registration. No subscription. You control your rate."}
+        label="Specialist supply path"
+        title={
+          alreadyRegistered
+            ? "Your wallet already has an agent"
+            : "Monetize your specialist agent with reddi-x402"
+        }
+        subtitle={
+          alreadyRegistered
+            ? "Open your existing agent profile, update details, or deregister before creating a fresh registration with this wallet."
+            : "Publish capabilities, pricing, and a reachable endpoint so consumer agents can discover, hire, pay, and rate your specialist in the marketplace."
+        }
       />
+      <div className="grid gap-3 md:grid-cols-3">
+        {[
+          {
+            title: "Publish capability",
+            desc: "Describe the task types your agent can handle and the endpoint consumers should call.",
+          },
+          {
+            title: "Gate work with x402",
+            desc: "Expose a payment-aware specialist so buyers see a price challenge before paid execution.",
+          },
+          {
+            title: "Earn reputation",
+            desc: "Completed jobs, receipts, and attestations become a trust trail future agents can evaluate.",
+          },
+        ].map((item) => (
+          <Card key={item.title} className="border-white/10 bg-white/5 p-4">
+            <p className="text-sm font-semibold text-white">{item.title}</p>
+            <p className="mt-2 text-xs leading-5 text-muted-foreground">
+              {item.desc}
+            </p>
+          </Card>
+        ))}
+      </div>
       {PROGRAM_TARGET === "quasar" && (
-        <Card className={`space-y-2 p-4 text-sm ${PROGRAM_SUBMISSION_READY ? "border-emerald-400/25 bg-emerald-500/10 text-emerald-50" : "border-amber-400/25 bg-amber-500/10 text-amber-50"}`}>
+        <Card
+          className={`space-y-2 p-4 text-sm ${PROGRAM_SUBMISSION_READY ? "border-emerald-400/25 bg-emerald-500/10 text-emerald-50" : "border-amber-400/25 bg-amber-500/10 text-amber-50"}`}
+        >
           <p className="font-semibold">
-            Quasar mode is active{PROGRAM_SUBMISSION_READY ? " and marked submission-ready." : ", but submission readiness is still blocked."}
+            Quasar mode is active
+            {PROGRAM_SUBMISSION_READY
+              ? " and marked submission-ready."
+              : ", but submission readiness is still blocked."}
           </p>
           <p className="text-xs opacity-85">
-            Target: <span className="font-mono">{PROGRAM_TARGET}</span> · Compatibility: <span className="font-mono">{PROGRAM_COMPATIBILITY}</span>. Registration instruction construction uses the Quasar registry layout, but wallet submission should wait for the full proof chain unless you are deliberately testing this path.
+            Target: <span className="font-mono">{PROGRAM_TARGET}</span> ·
+            Compatibility:{" "}
+            <span className="font-mono">{PROGRAM_COMPATIBILITY}</span>.
+            Registration instruction construction uses the Quasar registry
+            layout, but wallet submission should wait for the full proof chain
+            unless you are deliberately testing this path.
           </p>
           {!PROGRAM_SUBMISSION_READY && PROGRAM_KNOWN_GAPS.length > 0 && (
             <ul className="list-disc space-y-1 pl-4 text-xs opacity-85">
-              {PROGRAM_KNOWN_GAPS.slice(0, 3).map((gap) => <li key={gap}>{gap}</li>)}
+              {PROGRAM_KNOWN_GAPS.slice(0, 3).map((gap) => (
+                <li key={gap}>{gap}</li>
+              ))}
             </ul>
           )}
         </Card>
       )}
       {existingAgent.status === "checking" && (
         <Card className="border-blue-400/20 bg-blue-500/10 p-4 text-sm text-blue-100">
-          Checking whether this wallet already has an on-chain agent registration…
+          Checking whether this wallet already has an on-chain agent
+          registration…
         </Card>
       )}
       {alreadyRegistered && (
         <Card className="space-y-3 border-emerald-400/25 bg-emerald-500/10 p-4 text-sm text-emerald-50">
           <p className="font-semibold">This wallet is already registered.</p>
           <p className="text-emerald-100/80">
-            Registering again would fail because each wallet maps to one deterministic agent account. Use My Agent to view the existing profile, or deregister first if you need a fresh registration.
+            Registering again would fail because each wallet maps to one
+            deterministic agent account. Use My Agent to view the existing
+            profile, or deregister first if you need a fresh registration.
           </p>
           <div className="flex flex-wrap gap-3">
-            <LinkButton href={myAgentHref} className="!bg-emerald-400 !text-black hover:!bg-emerald-300">
+            <LinkButton
+              href={myAgentHref}
+              className="!bg-emerald-400 !text-black hover:!bg-emerald-300"
+            >
               My Agent →
             </LinkButton>
-            <LinkButton href="/faq" variant="outline" className="border-emerald-300/30 text-emerald-100">
+            <LinkButton
+              href="/faq"
+              variant="outline"
+              className="border-emerald-300/30 text-emerald-100"
+            >
               Read FAQ
             </LinkButton>
           </div>
@@ -574,10 +689,11 @@ function RegisterInner() {
           onClick={() => setSetupModalOpen(true)}
           className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl transition flex items-center justify-center gap-2 mb-6"
         >
-          <span>🚀</span> Set up my first agent (guided)
+          <span>🚀</span> Set up my first specialist (guided)
         </Button>
         <p className="text-center text-sm text-gray-500 dark:text-gray-400 mb-6">
-          Already have Ollama running? Fill in the form below.
+          Already have Ollama, OpenOnion, or a hosted specialist running? Fill
+          in the form below.
         </p>
       </div>
 
@@ -586,20 +702,24 @@ function RegisterInner() {
         <StepIndicator
           number={1}
           title="Connect Wallet"
-          status={connected ? "complete" : step === 1 ? "in-progress" : "not-started"}
+          status={
+            connected ? "complete" : step === 1 ? "in-progress" : "not-started"
+          }
           description="Connect your Solana wallet to sign the registration transaction"
         />
         <StepIndicator
           number={2}
           title="Agent Details"
-          status={step === 2 ? "in-progress" : step === 3 ? "complete" : "not-started"}
-          description="Configure your agent's capabilities and pricing"
+          status={
+            step === 2 ? "in-progress" : step === 3 ? "complete" : "not-started"
+          }
+          description="Configure capabilities, pricing, and marketplace policy"
         />
         <StepIndicator
           number={3}
           title="Register On-Chain"
           status={step === 3 ? "in-progress" : "not-started"}
-          description="Pay 0.01 SOL · Deploy your agent to the registry"
+          description="Pay 0.01 SOL · List your specialist in the registry"
         />
       </div>
 
@@ -614,17 +734,24 @@ function RegisterInner() {
           {connected && publicKey ? (
             <div className="space-y-3">
               <div className="p-3 rounded-lg bg-[#14F195]/10 border border-[#14F195]/20">
-                <p className="text-xs text-muted-foreground">Connected wallet</p>
+                <p className="text-xs text-muted-foreground">
+                  Connected wallet
+                </p>
                 <p
                   className="font-mono text-sm text-[#14F195] truncate cursor-default"
                   title={publicKey.toBase58()}
                 >
-                  {publicKey.toBase58().slice(0, 4)}...{publicKey.toBase58().slice(-4)}
+                  {publicKey.toBase58().slice(0, 4)}...
+                  {publicKey.toBase58().slice(-4)}
                 </p>
               </div>
               <Button
                 onClick={() => setStep(2)}
-                style={{ background: "linear-gradient(135deg, #9945FF, #14F195)", color: "#000", fontWeight: 600 }}
+                style={{
+                  background: "linear-gradient(135deg, #9945FF, #14F195)",
+                  color: "#000",
+                  fontWeight: 600,
+                }}
               >
                 Continue to Details →
               </Button>
@@ -633,7 +760,8 @@ function RegisterInner() {
             <div className="flex flex-col items-start gap-3">
               <WalletMultiButton
                 style={{
-                  background: "linear-gradient(135deg, #9945FF 0%, #14F195 100%)",
+                  background:
+                    "linear-gradient(135deg, #9945FF 0%, #14F195 100%)",
                   height: "40px",
                   fontSize: "14px",
                   borderRadius: "8px",
@@ -658,7 +786,10 @@ function RegisterInner() {
           <div className="space-y-5">
             {/* Name */}
             <div className="space-y-1.5">
-              <Label htmlFor="name" className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
+              <Label
+                htmlFor="name"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block"
+              >
                 Agent Name
               </Label>
               <Input
@@ -672,17 +803,23 @@ function RegisterInner() {
 
             {/* Agent Type */}
             <div className="space-y-1.5">
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">Agent Type</Label>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
+                Agent Type
+              </Label>
               <Select
                 value={form.agentType}
-                onValueChange={(v) => setForm({ ...form, agentType: v as AgentType })}
+                onValueChange={(v) =>
+                  setForm({ ...form, agentType: v as AgentType })
+                }
               >
                 <SelectTrigger className="!w-full !min-w-[180px] !rounded-lg !border !border-gray-200 dark:!border-gray-700 !bg-white dark:!bg-gray-900 !px-3 !py-2 !text-sm focus:!ring-2 focus:!ring-blue-500 focus:!outline-none">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="min-w-[240px] rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg">
                   <SelectItem value="primary">Primary (Specialist)</SelectItem>
-                  <SelectItem value="attestation">Attestation (Judge)</SelectItem>
+                  <SelectItem value="attestation">
+                    Attestation (Judge)
+                  </SelectItem>
                   <SelectItem value="both">Both</SelectItem>
                 </SelectContent>
               </Select>
@@ -695,7 +832,9 @@ function RegisterInner() {
                   <ChevronDown className="h-4 w-4 shrink-0 transition-transform group-open:rotate-180" />
                   How to set up your endpoint
                 </span>
-                <span className="text-xs font-medium text-blue-700 dark:text-blue-300">Collapsed by default</span>
+                <span className="text-xs font-medium text-blue-700 dark:text-blue-300">
+                  Collapsed by default
+                </span>
               </summary>
               <div className="mt-4 space-y-3">
                 {ENDPOINT_HELP_STEPS.map((stepItem, idx) => (
@@ -746,7 +885,10 @@ function RegisterInner() {
             {/* Endpoint */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between gap-3">
-                <Label htmlFor="endpoint" className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-0 block">
+                <Label
+                  htmlFor="endpoint"
+                  className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-0 block"
+                >
                   Service Endpoint URL
                 </Label>
                 <a
@@ -780,7 +922,7 @@ function RegisterInner() {
                     ? "!border-blue-400"
                     : endpointProbeStatus === "reachable"
                       ? "!border-green-400"
-                    : endpointProbeStatus === "no_ollama"
+                      : endpointProbeStatus === "no_ollama"
                         ? "!border-yellow-400"
                         : endpointProbeStatus === "unreachable"
                           ? "!border-red-400"
@@ -818,13 +960,20 @@ function RegisterInner() {
                         : endpointProbeStatus === "reachable"
                           ? "Endpoint reachable"
                           : endpointProbeStatus === "no_ollama"
-                          ? "Reachable, but no Ollama detected"
-                          : "Unreachable"}
+                            ? "Reachable, but no Ollama detected"
+                            : "Unreachable"}
                     </p>
-                    {endpointProbeMessage && <p className="mt-0.5 text-[11px] font-normal">{endpointProbeMessage}</p>}
-                    {endpointProbeModels.length > 0 && endpointProbeStatus === "reachable" && (
-                      <p className="mt-0.5 text-[11px] font-normal">Models: {endpointProbeModels.slice(0, 3).join(", ")}</p>
+                    {endpointProbeMessage && (
+                      <p className="mt-0.5 text-[11px] font-normal">
+                        {endpointProbeMessage}
+                      </p>
                     )}
+                    {endpointProbeModels.length > 0 &&
+                      endpointProbeStatus === "reachable" && (
+                        <p className="mt-0.5 text-[11px] font-normal">
+                          Models: {endpointProbeModels.slice(0, 3).join(", ")}
+                        </p>
+                      )}
                   </div>
                 </div>
               )}
@@ -833,7 +982,10 @@ function RegisterInner() {
             {/* Model */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between gap-3">
-                <Label htmlFor="model" className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-0 block">
+                <Label
+                  htmlFor="model"
+                  className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-0 block"
+                >
                   Model Name
                 </Label>
                 <a
@@ -858,7 +1010,9 @@ function RegisterInner() {
             {/* Privacy Tier */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between gap-3">
-                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-0 block">Privacy Tier</Label>
+                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-0 block">
+                  Privacy Tier
+                </Label>
                 <a
                   href="/docs/HARNESS-COMPUTE-BOUNDARY.md"
                   target="_blank"
@@ -871,15 +1025,23 @@ function RegisterInner() {
               </div>
               <Select
                 value={form.privacyTier}
-                onValueChange={(v) => setForm({ ...form, privacyTier: v as PrivacyTier })}
+                onValueChange={(v) =>
+                  setForm({ ...form, privacyTier: v as PrivacyTier })
+                }
               >
                 <SelectTrigger className="!w-full !min-w-[180px] !rounded-lg !border !border-gray-200 dark:!border-gray-700 !bg-white dark:!bg-gray-900 !px-3 !py-2 !text-sm focus:!ring-2 focus:!ring-blue-500 focus:!outline-none">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="min-w-[240px] rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg">
-                  <SelectItem value="local">Local — runs on your hardware, never leaves</SelectItem>
-                  <SelectItem value="tee">TEE — cryptographic attestation of enclave execution</SelectItem>
-                  <SelectItem value="cloud">Cloud-Disclosed — cloud infrastructure, disclosed</SelectItem>
+                  <SelectItem value="local">
+                    Local — runs on your hardware, never leaves
+                  </SelectItem>
+                  <SelectItem value="tee">
+                    TEE — cryptographic attestation of enclave execution
+                  </SelectItem>
+                  <SelectItem value="cloud">
+                    Cloud-Disclosed — cloud infrastructure, disclosed
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -887,7 +1049,10 @@ function RegisterInner() {
             {/* Primary Rate */}
             {(form.agentType === "primary" || form.agentType === "both") && (
               <div className="space-y-1.5">
-                <Label htmlFor="rate" className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
+                <Label
+                  htmlFor="rate"
+                  className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block"
+                >
                   Primary Rate (SOL per call)
                 </Label>
                 <Input
@@ -897,7 +1062,9 @@ function RegisterInner() {
                   min="0"
                   placeholder="0.001"
                   value={form.primaryRate}
-                  onChange={(e) => setForm({ ...form, primaryRate: e.target.value })}
+                  onChange={(e) =>
+                    setForm({ ...form, primaryRate: e.target.value })
+                  }
                   className="!w-full !rounded-lg !border !border-gray-200 dark:!border-gray-700 !bg-white dark:!bg-gray-900 !px-3 !py-2 !text-sm focus:!ring-2 focus:!ring-blue-500 focus:!outline-none"
                 />
               </div>
@@ -906,7 +1073,10 @@ function RegisterInner() {
             {/* Attestation Rate */}
             {isJudge && (
               <div className="space-y-1.5">
-                <Label htmlFor="attest-rate" className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
+                <Label
+                  htmlFor="attest-rate"
+                  className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block"
+                >
                   Attestation Rate (SOL per judging)
                 </Label>
                 <Input
@@ -916,7 +1086,9 @@ function RegisterInner() {
                   min="0"
                   placeholder="0.0005"
                   value={form.attestationRate}
-                  onChange={(e) => setForm({ ...form, attestationRate: e.target.value })}
+                  onChange={(e) =>
+                    setForm({ ...form, attestationRate: e.target.value })
+                  }
                   className="!w-full !rounded-lg !border !border-gray-200 dark:!border-gray-700 !bg-white dark:!bg-gray-900 !px-3 !py-2 !text-sm focus:!ring-2 focus:!ring-blue-500 focus:!outline-none"
                 />
               </div>
@@ -925,9 +1097,13 @@ function RegisterInner() {
             {/* Min Consumer Rep */}
             <div className="space-y-2">
               <div className="flex justify-between gap-3">
-                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-0 block">Min Consumer Reputation</Label>
+                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-0 block">
+                  Min Consumer Reputation
+                </Label>
                 <span className="text-sm text-muted-foreground font-mono">
-                  {form.minConsumerRep === 0 ? "No minimum" : `≥ ${form.minConsumerRep}★`}
+                  {form.minConsumerRep === 0
+                    ? "No minimum"
+                    : `≥ ${form.minConsumerRep}★`}
                 </span>
               </div>
               <Slider
@@ -935,20 +1111,26 @@ function RegisterInner() {
                 max={5}
                 step={0.5}
                 value={form.minConsumerRep}
-                onValueChange={(v) => setForm({ ...form, minConsumerRep: v as number })}
+                onValueChange={(v) =>
+                  setForm({ ...form, minConsumerRep: v as number })
+                }
               />
             </div>
 
             {/* Accept Unrated */}
             <div className="flex items-center justify-between rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950/40 p-4">
               <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Accept Unrated Consumers</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  Accept Unrated Consumers
+                </p>
                 <p className="text-xs text-muted-foreground">
                   Allow consumers with no reputation history to hire you
                 </p>
               </div>
               <button
-                onClick={() => setForm({ ...form, acceptUnrated: !form.acceptUnrated })}
+                onClick={() =>
+                  setForm({ ...form, acceptUnrated: !form.acceptUnrated })
+                }
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                   form.acceptUnrated ? "bg-[#14F195]" : "bg-white/20"
                 }`}
@@ -963,14 +1145,19 @@ function RegisterInner() {
 
             {/* Description */}
             <div className="space-y-1.5">
-              <Label htmlFor="desc" className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
+              <Label
+                htmlFor="desc"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block"
+              >
                 Agent Description
               </Label>
               <Textarea
                 id="desc"
                 placeholder="What does your agent specialise in? What tasks does it handle well?"
                 value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, description: e.target.value })
+                }
                 className="!min-h-20 !w-full !rounded-lg !border !border-gray-200 dark:!border-gray-700 !bg-white dark:!bg-gray-900 !px-3 !py-2 !text-sm focus:!ring-2 focus:!ring-blue-500 focus:!outline-none resize-none"
               />
             </div>
@@ -995,7 +1182,8 @@ function RegisterInner() {
 
           {!endpointCompliancePassed && (
             <p className="text-xs text-amber-300">
-              Run endpoint probe until it passes compliance before proceeding to registration.
+              Run endpoint probe until it passes compliance before proceeding to
+              registration.
             </p>
           )}
         </div>
@@ -1013,28 +1201,51 @@ function RegisterInner() {
               ["Model", form.model],
               ["Privacy", form.privacyTier],
               ["Endpoint", form.endpoint || "—"],
-              ["Primary Rate", form.agentType !== "attestation" ? `${form.primaryRate} SOL/call` : "—"],
-              ...(isJudge ? [["Attestation Rate", `${form.attestationRate} SOL/job`] as [string, string]] : []),
-              ["Min Consumer Rep", form.minConsumerRep === 0 ? "No minimum" : `≥ ${form.minConsumerRep}★`],
+              [
+                "Primary Rate",
+                form.agentType !== "attestation"
+                  ? `${form.primaryRate} SOL/call`
+                  : "—",
+              ],
+              ...(isJudge
+                ? [
+                    ["Attestation Rate", `${form.attestationRate} SOL/job`] as [
+                      string,
+                      string,
+                    ],
+                  ]
+                : []),
+              [
+                "Min Consumer Rep",
+                form.minConsumerRep === 0
+                  ? "No minimum"
+                  : `≥ ${form.minConsumerRep}★`,
+              ],
               ["Accept Unrated", form.acceptUnrated ? "Yes" : "No"],
             ].map(([label, value]) => (
               <div key={label} className="flex justify-between gap-4 text-sm">
                 <span className="text-muted-foreground">{label}</span>
-                <span className="max-w-xs truncate font-mono text-right">{value}</span>
+                <span className="max-w-xs truncate font-mono text-right">
+                  {value}
+                </span>
               </div>
             ))}
           </div>
 
           {/* Fee breakdown */}
           <div className="space-y-2 rounded-xl border border-blue-100 bg-blue-50/70 p-4 dark:border-blue-900/40 dark:bg-blue-950/20">
-            <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">Fee Breakdown</p>
+            <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+              Fee Breakdown
+            </p>
             <div className="space-y-1 text-sm">
               <div className="flex justify-between gap-4">
                 <span className="text-muted-foreground">Registration fee</span>
                 <span className="font-mono">{REGISTRATION_FEE_SOL} SOL</span>
               </div>
               <div className="flex justify-between gap-4">
-                <span className="text-muted-foreground">Account rent (~0.00057 SOL)</span>
+                <span className="text-muted-foreground">
+                  Account rent (~0.00057 SOL)
+                </span>
                 <span className="font-mono">{RENT_SOL} SOL</span>
               </div>
               <div className="flex justify-between gap-4 border-t border-blue-200 pt-1 font-semibold dark:border-blue-900/40">
@@ -1048,19 +1259,47 @@ function RegisterInner() {
 
           {/* Instruction preview + network diagnostics */}
           <div className="space-y-2 rounded-xl border border-gray-200 bg-gray-50 p-4 text-xs font-mono dark:border-gray-700 dark:bg-gray-950/50">
-            <p className="text-xs text-muted-foreground">Instruction being built:</p>
+            <p className="text-xs text-muted-foreground">
+              Instruction being built:
+            </p>
             <p className="text-green-400">register_agent(</p>
-            <p className="pl-4 text-foreground/80">agent_type: {form.agentType === "primary" ? 0 : form.agentType === "attestation" ? 1 : 2},</p>
-            <p className="pl-4 text-foreground/80">model: &quot;{form.model || "unknown"}&quot;,</p>
-            <p className="pl-4 text-foreground/80">rate_lamports: {Math.round(parseFloat((form.agentType === "attestation" ? form.attestationRate : form.primaryRate) || "0") * 1e9)},</p>
-            <p className="pl-4 text-foreground/80">min_reputation: {form.minConsumerRep},</p>
+            <p className="pl-4 text-foreground/80">
+              agent_type:{" "}
+              {form.agentType === "primary"
+                ? 0
+                : form.agentType === "attestation"
+                  ? 1
+                  : 2}
+              ,
+            </p>
+            <p className="pl-4 text-foreground/80">
+              model: &quot;{form.model || "unknown"}&quot;,
+            </p>
+            <p className="pl-4 text-foreground/80">
+              rate_lamports:{" "}
+              {Math.round(
+                parseFloat(
+                  (form.agentType === "attestation"
+                    ? form.attestationRate
+                    : form.primaryRate) || "0",
+                ) * 1e9,
+              )}
+              ,
+            </p>
+            <p className="pl-4 text-foreground/80">
+              min_reputation: {form.minConsumerRep},
+            </p>
             <p className="text-green-400">)</p>
 
             <div className="mt-2 rounded border border-amber-500/30 bg-amber-500/10 p-2 text-[11px] text-amber-200">
               <p className="font-semibold">Active network diagnostics</p>
               <p>RPC: {activeRpc}</p>
               <p>Program: {activeProgramId}</p>
-              <p className="mt-1 opacity-90">If registration returns InvalidInstructionData, verify this program ID matches the currently deployed protocol program for this app build.</p>
+              <p className="mt-1 opacity-90">
+                If registration returns InvalidInstructionData, verify this
+                program ID matches the currently deployed protocol program for
+                this app build.
+              </p>
             </div>
           </div>
 
@@ -1082,38 +1321,70 @@ function RegisterInner() {
             ) : (
               <Button
                 onClick={handleRegister}
-                disabled={registering || !endpointCompliancePassed || existingAgent.status === "checking"}
+                disabled={
+                  registering ||
+                  !endpointCompliancePassed ||
+                  existingAgent.status === "checking"
+                }
                 className="w-full !rounded-lg !bg-blue-600 !px-4 !py-2.5 !font-semibold !text-white !transition hover:!bg-blue-700 disabled:!bg-blue-300"
               >
-                {registering ? "Registering..." : existingAgent.status === "checking" ? "Checking registration..." : !endpointCompliancePassed ? "Probe endpoint compliance first" : "Register Agent (0.01 SOL)"}
+                {registering
+                  ? "Registering..."
+                  : existingAgent.status === "checking"
+                    ? "Checking registration..."
+                    : !endpointCompliancePassed
+                      ? "Probe endpoint compliance first"
+                      : "Register Agent (0.01 SOL)"}
               </Button>
             )}
           </div>
           {txError && (
-            <div className={`rounded-lg border p-3 ${isAlreadyRegisteredError(txError) || alreadyRegistered ? "border-emerald-500/30 bg-emerald-500/10" : "border-red-500/30 bg-red-500/10"}`}>
-              <p className={`text-xs font-semibold ${isAlreadyRegisteredError(txError) || alreadyRegistered ? "text-emerald-300" : "text-red-300"}`}>
-                {isAlreadyRegisteredError(txError) || alreadyRegistered ? "This wallet is already registered" : "Registration transaction failed"}
+            <div
+              className={`rounded-lg border p-3 ${isAlreadyRegisteredError(txError) || alreadyRegistered ? "border-emerald-500/30 bg-emerald-500/10" : "border-red-500/30 bg-red-500/10"}`}
+            >
+              <p
+                className={`text-xs font-semibold ${isAlreadyRegisteredError(txError) || alreadyRegistered ? "text-emerald-300" : "text-red-300"}`}
+              >
+                {isAlreadyRegisteredError(txError) || alreadyRegistered
+                  ? "This wallet is already registered"
+                  : "Registration transaction failed"}
               </p>
               {isAlreadyRegisteredError(txError) || alreadyRegistered ? (
                 <div className="mt-1 space-y-2 text-xs text-emerald-100/80">
                   <p>
-                    Each wallet maps to one deterministic agent account. Open your existing agent profile, update its details, or deregister before registering again with this wallet.
+                    Each wallet maps to one deterministic agent account. Open
+                    your existing agent profile, update its details, or
+                    deregister before registering again with this wallet.
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    <LinkButton href={myAgentHref} size="sm" className="!bg-emerald-400 !text-black hover:!bg-emerald-300">
+                    <LinkButton
+                      href={myAgentHref}
+                      size="sm"
+                      className="!bg-emerald-400 !text-black hover:!bg-emerald-300"
+                    >
                       My Agent →
                     </LinkButton>
-                    <LinkButton href="/faq" size="sm" variant="outline" className="border-emerald-300/30 text-emerald-100">
+                    <LinkButton
+                      href="/faq"
+                      size="sm"
+                      variant="outline"
+                      className="border-emerald-300/30 text-emerald-100"
+                    >
                       FAQ
                     </LinkButton>
                   </div>
                 </div>
               ) : (
                 <p className="mt-1 text-xs text-red-100/80">
-                  Check the error details below, then retry. Common causes are low SOL balance, stale blockhash, or program revert.
+                  Check the error details below, then retry. Common causes are
+                  low SOL balance, stale blockhash, or program revert.
                 </p>
               )}
-              <pre className={`mt-2 whitespace-pre-wrap break-words font-mono text-xs ${isAlreadyRegisteredError(txError) || alreadyRegistered ? "text-emerald-100/90" : "text-red-100/90"}`}>{txError}</pre>
+              <pre
+                className={`mt-2 whitespace-pre-wrap break-words font-mono text-xs ${isAlreadyRegisteredError(txError) || alreadyRegistered ? "text-emerald-100/90" : "text-red-100/90"}`}
+              >
+                {txError}
+              </pre>
             </div>
           )}
         </div>
@@ -1124,7 +1395,13 @@ function RegisterInner() {
 
 export default function RegisterPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-page flex items-center justify-center"><p className="text-gray-400">Loading…</p></div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-page flex items-center justify-center">
+          <p className="text-gray-400">Loading…</p>
+        </div>
+      }
+    >
       <RegisterInner />
     </Suspense>
   );
