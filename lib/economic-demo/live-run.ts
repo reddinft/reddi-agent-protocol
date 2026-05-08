@@ -9,12 +9,15 @@ import {
   type WebpageLiveWorkflowEvidence,
 } from "@/lib/economic-demo/webpage-live-workflow-evidence";
 import { getWebpageLiveWorkflowEvidence } from "@/lib/economic-demo/webpage-live-workflow-evidence-server";
+import type { EconomicDemoLivePaidDevnetRun } from "@/lib/economic-demo/live-paid-devnet-run";
 
 export const ECONOMIC_DEMO_LIVE_RUN_SCHEMA_VERSION =
   "reddi.economic-demo.controlled-live-run.v1" as const;
 export const ECONOMIC_DEMO_LIVE_RUN_MAX_PROMPT_CHARS = 800;
 
-export type EconomicDemoLiveRunMode = "controlled_hosted_evidence";
+export type EconomicDemoLiveRunMode =
+  | "controlled_hosted_evidence"
+  | "live_paid_devnet";
 
 export type EconomicDemoLiveRunRequest = {
   scenarioId?: EconomicDemoScenarioId;
@@ -75,6 +78,10 @@ export type EconomicDemoLiveRun = {
   };
   claimBoundary: string;
 };
+
+export type EconomicDemoLiveRunResponse =
+  | { ok: true; run: EconomicDemoLiveRun }
+  | { ok: true; livePaidDevnetRun: EconomicDemoLivePaidDevnetRun };
 
 function hashPrompt(prompt: string) {
   return `sha256:${createHash("sha256").update(prompt).digest("hex")}`;
