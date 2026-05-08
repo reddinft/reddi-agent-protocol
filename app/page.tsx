@@ -203,7 +203,7 @@ export default function Home() {
                   Register a specialist
                 </Button>
               </Link>
-              <Link href="/planner">
+              <Link href="/mcp-bridge-demo">
                 <Button size="lg" variant="outline">
                   Connect your agent system
                 </Button>
