@@ -4,10 +4,12 @@ import {
   defaultNonceReplayStore,
   DemoPaymentVerifier,
   parseX402PaymentHeader,
+  SolanaReceiptVerifier,
   type NonceReplayStore,
   type ReceiptVerificationResult,
   type X402Challenge,
 } from "@reddi/x402-solana";
+import { Connection } from "@solana/web3.js";
 import { buildAgentDependencyManifestDisclosure, buildAgenticWorkflowManifestDisclosure, buildDownstreamDisclosureLedger, buildNoDownstreamDisclosureLedger } from "./agentic-workflow-disclosure.js";
 import { buildAttestationPromptEnvelope, evaluateAttestation, normalizeAttestationRequest } from "./attestation.js";
 import { buildLiveDelegationAuditEnvelope } from "./delegation-audit.js";
@@ -31,6 +33,9 @@ export function createRuntimeConfig(env: NodeJS.ProcessEnv = process.env): Runti
     mockOpenRouter: env.OPENROUTER_MOCK === "1" || env.OPENROUTER_MOCK === "true",
     requirePayment: env.REQUIRE_X402_PAYMENT !== "false",
     allowDemoPayment: env.ALLOW_DEMO_X402_PAYMENT === "1" || env.ALLOW_DEMO_X402_PAYMENT === "true",
+    allowRealPayment: env.ALLOW_REAL_X402_PAYMENT === "1" || env.ALLOW_REAL_X402_PAYMENT === "true",
+    solanaRpcUrl: env.SOLANA_RPC_URL ?? "https://api.devnet.solana.com",
+    usdcDevnetMint: env.X402_USDC_DEVNET_MINT,
     enableAgentToAgentCalls: env.ENABLE_AGENT_TO_AGENT_CALLS === "1" || env.ENABLE_AGENT_TO_AGENT_CALLS === "true",
     enableLiveDelegationExecutor: env.ENABLE_LIVE_DELEGATION_EXECUTOR === "1" || env.ENABLE_LIVE_DELEGATION_EXECUTOR === "true",
     maxDownstreamCalls: env.MAX_DOWNSTREAM_CALLS ? Number.parseInt(env.MAX_DOWNSTREAM_CALLS, 10) : 0,
@@ -97,8 +102,15 @@ export async function verifyPayment(input: {
         : randomUUID();
   if (!receiptNonce) return { ok: false, reason: "invalid_nonce", message: "x402 payment nonce is required" };
   const challenge = buildProfileChallenge(input.profile, input.config, receiptNonce, input.endpointPath);
-  const verifier = new DemoPaymentVerifier(input.config.allowDemoPayment === true);
-  return verifier.verifyReceipt(parsed, challenge, input.replayStore);
+  const demoResult = await new DemoPaymentVerifier(input.config.allowDemoPayment === true).verifyReceipt(parsed, challenge, input.replayStore);
+  if (demoResult.ok || !input.config.allowRealPayment) return demoResult;
+
+  const realVerifier = new SolanaReceiptVerifier({
+    allowRealPayment: true,
+    connection: new Connection(input.config.solanaRpcUrl ?? "https://api.devnet.solana.com"),
+    usdcMint: input.config.usdcDevnetMint,
+  });
+  return realVerifier.verifyReceipt(parsed, challenge, input.replayStore);
 }
 
 export function marketplaceMetadata(profile: SpecialistProfile, config: RuntimeConfig): Record<string, unknown> {

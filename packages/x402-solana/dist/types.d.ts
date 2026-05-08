@@ -7,6 +7,9 @@ export interface X402Request {
     currency: string;
     paymentAddress: string;
     nonce: string;
+    network?: SolanaPaymentNetwork;
+    endpoint?: string;
+    memo?: string;
     payerCurrency?: string;
     payerAddress?: string;
     autoSwap?: boolean;
@@ -38,6 +41,8 @@ export interface X402PaymentReceipt {
     signature?: string;
     txSignature?: string;
     payer?: string;
+    mint?: string;
+    destinationTokenAccount?: string;
     demo?: boolean;
 }
 /**

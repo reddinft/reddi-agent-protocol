@@ -6,6 +6,10 @@
 
 
 
+## Latest Update — x402 real devnet receipt verifier underway (2026-05-08)
+
+Nissan approved Option A: autonomous orchestrator-owned devnet signer/funds should pay downstream specialists after user wallet funds/escrows the top-level request. Current blocker found: `@reddi/x402-solana sendPayment()` is still a mock receipt producer and hosted specialist verification only accepts explicit demo receipts unless real receipt verification is enabled. Branch `feature/x402-real-devnet-receipt-verifier` starts closing that gap by accepting hosted challenge shape (`payTo` + string amount), adding `SolanaReceiptVerifier` for real parsed Solana transactions, and wiring specialist runtime env flags `ALLOW_REAL_X402_PAYMENT`, `SOLANA_RPC_URL`, and `X402_USDC_DEVNET_MINT`. Validation so far: `npx tsc -p packages/x402-solana/tsconfig.json --noEmit`; `npm run build && NODE_PATH=$PWD/node_modules node --test dist/tests/runtime.test.js` in `packages/openrouter-specialists` passed 21/21. Package-local Jest is currently blocked because package-local `node_modules/ts-jest` is not installed in this workspace.
+
 ## Latest Update — Economic-demo PR E recording copy polish underway (2026-05-08)
 
 Branch `chore/economic-demo-recording-copy-polish` tightens judge-facing language to avoid overstating live paid execution. Hero now says `Inspect a controlled paid-agent workflow`; body says the judge probes hosted specialist x402 gates and inspects a controlled evidence trail. The proof pill says `Quasar devnet archive`, not `proof`, and the quote card payment claim says `controlled evidence only`. Local validation passed: lint, Playwright economic-demo e2e, product naming, and claim-boundary checks.

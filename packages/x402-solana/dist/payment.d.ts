@@ -27,6 +27,20 @@ export declare class DemoPaymentVerifier implements ReceiptVerifier {
     constructor(allowDemoPayment: boolean);
     verifyReceipt(receipt: unknown, challenge: X402Challenge, replayStore?: NonceReplayStore): Promise<ReceiptVerificationResult>;
 }
+export interface ParsedTransactionConnection {
+    getParsedTransaction(signature: string, options?: unknown): Promise<any>;
+}
+export interface SolanaReceiptVerifierOptions {
+    allowRealPayment: boolean;
+    connection: ParsedTransactionConnection;
+    /** Required when verifying USDC/SPL-token receipts. */
+    usdcMint?: string;
+}
+export declare class SolanaReceiptVerifier implements ReceiptVerifier {
+    private readonly options;
+    constructor(options: SolanaReceiptVerifierOptions);
+    verifyReceipt(receiptInput: unknown, challenge: X402Challenge, replayStore?: NonceReplayStore): Promise<ReceiptVerificationResult>;
+}
 export interface SendPaymentOptions {
     swapClient?: SwapClient;
     slippageBps?: number;

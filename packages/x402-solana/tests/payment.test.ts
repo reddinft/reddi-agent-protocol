@@ -5,6 +5,7 @@ import {
   sendPayment,
   isValidPaymentAddress,
   isValidSolanaPublicKey,
+  SolanaReceiptVerifier,
 } from '../src/payment';
 import {
   checkAndStoreNonce,
@@ -30,6 +31,16 @@ describe('x402 Payment Module', () => {
       expect(result.currency).toBe('SOL');
       expect(result.paymentAddress).toBe(validAddress);
       expect(result.nonce).toBe('abc123');
+    });
+
+    it('should parse hosted x402 challenge shape with payTo and string amount', () => {
+      const header = JSON.stringify({ version: '1', network: 'solana-devnet', payTo: validAddress, amount: '0.03', currency: 'USDC', endpoint: 'https://example.test/v1/chat/completions', nonce: 'abc123' });
+      const result = parseX402Header(header);
+      expect(result.amount).toBe(0.03);
+      expect(result.currency).toBe('USDC');
+      expect(result.paymentAddress).toBe(validAddress);
+      expect(result.network).toBe('solana-devnet');
+      expect(result.endpoint).toBe('https://example.test/v1/chat/completions');
     });
 
     it('should reject zero amount', () => {
@@ -146,11 +157,71 @@ describe('x402 Payment Module', () => {
       if (!structuredToken.ok) expect(structuredToken.reason).toBe('invalid_receipt');
     });
 
-    it('rejects non-demo structured receipts until real settlement verification exists', async () => {
+    it('rejects non-demo structured receipts in demo-only verifier', async () => {
       const verifier = new DemoPaymentVerifier(true);
       const unsigned = await verifier.verifyReceipt({ ...challenge, signature: 'caller-authored' }, challenge);
       expect(unsigned.ok).toBe(false);
       if (!unsigned.ok) expect(unsigned.reason).toBe('unsupported_receipt');
+    });
+
+    it('accepts a real SOL receipt when the parsed transaction satisfies the challenge', async () => {
+      const solChallenge = buildX402Challenge({
+        network: 'solana-devnet',
+        payTo: validAddress,
+        amount: 0.001,
+        currency: 'SOL',
+        endpoint: 'https://planning.example.test/v1/chat/completions',
+        nonce: 'nonce-sol',
+      });
+      const verifier = new SolanaReceiptVerifier({
+        allowRealPayment: true,
+        connection: {
+          async getParsedTransaction() {
+            return {
+              meta: { err: null },
+              transaction: {
+                message: {
+                  instructions: [
+                    {
+                      programId: { toString: () => '11111111111111111111111111111111' },
+                      parsed: { type: 'transfer', info: { source: otherValidAddress, destination: validAddress, lamports: 1_000_000 } },
+                    },
+                  ],
+                },
+              },
+            };
+          },
+        },
+      });
+      const result = await verifier.verifyReceipt({ network: 'solana-devnet', payTo: validAddress, amount: 0.001, currency: 'SOL', nonce: 'nonce-sol', payer: otherValidAddress, signature: 'sig-sol' }, solChallenge);
+      expect(result.ok).toBe(true);
+    });
+
+    it('accepts a real USDC receipt when the parsed token transfer satisfies the challenge', async () => {
+      const mint = '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU';
+      const verifier = new SolanaReceiptVerifier({
+        allowRealPayment: true,
+        usdcMint: mint,
+        connection: {
+          async getParsedTransaction() {
+            return {
+              meta: { err: null },
+              transaction: {
+                message: {
+                  instructions: [
+                    {
+                      program: 'spl-token',
+                      parsed: { type: 'transferChecked', info: { mint, destination: 'dest-token-account', tokenAmount: { uiAmountString: '0.03' } } },
+                    },
+                  ],
+                },
+              },
+            };
+          },
+        },
+      });
+      const result = await verifier.verifyReceipt({ network: 'solana-devnet', payTo: validAddress, amount: '0.03', currency: 'USDC', nonce: challenge.nonce, payer: otherValidAddress, signature: 'sig-usdc', destinationTokenAccount: 'dest-token-account' }, challenge);
+      expect(result.ok).toBe(true);
     });
   });
 
