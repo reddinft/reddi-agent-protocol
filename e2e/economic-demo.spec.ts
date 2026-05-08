@@ -62,7 +62,9 @@ test.describe("/economic-demo judge-facing story", () => {
     await page.goto("/economic-demo");
 
     await expect(
-      page.getByRole("heading", { name: /run a paid-agent workflow/i }),
+      page.getByRole("heading", {
+        name: /inspect a controlled paid-agent workflow/i,
+      }),
     ).toBeVisible();
     await expect(
       page.getByText(/No wallet is required in the default judge path/i),
@@ -91,7 +93,7 @@ test.describe("/economic-demo judge-facing story", () => {
       "Controlled hosted demo · no wallet required",
     );
     await expect(quote).toContainText("payment claim");
-    await expect(quote).toContainText("controlled / devnet only");
+    await expect(quote).toContainText("controlled evidence only");
     await expect(quote).toContainText("does not claim mainnet payment");
 
     await expect(

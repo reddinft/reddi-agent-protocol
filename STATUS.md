@@ -6,6 +6,10 @@
 
 
 
+## Latest Update — Economic-demo PR E recording copy polish underway (2026-05-08)
+
+Branch `chore/economic-demo-recording-copy-polish` tightens judge-facing language to avoid overstating live paid execution. Hero now says `Inspect a controlled paid-agent workflow`; body says the judge probes hosted specialist x402 gates and inspects a controlled evidence trail. The proof pill says `Quasar devnet archive`, not `proof`, and the quote card payment claim says `controlled evidence only`. Local validation passed: lint, Playwright economic-demo e2e, product naming, and claim-boundary checks.
+
 ## Latest Update — Economic-demo PR D single-run proof flow underway (2026-05-08)
 
 Branch `feature/economic-demo-single-run-proof-flow` folds the hosted 402 challenge probe into the primary `Run demo` action. The judge now gets one main flow: prompt/quote → fresh unpaid hosted 402 probe → controlled live-run envelope → rendered output/evidence drawer. Probe failure is non-blocking for controlled evidence rendering and is shown as a warning; no payment retry/signing/transfer is attempted. Local validation passed: lint, Playwright economic-demo e2e, product naming, and claim-boundary checks.

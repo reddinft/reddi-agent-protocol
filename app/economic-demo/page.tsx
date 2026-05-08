@@ -400,11 +400,11 @@ export default function EconomicDemoPage() {
               End-user economic demo · issue #187
             </span>
             <h1 className="font-display text-4xl font-bold text-white sm:text-5xl">
-              Run a paid-agent workflow
+              Inspect a controlled paid-agent workflow
             </h1>
             <p className="max-w-3xl text-base leading-7 text-gray-400">
-              Choose a prompt, send it through hosted specialist agents, and
-              inspect the x402/devnet evidence trail behind the returned output.
+              Choose a prompt, probe the hosted specialist x402 gates, and
+              inspect the controlled evidence trail behind the returned output.
               No wallet is required in the default judge path.
             </p>
             <div
@@ -414,7 +414,7 @@ export default function EconomicDemoPage() {
               {[
                 "30 hosted specialists",
                 "x402 challenge evidence",
-                "Quasar devnet proof",
+                "Quasar devnet archive",
                 "Attestation",
                 "No wallet required by default",
               ].map((pill) => (
@@ -637,7 +637,7 @@ export default function EconomicDemoPage() {
                   <div className="rounded-lg border border-white/10 bg-black/20 p-3">
                     <p className="text-xs text-gray-500">payment claim</p>
                     <p className="mt-1 font-mono text-sm text-white">
-                      controlled / devnet only
+                      controlled evidence only
                     </p>
                   </div>
                 </div>
