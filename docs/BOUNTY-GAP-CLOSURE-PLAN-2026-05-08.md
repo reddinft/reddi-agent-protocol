@@ -13,7 +13,7 @@ We are close to a strong, defensible submission, but the remaining work is not e
 - **Quasar:** strong / submission-ready. Final demo-critical on-chain path is Quasar-native and guarded.
 - **MagicBlock:** strong for the bounded Quasar-owned AgentVault route. Do not claim arbitrary-wallet/private payee settlement.
 - **Pay.sh / `reddi-x402`:** strong for single-charge sandbox compatibility. Do not claim session/split settlement.
-- **Umbra:** strong adapter + devnet encrypted-balance evidence; receiver-claimable UTXO devnet success exists off current main and should be merged/aligned if featured.
+- **Umbra:** strong adapter + devnet encrypted-balance evidence; receiver-claimable UTXO devnet-only evidence is being aligned into the closure PR and may be featured with strict devnet-only boundaries.
 - **Torque:** credible story already exists through reputation/ranking events and leaderboard UI, but needs a recording/evidence beat to become bounty-strong.
 - **30 specialists / OpenRouter runtime:** configured, tested, and devnet-registered; not all currently production-hosted/live endpoint-ready under the latest deployment readiness check.
 - **Jupiter:** keep as bounded payment-flexibility/simulation/research lane only unless mainnet execution is approved. No reliable public devnet swap claim.
@@ -97,15 +97,13 @@ What we have on current final baseline:
 - Bounded devnet encrypted-balance deposit evidence.
 - Final packet currently claims adapter + devnet encrypted-balance deposit only.
 
-What we also have off current main / branch evidence:
-- Memory records a successful live devnet receiver-claimable UTXO create→scan→claim smoke with artifact `artifacts/umbra-devnet-receiver-claimable-utxo/20260507T092405Z/SUMMARY.json` / `.md`.
-- Current main contains an earlier successful `20260507T092225Z` artifact, but the later branch commit `d2761a75` with the fully documented `20260507T092405Z` proof is not merged into main.
+Newly aligned closure evidence:
+- Successful devnet-only receiver-claimable UTXO create→scan→claim evidence is included at `artifacts/umbra-devnet-receiver-claimable-utxo/20260507T092405Z/SUMMARY.json` / `.md`.
+- Evidence includes create txs, relayer claim txs, selected UTXO `0:813`, and receiver encrypted wSOL balance moving from `497867` to `995734` base units.
 
-Safe claim today:
-- “Umbra private-payment adapter and bounded devnet encrypted-balance deposit evidence are implemented.”
-
-Safe claim after merge/alignment:
-- “A devnet receiver-claimable UTXO create→scan→claim smoke was proven, with receiver encrypted balance updated.”
+Safe claim after this closure PR:
+- “Umbra private-payment adapter, bounded devnet encrypted-balance deposit, and devnet-only receiver-claimable UTXO create→scan→claim evidence are implemented.”
+- “A devnet-only receiver-claimable UTXO create→scan→claim path was proven, with receiver encrypted balance updated.”
 
 Do not claim:
 - Mainnet/live-production Umbra settlement.
@@ -113,12 +111,12 @@ Do not claim:
 - Production private x402 settlement.
 
 Remaining gap:
-- Merge and align the successful receiver-claimable UTXO proof if we want to feature it.
-- Update final packet, handoff, bounty audit, and claim-boundary guard from “not complete” to “devnet-only receiver-claimable UTXO smoke proven,” without broadening beyond devnet.
+- Keep final gates green after alignment.
+- Keep wording devnet-only and do not broaden into mainnet/live-production private settlement, Quasar-native Umbra execution, MagicBlock PER settlement, or general arbitrary receiver/payee settlement.
 
 Close-out work:
-1. Cherry-pick/rebuild the `d2761a75` receiver-claim proof onto fresh `main`.
-2. Verify artifact paths and make timestamp regeneration idempotent.
+1. Reintroduce the receiver-claimable UTXO helper/test/smoke script and artifact onto the closure branch.
+2. Verify artifact paths and package script.
 3. Rerun `npx jest --runTestsByPath lib/__tests__/umbra-receiver-claimable-utxo.test.ts --runInBand`.
 4. Rerun `npm run check:umbra:sdk-imports`, `npm run check:umbra:adapter-imports`, and `npm run check:final-recording`.
 5. Update final recording packet/handoff/bounty audit with devnet-only wording.

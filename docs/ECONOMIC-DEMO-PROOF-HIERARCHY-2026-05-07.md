@@ -41,9 +41,14 @@ This is the judge/operator map for what the current economic demo evidence prove
 7. **Umbra devnet encrypted-balance deposit proof**
    - Executable artifact: `artifacts/umbra-devnet-smoke/20260507T075904Z/SUMMARY.md`
    - Proves: devnet wSOL wrapping, Umbra confidential registration, public-balance-to-encrypted-balance deposit queue/callback, rent cleanup, and encrypted balance query returning `1000000` base units.
-   - Does not prove: mainnet payment, production Umbra private settlement, receiver-claimable UTXO claim flow, Quasar-native Umbra execution, or arbitrary-wallet/private payee MagicBlock PER settlement.
+   - Does not prove: mainnet payment, production Umbra private settlement, Quasar-native Umbra execution, or arbitrary-wallet/private payee MagicBlock PER settlement.
 
-8. **Live Jupiter quote-only proof**
+8. **Umbra receiver-claimable UTXO devnet-only proof**
+   - Executable artifact: `artifacts/umbra-devnet-receiver-claimable-utxo/20260507T092405Z/SUMMARY.md`
+   - Proves: a devnet-only receiver-claimable UTXO create→scan→claim path with relayer claim transactions and receiver encrypted wSOL balance moving from `497867` to `995734` base units.
+   - Does not prove: mainnet payment, production Umbra private settlement, Quasar-native Umbra execution, MagicBlock PER settlement, or general arbitrary receiver/payee settlement.
+
+9. **Live Jupiter quote-only proof**
    - Script: `npm run smoke:economic-demo:jupiter-quote`
    - Proves: public Jupiter route availability for SOL→USDC at the time of the artifact, including output estimate, slippage, and route legs.
    - Does not prove: swap transaction creation, signing, execution, or wallet mutation.
@@ -89,6 +94,7 @@ Safe claims:
 - “Pay.sh capped sessions and split payments are extension probes only.”
 - “Umbra private x402 adapter-contract evidence proves the SDK-facing receiver-claimable UTXO call path and selective-disclosure receipt shape.”
 - “Umbra devnet encrypted-balance deposit completed for a tiny wSOL amount on devnet, with queue/callback transaction evidence and encrypted balance query.”
+- “Umbra receiver-claimable UTXO has devnet-only create→scan→claim evidence with relayer claim transactions and receiver encrypted-balance update.”
 - “Public Jupiter quote evidence proves route availability, not an executed devnet swap.”
 - “Devnet USDC receipt verification is ready and fail-closed; a verified receipt requires a supplied devnet transaction signature.”
 
