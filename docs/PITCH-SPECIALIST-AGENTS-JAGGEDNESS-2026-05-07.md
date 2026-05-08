@@ -93,7 +93,10 @@ Suggested sequence:
 1. Frontier LLMs unlocked general capability.
 2. But capability is jagged and opaque.
 3. Work needs specialization, routing, and verification.
-4. Reddi Agent Protocol provides the economic protocol for specialist agents, with `reddi-x402` as the key user package for x402 payment-gated agent work.
+4. The Economic Singularity / agent-commerce thesis explains why those specialists also need payment rails: agents increasingly buy APIs, services, data, tools, and other agent work.
+5. Reddi Agent Protocol provides the economic protocol for specialist agents, with `reddi-x402` as the key user package for x402 payment-gated agent work.
+
+Companion macro framing: `docs/PITCH-ECONOMIC-SINGULARITY-AGENT-COMMERCE-2026-05-08.md`.
 
 ## Evidence-safe wording
 
