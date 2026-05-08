@@ -18,9 +18,17 @@ pub const DELEGATION_PROGRAM_ID: Address = Address::new_from_array([
 
 /// MagicBlock program used by commit+undelegate permission.
 pub const MAGIC_PROGRAM_ID_STR: &str = "Magic11111111111111111111111111111111111111";
+pub const MAGIC_PROGRAM_ID: Address = Address::new_from_array([
+    5, 69, 180, 36, 176, 218, 112, 149, 236, 185, 214, 222, 195, 119, 215, 40, 145, 182, 231,
+    142, 146, 234, 18, 214, 223, 187, 58, 64, 0, 0, 0, 0,
+]);
 
 /// MagicBlock context account used by commit+undelegate permission.
 pub const MAGIC_CONTEXT_ID_STR: &str = "MagicContext1111111111111111111111111111111";
+pub const MAGIC_CONTEXT_ID: Address = Address::new_from_array([
+    5, 69, 180, 36, 196, 165, 40, 191, 95, 180, 3, 47, 68, 82, 130, 142, 187, 56, 171, 193,
+    210, 220, 151, 247, 63, 139, 148, 84, 128, 0, 0, 0,
+]);
 
 /// Devnet TEE validator currently listed in MagicBlock private PER docs.
 pub const DEVNET_TEE_VALIDATOR_STR: &str = "MTEWGuqxUpYZGFJQcp8tLN7x5v9BSeoFHYWQQ3n3xzo";
