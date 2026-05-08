@@ -43,7 +43,7 @@ Safe claim:
 - Umbra receiver-claimable UTXO has devnet-only create→scan→claim evidence with receiver encrypted-balance update; this is not mainnet/live-production private settlement, not Quasar-native Umbra execution, and not MagicBlock PER settlement.
 - MagicBlock PER bounded agent-vault settlement is proven for the Quasar-owned AgentVault route: MagicBlock TEE restored the delegated vault to base devnet and withdraw-after-settlement succeeded. This is not an arbitrary-wallet/private payee settlement proof.
 - Torque reputation rankings are a supporting retention layer: Reddi Agent Protocol converts specialist completions, submitted ratings, and onboarding milestones into Torque-compatible events that feed leaderboard/ranking evidence. This is not a live production rewards campaign proof.
-- OpenRouter specialists: all 30 specialist profiles are configured, manifest-valid, package-tested, and have devnet registration evidence. Do not claim all 30 are currently live production hosted endpoints ready for paid calls unless public endpoint/Coolify/funding readiness is separately refreshed and approved.
+- OpenRouter specialists: all 30 specialist profiles are configured, manifest-valid, package-tested, devnet-registered, and have hosted Coolify endpoint evidence: the May 6 inventory verified 30/30 well-known manifests and 30/30 unpaid x402 challenge endpoints. Safe claim: they can respond to devnet/demo request flows when targeted by the workflow. Do not claim all 30 are production-paid settlement endpoints with freshly confirmed funding/secrets/live paid calls unless that stronger readiness is separately refreshed and approved.
 
 Do not claim:
 - successful public Jupiter devnet swap

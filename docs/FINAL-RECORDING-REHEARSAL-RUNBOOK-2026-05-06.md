@@ -71,7 +71,7 @@ npm run test:surfpool:quasar-critical
    - Quasar-native devnet proof is live.
    - Surfpool localnet confidence passed.
    - x402/OpenRouter/Jupiter evidence is visible with exact boundaries.
-   - OpenRouter: all 30 specialists are configured/tested/devnet-registered; all-30 live paid hosted endpoint readiness is not claimed without a fresh endpoint/Coolify/funding pass.
+   - OpenRouter: all 30 specialists are configured/tested/devnet-registered and have hosted Coolify endpoint evidence; May 6 inventory verified 30/30 well-known manifests and 30/30 unpaid x402 challenge endpoints. They can respond to devnet/demo request flows when targeted. Do not claim production-paid settlement readiness without a fresh endpoint/funding/secrets/live paid-call pass.
    - Jupiter: Surfpool/mock-Jupiter is the successful no-real-funds visual; public Jupiter devnet is quote/build/sign boundary only.
    - MagicBlock PER/TEE: Quasar-native permission/delegation succeeds live on devnet, and bounded Quasar-owned AgentVault settlement through MagicBlock TEE is proven; arbitrary-wallet/private payee settlement is not claimed. Successful live Jupiter swap is not a final claim unless separately run with explicit approval.
    - Umbra: devnet-only private-payment evidence is strong, including receiver-claimable UTXO create→scan→claim, but no mainnet/live-production private settlement claim.

@@ -15,7 +15,7 @@ We are close to a strong, defensible submission, but the remaining work is not e
 - **Pay.sh / `reddi-x402`:** strong for single-charge sandbox compatibility. Do not claim session/split settlement.
 - **Umbra:** strong adapter + devnet encrypted-balance evidence; receiver-claimable UTXO devnet-only evidence is being aligned into the closure PR and may be featured with strict devnet-only boundaries.
 - **Torque:** credible story already exists through reputation/ranking events and leaderboard UI, but needs a recording/evidence beat to become bounty-strong.
-- **30 specialists / OpenRouter runtime:** configured, tested, and devnet-registered; `docs/OPENROUTER-30-SPECIALIST-READINESS-2026-05-08.md` now captures the boundary that all-30 production-hosted/live paid endpoint readiness is not proven under the latest deployment readiness check.
+- **30 specialists / OpenRouter runtime:** configured, tested, devnet-registered, and have hosted Coolify endpoint evidence; `docs/OPENROUTER-30-SPECIALIST-READINESS-2026-05-08.md` now captures the boundary that the May 6 inventory verified 30/30 hosted manifests and unpaid x402 challenge endpoints, while production-paid settlement readiness still requires a fresh endpoint/funding/secrets/live paid-call pass.
 - **Jupiter:** keep as bounded payment-flexibility/simulation/research lane only unless mainnet execution is approved. No reliable public devnet swap claim.
 
 ## Fair bounty-by-bounty assessment
@@ -154,14 +154,15 @@ What we have:
 - Hosted manifest parity had previously reached 30/30 current endpoints in Phase 4 evidence.
 
 Latest caveat:
-- Current `deployment:readiness` reports `blocked` for all 30 because it requires public endpoints/Coolify deployment/funding/deployment confirmations under the latest checker.
+- Current `deployment:readiness` reports `blocked` for all 30 because the env-less preflight requires public endpoints/Coolify deployment/funding/deployment confirmations under the latest checker.
+- This does **not** mean endpoints are absent: May 6 inventory verified hosted Coolify endpoint responsiveness for 30/30 well-known manifests and 30/30 unpaid x402 challenges.
 - Closure note added: `docs/OPENROUTER-30-SPECIALIST-READINESS-2026-05-08.md`.
 
 Safe claim:
-- “All 30 specialist profiles are configured, manifest-valid, tested, and devnet-registered.”
+- “All 30 specialist profiles are configured, manifest-valid, tested, devnet-registered, and have hosted Coolify endpoint evidence for well-known manifests and unpaid x402 challenges.”
 
 Do not claim unless revalidated:
-- “All 30 are currently live production hosted endpoints ready for paid calls.”
+- “All 30 are production-paid settlement endpoints with freshly confirmed funding, production secrets, and live paid downstream calls.”
 
 Remaining gap:
 - Decide if the submission needs live hosted all-30 proof or if configured/devnet-registered specialist marketplace proof is enough.
