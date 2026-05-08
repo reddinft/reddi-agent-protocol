@@ -6,6 +6,10 @@
 
 
 
+## Latest Update — Economic-demo PR A UX restructure underway (2026-05-08)
+
+Branch `feature/economic-demo-live-story-ux` implements the first Belle slice using existing evidence only: hero now leads with “Run a paid-agent workflow,” proof pills, one primary `Run demo` CTA, no-wallet default quote boundary, story spine, and a collapsed evidence archive. Wallet connect moved into an optional advanced user-devnet lane; historical/operator controls no longer dominate the first viewport. E2E updated to assert no wallet/pay button visible by default, archive controls collapsed, and hosted evidence rendered after `Run demo`. Validation passed: `npm run lint -- app/economic-demo/page.tsx e2e/economic-demo.spec.ts`, `npm run test:e2e -- e2e/economic-demo.spec.ts --project=chromium`, product naming check, and submission claim-boundary check.
+
 ## Latest Update — Economic-demo live storytelling plan drafted (2026-05-08)
 
 Nissan flagged that `/economic-demo` is too cluttered and that wallet connect is confusing if the page is only showing historical snapshot evidence. Drafted `docs/ECONOMIC-DEMO-LIVE-STORYTELLING-PLAN-2026-05-08.md`. Core decision: default judge mode should not require wallet connection; wallet appears only for explicit bounded devnet/user-wallet actions. Next activity after PR #280/current closure work: redesign `/economic-demo` around prompt/template → quote/approval boundary → live specialist workflow timeline → rendered returned output → evidence drawer. Use hosted Coolify specialist endpoints in a live controlled mode first, then add server-funded devnet proof as a second step; keep historical artifacts in an appendix. Belle has been dispatched for focused UX/story review and the plan should be updated with her implementation-ready brief before coding.
