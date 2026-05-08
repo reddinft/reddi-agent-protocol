@@ -36,6 +36,7 @@ export const verifyReceiptInputSchema = {
 
 export const exportDisclosureLedgerInputSchema = {
   quoteIds: z.array(z.string().max(160)).max(MAX_LEDGER_ENTRIES).default([]),
+  x402ReceiptIds: z.array(z.string().max(160)).max(MAX_LEDGER_ENTRIES).default([]),
 };
 
 export const prepareDevnetPaymentInputSchema = {
@@ -52,6 +53,24 @@ export const executeDevnetPaymentInputSchema = {
 
 export const verifyDevnetReceiptInputSchema = {
   quoteId: z.string().max(160),
+};
+
+export const prepareX402SpecialistCallInputSchema = {
+  x402RequestHeader: z.string().min(1).max(4096),
+  maxUsdcMicroUnits: z.number().int().positive().max(1_000_000).optional(),
+};
+
+export const executeX402SpecialistCallInputSchema = {
+  endpoint: z.string().url().max(512),
+  body: z.record(z.unknown()),
+  idempotencyKey: z.string().min(1).max(128),
+  maxUsdcMicroUnits: z.number().int().positive().max(1_000_000),
+  approvalPhrase: z.literal("EXECUTE_DEVNET_X402_SPECIALIST_CALL"),
+};
+
+export const verifyX402SpecialistReceiptInputSchema = {
+  receiptId: z.string().max(160).optional(),
+  idempotencyKey: z.string().max(128).optional(),
 };
 
 export type ReddiQuote = {

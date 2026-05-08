@@ -17,15 +17,19 @@
     "build": "tsc -p tsconfig.json",
     "test": "npm run build && node --test dist/tests/*.test.js",
     "smoke:stdio": "npm run build && node scripts/smoke-stdio.mjs",
-    "smoke:devnet": "npm run build && node scripts/smoke-devnet-mcp.mjs"
+    "smoke:devnet": "npm run build && node scripts/smoke-devnet-mcp.mjs",
+    "smoke:x402-tool-list": "npm run build && node scripts/smoke-x402-tool-list.mjs",
+    "smoke:x402-surfpool-local": "npm run build && node scripts/smoke-x402-surfpool-local.mjs",
+    "smoke:live-x402-specialist": "npm run build && node scripts/smoke-live-x402-specialist.mjs"
   },
   "engines": {
     "node": ">=20"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.27.1",
-    "zod": "^3.25.76",
-    "@solana/web3.js": "^1.98.4"
+    "@reddi/x402-solana": "file:../x402-solana",
+    "@solana/web3.js": "^1.98.4",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@types/node": "^20",

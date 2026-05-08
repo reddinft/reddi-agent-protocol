@@ -8,6 +8,11 @@ export type BridgeConfig = {
   devnetFunderKeypairPath?: string;
   devnetRpcUrl: string;
   devnetMaxTotalDebitLamports?: number;
+  allowSpecialistInvoke: boolean;
+  devnetWalletKeypairPath?: string;
+  devnetUsdcMint?: string;
+  devnetMaxUsdcMicroUnits: number;
+  specialistEndpointAllowlist: string[];
 };
 
 const FRAMEWORKS = new Set(["claude", "cursor", "openclaw", "openswarm", "codex", "custom"]);
@@ -86,5 +91,10 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): BridgeConfig {
     devnetFunderKeypairPath: sanitizeSmallText(env.RAP_MCP_DEVNET_FUNDER_KEYPAIR, 512),
     devnetRpcUrl: assertDevnetRpcUrl(env.RAP_MCP_DEVNET_RPC_URL ?? "https://api.devnet.solana.com"),
     devnetMaxTotalDebitLamports: parsePositiveSafeInteger(env.RAP_MCP_DEVNET_MAX_TOTAL_DEBIT_LAMPORTS, 3_200_000),
+    allowSpecialistInvoke: env.RAP_MCP_ALLOW_SPECIALIST_INVOKE === "1",
+    devnetWalletKeypairPath: sanitizeSmallText(env.RAP_MCP_DEVNET_WALLET_KEYPAIR, 512),
+    devnetUsdcMint: sanitizeSmallText(env.RAP_MCP_DEVNET_USDC_MINT, 128),
+    devnetMaxUsdcMicroUnits: parsePositiveSafeInteger(env.RAP_MCP_DEVNET_MAX_USDC_MICRO_UNITS, 150_000),
+    specialistEndpointAllowlist: (env.RAP_MCP_SPECIALIST_ENDPOINT_ALLOWLIST ?? "").split(",").map((value) => value.trim()).filter(Boolean),
   };
 }
