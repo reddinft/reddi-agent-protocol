@@ -6,6 +6,10 @@
 
 
 
+## Latest Update — Economic-demo PR C hosted challenge probe underway (2026-05-08)
+
+Branch `feature/economic-demo-hosted-challenge-probe` adds a safe unpaid `POST /api/economic-demo/hosted-challenge-probe` lane. It probes exact allowlisted Coolify specialist endpoints for the webpage workflow (`planning-agent`, `content-creation-agent`, `code-generation-agent`, `verification-validation-agent`) and only observes fresh HTTP 402 x402 challenge headers. Guardrails: no `x402-payment` header, no payment retry, no signer material, no devnet/mainnet transfer, no settlement claim. Direct live probe verified all 4 endpoints returned `402` + `x402-request` on solana-devnet/USDC. Local validation passed: Jest hosted-probe unit test, lint, Playwright economic-demo e2e, product naming, and claim-boundary checks.
+
 ## Latest Update — Economic-demo PR B controlled live-run API underway (2026-05-08)
 
 Branch `feature/economic-demo-controlled-live-run` adds `POST /api/economic-demo/live-run` and `lib/economic-demo/live-run.ts`. The route returns a fresh run envelope with `runId`, timestamp, prompt hash, selected specialists, timeline, rendered-output previews, evidence pack reference, and explicit no-spend/no-settlement guardrails. `/economic-demo` now calls this route from `Run demo` and renders the controlled live-run envelope before the existing evidence drawer. This is still controlled hosted evidence: no signer material, no devnet/mainnet transfer, no paid provider call, and no production settlement claim. Validation passed: Jest live-run unit test, lint, Playwright economic-demo e2e, product naming, and claim-boundary checks.

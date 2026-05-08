@@ -20,6 +20,7 @@ import {
   type WebpageLiveWorkflowEvidence,
 } from "@/lib/economic-demo/webpage-live-workflow-evidence";
 import type { EconomicDemoLedgerReconciliation } from "@/lib/economic-demo/ledger-reconciliation";
+import type { EconomicDemoHostedChallengeProbe } from "@/lib/economic-demo/hosted-challenge-probe";
 import type { EconomicDemoLiveRun } from "@/lib/economic-demo/live-run";
 import type { ResearchWorkflowDesign } from "@/lib/economic-demo/research-workflow-design";
 import type { PictureStoryboardDesign } from "@/lib/economic-demo/picture-storyboard-design";
@@ -135,6 +136,11 @@ export default function EconomicDemoPage() {
   >("idle");
   const [controlledLiveRun, setControlledLiveRun] =
     useState<EconomicDemoLiveRun | null>(null);
+  const [hostedChallengeProbe, setHostedChallengeProbe] =
+    useState<EconomicDemoHostedChallengeProbe | null>(null);
+  const [hostedChallengeProbeStatus, setHostedChallengeProbeStatus] = useState<
+    "idle" | "loading" | "loaded" | "error"
+  >("idle");
   const [paymentAsset, setPaymentAsset] = useState<"USDC" | "SOL">("USDC");
   const [runStarted, setRunStarted] = useState(false);
   const { connected, publicKey } = useWallet();
@@ -339,6 +345,27 @@ export default function EconomicDemoPage() {
     }
   }
 
+  async function probeHostedChallenges() {
+    setHostedChallengeProbeStatus("loading");
+    try {
+      const res = await fetch("/api/economic-demo/hosted-challenge-probe", {
+        method: "POST",
+      });
+      const payload = (await res.json()) as {
+        ok?: boolean;
+        probe?: EconomicDemoHostedChallengeProbe;
+      };
+      if (!res.ok || !payload.ok || !payload.probe) {
+        throw new Error("hosted_challenge_probe_failed");
+      }
+      setHostedChallengeProbe(payload.probe);
+      setHostedChallengeProbeStatus("loaded");
+    } catch {
+      setHostedChallengeProbe(null);
+      setHostedChallengeProbeStatus("error");
+    }
+  }
+
   return (
     <main className="min-h-screen bg-page">
       <section className="relative overflow-hidden border-b border-white/5">
@@ -386,6 +413,16 @@ export default function EconomicDemoPage() {
                   ? "Running demo…"
                   : "Run demo"}
               </button>
+              <button
+                type="button"
+                onClick={probeHostedChallenges}
+                disabled={hostedChallengeProbeStatus === "loading"}
+                className="rounded-lg border border-[#14F195]/30 bg-[#14F195]/10 px-5 py-3 text-sm font-semibold text-[#14F195] transition hover:bg-[#14F195]/15 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {hostedChallengeProbeStatus === "loading"
+                  ? "Probing hosted 402s…"
+                  : "Probe hosted 402s"}
+              </button>
               <a
                 href="#evidence-archive"
                 className="rounded-lg border border-white/15 bg-white/5 px-5 py-3 text-sm font-semibold text-gray-200 transition hover:border-[#14F195]/30 hover:text-[#14F195]"
@@ -393,6 +430,55 @@ export default function EconomicDemoPage() {
                 Open evidence archive
               </a>
             </div>
+            {hostedChallengeProbeStatus !== "idle" && (
+              <div
+                data-testid="hosted-challenge-probe"
+                className="rounded-xl border border-[#14F195]/25 bg-black/30 p-4 text-sm leading-6 text-gray-200"
+              >
+                <p className="text-xs uppercase tracking-wide text-[#14F195]">
+                  Fresh unpaid hosted endpoint probe
+                </p>
+                {hostedChallengeProbeStatus === "error" && (
+                  <p className="mt-2 text-yellow-100">
+                    Probe did not complete cleanly. No payment retry was
+                    attempted.
+                  </p>
+                )}
+                {hostedChallengeProbe && (
+                  <div className="mt-3 space-y-3">
+                    <p>
+                      Observed {hostedChallengeProbe.summary.ok}/
+                      {hostedChallengeProbe.summary.requested} allowlisted x402
+                      challenges. {hostedChallengeProbe.claimBoundary}
+                    </p>
+                    <div className="grid gap-2 md:grid-cols-2">
+                      {hostedChallengeProbe.results.map((result) => (
+                        <div
+                          key={result.profileId}
+                          className="rounded-lg border border-white/10 bg-white/5 p-3 text-xs leading-5"
+                        >
+                          <p className="font-semibold text-white">
+                            {result.profileId} · HTTP {result.httpStatus ?? "—"}
+                          </p>
+                          <p className="break-all text-gray-400">
+                            {result.endpoint}
+                          </p>
+                          <p
+                            className={
+                              result.ok ? "text-[#14F195]" : "text-yellow-100"
+                            }
+                          >
+                            {result.ok
+                              ? `x402 ${result.challenge?.network} ${result.challenge?.amount} ${result.challenge?.currency}`
+                              : result.error}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
             <div className="flex flex-wrap gap-3">
               {economicDemoScenarios.map((candidate) => (
                 <button
