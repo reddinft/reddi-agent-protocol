@@ -16,6 +16,7 @@
 //! | `[81, 80, 69, 82, 86, 65, 76, 84]` | Prepare self-custodied agent vault |
 //! | `[81, 80, 69, 82, 86, 68, 69, 76]` | MagicBlock delegate agent vault PER CPI |
 //! | `[81, 80, 69, 82, 86, 67, 77, 84]` | MagicBlock commit/undelegate agent vault PER CPI |
+//! | `[81, 80, 69, 82, 86, 77, 65, 71]` | Magic Program agent-vault intent+callback schedule |
 //! | `[81, 80, 69, 82, 86, 84, 65, 75]` | Release escrow into agent vault |
 //! | `[81, 80, 69, 82, 86, 87, 68, 82]` | Withdraw from agent vault |
 //! | `[196, 28, 41, 206, 48, 37, 51, 167]` | MagicBlock undelegate callback |
@@ -101,6 +102,14 @@ mod quasar_escrow_per_poc {
         ctx.accounts.commit_agent_vault_per(&ctx.bumps)
     }
 
+    /// Schedule Magic Program commit+undelegate with a post-undelegate callback action.
+    #[instruction(discriminator = [81, 80, 69, 82, 86, 77, 65, 71])]
+    pub fn commit_agent_vault_magic_intent_per(
+        ctx: Ctx<CommitAgentVaultMagicIntentPer>,
+    ) -> Result<(), ProgramError> {
+        ctx.accounts.commit_agent_vault_magic_intent_per(&ctx.bumps)
+    }
+
     /// Credit an escrow release into the payee's self-custodied agent vault.
     #[instruction(discriminator = [81, 80, 69, 82, 86, 84, 65, 75])]
     pub fn take_to_agent_vault(
@@ -125,7 +134,8 @@ mod quasar_escrow_per_poc {
         ctx: Ctx<PrivateTakeToAgentVault>,
         escrow_id: u64,
     ) -> Result<(), ProgramError> {
-        ctx.accounts.private_take_to_agent_vault(escrow_id, &ctx.bumps)
+        ctx.accounts
+            .private_take_to_agent_vault(escrow_id, &ctx.bumps)
     }
 
     /// Agent-authorized base-layer withdrawal from the agent vault.
@@ -140,10 +150,10 @@ mod quasar_escrow_per_poc {
     /// MagicBlock undelegation callback entrypoint.
     ///
     /// Exact discriminator required by MagicBlock docs:
-    /// `[196, 28, 41, 206, 48, 37, 51, 167]`. Phase 1 keeps this as a
-    /// no-op compatibility hook; later phases wire validation/settlement.
+    /// `[196, 28, 41, 206, 48, 37, 51, 167]`. Restores the committed
+    /// agent-vault PDA bytes and ownership after MagicBlock base-layer commit.
     #[instruction(discriminator = [196, 28, 41, 206, 48, 37, 51, 167])]
-    pub fn undelegate_callback(_ctx: Ctx<UndelegateCallback>) -> Result<(), ProgramError> {
-        Ok(())
+    pub fn undelegate_callback(ctx: Ctx<UndelegateCallback>) -> Result<(), ProgramError> {
+        ctx.accounts.undelegate_callback(&ctx.bumps)
     }
 }

@@ -12,6 +12,9 @@ pub const DELEGATE_PERMISSION_DISCRIMINATOR: [u8; 8] = [3, 0, 0, 0, 0, 0, 0, 0];
 /// SDK discriminator for Permission Program `commitAndUndelegatePermission`.
 pub const COMMIT_AND_UNDELEGATE_PERMISSION_DISCRIMINATOR: [u8; 8] = [5, 0, 0, 0, 0, 0, 0, 0];
 
+/// Bincode discriminant for Magic Program `MagicBlockInstruction::ScheduleIntentBundle`.
+pub const SCHEDULE_INTENT_BUNDLE_DISCRIMINATOR: [u8; 4] = [11, 0, 0, 0];
+
 /// SDK discriminator for Delegation Program `delegate`.
 pub const DELEGATE_ACCOUNT_DISCRIMINATOR: [u8; 8] = [0, 0, 0, 0, 0, 0, 0, 0];
 
@@ -55,6 +58,129 @@ pub const fn delegate_permission_data() -> [u8; 8] {
 #[inline(always)]
 pub const fn commit_and_undelegate_permission_data() -> [u8; 8] {
     COMMIT_AND_UNDELEGATE_PERMISSION_DISCRIMINATOR
+}
+
+/// Data for Magic Program `ScheduleIntentBundle`:
+///
+/// - `commit_and_undelegate` one committed account at account index 2
+/// - `undelegate_type = WithBaseActions` with one post-undelegate action
+/// - action calls this program's exact `undelegate_callback` discriminator
+/// - callback account metas are vault, undelegate buffer, authority, system program
+///
+/// The surrounding account list is expected to be:
+/// 0. authority/payer signer writable
+/// 1. Magic Context writable
+/// 2. agent vault PDA signer writable
+#[inline(always)]
+pub const fn schedule_agent_vault_commit_and_undelegate_with_callback_data(
+    destination_program: [u8; 32],
+    vault: [u8; 32],
+    undelegate_buffer: [u8; 32],
+    authority: [u8; 32],
+    system_program: [u8; 32],
+) -> [u8; 235] {
+    let mut out = [0u8; 235];
+    let mut o = 0usize;
+    let mut i = 0usize;
+
+    while i < 4 {
+        out[o + i] = SCHEDULE_INTENT_BUNDLE_DISCRIMINATOR[i];
+        i += 1;
+    }
+    o += 4;
+
+    // MagicIntentBundleArgs.commit = None (bincode Option tag)
+    o += 1;
+    // commit_and_undelegate = Some(...) (bincode Option tag)
+    out[o] = 1;
+    o += 1;
+    // CommitTypeArgs::Standalone
+    o += 4;
+    // Vec<u8> length = 1 (u64), committed account index = 2
+    out[o] = 1;
+    o += 8;
+    out[o] = 2;
+    o += 1;
+    // UndelegateTypeArgs::WithBaseActions
+    out[o] = 1;
+    o += 4;
+    // base_actions vec length = 1
+    out[o] = 1;
+    o += 8;
+    // ActionArgs.escrow_index = 255, data len = 8, data = undelegate callback discriminator
+    out[o] = 255;
+    o += 1;
+    out[o] = 8;
+    o += 8;
+    i = 0;
+    while i < 8 {
+        out[o + i] = crate::magicblock::constants::UNDELEGATE_CALLBACK_DISCRIMINATOR[i];
+        i += 1;
+    }
+    o += 8;
+    // compute_units = 200_000u32
+    let cu = 200_000u32.to_le_bytes();
+    i = 0;
+    while i < 4 {
+        out[o + i] = cu[i];
+        i += 1;
+    }
+    o += 4;
+    // escrow_authority index = authority/payer index 0
+    o += 1;
+    i = 0;
+    while i < 32 {
+        out[o + i] = destination_program[i];
+        i += 1;
+    }
+    o += 32;
+    // callback ShortAccountMeta vec length = 4
+    out[o] = 4;
+    o += 8;
+
+    i = 0;
+    while i < 32 {
+        out[o + i] = vault[i];
+        i += 1;
+    }
+    o += 32;
+    out[o] = 1;
+    o += 1;
+
+    i = 0;
+    while i < 32 {
+        out[o + i] = undelegate_buffer[i];
+        i += 1;
+    }
+    o += 32;
+    out[o] = 1;
+    o += 1;
+
+    i = 0;
+    while i < 32 {
+        out[o + i] = authority[i];
+        i += 1;
+    }
+    o += 32;
+    // authority readonly
+    o += 1;
+
+    i = 0;
+    while i < 32 {
+        out[o + i] = system_program[i];
+        i += 1;
+    }
+    o += 32;
+    // system readonly
+    o += 1;
+
+    // commit_finalize = None, commit_finalize_and_undelegate = None, standalone_actions len = 0
+    o += 1;
+    o += 1;
+    // final u64 zero already present
+    let _ = o;
+
+    out
 }
 
 /// Data for Delegation Program `delegate` for this program's escrow PDA.
@@ -274,6 +400,20 @@ mod tests {
         assert_eq!(
             hex(&delegate_agent_vault_data(DEVNET_TEE_VALIDATOR_BYTES, authority)),
             "0000000000000000ffffffff020000000b0000006167656e745f7661756c7420000000090909090909090909090909090909090909090909090909090909090909090901053d471a859e732e680bc958f841072b8f3fbc19739be697c4c681126f8c1f74"
+        );
+    }
+
+    #[test]
+    fn schedule_agent_vault_commit_and_undelegate_with_callback_matches_magic_api_fixture() {
+        assert_eq!(
+            hex(&schedule_agent_vault_commit_and_undelegate_with_callback_data(
+                [9u8; 32],
+                [2u8; 32],
+                [3u8; 32],
+                [4u8; 32],
+                [0u8; 32],
+            )),
+            "0b000000000100000000010000000000000002010000000100000000000000ff0800000000000000c41c29ce302533a7400d0300000909090909090909090909090909090909090909090909090909090909090909040000000000000002020202020202020202020202020202020202020202020202020202020202020103030303030303030303030303030303030303030303030303030303030303030104040404040404040404040404040404040404040404040404040404040404040000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
         );
     }
 

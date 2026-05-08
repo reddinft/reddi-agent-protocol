@@ -27,7 +27,7 @@ use {
 };
 
 #[derive(Accounts)]
-#[instruction(amount: u64, escrow_id: u64)]
+#[instruction(_amount: u64, escrow_id: u64)]
 pub struct Lock<'info> {
     /// Payer (Agent A) — funds the escrow and signs
     pub payer: &'info mut Signer,

@@ -1,4 +1,5 @@
 pub mod cancel;
+pub mod commit_agent_vault_magic_intent_per;
 pub mod commit_agent_vault_per;
 pub mod commit_undelegate_per;
 pub mod delegate_agent_vault_per;
@@ -13,6 +14,7 @@ pub mod undelegate_callback;
 pub mod withdraw_agent_vault;
 
 pub use cancel::*;
+pub use commit_agent_vault_magic_intent_per::*;
 pub use commit_agent_vault_per::*;
 pub use commit_undelegate_per::*;
 pub use delegate_agent_vault_per::*;
