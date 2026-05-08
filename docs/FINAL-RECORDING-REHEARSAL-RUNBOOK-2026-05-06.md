@@ -56,21 +56,28 @@ npm run test:surfpool:quasar-critical
 2. Show the Solana program target card: “Quasar hackathon target active”.
 3. Show the four Quasar program IDs and `submission readiness: ready`.
 4. Show the homepage ecosystem proof map briefly: Quasar, x402, OpenRouter, Jupiter, Surfpool, Torque, MagicBlock, and ElizaOS/SendAI are all visible with status labels.
-5. Trigger the human-action economic demo panels:
+5. Run the primary economic demo story on `/economic-demo`:
+   - Say: “This is a controlled judge path: no wallet, no signer, no transfer, no production settlement claim.”
+   - Click `Run demo`.
+   - Show the fresh hosted unpaid `402` probe result: planning, content, code, and verification specialists return x402 challenges from allowlisted Coolify endpoints.
+   - Show the controlled live-run envelope: `runId`, prompt hash, timeline, returned output previews, and evidence drawer.
+   - Say explicitly: “The fresh part is endpoint responsiveness and x402 gating; the returned-output evidence is controlled/archived, not a new paid production settlement.”
+6. Optional archive/supporting economic demo panels:
    - dry-run workflow plan
    - balance snapshot
    - Surfpool rehearsal plan/evidence
    - x402 readiness / disclosure evidence
    - 30-agent OpenRouter metadata/use-case triggers, with `docs/OPENROUTER-30-SPECIALIST-READINESS-2026-05-08.md` as the configured/devnet-registered vs hosted-live boundary
-6. Supporting Torque beat: open `/leaderboard`, then cite `artifacts/torque-reputation-ranking/20260508T052500Z/SUMMARY.md` to show the story: specialist completions + submitted ratings + onboarding milestones become Torque-compatible reputation/retention signals feeding leaderboard rankings. Say explicitly that this is not a live production rewards campaign or paid Torque incentive distribution.
-7. Supporting Umbra beat: cite `artifacts/umbra-devnet-smoke/20260507T075904Z/SUMMARY.md` and `artifacts/umbra-devnet-receiver-claimable-utxo/20260507T092405Z/SUMMARY.md` as devnet-only evidence for encrypted-balance deposit and receiver-claimable UTXO create→scan→claim. Say explicitly that this is not mainnet/live-production private settlement.
-8. Optional supporting beat: open `/testers` for ElizaOS/SendAI-style x402 adapter distribution evidence.
-9. Switch to terminal proof and run/show the Quasar A→B→C devnet demo output.
-10. Highlight latest proof map: `docs/COLOSSEUM-FINAL-QUASAR-PROOF-MAP-2026-05-06.md` and `docs/HACKATHON-BOUNTY-SHOWCASE-AUDIT-2026-05-07.md`.
-11. Close with honest boundaries:
+7. Supporting Torque beat: open `/leaderboard`, then cite `artifacts/torque-reputation-ranking/20260508T052500Z/SUMMARY.md` to show the story: specialist completions + submitted ratings + onboarding milestones become Torque-compatible reputation/retention signals feeding leaderboard rankings. Say explicitly that this is not a live production rewards campaign or paid Torque incentive distribution.
+8. Supporting Umbra beat: cite `artifacts/umbra-devnet-smoke/20260507T075904Z/SUMMARY.md` and `artifacts/umbra-devnet-receiver-claimable-utxo/20260507T092405Z/SUMMARY.md` as devnet-only evidence for encrypted-balance deposit and receiver-claimable UTXO create→scan→claim. Say explicitly that this is not mainnet/live-production private settlement.
+9. Optional supporting beat: open `/testers` for ElizaOS/SendAI-style x402 adapter distribution evidence.
+10. Switch to terminal proof and run/show the Quasar A→B→C devnet demo output.
+11. Highlight latest proof map: `docs/COLOSSEUM-FINAL-QUASAR-PROOF-MAP-2026-05-06.md` and `docs/HACKATHON-BOUNTY-SHOWCASE-AUDIT-2026-05-07.md`.
+12. Close with honest boundaries:
    - Quasar-native devnet proof is live.
    - Surfpool localnet confidence passed.
    - x402/OpenRouter/Jupiter evidence is visible with exact boundaries.
+   - Economic demo: fresh hosted endpoint 402 challenges are live/unpaid; returned output and paid receipt evidence are controlled evidence/archive unless a separately approved paid run is executed.
    - OpenRouter: all 30 specialists are configured/tested/devnet-registered and have hosted Coolify endpoint evidence; May 6 inventory verified 30/30 well-known manifests and 30/30 unpaid x402 challenge endpoints. They can respond to devnet/demo request flows when targeted. Do not claim production-paid settlement readiness without a fresh endpoint/funding/secrets/live paid-call pass.
    - Jupiter: Surfpool/mock-Jupiter is the successful no-real-funds visual; public Jupiter devnet is quote/build/sign boundary only.
    - MagicBlock PER/TEE: Quasar-native permission/delegation succeeds live on devnet, and bounded Quasar-owned AgentVault settlement through MagicBlock TEE is proven; arbitrary-wallet/private payee settlement is not claimed. Successful live Jupiter swap is not a final claim unless separately run with explicit approval.
@@ -85,6 +92,11 @@ npm run test:surfpool:quasar-critical
 - PR #274 merged to main as `c8362f38`: bounded MagicBlock PER AgentVault settlement proof passed with `baseVaultSettled.ok=true` and withdraw-after-settlement success.
 - PR #275 merged to main as `1debc2f3`: active submission docs and guard align to the AgentVault-only MagicBlock claim boundary.
 - PR #276 merged to main as `f3000708`: older MagicBlock docs have supersession notes to avoid stale authorization-only framing.
+- PR #281 merged to main as `98dfc4f6`: `/economic-demo` restructured around prompt → quote boundary → x402 evidence → returned output → evidence drawer, with wallet moved to optional advanced devnet mode.
+- PR #282 merged to main as `0eaf4603`: added controlled `POST /api/economic-demo/live-run` envelope with run id, prompt hash, timeline, output previews, and explicit no-spend/no-settlement guardrails.
+- PR #283 merged to main as `507d4ec0`: added safe unpaid hosted `402` challenge probe for exact allowlisted Coolify specialist endpoints.
+- PR #284 merged to main as `fe84e74f`: folded the hosted challenge probe into the primary `Run demo` flow.
+- PR #285 merged to main as `6209d068`: polished recording copy to frame the demo as controlled evidence plus fresh hosted x402 gate probes.
 - Devnet Reputation upgrade tx: `24bf49dnB9YCiqS6uT21jnQHRy9RveTquffBSNjhUpeHPE663kf7PEMCMch5k4ZR9sADxYUWvVijufEN993PVzqg`.
 - Latest full devnet Quasar A→B→C PASS in 6516ms:
   - Escrow lock tx `22XLto6VVbfYGZfRPvR65KNVEyztw4HAm1c7gPbWNXWpcNbqBdtNHFpAEeGL4L8T6UodT2fxan4yxYdPNb8hDzhx`
