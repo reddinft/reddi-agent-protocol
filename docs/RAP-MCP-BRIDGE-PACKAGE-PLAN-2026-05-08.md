@@ -351,7 +351,7 @@ Example after package build:
 Add to OpenSwarm agent instructions:
 
 ```md
-When you need external specialist work that may require payment, call the Reddi MCP bridge first:
+When you need external specialist work that may require payment, call the Reddi Agent Protocol MCP bridge first:
 
 1. `reddi.discover_specialists`
 2. `reddi.request_quote`

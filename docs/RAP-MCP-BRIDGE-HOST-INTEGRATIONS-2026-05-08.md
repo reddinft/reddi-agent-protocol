@@ -95,7 +95,7 @@ OpenSwarm already uses an orchestrator that routes to specialists. RAP should ap
 ```md
 ## Reddi Agent Protocol paid specialists
 
-When the user requests work that would benefit from paid external specialist agents, use the Reddi MCP bridge.
+When the user requests work that would benefit from paid external specialist agents, use the Reddi Agent Protocol MCP bridge.
 
 Flow:
 1. Ask `reddi.discover_specialists` for candidates.

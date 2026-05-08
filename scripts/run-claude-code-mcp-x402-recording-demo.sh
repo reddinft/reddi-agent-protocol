@@ -32,10 +32,12 @@ Requirements:
 - Verify the receipt before relying on the specialist output.
 - Export a disclosure ledger entry.
 - Final answer must include: chosen specialist endpoint, what it contributed, devnet payment receipt/tx boundary, and disclosure-ledger summary.
+- Product naming: call it "Reddi Agent Protocol" or "RAP" only; do not shorten the product name to "Reddi".
+- If describing the hosted code-generation endpoint, call it the "Reddi Agent Protocol code-generation specialist endpoint" or "RAP code-generation specialist endpoint".
 EOF
 )
 
-printf 'Starting Claude Code with Reddi MCP tools...\n\n'
+printf 'Starting Claude Code with Reddi Agent Protocol MCP tools...\n\n'
 claude -p \
   --permission-mode acceptEdits \
   --allowedTools "mcp__reddi-rap-devnet__reddi_discover_specialists,mcp__reddi-rap-devnet__reddi_prepare_x402_specialist_call,mcp__reddi-rap-devnet__reddi_execute_x402_specialist_call,mcp__reddi-rap-devnet__reddi_verify_x402_specialist_receipt,mcp__reddi-rap-devnet__reddi_export_disclosure_ledger" \
