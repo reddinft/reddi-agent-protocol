@@ -370,14 +370,15 @@ fn test_magicblock_undelegate_callback_validates_agent_vault_buffer() {
     assert_eq!(vault_after.data, restored_vault.data);
 }
 
-/// Test 9b: MagicBlock undelegate callback also accepts the SDK delegate-buffer PDA.
+/// Test 9b: MagicBlock undelegate callback rejects the SDK delegate-buffer PDA.
 #[test]
-fn test_magicblock_undelegate_callback_accepts_delegate_buffer_pda() {
+fn test_magicblock_undelegate_callback_rejects_delegate_buffer_pda() {
     let mut svm = setup();
     let payer = Pubkey::new_unique();
     let agent = Pubkey::new_unique();
     let vault = agent_vault_pda(&agent);
     let buffer = delegate_buffer_pda(&vault);
+    assert_ne!(buffer, undelegate_buffer_pda(&vault));
 
     let prepare_result = svm.process_instruction(
         &prepare_agent_vault_ix(payer, agent, vault),
@@ -402,7 +403,10 @@ fn test_magicblock_undelegate_callback_accepts_delegate_buffer_pda() {
             prepare_result.account(&agent).unwrap().clone(),
         ],
     );
-    result.assert_success();
+    assert!(
+        result.is_err(),
+        "delegate-buffer PDA must not be accepted by public callback"
+    );
 }
 
 /// Test 10: MagicBlock undelegate callback requires the exact discriminator.

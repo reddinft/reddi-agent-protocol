@@ -54,13 +54,7 @@ impl<'info> UndelegateCallback<'info> {
             &[b"undelegate-buffer", self.agent_vault.address().as_ref()],
             &mb_constants::DELEGATION_PROGRAM_ID,
         );
-        let (expected_delegate_buffer, _) = Address::find_program_address(
-            &[b"buffer", self.agent_vault.address().as_ref()],
-            &crate::ID,
-        );
-        if *self.delegation_buffer.address() != expected_undelegate_buffer
-            && *self.delegation_buffer.address() != expected_delegate_buffer
-        {
+        if *self.delegation_buffer.address() != expected_undelegate_buffer {
             return Err(ProgramError::InvalidArgument);
         }
 

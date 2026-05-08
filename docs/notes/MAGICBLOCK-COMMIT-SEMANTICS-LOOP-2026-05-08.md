@@ -79,3 +79,10 @@ Next plan adjustment:
 - Validation gates now pass: `node --check scripts/run-quasar-per-agent-vault-settlement-smoke.mjs`, `npm run check:quasar:per-abi` (14 PER instructions), `cargo test --manifest-path experiments/quasar-escrow-per/Cargo.toml -- --nocapture` (40/40), `cargo build-sbf --manifest-path experiments/quasar-escrow-per/Cargo.toml`, `npm run check:submission:claim-boundaries`, and `git diff --check`.
 - Retrospective adjustment: STATUS/notes now mark older “do not claim base-layer settlement” conclusions as historical/superseded rather than deleting them, preserving audit trail without contradicting the Loop 20 proof.
 - Funding rule incorporated: treasury/devnet treasury wallet is the first top-up path for development wallets; irreversible actions still require approval.
+
+
+### Loop 22 review — Oli block fixed
+- Oli blocked PR #274 because `undelegate_callback` accepted both the actual MagicBlock undelegate-buffer PDA (`[b"undelegate-buffer", vault]` under Delegation Program) and the older SDK delegate-buffer PDA (`[b"buffer", vault]` under this program). The live `QPERVMAG` scheduler only passes the undelegate-buffer PDA, so accepting the fallback widened the public callback surface.
+- Fix: removed delegate-buffer fallback acceptance from `undelegate_callback`; callback now accepts only the deterministic Delegation Program undelegate-buffer PDA used by Magic Program post-undelegate base actions.
+- Regression changed from accept to reject: `test_magicblock_undelegate_callback_rejects_delegate_buffer_pda`.
+- Retro: keep the callback surface exactly as narrow as the proven live path. Historical SDK helper compatibility is less important than preventing public pre-commit restore/copy ambiguity.
