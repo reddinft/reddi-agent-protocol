@@ -197,7 +197,7 @@ describe('x402 Payment Module', () => {
       expect(result.ok).toBe(true);
     });
 
-    it('accepts a real USDC receipt when the parsed token transfer satisfies the challenge', async () => {
+    it('accepts a real USDC receipt when the parsed token transfer pays a token account owned by the challenged payee', async () => {
       const mint = '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU';
       const verifier = new SolanaReceiptVerifier({
         allowRealPayment: true,
@@ -205,9 +205,44 @@ describe('x402 Payment Module', () => {
         connection: {
           async getParsedTransaction() {
             return {
-              meta: { err: null },
+              meta: {
+                err: null,
+                postTokenBalances: [{ accountIndex: 1, mint, owner: validAddress, uiTokenAmount: { uiAmountString: '1.03' } }],
+              },
               transaction: {
                 message: {
+                  accountKeys: [{ pubkey: { toString: () => 'source-token-account' } }, { pubkey: { toString: () => 'dest-token-account' } }],
+                  instructions: [
+                    {
+                      program: 'spl-token',
+                      parsed: { type: 'transferChecked', info: { mint, authority: otherValidAddress, destination: 'dest-token-account', tokenAmount: { uiAmountString: '0.03' } } },
+                    },
+                  ],
+                },
+              },
+            };
+          },
+        },
+      });
+      const result = await verifier.verifyReceipt({ network: 'solana-devnet', payTo: validAddress, amount: '0.03', currency: 'USDC', nonce: challenge.nonce, payer: otherValidAddress, signature: 'sig-usdc', destinationTokenAccount: 'dest-token-account' }, challenge);
+      expect(result.ok).toBe(true);
+    });
+
+    it('rejects a real USDC receipt when the transfer destination is not owned by the challenged payee', async () => {
+      const mint = '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU';
+      const verifier = new SolanaReceiptVerifier({
+        allowRealPayment: true,
+        usdcMint: mint,
+        connection: {
+          async getParsedTransaction() {
+            return {
+              meta: {
+                err: null,
+                postTokenBalances: [{ accountIndex: 1, mint, owner: otherValidAddress, uiTokenAmount: { uiAmountString: '1.03' } }],
+              },
+              transaction: {
+                message: {
+                  accountKeys: ['source-token-account', 'dest-token-account'],
                   instructions: [
                     {
                       program: 'spl-token',
@@ -220,8 +255,38 @@ describe('x402 Payment Module', () => {
           },
         },
       });
-      const result = await verifier.verifyReceipt({ network: 'solana-devnet', payTo: validAddress, amount: '0.03', currency: 'USDC', nonce: challenge.nonce, payer: otherValidAddress, signature: 'sig-usdc', destinationTokenAccount: 'dest-token-account' }, challenge);
-      expect(result.ok).toBe(true);
+      const result = await verifier.verifyReceipt({ network: 'solana-devnet', payTo: validAddress, amount: '0.03', currency: 'USDC', nonce: challenge.nonce, signature: 'sig-usdc' }, challenge);
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.reason).toBe('invalid_receipt');
+    });
+
+    it('rejects caller-supplied destinationTokenAccount unless it matches the on-chain instruction destination', async () => {
+      const mint = '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU';
+      const verifier = new SolanaReceiptVerifier({
+        allowRealPayment: true,
+        usdcMint: mint,
+        connection: {
+          async getParsedTransaction() {
+            return {
+              meta: { err: null, postTokenBalances: [{ accountIndex: 1, mint, owner: validAddress }] },
+              transaction: {
+                message: {
+                  accountKeys: ['source-token-account', 'actual-dest-token-account'],
+                  instructions: [
+                    {
+                      program: 'spl-token',
+                      parsed: { type: 'transferChecked', info: { mint, destination: 'actual-dest-token-account', tokenAmount: { uiAmountString: '0.03' } } },
+                    },
+                  ],
+                },
+              },
+            };
+          },
+        },
+      });
+      const result = await verifier.verifyReceipt({ network: 'solana-devnet', payTo: validAddress, amount: '0.03', currency: 'USDC', nonce: challenge.nonce, signature: 'sig-usdc', destinationTokenAccount: 'claimed-dest-token-account' }, challenge);
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.reason).toBe('invalid_receipt');
     });
   });
 

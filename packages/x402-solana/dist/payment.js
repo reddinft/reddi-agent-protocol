@@ -123,6 +123,8 @@ function normalizeReceipt(receipt) {
         signature: typeof record.signature === 'string' ? record.signature : undefined,
         txSignature: typeof record.txSignature === 'string' ? record.txSignature : undefined,
         payer: typeof record.payer === 'string' ? record.payer : undefined,
+        mint: typeof record.mint === 'string' ? record.mint : undefined,
+        destinationTokenAccount: typeof record.destinationTokenAccount === 'string' ? record.destinationTokenAccount : undefined,
         demo: record.demo === true,
     };
 }
@@ -246,17 +248,42 @@ function transactionHasTokenTransfer(parsed, receipt, challenge, expectedMint) {
         return false;
     const mint = expectedMint ?? receipt.mint;
     const expectedAmount = String(challenge.amount);
-    return parsed.transaction?.message?.instructions?.some((ix) => {
+    const instructions = parsed.transaction?.message?.instructions;
+    if (!Array.isArray(instructions))
+        return false;
+    return instructions.some((ix) => {
         const info = ix?.parsed?.info;
-        if (!['transfer', 'transferChecked'].includes(ix?.parsed?.type))
+        if (!info || !['transfer', 'transferChecked'].includes(ix?.parsed?.type))
             return false;
-        if (info?.mint && info.mint !== mint)
+        if (info.mint && info.mint !== mint)
             return false;
-        if (receipt.destinationTokenAccount && info?.destination !== receipt.destinationTokenAccount)
+        if (receipt.payer && info.authority && info.authority !== receipt.payer)
             return false;
-        const tokenAmount = info?.tokenAmount?.uiAmountString ?? info?.tokenAmount?.uiAmount ?? info?.amount;
-        return String(tokenAmount) === expectedAmount;
-    }) === true;
+        if (receipt.destinationTokenAccount && info.destination !== receipt.destinationTokenAccount)
+            return false;
+        const tokenAmount = info.tokenAmount?.uiAmountString ?? info.tokenAmount?.uiAmount ?? info.amount;
+        if (String(tokenAmount) !== expectedAmount)
+            return false;
+        const destination = typeof info.destination === 'string' ? info.destination : receipt.destinationTokenAccount;
+        if (!destination)
+            return false;
+        return transactionTokenAccountOwnedBy(parsed, destination, mint, challenge.payTo);
+    });
+}
+function transactionTokenAccountOwnedBy(parsed, tokenAccount, mint, owner) {
+    const accountKeys = parsed.transaction?.message?.accountKeys;
+    const postTokenBalances = parsed.meta?.postTokenBalances;
+    if (!Array.isArray(accountKeys) || !Array.isArray(postTokenBalances))
+        return false;
+    return postTokenBalances.some((balance) => {
+        if (balance?.owner !== owner)
+            return false;
+        if (mint && balance?.mint !== mint)
+            return false;
+        const key = accountKeys[balance?.accountIndex];
+        const pubkey = typeof key === 'string' ? key : key?.pubkey?.toString?.() ?? key?.toString?.();
+        return pubkey === tokenAccount;
+    });
 }
 /**
  * Send a payment via Solana SystemProgram.transfer.
