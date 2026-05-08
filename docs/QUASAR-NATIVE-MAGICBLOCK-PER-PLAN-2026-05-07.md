@@ -1,5 +1,7 @@
 # Quasar-native MagicBlock PER plan — 2026-05-07
 
+> **2026-05-08 supersession note:** This plan is historical. PR #274 later proved bounded MagicBlock PER AgentVault settlement for the Quasar-owned agent-vault route (`artifacts/quasar-per-agent-vault-settlement-smoke/20260508T031640Z/summary.json`). Use this file for design lineage only; current submission copy must say arbitrary-wallet/private payee settlement remains unclaimed, not that MagicBlock is authorization-only or TEE-blocked.
+
 ## Executive summary
 
 Nissan's constraint is correct: for the bounty, the final path should not fall back to Anchor-compiled Solana programs. The right plan is to port MagicBlock's PER lifecycle into the Quasar escrow program as low-level Solana CPI + client routing, using MagicBlock's docs and SDK byte layouts as compatibility fixtures.
@@ -209,11 +211,11 @@ Exit: successful Quasar-native PER settlement evidence pack.
 
 ### Phase 5 — bounty/judge presentation / current boundary (0.5 day)
 
-- Update homepage ecosystem proof map: MagicBlock = Quasar-native permission/delegation proof, not successful PER settlement.
+- Historical original target: update homepage ecosystem proof map for Quasar-native permission/delegation only. Superseded current target: homepage ecosystem proof map says bounded AgentVault settlement is proven, while arbitrary-wallet/private payee settlement is unclaimed.
 - Update judge packet and final operator checklist to cite `docs/MAGICBLOCK-QUASAR-TEE-REPRO-2026-05-07.md`.
 - Add one screenshot/video capture if available.
 
-Exit: bounty submission can honestly claim Quasar-native MagicBlock delegation and a reproducible TEE execution blocker; it cannot claim successful PER settlement unless a later loop fixes TEE execution and reruns settlement evidence.
+Historical exit criterion, superseded: bounty submission can now honestly claim bounded Quasar-owned AgentVault settlement through MagicBlock PER. It still cannot claim arbitrary-wallet/private payee settlement unless a later loop implements and validates that separate route.
 
 ## Risks / mitigations
 
