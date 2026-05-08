@@ -11,6 +11,7 @@
     "test:e2e:dogfood": "playwright test e2e/dogfood.spec.ts",
     "test:e2e:wallet": "playwright test e2e/wallet-mock.spec.ts",
     "test:e2e:marketplace-conversion": "playwright test e2e/marketplace-conversion.spec.ts",
+    "test:e2e:marketplace-recording": "playwright test e2e/marketplace-recording.spec.ts",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
     "demo:dogfood:capture": "./scripts/run-dogfood-demo-capture.sh",
@@ -72,6 +73,7 @@
     "evidence:rap-mcp-bridge:surfpool-plan": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON ./scripts/generate-rap-mcp-bridge-surfpool-proof.mjs",
     "smoke:rap-mcp-bridge:surfpool-local": "node ./scripts/run-rap-mcp-bridge-surfpool-local.mjs",
     "smoke:rap-mcp-bridge:devnet-proof": "node ./scripts/run-rap-mcp-bridge-devnet-proof.mjs",
+    "demo:marketplace:readiness": "node ./scripts/run-marketplace-demo-readiness.mjs",
     "evidence:torque:reputation-ranking": "node ./scripts/generate-torque-reputation-ranking-evidence.mjs",
     "smoke:umbra:devnet:receiver-claimable-utxo": "node ./scripts/run-umbra-devnet-receiver-claimable-utxo-smoke.mjs"
   },
