@@ -124,7 +124,7 @@ export const mcpBridgeDemoFixture: McpBridgeDemoFixture = {
           label: "Discover specialists",
           status: "pass",
           detail:
-            "RAP registry/planner can rank eligible specialists by capability, price, health, and trust signals.",
+            "The Reddi Agent Protocol registry/planner can rank eligible specialists by capability, price, health, and trust signals.",
         },
         {
           id: "quote",
@@ -235,7 +235,7 @@ export const mcpBridgeDemoFixture: McpBridgeDemoFixture = {
   },
   recordingScript: [
     "Agent swarms can orchestrate work, but paid specialist work needs pricing, policy, receipts, and disclosure.",
-    "The RAP MCP Bridge lets any MCP host discover candidates and request a quote before spend.",
+    "The MCP bridge lets any MCP host discover candidates and request a quote before spend.",
     "This first quote is synthetic and non-binding. The policy correctly blocks payment and invocation.",
     "Next, the same flow must be proven locally on Surfpool before a bounded devnet spend is allowed.",
     "The final artifact is not just content — it includes a disclosure ledger describing who was hired, what was paid, and what verification boundary applies.",
