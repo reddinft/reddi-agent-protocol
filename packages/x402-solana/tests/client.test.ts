@@ -87,7 +87,9 @@ describe('devnet USDC x402 payer client', () => {
     expect(result.ready).toBe(true);
     expect(result.payer).toBe(keypair.publicKey.toBase58());
     expect(result.spend.amountMicroUnits).toBe('50000');
-    expect(JSON.stringify(result)).not.toContain(String(keypair.secretKey[0]));
+    const serialized = JSON.stringify(result);
+    expect(serialized).not.toContain(JSON.stringify(Array.from(keypair.secretKey)));
+    expect(serialized).not.toContain(Buffer.from(keypair.secretKey).toString('base64'));
   });
 
   it('reports insufficient balances without submitting transfer', async () => {
