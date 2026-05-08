@@ -12,6 +12,7 @@ Use clean `main` at `f3000708` or later.
 - Latest submission prep: `artifacts/economic-demo-submission-prep/latest/SUBMISSION-PREP.md`
 - Umbra private-payment plan: `docs/UMBRA-PRIVACY-PAYMENTS-BOUNTY-FIT-2026-05-07.md`
 - Umbra private x402 adapter evidence: `artifacts/umbra-private-x402/20260507T074334Z/SUMMARY.md`
+- Umbra devnet encrypted-balance deposit evidence: `artifacts/umbra-devnet-smoke/20260507T075904Z/SUMMARY.json`
 
 ## Proven claims to use
 
@@ -19,7 +20,7 @@ Use clean `main` at `f3000708` or later.
 - `reddi-x402` is the key user package/payment surface.
 - Quasar devnet is the final demo-critical on-chain proof path.
 - Pay.sh / `reddi-x402` proves sandbox HTTP 402 → Pay.sh sandbox payment → HTTP 200 Solana receipt compatibility for the single-recipient charge flow.
-- Umbra private x402 adapter contract is implemented for receiver-claimable UTXO payments; current evidence proves SDK-facing call path and receipt shape only.
+- Umbra private x402 adapter contract is implemented for receiver-claimable UTXO payments; current evidence proves the SDK-facing call path, selective-disclosure receipt shape, and bounded devnet encrypted-balance deposit queue/callback. This is not mainnet/live-production private settlement.
 - Surfpool/mock-Jupiter proves a no-real-funds swap-shaped local invoke path.
 - Jupiter public evidence is quote/build/sign boundary evidence, not a successful devnet swap.
 - MagicBlock has live Quasar-native delegation/integration evidence plus bounded AgentVault settlement proof, not arbitrary-wallet/private payee settlement.
@@ -31,7 +32,7 @@ Use clean `main` at `f3000708` or later.
 - Pay.sh split-payment settlement completed.
 - Pay.sh evidence proves Umbra private settlement.
 - Pay.sh evidence proves MagicBlock PER settlement.
-- Umbra SDK devnet transaction flow is complete.
+- Umbra SDK receiver-claimable UTXO devnet transaction flow is complete.
 - Umbra private settlement executed.
 - Successful public Jupiter devnet swap.
 - Live/mainnet Jupiter swap.
@@ -60,7 +61,7 @@ Use clean `main` at `f3000708` or later.
 3. Open payment readiness and show Pay.sh / `reddi-x402` sandbox compatibility.
 4. Show local evidence paths / run report / submission prep.
 5. State Quasar devnet is the final on-chain path.
-6. State boundaries clearly: Umbra adapter contract implemented but live settlement not executed; Pay.sh sessions/splits probe-only; Jupiter not executed on devnet; MagicBlock bounded AgentVault settlement only; no arbitrary-wallet/private payee settlement.
+6. State boundaries clearly: Umbra adapter contract + bounded devnet encrypted-balance deposit are evidenced, but live/private production settlement is not executed; Pay.sh sessions/splits probe-only; Jupiter not executed on devnet; MagicBlock bounded AgentVault settlement only; no arbitrary-wallet/private payee settlement.
 
 ## Current recommendation
 
