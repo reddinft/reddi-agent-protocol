@@ -10,6 +10,7 @@ import {
 import {
   createAssociatedTokenAccountIdempotentInstruction,
   createTransferCheckedInstruction,
+  getAccount,
   getAssociatedTokenAddressSync,
 } from "@solana/spl-token";
 
@@ -189,6 +190,16 @@ async function payUsdcChallenge(input: {
   amount: number;
 }) {
   const sourceTokenAccount = getAssociatedTokenAddressSync(input.mint, input.signer.publicKey);
+  const requiredBaseUnits = usdcToBaseUnits(input.amount);
+  try {
+    const sourceAccount = await getAccount(input.connection, sourceTokenAccount, "confirmed");
+    if (sourceAccount.amount < requiredBaseUnits) {
+      throw new Error("insufficient_devnet_usdc");
+    }
+  } catch {
+    throw new Error(`orchestrator wallet lacks enough devnet USDC for challenge: required ${input.amount} USDC`);
+  }
+
   const destinationTokenAccount = getAssociatedTokenAddressSync(input.mint, input.payTo);
   const tx = new Transaction().add(
     createAssociatedTokenAccountIdempotentInstruction(
