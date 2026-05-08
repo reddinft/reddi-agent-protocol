@@ -6,6 +6,10 @@
 
 
 
+## Latest Update — Economic-demo PR D single-run proof flow underway (2026-05-08)
+
+Branch `feature/economic-demo-single-run-proof-flow` folds the hosted 402 challenge probe into the primary `Run demo` action. The judge now gets one main flow: prompt/quote → fresh unpaid hosted 402 probe → controlled live-run envelope → rendered output/evidence drawer. Probe failure is non-blocking for controlled evidence rendering and is shown as a warning; no payment retry/signing/transfer is attempted. Local validation passed: lint, Playwright economic-demo e2e, product naming, and claim-boundary checks.
+
 ## Latest Update — Economic-demo PR C hosted challenge probe underway (2026-05-08)
 
 Branch `feature/economic-demo-hosted-challenge-probe` adds a safe unpaid `POST /api/economic-demo/hosted-challenge-probe` lane. It probes exact allowlisted Coolify specialist endpoints for the webpage workflow (`planning-agent`, `content-creation-agent`, `code-generation-agent`, `verification-validation-agent`) and only observes fresh HTTP 402 x402 challenge headers. Guardrails: no `x402-payment` header, no payment retry, no signer material, no devnet/mainnet transfer, no settlement claim. Direct live probe verified all 4 endpoints returned `402` + `x402-request` on solana-devnet/USDC. Local validation passed: Jest hosted-probe unit test, lint, Playwright economic-demo e2e, product naming, and claim-boundary checks.

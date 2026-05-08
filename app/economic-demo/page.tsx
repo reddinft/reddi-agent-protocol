@@ -317,7 +317,31 @@ export default function EconomicDemoPage() {
 
   async function runControlledDemo() {
     setRunStarted(true);
+    setHostedChallengeProbeStatus("loading");
     setWebpageLiveEvidenceStatus("loading");
+    try {
+      const probeRes = await fetch(
+        "/api/economic-demo/hosted-challenge-probe",
+        {
+          method: "POST",
+        },
+      );
+      const probePayload = (await probeRes.json()) as {
+        ok?: boolean;
+        probe?: EconomicDemoHostedChallengeProbe;
+      };
+      if (probeRes.ok && probePayload.ok && probePayload.probe) {
+        setHostedChallengeProbe(probePayload.probe);
+        setHostedChallengeProbeStatus("loaded");
+      } else {
+        setHostedChallengeProbe(null);
+        setHostedChallengeProbeStatus("error");
+      }
+    } catch {
+      setHostedChallengeProbe(null);
+      setHostedChallengeProbeStatus("error");
+    }
+
     try {
       const res = await fetch("/api/economic-demo/live-run", {
         method: "POST",
@@ -716,8 +740,8 @@ export default function EconomicDemoPage() {
                     </p>
                     <p className="mt-2 text-sm leading-6 text-gray-200">
                       Prompt selected → quote boundary accepted → hosted x402
-                      evidence requested → returned output and evidence drawer
-                      shown below.
+                      challenge probes observed → returned output and evidence
+                      drawer shown below.
                     </p>
                     {controlledLiveRun && (
                       <div

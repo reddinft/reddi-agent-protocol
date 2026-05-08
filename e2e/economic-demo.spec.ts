@@ -80,13 +80,9 @@ test.describe("/economic-demo judge-facing story", () => {
     await expect(
       page.getByRole("link", { name: /open evidence archive/i }),
     ).toBeVisible();
-    await page.getByRole("button", { name: /probe hosted 402s/i }).click();
-    await expect(page.getByTestId("hosted-challenge-probe")).toContainText(
-      "Observed 4/4 allowlisted x402 challenges",
-    );
-    await expect(page.getByTestId("hosted-challenge-probe")).toContainText(
-      "no x402-payment header",
-    );
+    await expect(
+      page.getByRole("button", { name: /probe hosted 402s/i }),
+    ).toBeVisible();
     await expect(page.getByText("Prompt template").first()).toBeVisible();
 
     const quote = page.getByTestId("economic-upfront-quote");
@@ -117,6 +113,12 @@ test.describe("/economic-demo judge-facing story", () => {
     await page.getByRole("button", { name: /^run demo$/i }).click();
     await expect(page.getByTestId("live-run-status")).toContainText(
       "Controlled live-run timeline started",
+    );
+    await expect(page.getByTestId("hosted-challenge-probe")).toContainText(
+      "Observed 4/4 allowlisted x402 challenges",
+    );
+    await expect(page.getByTestId("hosted-challenge-probe")).toContainText(
+      "no x402-payment header",
     );
     await expect(
       page.getByTestId("controlled-live-run-envelope"),
