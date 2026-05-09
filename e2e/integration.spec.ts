@@ -3,7 +3,7 @@
  *
  * Requires:
  *   - Ollama running at localhost:11434 with at least one model
- *   - Local Solana validator running at localhost:8899
+ *   - Local Solana validator running at INTEGRATION_VALIDATOR_RPC_URL (default: http://localhost:8899)
  *
  * All 4 tests auto-skip if infrastructure is not available.
  */
@@ -40,10 +40,12 @@ async function checkOllama(): Promise<{ ok: boolean; model: string }> {
   }
 }
 
+const validatorRpcUrl = process.env.INTEGRATION_VALIDATOR_RPC_URL || 'http://localhost:8899'
+
 async function checkValidator(): Promise<boolean> {
   try {
     const { stdout } = await execCmd(
-      'curl -s -X POST http://localhost:8899 ' +
+      `curl -s -X POST ${JSON.stringify(validatorRpcUrl)} ` +
       '-H "Content-Type: application/json" ' +
       "-d '{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"getHealth\"}'"
     )
@@ -69,9 +71,11 @@ test.describe('Integration — real Ollama + local validator', () => {
     ollamaModel = ollama.model
 
     if (!infraAvailable) {
-      console.log(`⚠️  Integration tests skipped — Ollama: ${ollama.ok}, Validator: ${validatorOk}`)
+      console.log(
+        `⚠️  Integration tests skipped — Ollama: ${ollama.ok}, Validator: ${validatorOk}, Validator RPC: ${validatorRpcUrl}`
+      )
     } else {
-      console.log(`✅ Infra ready — Ollama model: ${ollamaModel}, validator: ok`)
+      console.log(`✅ Infra ready — Ollama model: ${ollamaModel}, validator: ok, validator RPC: ${validatorRpcUrl}`)
     }
   })
 

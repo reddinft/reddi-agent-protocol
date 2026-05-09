@@ -4,11 +4,31 @@
 
 Onboarding/judge UX is locally shippable and validated. Public proof path now has a stable in-product `/judge-replication` route (temporary `here.now` guide links removed from source CTAs). `/start` has overview + 3 proof videos; homepage shows 3 proof videos; contextual proof videos are embedded on setup/agents/register/economic-demo; `/register` is readable before wallet connect; `/economic-demo` defaults to safe recorded-proof verification with fresh devnet actions under an advanced warning.
 
-Latest validation: third 10-loop review/PR-readiness pass completed after Nissan approved PR operations and bounded devnet spend. Additional loops 21–30 PASS: branch packaging review, origin/main freshness, product naming, submission claim boundaries, submission prep check, overclaim scan, BDD index/status 15/15, changed UI Playwright, targeted Jest, bounded devnet/safety smoke including Quasar PER devnet, integration lane, and PR creation/review. Evidence logs: `artifacts/validation-loops-20260509-third-pass/`.
+Latest validation: fourth progress/validation pass completed after PR #301/#302. Loops 31–40 found and patched one real improvement: legacy `e2e/integration.spec.ts` / `scripts/run-integration-lane.sh` now support configurable `INTEGRATION_VALIDATOR_RPC_URL` and report the exact validator RPC/status. Validation PASS: default integration lane, override integration lane, product naming, submission claim boundaries, BDD index/status 15/15, targeted Playwright, targeted Jest, `git diff --check`. Evidence logs: `artifacts/validation-loops-20260509-fourth-pass/`.
 
 Agent validation: Belle P0/P1 resolved (mobile overflow fixed, start copy clarified, agents CTA accessibility cleaned). Oli P0/P1 resolved for stale tests and submission-prep gate; no fresh devnet signing/spend required in the final 10-loop retry. Surfpool/mock-Jupiter artifact exists locally; submission prep now includes Surfpool rehearsal, A→B→C critical, and Quasar critical evidence paths. Public Jupiter devnet execution remains a boundary, not a claim.
 
-Next: PR #301 (`test: harden BDD e2e validation evidence`) was opened, locally reviewed, passed GitHub/Vercel checks, and merged to `main` at `ac1eb528`. Nissan has approved PR operations and bounded devnet spend when needed. If Playwright `e2e/integration.spec.ts` should be counted as active rather than skipped in the ordinary suite, wire its validator preflight to the isolated Surfpool launcher; current full suite, targeted Playwright, build, dedicated Surfpool lanes, and bounded devnet smoke are green.
+Next: Open/review/merge the small integration-RPC configurability PR if GitHub/Vercel checks pass. Nissan has approved PR operations and bounded devnet spend when needed. The ordinary integration lane can now point at an explicit validator RPC; full Surfpool orchestration remains covered by the dedicated Surfpool scripts.
+
+## Latest Update — Fourth 10-loop progress pass (2026-05-09 23:58 AEST)
+
+Nissan asked for up to 10 more similar loops and to approve/merge PRs once confirmed working. Completed loops 31–40, with retrospectives logged at `artifacts/validation-loops-20260509-fourth-pass/README.md`.
+
+Loop outcomes:
+- Loop 31 confirmed post-merge baseline: clean `main`, no open PRs.
+- Loop 32 inspected the remaining integration skip gap: `e2e/integration.spec.ts` was hard-coded to `localhost:8899`.
+- Loop 33 inspected Surfpool wrapper ports and chose a focused patch instead of churn.
+- Loop 34 patched `INTEGRATION_VALIDATOR_RPC_URL` support into the integration spec and runner summary.
+- Loop 35 ran the default integration lane: PASS/exit 0.
+- Loop 36 ran the integration lane with `INTEGRATION_VALIDATOR_RPC_URL=http://127.0.0.1:18999`: PASS/exit 0 and summary reported the override.
+- Loop 37 reran product naming, submission claim boundaries, BDD index, and BDD status: PASS.
+- Loop 38 ran targeted Playwright (`integration`, `economic-demo`, `judge-replication-onboarding`): PASS.
+- Loop 39 ran targeted Jest and diff hygiene: PASS.
+- Loop 40 updates status/memory, opens a PR, waits for checks, and merges if green.
+
+Retrospective: this pass made concrete progress on the known validator-preflight limitation without overclaiming full automatic Surfpool orchestration. The ordinary integration lane is now configurable and more honest; dedicated Surfpool scripts remain the runtime proof path.
+
+RESUME FROM HERE: Review/merge the integration-RPC configurability PR once checks are green.
 
 ## Latest Update — Third 10-loop PR/readiness pass (2026-05-09 23:45 AEST)
 
