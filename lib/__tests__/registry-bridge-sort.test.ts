@@ -8,13 +8,19 @@ jest.mock("@solana/web3.js", () => ({
   Connection: jest.fn().mockImplementation(() => ({
     getProgramAccounts: mockGetProgramAccounts,
   })),
+  PublicKey: jest.fn().mockImplementation((value: string) => ({
+    toBase58: () => value,
+    toString: () => value,
+    toBuffer: () => Buffer.from(value),
+  })),
 }));
 
 jest.mock("@/lib/program", () => ({
   DEVNET_RPC: "http://localhost:8899",
-  ESCROW_PROGRAM_ID: { toBase58: () => "program" },
-  ACCOUNT_DISC: { AgentAccount: Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]) },
-  decodeAgentAccount: (buf: Buffer) => mockDecodeAgentAccount(buf),
+  REGISTRY_PROGRAM_ID: { toBase58: () => "program" },
+  ACTIVE_AGENT_ACCOUNT_DISC: Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]),
+  ACTIVE_AGENT_ACCOUNT_DATA_SIZE: 153,
+  decodeActiveAgentAccount: (buf: Buffer) => mockDecodeAgentAccount(buf),
 }));
 
 describe("registry bridge default sort", () => {

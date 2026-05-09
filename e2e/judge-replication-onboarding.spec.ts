@@ -44,7 +44,9 @@ test.describe("judge replication onboarding", () => {
       await expect(page.getByText(title).first()).toBeVisible();
     }
 
-    await page.getByRole("link", { name: /Open replication guide|Open verification guide/i }).first().click();
+    const guideLink = page.getByRole("link", { name: /Open replication guide|Open verification guide/i }).filter({ hasNotText: /txs/i }).first();
+    await expect(guideLink).toHaveAttribute("href", "/judge-replication");
+    await guideLink.click();
     await expect(page).toHaveURL(/\/judge-replication$/);
     await expect(page.getByRole("heading", { name: /Verify the Reddi Agent Protocol proof path/i })).toBeVisible();
   });

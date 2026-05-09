@@ -33,13 +33,13 @@ test.describe('/planner page', () => {
 
   test('execute button is present', async ({ page }) => {
     await page.goto('/planner')
-    const btn = page.getByRole('button', { name: /find specialists|execute call|run specialist call/i }).first()
+    const btn = page.getByRole('button', { name: /discover specialists|find specialists|execute call|run specialist call/i }).first()
     await expect(btn).toBeVisible()
   })
 
   test('execute button disabled when prompt is empty', async ({ page }) => {
     await page.goto('/planner')
-    const btn = page.getByRole('button', { name: /find specialists|execute call|run specialist call/i }).first()
+    const btn = page.getByRole('button', { name: /discover specialists|find specialists|execute call|run specialist call/i }).first()
     // Should be disabled or wallet-gated when no prompt
     const isDisabled = await btn.isDisabled()
     const hasWalletGate = await page.locator('text=/connect wallet/i').isVisible().catch(() => false)

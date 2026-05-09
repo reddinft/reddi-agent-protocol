@@ -17,8 +17,9 @@ test.describe('Navigation', () => {
       '/testers',
     ]
     for (const route of routes) {
-      const response = await page.goto(route)
+      const response = await page.goto(route, { waitUntil: 'domcontentloaded', timeout: 15000 })
       expect(response?.status(), `${route} should return 200`).toBe(200)
+      await expect(page.locator('body'), `${route} should render body`).toBeVisible()
     }
   })
 

@@ -28,6 +28,8 @@ function required(path, label) {
 const evidence = {
   playwright: process.env.ECONOMIC_DEMO_PLAYWRIGHT_EVIDENCE || "artifacts/playwright-economic-demo",
   surfpool: required(latestArtifact("artifacts/economic-demo-surfpool-rehearsal", "summary.json"), "surfpool_summary"),
+  surfpoolCritical: required(latestArtifact("artifacts/surfpool-smoke", "SUMMARY.md"), "surfpool_critical_summary"),
+  surfpoolQuasarCritical: required(latestArtifact("artifacts/surfpool-quasar-smoke", "SUMMARY.md"), "surfpool_quasar_critical_summary"),
   jupiterQuote: required(latestArtifact("artifacts/economic-demo-jupiter-quote-proof", "quote-proof.json"), "jupiter_quote_proof"),
   surfpoolJupiterInvoke: required(latestArtifact("artifacts/surfpool-jupiter-invoke", "SUMMARY.md"), "surfpool_jupiter_invoke"),
   upfrontPack: required(latestArtifact("artifacts/economic-demo-upfront-payment-evidence", "upfront-payment-evidence.json"), "upfront_payment_pack"),
@@ -70,6 +72,8 @@ Scope: safe local/demo prep only. Generated: ${new Date().toISOString()}.
 - App build: \`NEXT_PUBLIC_DEMO_PROGRAM_TARGET=quasar npm run build\`
 - Upfront evidence pack: \`npm run evidence:economic-demo:upfront-payment\`
 - Surfpool/mock-Jupiter invoke proof: \`npm run test:surfpool:jupiter-invoke\`
+- Surfpool A→B→C critical lane: \`npm run test:surfpool:critical\`
+- Surfpool Quasar critical lane: \`npm run test:surfpool:quasar-critical\`
 - Jupiter quote proof: \`npm run smoke:economic-demo:jupiter-quote\`
 - Live payment gate: \`npm run check:economic-demo:live-payment-gate\` (blocked by default, safe)
 - Devnet USDC receipt verifier: \`npm run verify:economic-demo:devnet-usdc-receipt\` (blocked by default, safe)
@@ -83,6 +87,8 @@ Scope: safe local/demo prep only. Generated: ${new Date().toISOString()}.
 
 - Playwright evidence directory: \`${evidence.playwright}\`
 - Surfpool/local payment semantics: \`${evidence.surfpool}\`
+- Surfpool A→B→C critical lane: \`${evidence.surfpoolCritical}\`
+- Surfpool Quasar critical lane: \`${evidence.surfpoolQuasarCritical}\`
 - Surfpool/mock-Jupiter successful no-real-funds invoke proof: \`${evidence.surfpoolJupiterInvoke}\`
 - Live Jupiter quote-only proof: \`${evidence.jupiterQuote}\`
 - Upfront payment evidence pack: \`${evidence.upfrontPack}\`
@@ -102,8 +108,8 @@ Scope: safe local/demo prep only. Generated: ${new Date().toISOString()}.
 1. Open \`/economic-demo\` and state the end-user asks an orchestrator to buy downstream agent work.
 2. Show the upfront quote, user payment edge, downstream specialist/attestor fees, and retained markup.
 3. Show communication graph and payment graph together: user → orchestrator → specialists/attestors → final output.
-4. Show evidence hierarchy: deterministic UI, Surfpool local payment semantics, Surfpool/mock-Jupiter successful no-real-funds invoke proof, public Jupiter quote/build/sign boundary, devnet USDC receipt verifier, live payment gate/sender plan.
-5. Close with the hard boundary: Surfpool/mock-Jupiter is local proof, Pay.sh / reddi-x402 is sandbox charge compatibility, Umbra private x402 now has adapter-contract evidence plus a bounded devnet wSOL-to-encrypted-balance smoke, public Jupiter quote/build/sign is not successful devnet execution, blocked verifier/gate artifacts are safety evidence, and any further live signing/spend requires explicit approval.
+4. Show evidence hierarchy: deterministic UI, Surfpool local payment semantics, Surfpool A→B→C + Quasar critical lanes, Surfpool/mock-Jupiter successful no-real-funds invoke proof, public Jupiter quote/build/sign boundary, devnet USDC receipt verifier, live payment gate/sender plan.
+5. Close with the hard boundary: Surfpool lanes are local validator proof, Pay.sh / reddi-x402 is sandbox charge compatibility, Umbra private x402 now has adapter-contract evidence plus a bounded devnet wSOL-to-encrypted-balance smoke, public Jupiter quote/build/sign is not successful devnet execution, blocked verifier/gate artifacts are safety evidence, and any further live signing/spend requires explicit approval.
 
 ## Hard no-go list unless Nissan explicitly approves
 
@@ -123,6 +129,8 @@ Safe to say:
 
 - The UI demonstrates upfront-funded consumer-agent orchestration.
 - Surfpool/local evidence proves payment ordering, budget reconciliation, and blocked-edge zero-delta behavior.
+- Surfpool A→B→C critical lane proves local public settlement plus PER-unavailable fallback safety.
+- Surfpool Quasar critical lane proves local Quasar public settlement plus private-request boundary behavior.
 - Surfpool/mock-Jupiter proof shows a successful no-real-funds swap-shaped invoke path.
 - Public Jupiter quote proof proves live route availability only; public Jupiter devnet execution is not claimed.
 - Devnet USDC receipt verification is ready and fail-closed, but default artifacts are blocked until a real signature is supplied.

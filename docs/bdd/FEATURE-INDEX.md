@@ -1,6 +1,6 @@
 # BDD Feature Index
 
-_Last updated: 2026-05-04 AEST_
+_Last updated: 2026-05-09 AEST_
 
 Purpose: single lookup from BDD feature file -> bucket -> executable verification command(s).
 
@@ -60,22 +60,29 @@ Purpose: single lookup from BDD feature file -> bucket -> executable verificatio
 - Verify:
   - `npx jest lib/__tests__/manager-readiness-route.test.ts lib/__tests__/manager-evidence-pack.test.ts lib/__tests__/manager-evidence-route.test.ts --runInBand`
   - `npm run test:bdd:index`
-  - E2E target: manager launchpad Playwright smoke once added to representative sweep
+  - Included in representative sweep: `npm run test:bdd:sweep`
 
 
 ### Bucket J — End-User Economic Demo
 - Feature: `docs/bdd/features/bucket-j-end-user-economic-demo.feature`
 - Verify:
   - `npm run lint -- app/economic-demo/page.tsx lib/economic-demo/fixture.ts lib/economic-demo/image-adapter.ts app/api/economic-demo/image/route.ts`
+  - `npx jest lib/__tests__/economic-demo-dry-run.test.ts lib/__tests__/economic-demo-balances.test.ts lib/__tests__/economic-demo-payment-readiness.test.ts lib/__tests__/economic-demo-hosted-challenge-probe.test.ts lib/__tests__/economic-demo-live-run.test.ts lib/__tests__/economic-demo-live-paid-devnet-run.test.ts lib/__tests__/economic-demo-ledger-reconciliation.test.ts lib/__tests__/economic-demo-surfpool-rehearsal.test.ts lib/__tests__/economic-demo-webpage-live-workflow-evidence.test.ts --runInBand`
+  - `npx playwright test e2e/economic-demo.spec.ts e2e/judge-replication-onboarding.spec.ts`
+  - `npm run smoke:economic-demo:surfpool`
+  - `npm run check:economic-demo:submission-prep`
+  - `npm run generate:economic-demo:submission-prep`
   - `npm run build`
-  - Future targeted route tests for dry-run graph, image disabled gate, balance snapshots, Surfpool local transfer rehearsal, and first-live-edge guardrails
+  - Devnet cycle, when fresh devnet validation is explicitly approved: `npm run run:economic-demo:devnet-signed-action`, `npm run smoke:economic-demo:jupiter-quote`, `npm run check:economic-demo:live-payment-gate`, `npm run verify:economic-demo:devnet-usdc-receipt`, `npm run plan:economic-demo:devnet-usdc-sender`, `node scripts/judge-replication-check.mjs`
 
 ### Bucket M — Quasar-native MagicBlock PER Escrow
 - Feature: `docs/bdd/features/bucket-m-magicblock-per.feature`
 - Verify:
   - `npm run test:bdd:index`
-  - `cargo test --manifest-path experiments/quasar-escrow-per/Cargo.toml` once Phase 1 scaffolds the PER crate
-  - Future PER guards: discriminator-length check, MagicBlock CPI fixture parity, bounded devnet evidence pack
+  - `npx jest lib/__tests__/quasar-demo-program-config.test.ts lib/__tests__/quasar-demo-agent-guard.test.ts lib/__tests__/quasar-agent-account-decoder.test.ts lib/__tests__/quasar-instructions.test.ts --runInBand`
+  - `cargo test --manifest-path experiments/quasar-escrow-per/Cargo.toml`
+  - `npm run test:surfpool:quasar-critical`
+  - Devnet cycle, when fresh devnet validation is explicitly approved: `npm run smoke:quasar:per-devnet`
 
 ## Drift guard
 - Validate index coverage against feature files:

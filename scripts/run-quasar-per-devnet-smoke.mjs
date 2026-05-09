@@ -18,7 +18,7 @@ const AMOUNT_LAMPORTS = BigInt(process.env.QUASAR_PER_SMOKE_LAMPORTS || "1000000
 const OUT_DIR = process.env.OUT_DIR || path.join("artifacts", "quasar-per-devnet-smoke", new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z"));
 
 const QPERLOCK = Buffer.from([81, 80, 69, 82, 76, 79, 67, 75]);
-const UNDELEGATE_CALLBACK = Buffer.from([196, 28, 41, 206, 48, 37, 51, 167]);
+const QPERTAKE = Buffer.from([81, 80, 69, 82, 84, 65, 75, 69]);
 
 function u64le(value) {
   const out = Buffer.alloc(8);
@@ -61,20 +61,34 @@ const lockIx = {
   data: lockData,
 };
 
-const callbackIx = {
+const releaseIx = {
   programId: PROGRAM_ID,
-  keys: [{ pubkey: escrow, isSigner: false, isWritable: true }],
-  data: UNDELEGATE_CALLBACK,
+  keys: [
+    { pubkey: payer.publicKey, isSigner: true, isWritable: true },
+    { pubkey: payee, isSigner: false, isWritable: true },
+    { pubkey: escrow, isSigner: false, isWritable: true },
+  ],
+  data: Buffer.concat([QPERTAKE, escrowIdBytes]),
 };
 
 const before = await connection.getBalance(payer.publicKey, "confirmed");
+const fundPayeeSig = await sendAndConfirmTransaction(
+  connection,
+  new Transaction().add(SystemProgram.transfer({
+    fromPubkey: payer.publicKey,
+    toPubkey: payee,
+    lamports: 1_000_000,
+  })),
+  [payer],
+  { commitment: "confirmed" },
+);
 const lockTx = new Transaction().add(lockIx);
 const lockSig = await sendAndConfirmTransaction(connection, lockTx, [payer], { commitment: "confirmed" });
 const escrowAccountAfterLock = await connection.getAccountInfo(escrow, "confirmed");
 
-const callbackTx = new Transaction().add(callbackIx);
-const callbackSig = await sendAndConfirmTransaction(connection, callbackTx, [payer], { commitment: "confirmed" });
-const escrowAccountAfterCallback = await connection.getAccountInfo(escrow, "confirmed");
+const releaseTx = new Transaction().add(releaseIx);
+const releaseSig = await sendAndConfirmTransaction(connection, releaseTx, [payer], { commitment: "confirmed" });
+const escrowAccountAfterRelease = await connection.getAccountInfo(escrow, "confirmed");
 const after = await connection.getBalance(payer.publicKey, "confirmed");
 
 const summary = {
@@ -89,17 +103,18 @@ const summary = {
   amountLamports: AMOUNT_LAMPORTS.toString(),
   payerBalanceBefore: before,
   payerBalanceAfter: after,
+  fundPayeeSig,
   lockSig,
-  callbackSig,
+  releaseSig,
   escrowAccountAfterLock: escrowAccountAfterLock && {
     owner: escrowAccountAfterLock.owner.toBase58(),
     lamports: escrowAccountAfterLock.lamports,
     dataLength: escrowAccountAfterLock.data.length,
   },
-  escrowAccountAfterCallback: escrowAccountAfterCallback && {
-    owner: escrowAccountAfterCallback.owner.toBase58(),
-    lamports: escrowAccountAfterCallback.lamports,
-    dataLength: escrowAccountAfterCallback.data.length,
+  escrowAccountAfterRelease: escrowAccountAfterRelease && {
+    owner: escrowAccountAfterRelease.owner.toBase58(),
+    lamports: escrowAccountAfterRelease.lamports,
+    dataLength: escrowAccountAfterRelease.data.length,
   },
 };
 writeJson("summary.json", summary);

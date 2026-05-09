@@ -4,6 +4,12 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT_DIR"
 
+# OpenClaw/non-login shells do not always include rustup's cargo shim.
+# Keep the BDD sweep self-contained so Bucket M does not depend on caller PATH shape.
+if [ -x "$HOME/.cargo/bin/cargo" ]; then
+  export PATH="$HOME/.cargo/bin:$PATH"
+fi
+
 TS="$(date +%Y%m%d-%H%M%S)"
 OUT_DIR="$ROOT_DIR/artifacts/bdd-sweep/$TS"
 LOG_FILE="$OUT_DIR/bdd-sweep.log"
@@ -59,6 +65,27 @@ run_step "Bucket G (torque retention contracts)" \
 
 run_step "Bucket H (consumer orchestrator lifecycle contracts)" \
   npx jest lib/__tests__/planner-register-consumer-route.test.ts lib/__tests__/planner-tools-manifest-route.test.ts lib/__tests__/planner-resolve-attestor-route.test.ts lib/__tests__/planner-release-route.test.ts lib/__tests__/planner-auditability.test.ts --runInBand
+
+run_step "Bucket I (agent manager operations)" \
+  npx jest lib/__tests__/manager-readiness-route.test.ts lib/__tests__/manager-evidence-pack.test.ts lib/__tests__/manager-evidence-route.test.ts --runInBand
+
+run_step "Bucket J (end-user economic demo contracts)" \
+  npx jest lib/__tests__/economic-demo-dry-run.test.ts lib/__tests__/economic-demo-balances.test.ts lib/__tests__/economic-demo-payment-readiness.test.ts lib/__tests__/economic-demo-hosted-challenge-probe.test.ts lib/__tests__/economic-demo-live-run.test.ts lib/__tests__/economic-demo-live-paid-devnet-run.test.ts lib/__tests__/economic-demo-ledger-reconciliation.test.ts lib/__tests__/economic-demo-surfpool-rehearsal.test.ts lib/__tests__/economic-demo-webpage-live-workflow-evidence.test.ts --runInBand
+
+run_step "Bucket J e2e (economic demo + judge replication UX)" \
+  npx playwright test e2e/economic-demo.spec.ts e2e/judge-replication-onboarding.spec.ts
+
+run_step "Bucket S (source adapter conformance contracts)" \
+  npx jest lib/__tests__/source-adapter-schema.test.ts lib/__tests__/register-probe-route.test.ts lib/__tests__/source-adapter-openclaw-profile.test.ts lib/__tests__/source-adapter-openclaw-connector.test.ts lib/__tests__/source-adapter-hermes-profile.test.ts lib/__tests__/source-adapter-hermes-attestor.test.ts lib/__tests__/source-adapter-pi-profile.test.ts lib/__tests__/source-adapter-pi-extension-bundle.test.ts lib/__tests__/source-adapter-routing-policy.test.ts lib/__tests__/planner-resolve-route.test.ts --runInBand
+
+run_step "Bucket S source conformance matrix" \
+  npm run test:source:matrix
+
+run_step "Bucket M (Quasar/PER readiness contracts)" \
+  npx jest lib/__tests__/quasar-demo-program-config.test.ts lib/__tests__/quasar-demo-agent-guard.test.ts lib/__tests__/quasar-agent-account-decoder.test.ts lib/__tests__/quasar-instructions.test.ts --runInBand
+
+run_step "Bucket M cargo PER smoke" \
+  cargo test --manifest-path experiments/quasar-escrow-per/Cargo.toml
 
 PASS_COUNT=$(awk -F'\t' 'BEGIN{c=0} $1=="PASS"{c++} END{print c}' "$STEPS_FILE" 2>/dev/null || printf '0')
 FAIL_COUNT=$(awk -F'\t' 'BEGIN{c=0} $1=="FAIL"{c++} END{print c}' "$STEPS_FILE" 2>/dev/null || printf '0')
