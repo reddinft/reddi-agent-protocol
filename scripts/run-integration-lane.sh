@@ -39,9 +39,11 @@ PY
   fi
 }
 
+VALIDATOR_RPC_URL="${INTEGRATION_VALIDATOR_RPC_URL:-http://localhost:8899}"
+
 probe_validator() {
   local health
-  health="$(curl -s --max-time 4 -X POST http://localhost:8899 \
+  health="$(curl -s --max-time 4 -X POST "$VALIDATOR_RPC_URL" \
     -H 'Content-Type: application/json' \
     -d '{"jsonrpc":"2.0","id":1,"method":"getHealth"}' || true)"
 
@@ -122,7 +124,8 @@ cat > "$OUT_DIR/SUMMARY.md" <<EOF
 - Ollama model (effective summary): ${FINAL_MODEL}
 - Model source: ${MODEL_SOURCE_NOTE}
 - Model probe/selection mismatch: ${MODEL_MISMATCH}
-- Local validator (8899): ${VALIDATOR_STATUS}
+- Local validator RPC: ${VALIDATOR_RPC_URL}
+- Local validator status: ${VALIDATOR_STATUS}
 - Playwright infra hint: ${INFRA_HINT:-n/a}
 
 ## Surfpool Runtime Evidence Snapshot
@@ -137,7 +140,7 @@ cat > "$OUT_DIR/SUMMARY.md" <<EOF
   - ${OUT_DIR}/report.json
 
 ## Interpretation
-- This Playwright lane is a legacy live-infra probe for Ollama + a validator on localhost:8899.
+- This Playwright lane is a legacy live-infra probe for Ollama + a validator at the configured RPC URL.
 - If all tests are skipped, those exact prerequisites were unavailable or not ready.
 - Dedicated Surfpool runtime evidence is tracked separately above because the active local-validator proof path uses isolated Surfpool ports instead of localhost:8899.
 - If tests pass, this lane provides additional runtime-backed evidence beyond route/unit contracts.
