@@ -2,10 +2,28 @@ import { test, expect, type Page } from '@playwright/test'
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
+async function checked(page: Page, label: RegExp) {
+  const input = page.getByLabel(label)
+  await expect(input).toBeVisible({ timeout: 10000 })
+  if (!(await input.isChecked())) {
+    await input.check({ force: true }).catch(async () => {
+      await input.evaluate((node) => {
+        const checkbox = node as HTMLInputElement
+        checkbox.checked = true
+        checkbox.dispatchEvent(new Event('input', { bubbles: true }))
+        checkbox.dispatchEvent(new Event('change', { bubbles: true }))
+      })
+    })
+  }
+  await expect(input).toBeChecked({ timeout: 10000 })
+}
+
 async function completeStep1(page: Page) {
-  await page.getByLabel(/I consent to exposing my local runtime API/i).check()
-  await page.getByLabel(/I consent to protocol-funded onboarding transactions/i).check()
-  await page.getByRole('button', { name: 'Next', exact: true }).click()
+  await checked(page, /I consent to exposing my local runtime API/i)
+  await checked(page, /I consent to protocol-funded onboarding transactions/i)
+  const next = page.getByRole('button', { name: 'Next', exact: true })
+  await expect(next).toBeEnabled({ timeout: 10000 })
+  await next.click()
 }
 
 // ─── Suite ───────────────────────────────────────────────────────────────────

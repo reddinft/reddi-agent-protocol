@@ -80,14 +80,17 @@ test.describe("/economic-demo judge-facing story", () => {
     ).toContainText("402 → 0.03 USDC → HTTP 200");
 
     await expect(
+      page.getByRole("link", { name: /verify recorded proof/i }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: /open replication guide/i }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("Advanced: run fresh devnet actions"),
+    ).toBeVisible();
+    await expect(
       page.getByRole("button", { name: /^run controlled demo$/i }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("link", { name: /open evidence archive/i }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("button", { name: /probe hosted 402s/i }),
-    ).toBeVisible();
+    ).toHaveCount(0);
     await expect(page.getByText("Prompt template").first()).toBeVisible();
 
     const quote = page.getByTestId("economic-upfront-quote");
@@ -115,6 +118,14 @@ test.describe("/economic-demo judge-facing story", () => {
     await expect(
       page.getByRole("button", { name: /build dry-run economic graph/i }),
     ).not.toBeVisible();
+
+    await page.getByText("Advanced: run fresh devnet actions").click();
+    await expect(
+      page.getByRole("button", { name: /^run controlled demo$/i }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /probe hosted 402s/i }),
+    ).toBeVisible();
 
     await page.getByRole("button", { name: /^run controlled demo$/i }).click();
     await expect(page.getByTestId("live-run-status")).toContainText(

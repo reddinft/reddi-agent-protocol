@@ -127,7 +127,7 @@ test.describe("marketplace demo recording journey", () => {
     await expect(
       page.getByRole("heading", { name: /watch an agent hire specialists/i }),
     ).toBeVisible();
-    await expect(page.getByText(/money \+ work graph/i)).toBeVisible();
+    await expect(page.getByText(/payload \+ money graph|money \+ work graph/i).first()).toBeVisible();
     await expect(page.getByText(/boundary:/i).first()).toBeVisible();
     await recordingBeat(page);
   });

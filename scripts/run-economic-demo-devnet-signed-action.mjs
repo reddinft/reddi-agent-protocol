@@ -44,6 +44,13 @@ async function maybeConfirmAirdrop(connection, publicKey, sol) {
   }
 }
 
+async function maybeFundRentFloor(connection, publicKey, rentFloorLamports) {
+  const balance = await connection.getBalance(publicKey);
+  if (balance >= rentFloorLamports) return "already_rent_ready";
+  const topUpSol = Math.max(0.01, (rentFloorLamports - balance + 100_000) / LAMPORTS_PER_SOL);
+  return maybeConfirmAirdrop(connection, publicKey, topUpSol);
+}
+
 async function transfer(connection, from, to, lamports, category, memo) {
   const tx = new Transaction().add(SystemProgram.transfer({ fromPubkey: from.publicKey, toPubkey: to.publicKey, lamports }));
   const signature = await sendAndConfirmTransaction(connection, tx, [from], { commitment: "confirmed" });
@@ -76,9 +83,22 @@ const participants = {
 
 const participantEntries = Object.entries(participants);
 const before = Object.fromEntries(await Promise.all(participantEntries.map(async ([id, kp]) => [id, await connection.getBalance(kp.publicKey)])));
+const rentFloorLamports = await connection.getMinimumBalanceForRentExemption(0);
 const airdrops = usingExistingDevnetKeys
   ? { skipped: "using_existing_funded_devnet_demo_agent_keypairs" }
   : { user: await maybeConfirmAirdrop(connection, participants.user.publicKey, 0.1), orchestrator: await maybeConfirmAirdrop(connection, participants.orchestrator.publicKey, 0.05) };
+
+// Devnet system transfers into brand-new accounts must leave recipients rent-ready.
+// The protocol-fee rehearsal intentionally sends tiny fee amounts, so pre-fund
+// recipient shells rather than overstating the fee transfer size.
+airdrops.recipientRentFloors = Object.fromEntries(
+  await Promise.all(
+    ["copy", "code", "attestor", "protocolTreasury"].map(async (id) => [
+      id,
+      await maybeFundRentFloor(connection, participants[id].publicKey, rentFloorLamports),
+    ]),
+  ),
+);
 
 const afterAirdrop = Object.fromEntries(await Promise.all(participantEntries.map(async ([id, kp]) => [id, await connection.getBalance(kp.publicKey)])));
 if (afterAirdrop.user < 30_000_000) throw new Error(`insufficient_user_devnet_balance:${afterAirdrop.user}`);
@@ -96,6 +116,21 @@ function protocolFeeLamportsFor(amountLamports) {
 
 const executedTransactions = [];
 executedTransactions.push(await transfer(connection, participants.user, participants.orchestrator, swapInputLamports, "jupiter_sol_to_usdc_budget", "User signs SOL payment; Jupiter swap lane converts it into orchestrator USDC-equivalent budget"));
+
+for (const id of ["copy", "code", "attestor", "protocolTreasury"]) {
+  const balance = await connection.getBalance(participants[id].publicKey);
+  if (balance < rentFloorLamports) {
+    executedTransactions.push(await transfer(
+      connection,
+      participants.orchestrator,
+      participants[id],
+      rentFloorLamports - balance + 100_000,
+      "devnet_account_initialization",
+      `Devnet-only rent-floor initialization for ${id} demo recipient shell; not counted as protocol revenue`,
+    ));
+  }
+}
+
 executedTransactions.push(await transfer(connection, participants.orchestrator, participants.copy, downstreamCopyLamports, "downstream_agent_payment", "Converted budget pays copy specialist"));
 executedTransactions.push(await transfer(connection, participants.orchestrator, participants.protocolTreasury, protocolFeeLamportsFor(downstreamCopyLamports), "protocol_rail_fee", "Reddi Agent Protocol fee: 0.05% of copy specialist rail payment"));
 executedTransactions.push(await transfer(connection, participants.orchestrator, participants.code, downstreamCodeLamports, "downstream_agent_payment", "Converted budget pays code specialist"));

@@ -63,6 +63,21 @@ OLLAMA_STATUS="${OLLAMA_PROBE%%|*}"
 OLLAMA_MODEL="${OLLAMA_PROBE#*|}"
 VALIDATOR_STATUS="$(probe_validator)"
 
+latest_summary() {
+  local glob="$1"
+  local latest=""
+  latest="$(ls -td ${glob} 2>/dev/null | head -1 || true)"
+  if [ -n "$latest" ] && [ -f "$latest/SUMMARY.md" ]; then
+    echo "$latest/SUMMARY.md"
+  else
+    echo "n/a"
+  fi
+}
+
+SURFPOOL_CRITICAL_SUMMARY="$(latest_summary "${ROOT_DIR}/artifacts/surfpool-smoke/*")"
+SURFPOOL_QUASAR_SUMMARY="$(latest_summary "${ROOT_DIR}/artifacts/surfpool-quasar-smoke/*")"
+SURFPOOL_ECONOMIC_SUMMARY="$(latest_summary "${ROOT_DIR}/artifacts/economic-demo-surfpool-rehearsal/*")"
+
 set +e
 npx playwright test e2e/integration.spec.ts \
   --reporter=line,json \
@@ -110,6 +125,11 @@ cat > "$OUT_DIR/SUMMARY.md" <<EOF
 - Local validator (8899): ${VALIDATOR_STATUS}
 - Playwright infra hint: ${INFRA_HINT:-n/a}
 
+## Surfpool Runtime Evidence Snapshot
+- Economic demo Surfpool rehearsal: ${SURFPOOL_ECONOMIC_SUMMARY}
+- A→B→C Surfpool critical lane: ${SURFPOOL_CRITICAL_SUMMARY}
+- Quasar Surfpool critical lane: ${SURFPOOL_QUASAR_SUMMARY}
+
 ## Artifacts
 - Log:
   - ${OUT_DIR}/playwright.log
@@ -117,8 +137,10 @@ cat > "$OUT_DIR/SUMMARY.md" <<EOF
   - ${OUT_DIR}/report.json
 
 ## Interpretation
-- If all tests are skipped, prerequisites were unavailable or not ready.
-- If tests pass, this lane provides runtime-backed evidence beyond route/unit contracts.
+- This Playwright lane is a legacy live-infra probe for Ollama + a validator on localhost:8899.
+- If all tests are skipped, those exact prerequisites were unavailable or not ready.
+- Dedicated Surfpool runtime evidence is tracked separately above because the active local-validator proof path uses isolated Surfpool ports instead of localhost:8899.
+- If tests pass, this lane provides additional runtime-backed evidence beyond route/unit contracts.
 EOF
 
 if [ "$EXIT_CODE" -ne 0 ]; then

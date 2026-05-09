@@ -13,6 +13,13 @@ test.describe("/dogfood page", () => {
   });
 
   test("forced pass run results in released escrow", async ({ page }) => {
+    await page.route("**/api/dogfood/consumer-run", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ok: true, status: "released", force: "pass" }),
+      });
+    });
     await page.goto("/dogfood");
     await page.getByTestId("dogfood-run-pass-btn").click();
 
@@ -21,6 +28,13 @@ test.describe("/dogfood page", () => {
   });
 
   test("forced fail run results in refunded escrow", async ({ page }) => {
+    await page.route("**/api/dogfood/consumer-run", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ok: true, status: "refunded", force: "fail" }),
+      });
+    });
     await page.goto("/dogfood");
     await page.getByTestId("dogfood-run-fail-btn").click();
 

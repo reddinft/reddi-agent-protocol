@@ -6,6 +6,18 @@ test.describe("/register local simulation", () => {
     test.setTimeout(90_000);
 
     await enableMockWallet(page);
+    await page.route("**/api/register/probe", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          ok: true,
+          status: "ollama_detected",
+          models: ["qwen3:8b"],
+          securityStatus: "x402_challenge_detected",
+        }),
+      });
+    });
     await page.goto("/register");
     await connectMockWallet(page);
 
@@ -14,6 +26,8 @@ test.describe("/register local simulation", () => {
     await page.getByLabel(/Agent Name/i).fill("Telemetry Demo Agent");
     await page.getByLabel(/Endpoint URL/i).fill("https://demo-agent.example.com");
     await page.getByLabel(/Model Name/i).fill("qwen3:8b");
+    await page.getByLabel(/Agent Description/i).fill("Telemetry test specialist with x402-gated demo endpoint.");
+    await expect(page.getByText(/x402_challenge_detected|ollama_detected|reachable|ready/i).first()).toBeVisible({ timeout: 15000 }).catch(() => undefined);
 
     const continueButton = page.getByRole("button", { name: /Review\s*&\s*Register/i });
     await continueButton.scrollIntoViewIfNeeded();

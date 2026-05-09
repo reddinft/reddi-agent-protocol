@@ -6,14 +6,36 @@
     "healthcheckStatus": "pass",
     "attested": true,
     "capabilities": {
-      "taskTypes": ["code", "review", "debug"],
-      "inputModes": ["text", "markdown"],
-      "outputModes": ["text", "markdown"],
-      "pricing": { "baseUsd": 0, "perCallUsd": 0.01 },
-      "privacyModes": ["public"],
-      "tags": ["code", "typescript", "solana"],
+      "taskTypes": [
+        "code",
+        "review",
+        "debug"
+      ],
+      "inputModes": [
+        "text",
+        "markdown"
+      ],
+      "outputModes": [
+        "text",
+        "markdown"
+      ],
+      "pricing": {
+        "baseUsd": 0,
+        "perCallUsd": 0.01
+      },
+      "privacyModes": [
+        "public"
+      ],
+      "tags": [
+        "code",
+        "typescript",
+        "solana"
+      ],
       "context_requirements": [],
-      "runtime_capabilities": ["code_execution", "file_read"]
+      "runtime_capabilities": [
+        "code_execution",
+        "file_read"
+      ]
     },
     "routingSignals": {
       "feedbackCount": 12,
@@ -23,7 +45,11 @@
     },
     "last_seen_at": "2026-04-18T00:00:00.000Z",
     "health_streak": 6,
-    "reputation_score": 4.7
+    "reputation_score": 4.7,
+    "schema_version": 2,
+    "ranking_formula_version": 1,
+    "freshness_state": "stale",
+    "ranking_score": 2.74
   },
   {
     "walletAddress": "9hN2pQ6vR4xT8yK1mZ5cB7dF3gH6jL8sV1nX4rP9aW",
@@ -32,14 +58,37 @@
     "healthcheckStatus": "pass",
     "attested": false,
     "capabilities": {
-      "taskTypes": ["summarize", "analyze", "search"],
-      "inputModes": ["text", "json"],
-      "outputModes": ["text", "json"],
-      "pricing": { "baseUsd": 0, "perCallUsd": 0.008 },
-      "privacyModes": ["public", "per"],
-      "tags": ["research", "analysis", "fact-checking"],
+      "taskTypes": [
+        "summarize",
+        "analyze",
+        "search"
+      ],
+      "inputModes": [
+        "text",
+        "json"
+      ],
+      "outputModes": [
+        "text",
+        "json"
+      ],
+      "pricing": {
+        "baseUsd": 0,
+        "perCallUsd": 0.008
+      },
+      "privacyModes": [
+        "public",
+        "per"
+      ],
+      "tags": [
+        "research",
+        "analysis",
+        "fact-checking"
+      ],
       "context_requirements": [],
-      "runtime_capabilities": ["web_search", "stateful"]
+      "runtime_capabilities": [
+        "web_search",
+        "stateful"
+      ]
     },
     "routingSignals": {
       "feedbackCount": 9,
@@ -49,7 +98,11 @@
     },
     "last_seen_at": "2026-04-18T00:00:00.000Z",
     "health_streak": 4,
-    "reputation_score": 4.8
+    "reputation_score": 4.8,
+    "schema_version": 2,
+    "ranking_formula_version": 1,
+    "freshness_state": "stale",
+    "ranking_score": 2.53
   },
   {
     "walletAddress": "4pS8vT2kM7nQ5rW1xY3zC6dF9gH2jL4sV7bN1mP5aR",
@@ -58,14 +111,35 @@
     "healthcheckStatus": "unknown",
     "attested": false,
     "capabilities": {
-      "taskTypes": ["generate", "summarize", "review"],
-      "inputModes": ["text", "markdown"],
-      "outputModes": ["text", "markdown"],
-      "pricing": { "baseUsd": 0, "perCallUsd": 0.007 },
-      "privacyModes": ["public"],
-      "tags": ["writing", "docs", "copy"],
+      "taskTypes": [
+        "generate",
+        "summarize",
+        "review"
+      ],
+      "inputModes": [
+        "text",
+        "markdown"
+      ],
+      "outputModes": [
+        "text",
+        "markdown"
+      ],
+      "pricing": {
+        "baseUsd": 0,
+        "perCallUsd": 0.007
+      },
+      "privacyModes": [
+        "public"
+      ],
+      "tags": [
+        "writing",
+        "docs",
+        "copy"
+      ],
       "context_requirements": [],
-      "runtime_capabilities": ["streaming"]
+      "runtime_capabilities": [
+        "streaming"
+      ]
     },
     "routingSignals": {
       "feedbackCount": 7,
@@ -75,6 +149,118 @@
     },
     "last_seen_at": "2026-04-18T00:00:00.000Z",
     "health_streak": 2,
-    "reputation_score": 4.6
+    "reputation_score": 4.6,
+    "schema_version": 2,
+    "ranking_formula_version": 1,
+    "freshness_state": "stale",
+    "ranking_score": 2.37
+  },
+  {
+    "walletAddress": "dogfoodSpec11111111111111111111111111111111",
+    "updatedAt": "2026-05-09T10:41:51.971Z",
+    "schema_version": 2,
+    "ranking_formula_version": 1,
+    "endpointUrl": "http://localhost:3010/api/dogfood/testing-specialist",
+    "healthcheckStatus": "pass",
+    "attested": true,
+    "capabilities": {
+      "taskTypes": [
+        "qa"
+      ],
+      "inputModes": [
+        "text"
+      ],
+      "outputModes": [
+        "text"
+      ],
+      "privacyModes": [
+        "public"
+      ],
+      "pricing": {
+        "baseUsd": 0,
+        "perCallUsd": 0.01
+      },
+      "tags": [
+        "dogfood-ping-haiku",
+        "specialist",
+        "ping-pong"
+      ],
+      "context_requirements": [
+        {
+          "key": "message",
+          "type": "text",
+          "required": true,
+          "description": "Expected literal ping"
+        }
+      ],
+      "runtime_capabilities": [
+        "stateful"
+      ]
+    },
+    "routingSignals": {
+      "feedbackCount": 0,
+      "avgFeedbackScore": 0,
+      "attestationAgreements": 0,
+      "attestationDisagreements": 0
+    },
+    "last_seen_at": "2026-05-09T10:41:51.971Z",
+    "freshness_state": "warm",
+    "health_streak": 6,
+    "ranking_score": 1.66,
+    "reputation_score": 3.2
+  },
+  {
+    "walletAddress": "dogfoodAttest111111111111111111111111111111",
+    "updatedAt": "2026-05-09T10:41:51.971Z",
+    "schema_version": 2,
+    "ranking_formula_version": 1,
+    "endpointUrl": "http://localhost:3010/api/dogfood/testing-attestor",
+    "healthcheckStatus": "pass",
+    "attested": true,
+    "capabilities": {
+      "taskTypes": [
+        "review"
+      ],
+      "inputModes": [
+        "json"
+      ],
+      "outputModes": [
+        "json"
+      ],
+      "privacyModes": [
+        "public"
+      ],
+      "pricing": {
+        "baseUsd": 0,
+        "perCallUsd": 0.005
+      },
+      "tags": [
+        "dogfood-ping-haiku",
+        "attestor",
+        "judge"
+      ],
+      "context_requirements": [
+        {
+          "key": "payload",
+          "type": "json",
+          "required": true,
+          "description": "Specialist response payload"
+        }
+      ],
+      "runtime_capabilities": [
+        "stateful"
+      ]
+    },
+    "routingSignals": {
+      "feedbackCount": 0,
+      "avgFeedbackScore": 0,
+      "attestationAgreements": 0,
+      "attestationDisagreements": 0
+    },
+    "last_seen_at": "2026-05-09T10:41:51.971Z",
+    "freshness_state": "warm",
+    "health_streak": 6,
+    "ranking_score": 2.14,
+    "reputation_score": 4.4
   }
 ]
