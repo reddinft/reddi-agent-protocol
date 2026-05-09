@@ -4,11 +4,21 @@
 
 Onboarding/judge UX is locally shippable and validated. Public proof path now has a stable in-product `/judge-replication` route (temporary `here.now` guide links removed from source CTAs). `/start` has overview + 3 proof videos; homepage shows 3 proof videos; contextual proof videos are embedded on setup/agents/register/economic-demo; `/register` is readable before wallet connect; `/economic-demo` defaults to safe recorded-proof verification with fresh devnet actions under an advanced warning.
 
-Latest validation: fourth progress/validation pass completed after PR #301/#302. Loops 31–40 found and patched one real improvement: legacy `e2e/integration.spec.ts` / `scripts/run-integration-lane.sh` now support configurable `INTEGRATION_VALIDATOR_RPC_URL` and report the exact validator RPC/status. Validation PASS: default integration lane, override integration lane, product naming, submission claim boundaries, BDD index/status 15/15, targeted Playwright, targeted Jest, `git diff --check`. Evidence logs: `artifacts/validation-loops-20260509-fourth-pass/`.
+Latest validation: completion-oriented loops after PR #303 found only one remaining actionable issue: continuity text still said to open/review/merge the integration-RPC PR even though it was already merged. PR #303 is merged to `main` at `825cfa4c`. The final completion check is status-only plus minimal gates; no new product/test patch is needed.
 
 Agent validation: Belle P0/P1 resolved (mobile overflow fixed, start copy clarified, agents CTA accessibility cleaned). Oli P0/P1 resolved for stale tests and submission-prep gate; no fresh devnet signing/spend required in the final 10-loop retry. Surfpool/mock-Jupiter artifact exists locally; submission prep now includes Surfpool rehearsal, A→B→C critical, and Quasar critical evidence paths. Public Jupiter devnet execution remains a boundary, not a claim.
 
-Next: Open/review/merge the small integration-RPC configurability PR if GitHub/Vercel checks pass. Nissan has approved PR operations and bounded devnet spend when needed. The ordinary integration lane can now point at an explicit validator RPC; full Surfpool orchestration remains covered by the dedicated Surfpool scripts.
+Next: The repo is effectively complete for this validation wave. If more time is available, the only worthwhile follow-up is optional: wire a full localhost-backed validator launch for the legacy `e2e/integration.spec.ts` external `solana-research-dag` dependency. Current ordinary integration lane is configurable and honest; full Surfpool orchestration remains covered by the dedicated Surfpool scripts.
+
+## Latest Update — Completion-oriented final loop (2026-05-10 00:02 AEST)
+
+Nissan asked to do more loops as needed to complete. Loop 41 checked post-PR #303 state: clean `main`, no open PRs, and PR #303 merged. The only actionable issue was stale continuity wording in `STATUS.md` saying to open/review/merge the already-merged PR.
+
+Action: updated this status file to reflect PR #303 merge and the true remaining optional follow-up. No code/test behavior needed another patch.
+
+Retrospective: stop condition reached. Further loops would mostly repeat green gates unless we choose a new scope: deeper legacy `solana-research-dag` integration harnessing at localhost, submission packaging, or final video/form upload.
+
+RESUME FROM HERE: Treat validation/test-hardening wave as complete. Continue only if Nissan chooses a new scope.
 
 ## Latest Update — Fourth 10-loop progress pass (2026-05-09 23:58 AEST)
 
