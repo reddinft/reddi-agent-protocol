@@ -10,7 +10,11 @@ describe("economic demo Surfpool rehearsal plan", () => {
     expect(report.mode).toBe("surfpool_local_rehearsal_plan");
     expect(report.networkProfile).toBe("local-surfpool");
     expect(report.downstreamCallsExecuted).toBe(0);
-    expect(report.transfers.filter((transfer) => transfer.category === "downstream_agent_payment")).toHaveLength(plan.edges.length);
+    const downstreamTransfers = report.transfers.filter((transfer) => transfer.category === "downstream_agent_payment");
+    const upstreamFundingTransfers = report.transfers.filter((transfer) => transfer.category === "upfront_user_funding");
+
+    expect(downstreamTransfers).toHaveLength(plan.edges.length);
+    expect(upstreamFundingTransfers).toHaveLength(1);
     expect(report.positiveProof).toMatchObject({ balanced: true });
     expect(report.positiveProof.totalDebitedLamports).toBeGreaterThan(0);
     expect(report.positiveProof.totalDebitedLamports).toBe(report.positiveProof.totalCreditedLamports);

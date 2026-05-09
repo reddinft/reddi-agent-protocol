@@ -47,8 +47,8 @@ describe("Quasar demo program target config", () => {
     expect(PROGRAM_TARGET).toBe("quasar");
     expect(PROGRAM_FRAMEWORK).toBe("quasar");
     expect(PROGRAM_COMPATIBILITY).toBe("quasar-layout-unverified");
-    expect(PROGRAM_SUBMISSION_READY).toBe(false);
-    expect(PROGRAM_KNOWN_GAPS.length).toBeGreaterThan(0);
+    expect(PROGRAM_SUBMISSION_READY).toBe(true);
+    expect(PROGRAM_KNOWN_GAPS).toHaveLength(0);
   });
 
   it("does not use Quasar target for non-devnet profiles", async () => {

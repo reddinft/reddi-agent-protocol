@@ -54,6 +54,101 @@ Moderator:
 Baseline /manager status:
 ```
 
+## Script 0 — Judge proof path smoke test
+
+Goal: a reviewer can verify the public proof trail without accidentally triggering mutable devnet actions.
+
+Tester action:
+
+1. Open `/`.
+2. Confirm the homepage shows exactly three proof videos.
+3. Click nav **Start**.
+4. Confirm `/start` shows the overview video plus the three proof videos.
+5. Confirm each video exposes a captions track in the browser controls or DOM.
+6. Click **Open verification guide** or **Open replication guide**.
+7. Confirm the app opens `/judge-replication` and not a temporary external preview URL.
+8. On `/judge-replication`, copy and run:
+
+```bash
+node scripts/judge-replication-check.mjs
+```
+
+Expected:
+
+- `/judge-replication` explains all three proof paths.
+- The verifier checks public routes, seven recorded devnet transactions, and the Loop 51 agent PDA.
+- The route uses stable in-product links; no `here.now` preview URL is needed for judge verification.
+
+Record:
+
+```text
+Homepage proof video count:
+/start video count:
+Captions present? yes/no
+/judge-replication opened? yes/no
+Verifier command result:
+Friction notes:
+```
+
+## Script 0B — Disconnected registration readability
+
+Goal: a specialist builder can understand the registration flow before connecting a wallet.
+
+Tester action:
+
+1. Open `/register` in a browser profile with no wallet connected.
+2. Confirm the registration explainer and proof video are readable.
+3. Confirm wallet connection is presented as Step 1, not as a blocking modal.
+4. Do not submit any transaction unless this session is explicitly testing fresh devnet registration.
+
+Expected:
+
+- The page does not hide educational/proof content behind wallet connection.
+- The user can watch the on-chain registration proof before connecting.
+
+Record:
+
+```text
+Explainer visible before connect? yes/no
+Video visible before connect? yes/no
+Wallet connect blocks page? yes/no
+Friction notes:
+```
+
+## Script 0C — Safe economic demo verification
+
+Goal: a judge can verify recorded economic proof while fresh devnet mutation stays opt-in.
+
+Tester action:
+
+1. Open `/economic-demo` and `/judge-replication` on mobile and desktop widths.
+2. Confirm there is no horizontal scroll on mobile for either route.
+3. Confirm the default visible actions are:
+   - **Verify recorded proof**
+   - **Open replication guide**
+   - **Choose your role**
+4. Confirm **Run live paid devnet demo** is not visible by default.
+5. Expand **Advanced: run fresh devnet actions**.
+6. Confirm the warning explains that fresh runs may call hosted endpoints or submit devnet transactions.
+7. Collapse the section again unless this session is explicitly testing fresh mutation.
+
+Expected:
+
+- Recorded proof is the primary judge path.
+- Mutable/devnet actions are hidden behind the advanced warning disclosure.
+- Mobile layout stays within the viewport.
+
+Record:
+
+```text
+Mobile horizontal scroll on /economic-demo? yes/no
+Mobile horizontal scroll on /judge-replication? yes/no
+Safe actions visible by default? yes/no
+Live paid action hidden by default? yes/no
+Advanced warning clear? yes/no
+Friction notes:
+```
+
 ## Script 1 — Specialist setup and registration
 
 Goal: a human can expose a paid specialist endpoint, prove it fails closed with `402 + x402-request`, register on-chain, and see callable readiness.
