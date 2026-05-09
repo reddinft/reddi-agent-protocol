@@ -4,11 +4,31 @@
 
 Onboarding/judge UX is locally shippable and validated. Public proof path now has a stable in-product `/judge-replication` route (temporary `here.now` guide links removed from source CTAs). `/start` has overview + 3 proof videos; homepage shows 3 proof videos; contextual proof videos are embedded on setup/agents/register/economic-demo; `/register` is readable before wallet connect; `/economic-demo` defaults to safe recorded-proof verification with fresh devnet actions under an advanced warning.
 
-Latest validation: second 10-loop local validation/hardening pass completed at 23:35 AEST. Additional gates PASS: JSON parse; BDD index; product naming; submission claim boundaries; targeted lint; targeted Jest via `npx jest`; core Playwright 25/25; proof-page Playwright 6/6; BDD latest status 15/15; integration lane exit 0 with 4 validator-dependent skips and Surfpool evidence links; submission prep regenerated/check PASS with 16 evidence paths; `git diff --check` PASS; `npm run build` PASS with only known Turbopack/root/bigint/localstorage warnings. Evidence logs: `artifacts/validation-loops-20260509/`.
+Latest validation: third 10-loop review/PR-readiness pass completed after Nissan approved PR operations and bounded devnet spend. Additional loops 21–30 PASS: branch packaging review, origin/main freshness, product naming, submission claim boundaries, submission prep check, overclaim scan, BDD index/status 15/15, changed UI Playwright, targeted Jest, bounded devnet/safety smoke including Quasar PER devnet, integration lane, and PR creation/review. Evidence logs: `artifacts/validation-loops-20260509-third-pass/`.
 
 Agent validation: Belle P0/P1 resolved (mobile overflow fixed, start copy clarified, agents CTA accessibility cleaned). Oli P0/P1 resolved for stale tests and submission-prep gate; no fresh devnet signing/spend required in the final 10-loop retry. Surfpool/mock-Jupiter artifact exists locally; submission prep now includes Surfpool rehearsal, A→B→C critical, and Quasar critical evidence paths. Public Jupiter devnet execution remains a boundary, not a claim.
 
-Next: Do not push/open PR without Nissan approval. Review/package/commit the 18 modified files if approved. Current local delta remains validation/test hardening plus status/data/docs/scripts; no external upload/push and no fresh signing/spend were done. If Playwright `e2e/integration.spec.ts` should be counted as active rather than skipped in the ordinary suite, wire its validator preflight to the isolated Surfpool launcher; current full suite, targeted Playwright, build, and dedicated Surfpool lanes are green.
+Next: PR review is in progress for the validation/test hardening branch. Nissan has approved PR operations and bounded devnet spend when needed. If Playwright `e2e/integration.spec.ts` should be counted as active rather than skipped in the ordinary suite, wire its validator preflight to the isolated Surfpool launcher; current full suite, targeted Playwright, build, dedicated Surfpool lanes, and bounded devnet smoke are green.
+
+## Latest Update — Third 10-loop PR/readiness pass (2026-05-09 23:45 AEST)
+
+Nissan approved PR operations and bounded devnet spends, then asked for another 10 loops with retrospectives after each loop. Created branch `validation/bdd-e2e-evidence-20260509` from the local validation commit and recorded loop retrospectives in `artifacts/validation-loops-20260509-third-pass/README.md`.
+
+Loop outcomes:
+- Loop 21 reviewed PR packaging/diff scope: one validation/test hardening commit over `origin/main`.
+- Loop 22 fetched `origin/main`, confirmed base freshness, and `git diff --check` PASS.
+- Loop 23 reran boundary/evidence gates: product naming PASS, submission claim boundaries PASS, submission prep check PASS.
+- Loop 24 scanned changed docs/status/submission-prep language for unsafe overclaims; only explicit boundary/negative claims found.
+- Loop 25 reran BDD index/status: PASS and latest sweep remains 15/15.
+- Loop 26 reran changed UI Playwright specs serially: PASS.
+- Loop 27 reran targeted Jest contracts: PASS.
+- Loop 28 used the new approval only where useful: bounded devnet/safety lane PASS, including Jupiter quote proof, live payment gate, devnet sender plan, and Quasar PER devnet smoke.
+- Loop 29 reran integration lane after devnet smoke: exit 0; validator-dependent skips remain separately reported from Surfpool proof evidence.
+- Loop 30 packages this status update and PR publication/review.
+
+Retrospective: no further code patch was needed in loops 21–29. The next meaningful work is PR CI/review/merge handling, not more local churn, unless CI exposes a new failure.
+
+RESUME FROM HERE: Monitor/review the PR created from `validation/bdd-e2e-evidence-20260509`; merge only after checks/review are acceptable.
 
 ## Latest Update — Second 10-loop validation/hardening pass (2026-05-09 23:35 AEST)
 
