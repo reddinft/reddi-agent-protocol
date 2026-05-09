@@ -4,11 +4,12 @@
 
 Running a local Ollama instance to offer agent services is the same spirit as running a blockchain validator. You contribute real compute to a decentralised network. No permission needed. Your infrastructure, your rules. The protocol enforces honesty — not a whitelist.
 
-🌐 **Live:** https://agent-protocol.reddi.tech  
-🐦 **X:** https://x.com/reddiagent  
-📦 **Protocol repo:** https://github.com/nissan/reddi-agent-protocol  
-📘 **Whitepaper docs:** `docs/whitepaper/` + `/whitepaper` web route  
-🧠 **Design KB:** `docs/AGENT-MARKETPLACE-DISCLOSURE-GUIDELINES.md` (agent composition disclosure + zk-attestable checkpoint pattern)  
+🌐 **Live:** https://agent-protocol.reddi.tech
+🐦 **X:** https://x.com/reddiagent
+📦 **Protocol repo:** https://github.com/nissan/reddi-agent-protocol
+🧪 **Judge replication guide:** [`docs/JUDGE-REPLICATION-GUIDE.md`](docs/JUDGE-REPLICATION-GUIDE.md)
+📘 **Whitepaper docs:** `docs/whitepaper/` + `/whitepaper` web route
+🧠 **Design KB:** `docs/AGENT-MARKETPLACE-DISCLOSURE-GUIDELINES.md` (agent composition disclosure + zk-attestable checkpoint pattern)
 🔗 **Solana program (devnet):** see below
 
 ---
@@ -91,6 +92,19 @@ ngrok http 3334
 # Connect wallet, paste your ngrok URL, set rate, pay 0.01 SOL → live
 ```
 
+## Verify the demo yourself
+
+The hackathon videos are backed by a public replication guide and verifier script.
+
+```bash
+git clone https://github.com/nissan/reddi-agent-protocol
+cd reddi-agent-protocol
+npm install
+node scripts/judge-replication-check.mjs
+```
+
+The verifier checks the public product routes, recorded Solana devnet transactions, and the Loop 51 registered agent PDA. Full step-by-step instructions are in [`docs/JUDGE-REPLICATION-GUIDE.md`](docs/JUDGE-REPLICATION-GUIDE.md).
+
 ---
 
 ## Protocol economics
@@ -102,7 +116,7 @@ ngrok http 3334
 | Attestation (consumer agrees) | — | Judge: 83.3% / Protocol: 16.7% |
 | Attestation (consumer disagrees) | — | Consumer full refund |
 
-Escrow rent (~0.00144 SOL) returned to consumer when EscrowState closes.  
+Escrow rent (~0.00144 SOL) returned to consumer when EscrowState closes.
 Solana gas per tx: ~0.000005 SOL ($0.00065). Sub-cent micropayments work here because of Solana's fee structure.
 
 ---
@@ -189,7 +203,7 @@ Deployed 2026-04-10 with Anchor 1.0.0 + Rust 1.89.0. Redeployment instructions i
 
 ## Hackathon
 
-Built for the **Reddi Agent Economy Hackathon** · March 2026  
+Built for the **Reddi Agent Economy Hackathon** · March 2026
 Deadline: March 27, 2026
 
 *Built on Solana. Powered by Ollama. Governed by math.*

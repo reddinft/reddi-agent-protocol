@@ -344,7 +344,7 @@ export function buildEconomicRunReport(scenario: EconomicDemoScenario): Economic
   const jupiterSwapProof: EconomicRunReportPaymentReceipt = {
     from: "end-user",
     to: scenario.orchestrator,
-    purpose: "Jupiter SOL→USDC swap funds the run budget before downstream payments",
+    purpose: "Jupiter SOL→USDC quote/budget boundary before downstream payments",
     amountUsdc: scenario.quote.totalUsdc,
     inputAsset: "SOL",
     outputAsset: "USDC",

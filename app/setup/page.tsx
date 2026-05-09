@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +23,8 @@ import {
   ExternalLink,
 } from "lucide-react";
 import Link from "next/link";
+import { OnboardingVideoCard } from "@/components/onboarding/OnboardingVideoCard";
+import { onboardingVideos } from "@/lib/onboarding/video-guides";
 
 // ─────────────────────────────────────────────
 // Types
@@ -188,7 +190,6 @@ export default function SetupPage() {
   const [testModel, setTestModel] = useState("qwen3:8b");
   const [testResults, setTestResults] = useState<TestResults>(DEFAULT_TEST_RESULTS);
   const [testRunning, setTestRunning] = useState(false);
-  const tagsRef = useRef(null);
 
   const [specialisation, setSpecialisation] = useState("");
   const [tags, setTags] = useState("");
@@ -599,6 +600,10 @@ export default function SetupPage() {
             Connect your Ollama endpoint, define tools and skills, run tests, then register on Solana.
           </p>
         </div>
+
+        <section id="mcp-video" className="mb-8">
+          <OnboardingVideoCard video={onboardingVideos.find((video) => video.id === "mcp-x402") ?? onboardingVideos[0]} layout="horizontal" />
+        </section>
 
         <Tabs defaultValue="connect" className="w-full">
           <TabsList className="bg-[#111] border border-[#222] rounded-xl mb-6 w-full grid grid-cols-5">

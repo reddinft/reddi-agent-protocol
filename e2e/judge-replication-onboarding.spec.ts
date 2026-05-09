@@ -1,0 +1,95 @@
+import { expect, test } from "@playwright/test";
+
+const proofVideos = [
+  "Claude Code pays a RAP specialist",
+  "Run the paid economic demo",
+  "Register an agent on-chain",
+];
+
+test.describe("judge replication onboarding", () => {
+  test("Given a judge lands on the homepage, they can find proof videos and verifier guidance", async ({ page }) => {
+    await test.step("Given the public homepage is open", async () => {
+      await page.goto("/");
+      const nav = page.getByRole("navigation");
+      await expect(nav.getByRole("link", { name: "Start", exact: true })).toBeVisible();
+      await expect(nav.getByRole("link", { name: "Verify", exact: true })).toBeVisible();
+    });
+
+    await test.step("Then the three submitted proof videos are visible", async () => {
+      await expect(page.getByText("Start with the 3 proof videos")).toBeVisible();
+      await expect(page.locator("video")).toHaveCount(3);
+      for (const title of proofVideos) {
+        await expect(page.getByText(title).first()).toBeVisible();
+      }
+    });
+
+    await test.step("And the verifier rail is reachable without guessing", async () => {
+      await page.getByRole("navigation").getByRole("link", { name: "Verify", exact: true }).click();
+      await expect(page).toHaveURL(/#verify-demo$/);
+      await page.locator("#verify-demo").scrollIntoViewIfNeeded();
+      await expect(page.getByText(/Judge-ready replication guide/i)).toBeVisible();
+      await expect(page.getByText(/node scripts\/judge-replication-check\.mjs/i)).toBeVisible();
+    });
+  });
+
+  test("Given a tester opens Start, the overview and proof cards include playable captions", async ({ page }) => {
+    await page.goto("/start");
+
+    await expect(page.getByRole("heading", { name: /Start with a 43s overview, then 3 proof videos/i })).toBeVisible();
+    await expect(page.locator("video")).toHaveCount(4);
+    await expect(page.locator('track[kind="captions"]')).toHaveCount(4);
+
+    await expect(page.getByText("Choose your protocol path")).toBeVisible();
+    for (const title of proofVideos) {
+      await expect(page.getByText(title).first()).toBeVisible();
+    }
+
+    await page.getByRole("link", { name: /Open replication guide|Open verification guide/i }).first().click();
+    await expect(page).toHaveURL(/\/judge-replication$/);
+    await expect(page.getByRole("heading", { name: /Verify the Reddi Agent Protocol proof path/i })).toBeVisible();
+  });
+
+  test("Given a judge opens the replication guide, they can verify without temporary links", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 1200 });
+    await page.goto("/judge-replication");
+
+    await expect(page.getByRole("heading", { name: /Verify the Reddi Agent Protocol proof path/i })).toBeVisible();
+    await expect(page.getByText("node scripts/judge-replication-check.mjs")).toBeVisible();
+    await expect(page.getByText("https://agent-protocol.reddi.tech/economic-demo")).toBeVisible();
+    await expect(page.getByText("CLI registration of a new agent with on-chain proof")).toBeVisible();
+    await expect(page.locator('a[href*="chilly-wreath-gwyk.here.now"]')).toHaveCount(0);
+
+    const horizontalOverflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    expect(horizontalOverflow).toBe(0);
+  });
+
+  test("Given a tester opens Register disconnected, content is readable before wallet connection", async ({ page }) => {
+    await page.goto("/register");
+
+    await expect(page.getByRole("heading", { name: /Monetize your specialist agent with reddi-x402/i }).last()).toBeVisible();
+    await expect(page.getByText("Register an agent on-chain")).toBeVisible();
+    await expect(page.locator("video")).toHaveCount(1);
+    await expect(page.getByText(/Connect wallet/i).first()).toBeVisible();
+  });
+
+  test("Given a judge opens Economic Demo, safe recorded-proof verification is primary", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 1200 });
+    await page.goto("/economic-demo");
+
+    await expect(page.getByRole("link", { name: "Verify recorded proof" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Open replication guide" })).toBeVisible();
+    await expect(page.getByText("Advanced: run fresh devnet actions")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Run live paid devnet demo" })).toHaveCount(0);
+
+    await page.getByText("Advanced: run fresh devnet actions").click();
+    await expect(page.getByText(/Fresh runs may call hosted endpoints/i)).toBeVisible();
+    await expect(page.getByRole("button", { name: "Run live paid devnet demo" })).toBeVisible();
+
+    const horizontalOverflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    expect(horizontalOverflow).toBe(0);
+  });
+});

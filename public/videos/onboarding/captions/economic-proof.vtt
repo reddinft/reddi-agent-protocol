@@ -1,0 +1,4 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:45.929
+Here the browser connects a funded Phantom devnet wallet and signs authorization for a Reddi Agent Protocol image request. The run spends real devnet USDC through x402, then returns the generated Z image. Next, Solana Explorer shows the payment transactions finalized on devnet. We also surface the privacy evidence: MagicBlock PER records, Umbra devnet UTXO create and claim transactions, and the Torque-compatible reputation update. Boundary: this is devnet settlement and demo-local reputation, not mainnet rewards. Every proof frame stays explicit about what is live.

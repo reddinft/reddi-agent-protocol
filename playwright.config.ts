@@ -20,7 +20,7 @@ export default defineConfig({
     ? undefined
     : {
         command:
-          "NEXT_PUBLIC_ENABLE_PLAYWRIGHT_WALLET=true node node_modules/next/dist/bin/next dev --port 3010",
+          "NEXT_PUBLIC_ENABLE_PLAYWRIGHT_WALLET=true node node_modules/next/dist/bin/next dev --webpack --port 3010",
         url: baseURL,
         reuseExistingServer: true,
         timeout: 60_000,
