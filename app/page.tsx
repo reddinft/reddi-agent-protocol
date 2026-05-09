@@ -5,7 +5,9 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { StatsBar } from "@/components/ui/stats-bar";
+import { OnboardingVideoGrid } from "@/components/onboarding/OnboardingVideoGrid";
 import { SpecialistCard } from "@/components/SpecialistCard";
+import { onboardingVideos } from "@/lib/onboarding/video-guides";
 import type { SpecialistListing } from "@/lib/registry/bridge";
 
 const JUDGE_METRICS = { specialists: 30, paidCalls: 4, devnetUsdc: "0.13" };
@@ -317,6 +319,60 @@ export default function Home() {
                 </p>
               </Link>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 pt-10 sm:px-6 lg:px-8">
+        <div className="mb-5 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="section-label">Start faster</p>
+            <h2 className="font-display text-2xl font-bold text-white">
+              Start with the 3 proof videos
+            </h2>
+          </div>
+          <Link href="/start" className="text-sm text-[#14F195] hover:text-[#14F195]/80">
+            Open onboarding hub →
+          </Link>
+        </div>
+        <OnboardingVideoGrid videos={onboardingVideos.filter((video) => video.id !== "overview")} />
+      </section>
+
+      <section id="verify-demo" className="mx-auto max-w-6xl px-4 pt-10 sm:px-6 lg:px-8">
+        <div className="rounded-xl border border-[#14F195]/25 bg-[#14F195]/10 p-6 glow-border">
+          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+            <div className="max-w-3xl space-y-2">
+              <p className="section-label">Verify the demo yourself</p>
+              <h2 className="font-display text-2xl font-bold text-white">
+                Judge-ready replication guide and public verifier
+              </h2>
+              <p className="text-sm leading-6 text-gray-300">
+                The submitted videos are backed by reproducible steps: public
+                routes, recorded devnet transaction signatures, and a script
+                that verifies the Loop 51 registered agent PDA via Solana RPC.
+              </p>
+              <code className="block rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-xs text-[#14F195]">
+                node scripts/judge-replication-check.mjs
+              </code>
+            </div>
+            <div className="flex shrink-0 flex-col gap-3 sm:flex-row md:flex-col">
+              <a
+                href="https://github.com/nissan/reddi-agent-protocol/blob/main/docs/JUDGE-REPLICATION-GUIDE.md"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-lg border border-[#14F195]/30 bg-black/20 px-4 py-2 text-center text-sm font-semibold text-[#14F195] hover:border-[#14F195]/60"
+              >
+                Open replication guide →
+              </a>
+              <a
+                href="https://github.com/nissan/reddi-agent-protocol/blob/main/scripts/judge-replication-check.mjs"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-center text-sm font-semibold text-gray-200 hover:border-white/30"
+              >
+                Inspect verifier script →
+              </a>
+            </div>
           </div>
         </div>
       </section>

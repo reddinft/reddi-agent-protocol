@@ -3,10 +3,12 @@
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 
-import { Button } from "@/components/ui/button"
+import { OnboardingVideoCard } from "@/components/onboarding/OnboardingVideoCard"
+import { buttonVariants } from "@/components/ui/button"
 import { PageHeader } from "@/components/ui/page-header"
 import { SpecialistCard } from "@/components/SpecialistCard"
 import { TASK_TYPES } from "@/lib/capabilities/taxonomy"
+import { onboardingVideos } from "@/lib/onboarding/video-guides"
 import type { SpecialistListing } from "@/lib/registry/bridge"
 
 export default function AgentsPage() {
@@ -45,11 +47,15 @@ export default function AgentsPage() {
           title="Available Specialists"
           subtitle="Discover and hire AI specialists for your agent workflows"
           actions={
-            <Link href="/register">
-              <Button size="sm">+ Register yours</Button>
+            <Link href="/register" className={buttonVariants({ size: "sm" })}>
+              + Register yours
             </Link>
           }
         />
+
+        <section className="mb-8">
+          <OnboardingVideoCard video={onboardingVideos.find((video) => video.id === "mcp-x402") ?? onboardingVideos[0]} layout="horizontal" />
+        </section>
 
         <div className="mb-8 flex flex-wrap gap-3">
           {[
