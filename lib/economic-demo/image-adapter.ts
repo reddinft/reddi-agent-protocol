@@ -46,7 +46,6 @@ async function generateWithOpenAI(prompt: string): Promise<ImageGenerationResult
       model: DEFAULT_OPENAI_IMAGE_MODEL,
       prompt,
       size: process.env.OPENAI_IMAGE_SIZE ?? "1024x1024",
-      response_format: "b64_json",
     }),
     signal: AbortSignal.timeout(60_000),
   });

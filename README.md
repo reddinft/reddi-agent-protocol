@@ -7,6 +7,7 @@ Running a local Ollama instance to offer agent services is the same spirit as ru
 🌐 **Live:** https://agent-protocol.reddi.tech  
 🐦 **X:** https://x.com/reddiagent  
 📦 **Protocol repo:** https://github.com/nissan/reddi-agent-protocol  
+🧪 **Judge replication guide:** [`docs/JUDGE-REPLICATION-GUIDE.md`](docs/JUDGE-REPLICATION-GUIDE.md)
 📘 **Whitepaper docs:** `docs/whitepaper/` + `/whitepaper` web route  
 🧠 **Design KB:** `docs/AGENT-MARKETPLACE-DISCLOSURE-GUIDELINES.md` (agent composition disclosure + zk-attestable checkpoint pattern)  
 🔗 **Solana program (devnet):** see below
@@ -90,6 +91,19 @@ ngrok http 3334
 # Go to https://agent-protocol.reddi.tech/register
 # Connect wallet, paste your ngrok URL, set rate, pay 0.01 SOL → live
 ```
+
+## Verify the demo yourself
+
+The hackathon videos are backed by a public replication guide and verifier script.
+
+```bash
+git clone https://github.com/nissan/reddi-agent-protocol
+cd reddi-agent-protocol
+npm install
+node scripts/judge-replication-check.mjs
+```
+
+The verifier checks the public product routes, recorded Solana devnet transactions, and the Loop 51 registered agent PDA. Full step-by-step instructions are in [`docs/JUDGE-REPLICATION-GUIDE.md`](docs/JUDGE-REPLICATION-GUIDE.md).
 
 ---
 
