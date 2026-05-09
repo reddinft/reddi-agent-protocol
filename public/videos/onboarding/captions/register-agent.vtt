@@ -1,0 +1,4 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:44.814
+The final demo registers a brand-new specialist through the Reddi Agent Protocol CLI. The command generates a fresh devnet owner, funds it, and submits the register-agent instruction to the Quasar registry program. The terminal prints the new owner, agent PDA, funding transaction, and registration transaction. Then the proof opens in Solscan: the registration transaction succeeds on devnet. The funding transfer is finalized. Finally, Solana Explorer confirms the same registration signature, finalized status, compute usage, and on-chain account readback, without mainnet claims.

@@ -17,14 +17,19 @@ function abbrev(addr: string) {
 }
 
 const navLinks: { href: string; label: string; badge?: string }[] = [
+  { href: "/start", label: "Start" },
+  { href: "/economic-demo", label: "Demo" },
   { href: "/agents", label: "Marketplace" },
+  { href: "/register", label: "Register" },
+  { href: "/setup", label: "Setup" },
+  { href: "/#verify-demo", label: "Verify" },
   { href: "/testers", label: "Testers", badge: "Help" },
   { href: "/faq", label: "FAQ", badge: "Help" },
   { href: "/playbook", label: "Playbook", badge: "New" },
   { href: "/planner", label: "Planner" },
   { href: "/runs", label: "History" },
   { href: "/leaderboard", label: "Leaderboard" },
-  { href: "/onboarding", label: "Register" },
+  { href: "/onboarding", label: "Onboarding Lab" },
   { href: "/dashboard", label: "Dashboards" },
   { href: "/manager", label: "Manager", badge: "New" },
   { href: "/specialist", label: "Specialist" },
@@ -36,8 +41,9 @@ const navLinks: { href: string; label: string; badge?: string }[] = [
   { href: "/orchestrator", label: "Settings" },
 ];
 
-const primaryLinks = navLinks.filter((l) => ["/agents", "/testers", "/faq", "/planner"].includes(l.href));
-const secondaryLinks = navLinks.filter((l) => !["/agents", "/testers", "/faq", "/planner"].includes(l.href));
+const primaryHrefs = ["/start", "/economic-demo", "/agents", "/register", "/setup", "/#verify-demo"];
+const primaryLinks = navLinks.filter((l) => primaryHrefs.includes(l.href));
+const secondaryLinks = navLinks.filter((l) => !primaryHrefs.includes(l.href));
 
 export default function NavBar() {
   const pathname = usePathname();
@@ -46,7 +52,6 @@ export default function NavBar() {
   const desktopMoreRef = useRef<HTMLDetailsElement | null>(null);
 
   useEffect(() => {
-    setMobileOpen(false);
     if (desktopMoreRef.current?.open) {
       desktopMoreRef.current.open = false;
     }

@@ -4,6 +4,8 @@ import dynamic from "next/dynamic";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useMemo, useState } from "react";
 
+import { OnboardingVideoCard } from "@/components/onboarding/OnboardingVideoCard";
+
 import {
   buildEconomicRunReport,
   economicDemoScenarios,
@@ -33,6 +35,7 @@ import {
   PROGRAM_TARGET,
 } from "@/lib/program";
 import quasarDeployments from "@/config/quasar/deployments.json";
+import { onboardingVideos } from "@/lib/onboarding/video-guides";
 
 function shortWallet(wallet: string) {
   return `${wallet.slice(0, 8)}…${wallet.slice(-6)}`;
@@ -493,6 +496,10 @@ export default function EconomicDemoPage() {
                 </span>
               ))}
             </div>
+            <section id="video-guide" className="pt-2">
+              <OnboardingVideoCard video={onboardingVideos.find((video) => video.id === "economic-proof") ?? onboardingVideos[1]} layout="horizontal" />
+            </section>
+
             <div
               data-testid="funded-devnet-judge-proof"
               className="rounded-2xl border border-[#14F195]/25 bg-black/30 p-5 shadow-card"
@@ -548,49 +555,68 @@ export default function EconomicDemoPage() {
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-3 pt-1">
-              <button
-                type="button"
-                onClick={runControlledDemo}
-                disabled={webpageLiveEvidenceStatus === "loading"}
-                className="rounded-lg bg-[#14F195] px-5 py-3 text-sm font-bold text-black shadow-card transition hover:bg-[#14F195]/90 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {webpageLiveEvidenceStatus === "loading"
-                  ? "Running demo…"
-                  : "Run controlled demo"}
-              </button>
-              <button
-                type="button"
-                onClick={probeHostedChallenges}
-                disabled={hostedChallengeProbeStatus === "loading"}
-                className="rounded-lg border border-[#14F195]/30 bg-[#14F195]/10 px-5 py-3 text-sm font-semibold text-[#14F195] transition hover:bg-[#14F195]/15 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {hostedChallengeProbeStatus === "loading"
-                  ? "Probing hosted 402s…"
-                  : "Probe hosted 402s"}
-              </button>
-              <button
-                type="button"
-                onClick={runLivePaidDevnetDemo}
-                disabled={livePaidDevnetStatus === "loading"}
-                className="rounded-lg border border-accent-purple/40 bg-accent-purple/10 px-5 py-3 text-sm font-semibold text-accent-purple transition hover:bg-accent-purple/15 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {livePaidDevnetStatus === "loading"
-                  ? "Running live paid devnet…"
-                  : "Run live paid devnet demo"}
-              </button>
-              <a
-                href="#participation-paths"
-                className="rounded-lg border border-white/15 bg-white/5 px-5 py-3 text-sm font-semibold text-gray-200 transition hover:border-[#14F195]/30 hover:text-[#14F195]"
-              >
-                Choose your role
-              </a>
-              <a
-                href="#evidence-archive"
-                className="rounded-lg border border-white/15 bg-white/5 px-5 py-3 text-sm font-semibold text-gray-200 transition hover:border-[#14F195]/30 hover:text-[#14F195]"
-              >
-                Open evidence archive
-              </a>
+            <div className="space-y-4 pt-1">
+              <div className="flex flex-wrap gap-3">
+                <a
+                  href="#evidence-archive"
+                  className="rounded-lg bg-[#14F195] px-5 py-3 text-sm font-bold text-black shadow-card transition hover:bg-[#14F195]/90"
+                >
+                  Verify recorded proof
+                </a>
+                <a
+                  href="/judge-replication"
+                  className="rounded-lg border border-[#14F195]/30 bg-[#14F195]/10 px-5 py-3 text-sm font-semibold text-[#14F195] transition hover:bg-[#14F195]/15"
+                >
+                  Open replication guide
+                </a>
+                <a
+                  href="#participation-paths"
+                  className="rounded-lg border border-white/15 bg-white/5 px-5 py-3 text-sm font-semibold text-gray-200 transition hover:border-[#14F195]/30 hover:text-[#14F195]"
+                >
+                  Choose your role
+                </a>
+              </div>
+
+              <details className="rounded-2xl border border-yellow-300/20 bg-yellow-300/5 p-4 text-sm text-yellow-50">
+                <summary className="cursor-pointer font-semibold text-yellow-100">
+                  Advanced: run fresh devnet actions
+                </summary>
+                <p className="mt-2 max-w-3xl text-xs leading-5 text-yellow-100/80">
+                  Fresh runs may call hosted endpoints or submit devnet transactions. The recorded proof below is enough to verify the submitted videos; use these only when deliberately testing new state.
+                </p>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  <button
+                    type="button"
+                    onClick={runControlledDemo}
+                    disabled={webpageLiveEvidenceStatus === "loading"}
+                    className="rounded-lg border border-yellow-300/25 bg-black/25 px-5 py-3 text-sm font-semibold text-yellow-50 transition hover:bg-yellow-300/10 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {webpageLiveEvidenceStatus === "loading"
+                      ? "Running demo…"
+                      : "Run controlled demo"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={probeHostedChallenges}
+                    disabled={hostedChallengeProbeStatus === "loading"}
+                    className="rounded-lg border border-yellow-300/25 bg-black/25 px-5 py-3 text-sm font-semibold text-yellow-50 transition hover:bg-yellow-300/10 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {hostedChallengeProbeStatus === "loading"
+                      ? "Probing hosted 402s…"
+                      : "Probe hosted 402s"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={runLivePaidDevnetDemo}
+                    disabled={livePaidDevnetStatus === "loading"}
+                    className="rounded-lg border border-accent-purple/40 bg-accent-purple/10 px-5 py-3 text-sm font-semibold text-accent-purple transition hover:bg-accent-purple/15 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {livePaidDevnetStatus === "loading"
+                      ? "Running live paid devnet…"
+                      : "Run live paid devnet demo"}
+                  </button>
+                </div>
+              </details>
             </div>
             <div
               id="participation-paths"
@@ -722,8 +748,8 @@ export default function EconomicDemoPage() {
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="grid gap-6 lg:grid-cols-[1.05fr_1.5fr]">
-          <div className="space-y-6">
+        <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1.5fr)]">
+          <div className="min-w-0 space-y-6">
             <div className="rounded-2xl border border-white/10 bg-card/70 p-6 shadow-card">
               <p className="section-label">User request</p>
               <h2 className="mt-2 text-2xl font-semibold text-white">
@@ -1435,7 +1461,7 @@ export default function EconomicDemoPage() {
             )}
           </div>
 
-          <div className="space-y-6">
+          <div className="min-w-0 space-y-6">
             <div className="rounded-2xl border border-white/10 bg-card/70 p-6 shadow-card">
               <div className="flex items-center justify-between gap-3">
                 <div>
@@ -1537,7 +1563,7 @@ export default function EconomicDemoPage() {
                 <div className="mt-4 grid gap-3 lg:grid-cols-2">
                   <div className="rounded-lg border border-yellow-400/25 bg-yellow-400/10 p-3 lg:col-span-2">
                     <p className="text-xs uppercase tracking-wide text-yellow-100">
-                      Jupiter swap before downstream payments
+                      Jupiter quote boundary before downstream payments
                     </p>
                     <p className="mt-2 text-sm leading-6 text-yellow-50/90">
                       {runReport.jupiterSwapProof.inputAmount?.toFixed(3)}{" "}

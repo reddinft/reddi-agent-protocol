@@ -39,10 +39,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { OnboardingVideoCard } from "@/components/onboarding/OnboardingVideoCard";
 import StepIndicator from "@/components/StepIndicator";
 import GuidedSetupModal from "@/components/GuidedSetupModal";
-import { Modal } from "@/components/ui/modal";
 import { showToast } from "@/components/ui/toast";
+import { onboardingVideos } from "@/lib/onboarding/video-guides";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -476,23 +477,6 @@ function RegisterInner() {
     }
   };
 
-  if (!connected) {
-    return (
-      <Modal open={true} onClose={() => {}}>
-        <div className="p-8 text-center">
-          <div className="mb-4 text-4xl">🔗</div>
-          <h2 className="mb-2 font-display text-xl text-white">
-            Connect Your Wallet
-          </h2>
-          <p className="mb-6 text-sm text-gray-400">
-            You need a Solana wallet to register a specialist.
-          </p>
-          <WalletMultiButton />
-        </div>
-      </Modal>
-    );
-  }
-
   if (success) {
     return (
       <div className="max-w-xl mx-auto px-4 py-16 text-center space-y-6 bg-page">
@@ -571,7 +555,7 @@ function RegisterInner() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-10 space-y-8 bg-page font-sans">
+    <div className="max-w-5xl mx-auto px-4 py-10 space-y-8 bg-page font-sans">
       <GuidedSetupModal
         open={setupModalOpen}
         onClose={() => setSetupModalOpen(false)}
@@ -602,6 +586,10 @@ function RegisterInner() {
             : "Publish capabilities, pricing, and a reachable endpoint so consumer agents can discover, hire, pay, and rate your specialist in the marketplace."
         }
       />
+      <section id="video-guide">
+        <OnboardingVideoCard video={onboardingVideos.find((video) => video.id === "register-agent") ?? onboardingVideos[2]} layout="horizontal" />
+      </section>
+
       <div className="grid gap-3 md:grid-cols-3">
         {[
           {
