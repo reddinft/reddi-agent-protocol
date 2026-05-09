@@ -8,7 +8,7 @@ Latest validation: third 10-loop review/PR-readiness pass completed after Nissan
 
 Agent validation: Belle P0/P1 resolved (mobile overflow fixed, start copy clarified, agents CTA accessibility cleaned). Oli P0/P1 resolved for stale tests and submission-prep gate; no fresh devnet signing/spend required in the final 10-loop retry. Surfpool/mock-Jupiter artifact exists locally; submission prep now includes Surfpool rehearsal, A→B→C critical, and Quasar critical evidence paths. Public Jupiter devnet execution remains a boundary, not a claim.
 
-Next: PR review is in progress for the validation/test hardening branch. Nissan has approved PR operations and bounded devnet spend when needed. If Playwright `e2e/integration.spec.ts` should be counted as active rather than skipped in the ordinary suite, wire its validator preflight to the isolated Surfpool launcher; current full suite, targeted Playwright, build, dedicated Surfpool lanes, and bounded devnet smoke are green.
+Next: PR #301 (`test: harden BDD e2e validation evidence`) was opened, locally reviewed, passed GitHub/Vercel checks, and merged to `main` at `ac1eb528`. Nissan has approved PR operations and bounded devnet spend when needed. If Playwright `e2e/integration.spec.ts` should be counted as active rather than skipped in the ordinary suite, wire its validator preflight to the isolated Surfpool launcher; current full suite, targeted Playwright, build, dedicated Surfpool lanes, and bounded devnet smoke are green.
 
 ## Latest Update — Third 10-loop PR/readiness pass (2026-05-09 23:45 AEST)
 
@@ -28,7 +28,7 @@ Loop outcomes:
 
 Retrospective: no further code patch was needed in loops 21–29. The next meaningful work is PR CI/review/merge handling, not more local churn, unless CI exposes a new failure.
 
-RESUME FROM HERE: Monitor/review the PR created from `validation/bdd-e2e-evidence-20260509`; merge only after checks/review are acceptable.
+RESUME FROM HERE: PR #301 is merged. Continue from `main` at `ac1eb528`; do not rerun devnet spend/signing unless it adds fresh evidence or CI/regression work requires it.
 
 ## Latest Update — Second 10-loop validation/hardening pass (2026-05-09 23:35 AEST)
 
