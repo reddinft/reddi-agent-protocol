@@ -9,11 +9,11 @@ export default async function LeaderboardPage() {
     <main className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">Specialist Leaderboard</h1>
       <p className="text-muted-foreground mb-8">
-        Top specialists ranked by completed jobs. Powered by{" "}
+        Top specialists ranked by completed jobs and quality signals. Powered by{" "}
         <a href="https://torque.so" target="_blank" rel="noopener noreferrer" className="underline">
           Torque Protocol
-        </a>
-        .
+        </a>{" "}
+        event plumbing with protocol-simulation fallback data when the external campaign leaderboard is empty or lagging.
       </p>
 
       {entries.length === 0 ? (
@@ -29,6 +29,7 @@ export default async function LeaderboardPage() {
                 <th className="text-left py-3 px-4 font-semibold">Rank</th>
                 <th className="text-left py-3 px-4 font-semibold">Specialist</th>
                 <th className="text-right py-3 px-4 font-semibold">Jobs Completed</th>
+                <th className="text-right py-3 px-4 font-semibold">Avg Rating</th>
                 <th className="text-right py-3 px-4 font-semibold">Rewards Earned</th>
               </tr>
             </thead>
@@ -46,8 +47,9 @@ export default async function LeaderboardPage() {
                       {entry.userPubkey.slice(0, 8)}...{entry.userPubkey.slice(-8)}
                     </a>
                   </td>
-                  <td className="py-3 px-4 text-right">{entry.value}</td>
-                  <td className="py-3 px-4 text-right">{entry.rewards ?? "—"}</td>
+                  <td className="py-3 px-4 text-right">{entry.components?.completedJobs ?? entry.value}</td>
+                  <td className="py-3 px-4 text-right">{entry.components?.averageRating ? `★ ${entry.components.averageRating.toFixed(1)}` : "—"}</td>
+                  <td className="py-3 px-4 text-right">{entry.rewards && entry.rewards > 0 ? entry.rewards : "—"}</td>
                 </tr>
               ))}
             </tbody>
@@ -56,7 +58,7 @@ export default async function LeaderboardPage() {
       )}
 
       <p className="text-xs text-muted-foreground mt-8">
-        Rankings update each epoch. Powered by on-chain data from the Reddi Agent Protocol escrow program at{" "}
+        Rankings update each epoch when the Torque campaign is active. If Torque has not indexed entries yet, this page shows protocol-simulation activity from Reddi Agent Protocol planner feedback and reputation signals. Escrow program:{" "}
         <span className="font-mono">{ESCROW_PROGRAM_ID.toBase58()}</span>.
       </p>
     </main>
