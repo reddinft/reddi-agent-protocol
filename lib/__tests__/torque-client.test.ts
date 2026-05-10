@@ -84,28 +84,31 @@ describe("Torque client", () => {
   });
 
   describe("getLeaderboard", () => {
-    it("returns empty array when TORQUE_API_TOKEN is not set", async () => {
+    it("returns protocol-simulation fallback when TORQUE_API_TOKEN is not set", async () => {
       delete process.env.TORQUE_API_TOKEN;
       const { getLeaderboard } = await import("../torque/client");
       const result = await getLeaderboard();
-      expect(result).toEqual([]);
+      expect(result.length).toBeGreaterThan(0);
+      expect(result[0]).toMatchObject({ source: "protocol-simulation" });
     });
 
-    it("returns empty array when no campaign ID configured", async () => {
+    it("returns protocol-simulation fallback when no campaign ID configured", async () => {
       process.env.TORQUE_API_TOKEN = "test-token";
       delete process.env.TORQUE_LEADERBOARD_CAMPAIGN_ID;
       const { getLeaderboard } = await import("../torque/client");
       const result = await getLeaderboard();
-      expect(result).toEqual([]);
+      expect(result.length).toBeGreaterThan(0);
+      expect(result[0]).toMatchObject({ source: "protocol-simulation" });
     });
 
-    it("returns empty array on fetch failure", async () => {
+    it("returns protocol-simulation fallback on fetch failure", async () => {
       process.env.TORQUE_API_TOKEN = "test-token";
       process.env.TORQUE_LEADERBOARD_CAMPAIGN_ID = "camp-123";
       global.fetch = jest.fn().mockRejectedValue(new Error("network error"));
       const { getLeaderboard } = await import("../torque/client");
       const result = await getLeaderboard();
-      expect(result).toEqual([]);
+      expect(result.length).toBeGreaterThan(0);
+      expect(result[0]).toMatchObject({ source: "protocol-simulation" });
     });
 
     it("returns leaderboard entries on success", async () => {
