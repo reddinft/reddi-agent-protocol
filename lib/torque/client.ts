@@ -1,5 +1,10 @@
-import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { Connection } from "@solana/web3.js";
+import {
+  ACTIVE_AGENT_ACCOUNT_DATA_SIZE,
+  decodeActiveAgentAccount,
+  DEVNET_RPC,
+  REGISTRY_PROGRAM_ID,
+} from "@/lib/program";
 import { getTorqueConfig, isTorqueEnabled } from "./config";
 import type { TorqueEventPayload } from "./events";
 
@@ -8,45 +13,45 @@ export interface LeaderboardEntry {
   rank: number;
   value: number;
   rewards?: number;
-  source?: "torque" | "protocol-simulation";
+  source?: "torque" | "onchain-devnet";
   components?: {
     completedJobs: number;
-    averageRating: number;
-    attestationAgreements: number;
+    reputationScore: number;
+    jobsFailed: number;
   };
 }
 
-type SpecialistIndexRecord = {
-  walletAddress?: string;
-  routingSignals?: {
-    feedbackCount?: number;
-    avgFeedbackScore?: number;
-    attestationAgreements?: number;
-  };
-};
-
-function getProtocolSimulationLeaderboard(): LeaderboardEntry[] {
-  const path = join(process.cwd(), "data", "onboarding", "specialist-index.json");
-  if (!existsSync(path)) return [];
-
+async function getOnchainDevnetLeaderboard(): Promise<LeaderboardEntry[]> {
   try {
-    const raw = JSON.parse(readFileSync(path, "utf8")) as SpecialistIndexRecord[];
-    return raw
-      .filter((entry) => entry.walletAddress && (entry.routingSignals?.feedbackCount ?? 0) > 0)
-      .map((entry) => {
-        const completedJobs = entry.routingSignals?.feedbackCount ?? 0;
-        const averageRating = entry.routingSignals?.avgFeedbackScore ?? 0;
-        const attestationAgreements = entry.routingSignals?.attestationAgreements ?? 0;
+    const conn = new Connection(DEVNET_RPC, "confirmed");
+    const accounts = await conn.getProgramAccounts(REGISTRY_PROGRAM_ID, {
+      commitment: "confirmed",
+      filters: [{ dataSize: ACTIVE_AGENT_ACCOUNT_DATA_SIZE }],
+    });
+
+    return accounts
+      .map(({ account }) => decodeActiveAgentAccount(Buffer.from(account.data)))
+      .filter((agent): agent is NonNullable<typeof agent> =>
+        agent != null && agent.active && (agent.jobsCompleted > 0n || agent.reputationScore > 0),
+      )
+      .map((agent) => {
+        const completedJobs = Number(agent.jobsCompleted);
+        const reputationScore = agent.reputationScore;
+        const jobsFailed = Number(agent.jobsFailed);
         return {
-          userPubkey: entry.walletAddress!,
+          userPubkey: agent.owner,
           rank: 0,
           value: completedJobs,
           rewards: 0,
-          source: "protocol-simulation" as const,
-          components: { completedJobs, averageRating, attestationAgreements },
+          source: "onchain-devnet" as const,
+          components: { completedJobs, reputationScore, jobsFailed },
         };
       })
-      .sort((a, b) => b.value - a.value || (b.components?.averageRating ?? 0) - (a.components?.averageRating ?? 0))
+      .sort((a, b) =>
+        b.value - a.value ||
+        (b.components?.reputationScore ?? 0) - (a.components?.reputationScore ?? 0) ||
+        a.userPubkey.localeCompare(b.userPubkey),
+      )
       .map((entry, index) => ({ ...entry, rank: index + 1 }));
   } catch {
     return [];
@@ -78,24 +83,24 @@ export async function emitTorqueEvent(payload: TorqueEventPayload): Promise<void
 }
 
 export async function getLeaderboard(campaignId?: string): Promise<LeaderboardEntry[]> {
-  if (!isTorqueEnabled()) return getProtocolSimulationLeaderboard();
+  if (!isTorqueEnabled()) return getOnchainDevnetLeaderboard();
 
   const config = getTorqueConfig();
   const id = campaignId ?? config.leaderboardCampaignId;
-  if (!id) return getProtocolSimulationLeaderboard();
+  if (!id) return getOnchainDevnetLeaderboard();
 
   try {
     const res = await fetch(`${config.apiBase}/v1/campaigns/${id}/leaderboard`, {
       headers: { Authorization: `Bearer ${config.apiToken}` },
       signal: AbortSignal.timeout(3000),
     });
-    if (!res.ok) return getProtocolSimulationLeaderboard();
+    if (!res.ok) return getOnchainDevnetLeaderboard();
     const data = await res.json();
     const entries = data.entries ?? [];
-    if (entries.length === 0) return getProtocolSimulationLeaderboard();
+    if (entries.length === 0) return getOnchainDevnetLeaderboard();
     return entries.map((entry: LeaderboardEntry) => ({ ...entry, source: entry.source ?? "torque" }));
   } catch {
-    return getProtocolSimulationLeaderboard();
+    return getOnchainDevnetLeaderboard();
   }
 }
 

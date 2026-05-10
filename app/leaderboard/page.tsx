@@ -2,6 +2,8 @@ import { toExplorerAddressUrl } from "@/lib/config/explorer";
 import { getLeaderboard } from "@/lib/torque/client";
 import { ESCROW_PROGRAM_ID } from "@/lib/program";
 
+export const dynamic = "force-dynamic";
+
 export default async function LeaderboardPage() {
   const entries = await getLeaderboard();
 
@@ -13,7 +15,7 @@ export default async function LeaderboardPage() {
         <a href="https://torque.so" target="_blank" rel="noopener noreferrer" className="underline">
           Torque Protocol
         </a>{" "}
-        event plumbing with protocol-simulation fallback data when the external campaign leaderboard is empty or lagging.
+        event plumbing with on-chain Solana devnet activity when the external campaign leaderboard is empty or lagging.
       </p>
 
       {entries.length === 0 ? (
@@ -29,7 +31,7 @@ export default async function LeaderboardPage() {
                 <th className="text-left py-3 px-4 font-semibold">Rank</th>
                 <th className="text-left py-3 px-4 font-semibold">Specialist</th>
                 <th className="text-right py-3 px-4 font-semibold">Jobs Completed</th>
-                <th className="text-right py-3 px-4 font-semibold">Avg Rating</th>
+                <th className="text-right py-3 px-4 font-semibold">On-chain Reputation</th>
                 <th className="text-right py-3 px-4 font-semibold">Rewards Earned</th>
               </tr>
             </thead>
@@ -48,7 +50,7 @@ export default async function LeaderboardPage() {
                     </a>
                   </td>
                   <td className="py-3 px-4 text-right">{entry.components?.completedJobs ?? entry.value}</td>
-                  <td className="py-3 px-4 text-right">{entry.components?.averageRating ? `★ ${entry.components.averageRating.toFixed(1)}` : "—"}</td>
+                  <td className="py-3 px-4 text-right">{entry.components?.reputationScore != null ? entry.components.reputationScore : "—"}</td>
                   <td className="py-3 px-4 text-right">{entry.rewards && entry.rewards > 0 ? entry.rewards : "—"}</td>
                 </tr>
               ))}
@@ -58,7 +60,7 @@ export default async function LeaderboardPage() {
       )}
 
       <p className="text-xs text-muted-foreground mt-8">
-        Rankings update each epoch when the Torque campaign is active. If Torque has not indexed entries yet, this page shows protocol-simulation activity from Reddi Agent Protocol planner feedback and reputation signals. Escrow program:{" "}
+        Rankings update each epoch when the Torque campaign is active. If Torque has not indexed entries yet, this page shows live Solana devnet AgentAccount data from Reddi Agent Protocol jobs and reputation signals. Escrow program:{" "}
         <span className="font-mono">{ESCROW_PROGRAM_ID.toBase58()}</span>.
       </p>
     </main>
