@@ -71,3 +71,11 @@ data/onboarding/token-gated-proxy.mjs
 **/node_modules/
 packages/openrouter-specialists/dist/
 packages/rap-mcp-bridge/dist/
+
+# Per-developer Claude Code / Codex local state and skill caches (per-machine, not repo-shared)
+.claude/
+.agents/
+
+# AI session transcripts exported for grants / proofs (may contain PII, wallets, secrets)
+claude-session*.jsonl
+codex-session*.jsonl
