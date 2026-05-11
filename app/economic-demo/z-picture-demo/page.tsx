@@ -11,6 +11,9 @@ const WalletMultiButton = dynamic(
 
 type PaymentTx = { profileId: string; signature: string; solscan: string };
 type RunResult = {
+  replay?: boolean;
+  source?: string;
+  fallbackReason?: string;
   image: { imageUrl: string; provider: string; model: string; receipt: string };
   walletAuthorization?: { wallet: string; signature: string; message: string; boundary: string } | null;
   paidRun: { status: string; spentUsdc: string; orchestratorWallet: string | null };
@@ -62,8 +65,9 @@ export default function ZPictureDemoPage() {
     }
     try {
       const res = await fetch("/api/economic-demo/z-picture-run", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ prompt, walletAuthorization: { wallet: publicKey.toBase58(), signature, message: authorizationMessage } }) });
-      const data = await res.json();
-      if (!res.ok || !data.ok) throw new Error(data.error || "z_picture_run_failed");
+      const text = await res.text();
+      const data = text ? JSON.parse(text) : null;
+      if (!res.ok || !data?.ok) throw new Error(data?.error || data?.fallbackReason || `z_picture_run_failed_${res.status}`);
       setResult(data);
       setStatus("done");
     } catch (err) {
@@ -93,6 +97,7 @@ export default function ZPictureDemoPage() {
 
         {result && (
           <div className="mt-8 grid gap-6 lg:grid-cols-2">
+            {result.replay && <section className="rounded-2xl border border-yellow-400/25 bg-yellow-400/10 p-5 lg:col-span-2"><p className="section-label">Production replay mode</p><h2 className="mt-2 text-2xl font-semibold">Signed interaction captured; replaying the completed devnet proof</h2><p className="mt-3 text-sm leading-6 text-yellow-50/90">The browser wallet signature was captured, but this deployment is replaying the frozen completed proof because the live image/payment runner is not guaranteed inside Vercel serverless runtime. Fallback reason: <span className="font-mono">{result.fallbackReason}</span></p></section>}
             <section className="rounded-2xl border border-white/10 bg-card/80 p-5">
               <p className="section-label">Returned image proof</p>
               <h2 className="mt-2 text-2xl font-semibold">The generated image contains “Z”</h2>
