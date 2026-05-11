@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 
 import { generateEconomicDemoImage } from "@/lib/economic-demo/image-adapter";
+import { Z_PICTURE_STATIC_IMAGE_URL, Z_PICTURE_STATIC_PROOF } from "@/lib/economic-demo/z-picture-static-proof";
 import { runEconomicDemoLivePaidDevnet } from "@/lib/economic-demo/live-paid-devnet-run";
 import { emitTorqueEvent, getLeaderboard } from "@/lib/torque/client";
 import { TORQUE_EVENTS } from "@/lib/torque/events";
@@ -30,16 +31,10 @@ function stripDataUrl(dataUrl: string) {
   return idx >= 0 ? dataUrl.slice(idx + marker.length) : null;
 }
 
-export async function POST(req: Request) {
-  const body = (await req.json().catch(() => ({}))) as { prompt?: string; walletAuthorization?: { wallet?: string; signature?: string; message?: string } };
-  const prompt = body.prompt?.trim() || "Generate a clean high-contrast square image showing one large capital letter Z, centered, bold, unmistakable, on a simple futuristic dark background.";
-  const runId = `z-picture-${new Date().toISOString().replace(/[:.]/g, "")}-${randomUUID().slice(0, 8)}`;
+type ZPictureBody = { prompt?: string; walletAuthorization?: { wallet?: string; signature?: string; message?: string } };
 
-  const leaderboardBefore = await getLeaderboard();
-  const paidRun = await runEconomicDemoLivePaidDevnet({ scenarioId: "picture", prompt });
-  const image = await generateEconomicDemoImage({ prompt, provider: "openai" });
-
-  const walletAuthorization = body.walletAuthorization?.wallet && body.walletAuthorization?.signature && body.walletAuthorization?.message
+function walletAuthorizationFromBody(body: ZPictureBody) {
+  return body.walletAuthorization?.wallet && body.walletAuthorization?.signature && body.walletAuthorization?.message
     ? {
         wallet: String(body.walletAuthorization.wallet),
         signature: String(body.walletAuthorization.signature),
@@ -47,6 +42,34 @@ export async function POST(req: Request) {
         boundary: "Client Phantom signature authorizes this browser demo run; x402 transfer signer is reported separately in paidRun.orchestratorWallet.",
       }
     : null;
+}
+
+function staticReplayResult(body: ZPictureBody, prompt: string, reason: string) {
+  const walletAuthorization = walletAuthorizationFromBody(body) ?? Z_PICTURE_STATIC_PROOF.walletAuthorization;
+  return {
+    ...Z_PICTURE_STATIC_PROOF,
+    ok: true,
+    replay: true,
+    source: "static-production-replay",
+    fallbackReason: reason,
+    prompt,
+    image: { ...Z_PICTURE_STATIC_PROOF.image, imageUrl: Z_PICTURE_STATIC_IMAGE_URL },
+    walletAuthorization,
+  };
+}
+
+export async function POST(req: Request) {
+  const body = (await req.json().catch(() => ({}))) as ZPictureBody;
+  const prompt = body.prompt?.trim() || "Generate a clean high-contrast square image showing one large capital letter Z, centered, bold, unmistakable, on a simple futuristic dark background.";
+
+  try {
+    const runId = `z-picture-${new Date().toISOString().replace(/[:.]/g, "")}-${randomUUID().slice(0, 8)}`;
+
+    const leaderboardBefore = await getLeaderboard();
+    const paidRun = await runEconomicDemoLivePaidDevnet({ scenarioId: "picture", prompt });
+    const image = await generateEconomicDemoImage({ prompt, provider: "openai" });
+
+    const walletAuthorization = walletAuthorizationFromBody(body);
 
   const consumer = walletAuthorization?.wallet ?? paidRun.orchestratorWallet ?? PER_PROOF.payer;
   const agent = paidRun.timeline.find((step) => step.status === "payment_submitted")?.payTo ?? PER_PROOF.payee;
@@ -84,6 +107,10 @@ export async function POST(req: Request) {
     torque: { leaderboardBefore, leaderboardAfter, score: torqueScore },
     artifacts: { directory: outDir, image: b64 ? join(outDir, "z-image.png") : null, summary: join(outDir, "summary.json") },
   };
-  await writeFile(join(outDir, "summary.json"), JSON.stringify({ ...result, image: { ...image, imageUrl: b64 ? "[saved-to-z-image.png]" : image.imageUrl } }, null, 2));
-  return Response.json(result);
+    await writeFile(join(outDir, "summary.json"), JSON.stringify({ ...result, image: { ...image, imageUrl: b64 ? "[saved-to-z-image.png]" : image.imageUrl } }, null, 2));
+    return Response.json(result);
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    return Response.json(staticReplayResult(body, prompt, reason));
+  }
 }
