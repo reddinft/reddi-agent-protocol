@@ -102,7 +102,7 @@ case "$SOURCE" in
     ;;
   pay-sh)
     run_step "Pay.sh profile, catalog, quote preview, and MCP sandbox contracts" \
-      npx jest lib/__tests__/source-adapter-pay-sh-profile.test.ts lib/__tests__/pay-sh-catalog-route.test.ts lib/__tests__/pay-sh-quote-preview-route.test.ts lib/__tests__/pay-sh-mcp-inspection.test.ts lib/__tests__/pay-sh-mcp-inspection-route.test.ts --runInBand
+      npx jest lib/__tests__/source-adapter-pay-sh-profile.test.ts lib/__tests__/pay-sh-catalog-route.test.ts lib/__tests__/pay-sh-quote-preview-route.test.ts lib/__tests__/pay-sh-mcp-inspection.test.ts lib/__tests__/pay-sh-mcp-inspection-route.test.ts lib/__tests__/pay-sh-policy-plan.test.ts lib/__tests__/pay-sh-policy-plan-route.test.ts --runInBand
     ;;
 esac
 
