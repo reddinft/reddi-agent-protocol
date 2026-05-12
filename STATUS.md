@@ -1,5 +1,28 @@
 # Reddi Agent Protocol — Status
 
+## Latest Update — Pay.sh Solana source adapter implementation PR opened (2026-05-13 AEST)
+
+Implemented the first Solana-first Pay.sh integration slice for Issue #317. Scope is metadata/dry-run only: no `pay setup`, no `pay topup`, no wallet creation, no paid Pay.sh call, no external service invocation, and no secrets stored.
+
+Delivered:
+- Pay.sh source profile and provider-to-RAP-candidate mapping: `lib/integrations/source-adapter/profiles/pay-sh.ts`
+- Pay.sh catalog loader: `lib/integrations/source-adapter/pay-sh-catalog.ts`
+- Pay.sh quote preview helper: `lib/integrations/source-adapter/pay-sh-quote-preview.ts`
+- Dry-run APIs: `/api/source-adapters/pay-sh` and `/api/source-adapters/pay-sh/quote-preview`
+- Live metadata ingest script: `scripts/ingest-pay-sh-catalog.mjs` / `npm run ingest:pay-sh`
+- BDD/source-conformance coverage for `pay-sh`
+- Retrospective: `docs/PAY-SH-SOURCE-ADAPTER-IMPLEMENTATION-RETROSPECTIVE-2026-05-13.md`
+
+Validation:
+- `npm run test:bdd:index` PASS
+- `npm run check:rap:naming` PASS
+- Pay.sh focused Jest PASS (8/8)
+- Routing policy/planner resolve Jest PASS (9/9)
+- `npm run ingest:pay-sh` PASS; wrote 72 provider metadata entries to local artifact
+- `./scripts/run-source-conformance.sh --source pay-sh --mode smoke` PASS including build; artifact `artifacts/source-conformance/20260513-084938-pay-sh-smoke/SUMMARY.md`
+
+RESUME FROM HERE: Review/merge the Pay.sh source adapter PR, then next slice should test Pay CLI sandbox/MCP behavior locally without top-up or paid calls.
+
 ## Latest Update — Agent wallet/account abstraction POC research drafted (2026-05-13 AEST)
 
 Drafted `docs/ACCOUNT-ABSTRACTION-AGENT-WALLET-POC-2026-05-13.md` for the RAP MCP consumer onboarding problem: a Pi/dev-style agent user should be able to install the RAP MCP client, log in by email/passkey, top up by card, delegate bounded spend to their agent, and consume specialist agents without managing raw crypto wallet details.

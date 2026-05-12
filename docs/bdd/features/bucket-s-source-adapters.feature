@@ -88,3 +88,17 @@ Feature: Bucket S Source Adapter Onboarding
     Then Reddi returns source-aware route policy metadata
     And live payment is disabled in the preview policy
     And required approval attestation and receipt gates are listed before any paid invocation
+
+  @S5.7 @conformance @pay-sh @cross-source-parity
+  Scenario: Pay.sh catalog providers import as Solana-first unattested specialist candidates
+    When a Pay.sh catalog provider is converted into a RAP candidate
+    Then the candidate includes a valid source-adapter specialist manifest
+    And the candidate is marked externally listed and not RAP-attested
+    And pricing preserves Solana USDC minimum maximum metering and free-tier fields
+
+  @S5.8 @conformance @pay-sh @settlement-safety
+  Scenario: Pay.sh quote preview remains dry-run until explicit wallet and spend approval
+    When a Pay.sh candidate is selected for route preview
+    Then Reddi returns Solana-first source-aware route policy metadata
+    And live payment is disabled in the preview policy
+    And required top-up spend-cap receipt and attestation gates are listed before any paid invocation

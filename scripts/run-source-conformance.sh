@@ -25,10 +25,10 @@ while [[ $# -gt 0 ]]; do
 done
 
 case "$SOURCE" in
-  openclaw|hermes|pi|circle-x402)
+  openclaw|hermes|pi|circle-x402|pay-sh)
     ;;
   *)
-    echo "Unsupported source: $SOURCE (allowed: openclaw|hermes|pi|circle-x402)"
+    echo "Unsupported source: $SOURCE (allowed: openclaw|hermes|pi|circle-x402|pay-sh)"
     exit 1
     ;;
 esac
@@ -99,6 +99,10 @@ case "$SOURCE" in
   circle-x402)
     run_step "Circle x402 profile + discovery mapping contracts" \
       npx jest lib/__tests__/source-adapter-circle-x402-profile.test.ts --runInBand
+    ;;
+  pay-sh)
+    run_step "Pay.sh profile + catalog mapping contracts" \
+      npx jest lib/__tests__/source-adapter-pay-sh-profile.test.ts --runInBand
     ;;
 esac
 
