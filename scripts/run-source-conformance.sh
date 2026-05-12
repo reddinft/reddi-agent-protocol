@@ -101,8 +101,8 @@ case "$SOURCE" in
       npx jest lib/__tests__/source-adapter-circle-x402-profile.test.ts --runInBand
     ;;
   pay-sh)
-    run_step "Pay.sh profile + catalog mapping contracts" \
-      npx jest lib/__tests__/source-adapter-pay-sh-profile.test.ts --runInBand
+    run_step "Pay.sh profile, catalog, quote preview, and MCP sandbox contracts" \
+      npx jest lib/__tests__/source-adapter-pay-sh-profile.test.ts lib/__tests__/pay-sh-catalog-route.test.ts lib/__tests__/pay-sh-quote-preview-route.test.ts lib/__tests__/pay-sh-mcp-inspection.test.ts lib/__tests__/pay-sh-mcp-inspection-route.test.ts --runInBand
     ;;
 esac
 
