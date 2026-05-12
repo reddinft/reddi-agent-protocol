@@ -80,6 +80,7 @@
     "smoke:umbra:devnet:receiver-claimable-utxo": "node ./scripts/run-umbra-devnet-receiver-claimable-utxo-smoke.mjs",
     "ingest:circle-x402": "node ./scripts/ingest-circle-x402-discovery.mjs",
     "ingest:pay-sh": "node ./scripts/ingest-pay-sh-catalog.mjs",
+    "inspect:pay-sh:mcp": "node ./scripts/inspect-pay-sh-mcp.mjs",
     "check:rap:naming": "node ./scripts/check-rap-naming.mjs"
   },
   "dependencies": {

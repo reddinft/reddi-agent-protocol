@@ -102,3 +102,10 @@ Feature: Bucket S Source Adapter Onboarding
     Then Reddi returns Solana-first source-aware route policy metadata
     And live payment is disabled in the preview policy
     And required top-up spend-cap receipt and attestation gates are listed before any paid invocation
+
+  @S5.9 @conformance @pay-sh @mcp-sandbox
+  Scenario: Pay.sh MCP server card is inspected without enabling paid tools
+    When the Pay.sh MCP server card is inspected for RAP planning
+    Then Reddi classifies read-only provider discovery tools as dry-run safe
+    And paid invocation balance and provider-authoring tools are blocked in dry-run mode
+    And the policy forbids wallet setup top-up paid invocation and secret storage
