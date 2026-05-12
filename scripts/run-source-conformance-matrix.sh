@@ -10,7 +10,7 @@ LOG_FILE="$OUT_DIR/matrix.log"
 SUMMARY="$OUT_DIR/SUMMARY.md"
 mkdir -p "$OUT_DIR"
 
-SOURCES=(openclaw hermes pi)
+SOURCES=(openclaw hermes pi circle-x402)
 
 run_source() {
   local src="$1"
@@ -46,7 +46,7 @@ TOTAL_COUNT=$((PASS_COUNT + FAIL_COUNT))
   echo "# Source Conformance Matrix"
   echo ""
   echo "- Timestamp: $TS"
-  echo "- Sources: openclaw, hermes, pi"
+  echo "- Sources: openclaw, hermes, pi, circle-x402"
   echo "- Rows passed: $PASS_COUNT"
   echo "- Rows failed: $FAIL_COUNT"
   echo "- Rows total: $TOTAL_COUNT"

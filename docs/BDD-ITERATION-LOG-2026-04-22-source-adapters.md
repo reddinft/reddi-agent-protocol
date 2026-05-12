@@ -148,3 +148,44 @@ This log follows `playbooks/bdd-gap-closure-loop/PLAYBOOK.md` and is updated eve
   - Source-aware routing defaults are now wired with strict guardrails and deterministic reasons.
   - Matrix regressions are CI-gated with retained artifacts for fast diagnosis.
   - Next iteration should add source-aware ranking explainability in API output metadata (per-candidate source match summary) for external supervisor debugging.
+
+## Iteration 7
+- Focus: Circle for Agents / Circle x402 Discovery source adapter baseline.
+- Delivered:
+  - Added implementation spec: `docs/CIRCLE-X402-SOURCE-ADAPTER-SPEC-2026-05-13.md`.
+  - Added Circle x402 source profile + deterministic Discovery resource conversion:
+    - `lib/integrations/source-adapter/profiles/circle-x402.ts`
+    - registered in `lib/integrations/source-adapter/profiles/index.ts`.
+  - Extended MCP source preference enum to include `circle-x402`.
+  - Added tests:
+    - `lib/__tests__/source-adapter-circle-x402-profile.test.ts`.
+  - Added metadata-only live ingest script:
+    - `scripts/ingest-circle-x402-discovery.mjs`
+    - npm script `ingest:circle-x402`.
+  - Extended Bucket-S BDD/conformance docs and harnesses for Circle x402.
+- Verified:
+  - `npx jest lib/__tests__/source-adapter-circle-x402-profile.test.ts --runInBand` -> PASS, 1 suite, 4/4 tests.
+  - `npm run test:bdd:index` -> PASS.
+  - `./scripts/run-source-conformance.sh --source circle-x402 --mode smoke` -> PASS, including build gate.
+  - Artifact evidence: `artifacts/source-conformance/20260513-044642-circle-x402-smoke/SUMMARY.md`.
+  - `npm run ingest:circle-x402 -- --out-dir artifacts/circle-x402-discovery/20260513-iteration1` -> PASS, 509 resources ingested, median price $0.005 USDC.
+- Retrospective:
+  - Circle x402 should be treated as an external paid-service source, not as RAP trust evidence. Candidates default to `externally_listed_unattested` until RAP verifies receipts/evidence through attestors.
+  - Next iteration should expose the Circle ingest artifact through a dry-run UI/API demo before any live pay/invoke path.
+
+## Iteration 8
+- Focus: Circle x402 dry-run catalog UI/API.
+- Delivered:
+  - Added catalog loader: `lib/integrations/source-adapter/circle-x402-catalog.ts`.
+  - Added dry-run API: `app/api/source-adapters/circle-x402/route.ts`.
+  - Added UI route: `/circle-x402` via `app/circle-x402/page.tsx`.
+  - Linked marketplace `/agents` to the Circle x402 dry-run surface.
+  - Added route tests: `lib/__tests__/circle-x402-catalog-route.test.ts`.
+- Verified:
+  - `npx jest lib/__tests__/circle-x402-catalog-route.test.ts lib/__tests__/source-adapter-circle-x402-profile.test.ts --runInBand` -> PASS, 2 suites, 6/6 tests.
+  - `pnpm build` -> PASS; routes include `/circle-x402` and `/api/source-adapters/circle-x402`.
+- Boundary:
+  - Still metadata/dry-run only. No live Circle payment, login, funding, terms acceptance, or service invocation.
+  - UI repeats that Circle resources are externally listed and not RAP-attested until RAP verifies receipts/evidence.
+- Retrospective:
+  - The first product-visible integration should stay at catalog + quote-preview level. Live x402 payment should be a separate explicit experiment with tiny caps and approval controls.

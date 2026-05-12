@@ -78,6 +78,7 @@
     "demo:marketplace:readiness": "node ./scripts/run-marketplace-demo-readiness.mjs",
     "evidence:torque:reputation-ranking": "node ./scripts/generate-torque-reputation-ranking-evidence.mjs",
     "smoke:umbra:devnet:receiver-claimable-utxo": "node ./scripts/run-umbra-devnet-receiver-claimable-utxo-smoke.mjs",
+    "ingest:circle-x402": "node ./scripts/ingest-circle-x402-discovery.mjs",
     "check:rap:naming": "node ./scripts/check-rap-naming.mjs"
   },
   "dependencies": {

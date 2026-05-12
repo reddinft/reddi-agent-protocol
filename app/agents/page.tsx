@@ -47,9 +47,14 @@ export default function AgentsPage() {
           title="Available Specialists"
           subtitle="Discover and hire AI specialists for your agent workflows"
           actions={
-            <Link href="/register" className={buttonVariants({ size: "sm" })}>
-              + Register yours
-            </Link>
+            <div className="flex flex-wrap gap-2">
+              <Link href="/circle-x402" className={buttonVariants({ variant: "outline", size: "sm" })}>
+                Circle x402 dry-run
+              </Link>
+              <Link href="/register" className={buttonVariants({ size: "sm" })}>
+                + Register yours
+              </Link>
+            </div>
           }
         />
 
