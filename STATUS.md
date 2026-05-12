@@ -1,8 +1,8 @@
 # Reddi Agent Protocol — Status
 
-## Latest Update — Pay.sh MCP sandbox inspection PR ready (2026-05-13 AEST)
+## Latest Update — Pay.sh source adapter + MCP sandbox merged (2026-05-13 AEST)
 
-Implemented the second Pay.sh slice for Issue #319. Scope is public metadata inspection only: no `pay setup`, no `pay topup`, no wallet creation, no `pay mcp` process execution, no paid Pay.sh call, no provider invocation, and no secrets stored.
+Merged PR #318 for Issue #317 and PR #320 for Issue #319. The second slice scope is public metadata inspection only: no `pay setup`, no `pay topup`, no wallet creation, no `pay mcp` process execution, no paid Pay.sh call, no provider invocation, and no secrets stored.
 
 Delivered:
 - Pay.sh MCP server-card parser/risk classifier: `lib/integrations/source-adapter/pay-sh-mcp-inspection.ts`
@@ -18,7 +18,7 @@ Validation:
 - `./scripts/run-source-conformance.sh --source pay-sh --mode smoke` PASS including build; artifact `artifacts/source-conformance/20260513-085841-pay-sh-smoke/SUMMARY.md`
 - `npm run inspect:pay-sh:mcp` PASS; public server card reports `pay mcp` stdio transport, tools `search_skills`, `get_skill_endpoints`, `curl`, `get_balance`; live/dangerous tools blocked in dry-run: `curl`, `get_balance`
 
-RESUME FROM HERE: Open/review/merge the Pay.sh MCP sandbox PR, then next slice should add a local policy plan object for an allowlisted future paid call without executing it.
+RESUME FROM HERE: Next slice should add a local policy plan object for an allowlisted future Pay.sh paid call without executing it.
 
 ## Latest Update — Pay.sh Solana source adapter implementation PR opened (2026-05-13 AEST)
 
