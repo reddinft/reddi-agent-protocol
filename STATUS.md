@@ -1,5 +1,24 @@
 # Reddi Agent Protocol — Status
 
+## Latest Update — Pay.sh dry-run paid-call policy plan ready (2026-05-13 AEST)
+
+Implemented the third Pay.sh slice for Issue #322. Scope is local dry-run policy planning only: no `pay setup`, no `pay topup`, no wallet creation, no `pay mcp` process execution, no paid Pay.sh call, no provider invocation, and no secrets stored.
+
+Delivered:
+- Pay.sh paid-call policy planner: `lib/integrations/source-adapter/pay-sh-policy-plan.ts`
+- Dry-run policy API: `/api/source-adapters/pay-sh/policy-plan`
+- Policy gates for candidate presence, `curl`-only future live tool, endpoint allowlist, explicit approval, tiny spend cap, receipt capture, and RAP attestation
+- BDD scenario S5.10 and expanded Pay.sh conformance lane
+- Retrospective: `docs/PAY-SH-POLICY-PLAN-DRY-RUN-RETROSPECTIVE-2026-05-13.md`
+
+Validation:
+- `npm run test:bdd:index` PASS
+- `npm run check:rap:naming` PASS
+- Pay.sh policy-plan focused Jest PASS (6/6)
+- `./scripts/run-source-conformance.sh --source pay-sh --mode smoke` PASS including build; artifact `artifacts/source-conformance/20260513-093054-pay-sh-smoke/SUMMARY.md`
+
+RESUME FROM HERE: Open/review/merge the Pay.sh policy-plan PR, then next slice can add a UI/CLI demo for composing catalog → quote-preview → MCP inspection → policy-plan, still dry-run only.
+
 ## Latest Update — Pay.sh source adapter + MCP sandbox merged (2026-05-13 AEST)
 
 Merged PR #318 for Issue #317 and PR #320 for Issue #319. The second slice scope is public metadata inspection only: no `pay setup`, no `pay topup`, no wallet creation, no `pay mcp` process execution, no paid Pay.sh call, no provider invocation, and no secrets stored.

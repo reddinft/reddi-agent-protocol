@@ -109,3 +109,10 @@ Feature: Bucket S Source Adapter Onboarding
     Then Reddi classifies read-only provider discovery tools as dry-run safe
     And paid invocation balance and provider-authoring tools are blocked in dry-run mode
     And the policy forbids wallet setup top-up paid invocation and secret storage
+
+  @S5.10 @conformance @pay-sh @settlement-safety
+  Scenario: Pay.sh paid-call policy plan remains dry-run before execution
+    When a Pay.sh candidate endpoint is planned for a future allowlisted paid call
+    Then Reddi requires explicit user approval endpoint allowlisting tiny spend cap receipt capture and attestation
+    And live payment remains disabled in the policy plan
+    And non-curl MCP tools are blocked from future paid invocation
