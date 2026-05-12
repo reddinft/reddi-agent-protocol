@@ -1,8 +1,8 @@
 # Reddi Agent Protocol — Status
 
-## Latest Update — Pay.sh dry-run paid-call policy plan ready (2026-05-13 AEST)
+## Latest Update — Pay.sh dry-run paid-call policy plan merged (2026-05-13 AEST)
 
-Implemented the third Pay.sh slice for Issue #322. Scope is local dry-run policy planning only: no `pay setup`, no `pay topup`, no wallet creation, no `pay mcp` process execution, no paid Pay.sh call, no provider invocation, and no secrets stored.
+Merged PR #323 for Issue #322. Scope is local dry-run policy planning only: no `pay setup`, no `pay topup`, no wallet creation, no `pay mcp` process execution, no paid Pay.sh call, no provider invocation, and no secrets stored.
 
 Delivered:
 - Pay.sh paid-call policy planner: `lib/integrations/source-adapter/pay-sh-policy-plan.ts`
@@ -17,7 +17,7 @@ Validation:
 - Pay.sh policy-plan focused Jest PASS (6/6)
 - `./scripts/run-source-conformance.sh --source pay-sh --mode smoke` PASS including build; artifact `artifacts/source-conformance/20260513-093054-pay-sh-smoke/SUMMARY.md`
 
-RESUME FROM HERE: Open/review/merge the Pay.sh policy-plan PR, then next slice can add a UI/CLI demo for composing catalog → quote-preview → MCP inspection → policy-plan, still dry-run only.
+RESUME FROM HERE: Next slice can add a UI/CLI demo for composing catalog → quote-preview → MCP inspection → policy-plan, still dry-run only.
 
 ## Latest Update — Pay.sh source adapter + MCP sandbox merged (2026-05-13 AEST)
 
