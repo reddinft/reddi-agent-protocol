@@ -1,22 +1,74 @@
 # Reddi Agent Protocol — Status
 
-## Latest Update — Legacy RAP naming audit branch (2026-05-13 AEST)
+## Latest Update — Circle x402 source adapter packaged after RAP naming merge (2026-05-13 AEST)
 
-Branch: `fix/rap-legacy-naming-audit`. The Circle x402 feature work was stashed first as `wip-circle-x402-feature-before-rap-legacy-naming-audit` so this branch stays focused on naming.
+PR #312 (`docs: enforce RAP naming in legacy collateral`) was merged into `main` at `93702861`. The Circle x402 feature work was restored onto branch `feature/circle-x402-source-adapter` after updating from main.
 
-Nissan clarified the product name: **Reddi Agent Protocol**, short form **RAP**. The standalone shorthand should not be used as the protocol/product name; package identifiers like `reddi-x402` remain valid.
+Delivered in this feature branch:
+- Circle x402 source profile and Discovery-resource conversion helpers
+- Metadata-only ingest script: `scripts/ingest-circle-x402-discovery.mjs`
+- Dry-run catalog API/page: `/api/source-adapters/circle-x402` and `/circle-x402`
+- Dry-run route/quote preview API: `/api/source-adapters/circle-x402/quote-preview`
+- Tests for Circle profile, catalog route, and quote-preview route
+- BDD/source conformance wiring for `circle-x402`
 
-Delivered:
-- Added `scripts/check-rap-naming.mjs`
-- Added npm script `check:rap:naming`
-- Patched legacy docs/scripts/package text caught by the guard, including app, x402, marketplace, agent-manifest, and pitch phrasing that used standalone protocol shorthand.
+Boundary remains clean: no Circle login, wallet setup, funding, terms acceptance, x402 payment header creation, external service invocation, or live spend. Imported Circle resources remain externally listed and not RAP-attested until RAP attestors verify receipts/evidence.
 
-Validation:
+RESUME FROM HERE: Resolve/validate feature branch, commit, push, and open the Circle x402 source-adapter PR.
+
+## Previous Update — Legacy RAP naming audit branch (2026-05-13 AEST)
+
+PR #312 merged. Product naming rule is now guarded: use **Reddi Agent Protocol** or **RAP**, not standalone shorthand as the protocol/product name. Package identifiers such as `reddi-x402` remain valid.
+
+Validation before merge:
 - `npm run check:product:naming` PASS
 - `npm run check:rap:naming` PASS
 - `npm test` inside `packages/openrouter-specialists` PASS (54/54)
 
-RESUME FROM HERE: Commit this branch, then push/open PR if desired. After this naming PR is handled, restore stash `wip-circle-x402-feature-before-rap-legacy-naming-audit` and package the Circle x402 feature PR on top of the cleaned naming baseline.
+## Previous Update — Circle x402 dry-run catalog + quote preview (2026-05-13 AEST)
+
+Completed an autonomous completion pass from the Circle x402 adapter slice through local dry-run catalog, route/quote preview, BDD/docs sync, and validation. Everything remains metadata/local-preview only; there is no live Circle payment or invocation path.
+
+Delivered:
+- API: `app/api/source-adapters/circle-x402/route.ts`
+- Catalog loader: `lib/integrations/source-adapter/circle-x402-catalog.ts`
+- UI: `/circle-x402` at `app/circle-x402/page.tsx`
+- Marketplace CTA from `/agents` to `/circle-x402`
+- Route tests: `lib/__tests__/circle-x402-catalog-route.test.ts`
+- Quote preview helper: `lib/integrations/source-adapter/circle-x402-quote-preview.ts`
+- Quote preview API: `app/api/source-adapters/circle-x402/quote-preview/route.ts`
+- Quote preview tests: `lib/__tests__/circle-x402-quote-preview-route.test.ts`
+- `/circle-x402` UI can preview a selected candidate's RAP route with `livePaymentAllowed: false`, estimated USDC metadata, and required gates.
+
+Validation:
+- `npx jest lib/__tests__/circle-x402-catalog-route.test.ts lib/__tests__/circle-x402-quote-preview-route.test.ts lib/__tests__/source-adapter-circle-x402-profile.test.ts --runInBand` PASS (9/9)
+- `npm run test:bdd:index` PASS
+- `./scripts/run-source-conformance.sh --source circle-x402 --mode smoke` PASS including build; latest summary: `artifacts/source-conformance/20260513-054116-circle-x402-smoke/SUMMARY.md`
+- `pnpm build` PASS; new routes present: `/circle-x402`, `/api/source-adapters/circle-x402`, and `/api/source-adapters/circle-x402/quote-preview`
+
+## Previous Update — Circle x402 source adapter Iteration 1 (2026-05-13 AEST)
+
+Planned and implemented the first Circle for Agents / Circle x402 integration slice after the alignment crawl. This is metadata-only and does not perform Circle CLI login, wallet setup, funding, terms acceptance, or live paid calls.
+
+Delivered:
+- Spec: `docs/CIRCLE-X402-SOURCE-ADAPTER-SPEC-2026-05-13.md`
+- Source profile + conversion helpers: `lib/integrations/source-adapter/profiles/circle-x402.ts`
+- Registry support for `circle-x402`: `lib/integrations/source-adapter/profiles/index.ts`
+- MCP preferred-source enum updated to include `circle-x402`: `lib/mcp/tools.ts`
+- Tests: `lib/__tests__/source-adapter-circle-x402-profile.test.ts`
+- Live metadata ingest script: `scripts/ingest-circle-x402-discovery.mjs` and npm script `ingest:circle-x402`
+- BDD/source conformance hooks updated for `circle-x402`
+
+## Latest Update — Public cohort readiness matrix created (2026-05-12 AEST)
+
+Created `docs/RAP-SHARED-CONTEXT-PACK-2026-05-12.md` as the current working baseline for Reddi Agent Protocol roadmap discussions. It synthesizes the status files, payment architecture, `reddi-x402` scope, reputation design, verifiable protocol index, whitepaper candidate/plan, RAP MCP bridge design, agent-framework onboarding guide, OpenRouter 30-specialist readiness boundary, and final recording packet claim boundaries.
+
+Created `docs/PUBLIC-AGENT-COHORT-READINESS-MATRIX-2026-05-12.md` to turn the baseline into launch gates for the first public Specialist, Attestor, and Consumer cohorts. Recommended default: Phase 1 dry-run public market first; then bounded devnet paid invocation only after readiness gates pass. Proposed first batch: specialists = codegen, research/citation, content, QA, proof artifact; attestors = schema, factuality/citation, code/test, receipt/disclosure; consumers = RAP MCP Bridge + OpenClaw skill/playbook.
+
+Key roadmap framing captured: Reddi Agent Protocol is the protocol/marketplace/control-plane layer; `reddi-x402` is the installable payment/privacy rail; first public cohort should be organized across Specialist, Attestor, and Consumer readiness matrices. Boundary reminders remain explicit: no mainnet settlement claim, no successful public Jupiter devnet swap claim, no production-paid claim for all 30 OpenRouter specialists without refreshed funding/deployment/live paid-call readiness.
+
+RESUME FROM HERE: Use `docs/RAP-SHARED-CONTEXT-PACK-2026-05-12.md` and `docs/PUBLIC-AGENT-COHORT-READINESS-MATRIX-2026-05-12.md` as the shared group-chat baseline. Next useful implementation artifact is a machine-checkable `data/public-cohort/` seed plus a readiness validator/page.
+
 
 ## Current Resume — 2026-05-09
 

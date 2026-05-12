@@ -49,7 +49,7 @@ export type ResolveInput = {
     requireAttestation?: boolean;
     preferredPrivacyMode?: "public" | "per" | "vanish";
     minReputation?: number;
-    preferredSource?: "openclaw" | "hermes" | "pi";
+    preferredSource?: "openclaw" | "hermes" | "pi" | "circle-x402";
     strictSourceMatch?: boolean;
   };
 };
@@ -68,8 +68,8 @@ export type ResolveOutput = {
     avgFeedbackScore: number;
     selectionReasons: string[];
     sourceRouting?: {
-      requestedSource: "openclaw" | "hermes" | "pi" | null;
-      candidateSource: "openclaw" | "hermes" | "pi" | null;
+      requestedSource: "openclaw" | "hermes" | "pi" | "circle-x402" | null;
+      candidateSource: "openclaw" | "hermes" | "pi" | "circle-x402" | null;
       strictSourceMatch: boolean;
       scoreDelta: number;
       decisionTrace: string[];
@@ -82,8 +82,8 @@ export type ResolveOutput = {
     score: number;
     selectionReasons: string[];
     sourceRouting?: {
-      requestedSource: "openclaw" | "hermes" | "pi" | null;
-      candidateSource: "openclaw" | "hermes" | "pi" | null;
+      requestedSource: "openclaw" | "hermes" | "pi" | "circle-x402" | null;
+      candidateSource: "openclaw" | "hermes" | "pi" | "circle-x402" | null;
       strictSourceMatch: boolean;
       scoreDelta: number;
       decisionTrace: string[];
@@ -288,7 +288,7 @@ export const MCP_TOOL_SCHEMAS = [
             minReputation: { type: "number", description: "Minimum on-chain reputation score." },
             preferredSource: {
               type: "string",
-              enum: ["openclaw", "hermes", "pi"],
+              enum: ["openclaw", "hermes", "pi", "circle-x402"],
               description: "Optional source-ecosystem preference for candidate routing.",
             },
             strictSourceMatch: {

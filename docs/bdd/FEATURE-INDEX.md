@@ -1,6 +1,6 @@
 # BDD Feature Index
 
-_Last updated: 2026-05-09 AEST_
+_Last updated: 2026-05-13 AEST_
 
 Purpose: single lookup from BDD feature file -> bucket -> executable verification command(s).
 
@@ -49,10 +49,12 @@ Purpose: single lookup from BDD feature file -> bucket -> executable verificatio
 ### Bucket S — Source Adapter Onboarding
 - Feature: `docs/bdd/features/bucket-s-source-adapters.feature`
 - Verify:
-  - `npx jest lib/__tests__/source-adapter-schema.test.ts lib/__tests__/register-probe-route.test.ts lib/__tests__/source-adapter-openclaw-profile.test.ts lib/__tests__/source-adapter-openclaw-connector.test.ts lib/__tests__/source-adapter-hermes-profile.test.ts lib/__tests__/source-adapter-hermes-attestor.test.ts lib/__tests__/source-adapter-pi-profile.test.ts lib/__tests__/source-adapter-pi-extension-bundle.test.ts lib/__tests__/source-adapter-routing-policy.test.ts lib/__tests__/planner-resolve-route.test.ts --runInBand`
+  - `npm run check:rap:naming`
+  - `npx jest lib/__tests__/source-adapter-schema.test.ts lib/__tests__/register-probe-route.test.ts lib/__tests__/source-adapter-openclaw-profile.test.ts lib/__tests__/source-adapter-openclaw-connector.test.ts lib/__tests__/source-adapter-hermes-profile.test.ts lib/__tests__/source-adapter-hermes-attestor.test.ts lib/__tests__/source-adapter-pi-profile.test.ts lib/__tests__/source-adapter-pi-extension-bundle.test.ts lib/__tests__/source-adapter-circle-x402-profile.test.ts lib/__tests__/circle-x402-catalog-route.test.ts lib/__tests__/circle-x402-quote-preview-route.test.ts lib/__tests__/source-adapter-routing-policy.test.ts lib/__tests__/planner-resolve-route.test.ts --runInBand`
   - `npm run test:source:conformance`
   - `./scripts/run-source-conformance.sh --source hermes --mode smoke`
   - `./scripts/run-source-conformance.sh --source pi --mode smoke`
+  - `./scripts/run-source-conformance.sh --source circle-x402 --mode smoke`
   - `npm run test:source:matrix`
 
 ### Bucket I — Agent Manager Operations

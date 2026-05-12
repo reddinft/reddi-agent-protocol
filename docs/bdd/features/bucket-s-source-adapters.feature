@@ -74,3 +74,17 @@ Feature: Bucket S Source Adapter Onboarding
     When source-conformance-matrix workflow runs on source adapter changes
     Then matrix execution must pass before merge
     And source and matrix artifact directories are uploaded for inspection
+
+  @S5.5 @conformance @circle-x402 @cross-source-parity
+  Scenario: Circle x402 Discovery resources import as unattested specialist candidates
+    When a Circle x402 Discovery resource is converted into a RAP candidate
+    Then the candidate includes a valid source-adapter specialist manifest
+    And the candidate is marked externally listed and not RAP-attested
+    And payment options preserve rail network amount and payee fields
+
+  @S5.6 @conformance @circle-x402 @settlement-safety
+  Scenario: Circle x402 quote preview remains dry-run until explicit approval
+    When a Circle x402 candidate is selected for route preview
+    Then Reddi returns source-aware route policy metadata
+    And live payment is disabled in the preview policy
+    And required approval attestation and receipt gates are listed before any paid invocation

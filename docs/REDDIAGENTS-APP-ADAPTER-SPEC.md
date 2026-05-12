@@ -276,7 +276,7 @@ Recommended bridge order:
 
 1. Resolve `agent_id` from `lib/app-adapter/registry.ts`.
 2. Validate input against the agent schema.
-3. Apply Reddi source policy, e.g. `preferredSource: "openclaw"` for ReddiAgents demo specialists.
+3. Apply RAP source policy, e.g. `preferredSource: "openclaw"` for ReddiAgents demo specialists.
 4. Call existing planner/specialist route or shared function.
 5. Preserve x402 challenge/payment status.
 6. Normalize final result into APP output + Reddi receipt envelope.

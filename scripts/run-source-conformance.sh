@@ -25,10 +25,10 @@ while [[ $# -gt 0 ]]; do
 done
 
 case "$SOURCE" in
-  openclaw|hermes|pi)
+  openclaw|hermes|pi|circle-x402)
     ;;
   *)
-    echo "Unsupported source: $SOURCE (allowed: openclaw|hermes|pi)"
+    echo "Unsupported source: $SOURCE (allowed: openclaw|hermes|pi|circle-x402)"
     exit 1
     ;;
 esac
@@ -77,6 +77,9 @@ echo "[source-conformance] artifacts=$OUT_DIR"
 run_step "BDD feature index integrity" \
   ./scripts/check-bdd-feature-index.sh
 
+run_step "RAP naming guard" \
+  npm run check:rap:naming
+
 run_step "Source adapter schema + probe contracts" \
   npx jest lib/__tests__/source-adapter-schema.test.ts lib/__tests__/register-probe-route.test.ts --runInBand
 
@@ -92,6 +95,10 @@ case "$SOURCE" in
   pi)
     run_step "pi profile + extension-bundle compatibility" \
       npx jest lib/__tests__/source-adapter-pi-profile.test.ts lib/__tests__/source-adapter-pi-extension-bundle.test.ts --runInBand
+    ;;
+  circle-x402)
+    run_step "Circle x402 profile + discovery mapping contracts" \
+      npx jest lib/__tests__/source-adapter-circle-x402-profile.test.ts --runInBand
     ;;
 esac
 
