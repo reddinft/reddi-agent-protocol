@@ -146,7 +146,43 @@ Sources found via search:
 - https://docs.cdp.coinbase.com/agentic-wallet/mcp/mcp-tools/overview
 - https://docs.cdp.coinbase.com/agentic-wallet/mcp/faq
 
-### 6. EVM ERC-4337/EIP-7702 smart accounts — best “real AA” semantics, but chain-shift cost
+### 6. Pay.sh — Solana-first agent API payments, highly relevant as consumer rail and benchmark
+
+Pay.sh is directly relevant if RAP stays Solana-first. It is a Solana Foundation + Google Cloud gateway for agent/API payments using stablecoins on Solana, with x402 and MPP support, a live provider catalog, CLI, MCP server, and wallet top-up flow.
+
+Important points:
+
+- Designed for exactly the agent/API payment pattern: discover API endpoints, see pricing, pay per request, receive response.
+- Solana announcement says Pay.sh links a Solana wallet to agent interfaces including Gemini, Claude Code, Codex, Openclaw, Hermes, etc.
+- Pay.sh docs expose a local MCP server via `pay mcp` with tools for discovery, endpoint lookup, paid HTTP calls, balance checks, and provider validation.
+- `pay setup` creates a wallet in local secure storage where available: macOS Keychain, GNOME Keyring, Windows Hello, and 1Password.
+- `pay topup` supports the top-up flow; Solana launch material says credit card or stablecoin funding can complete in roughly 60 seconds.
+- Live catalog snapshot showed 72 providers and public registry/discovery endpoints.
+- Pay.sh is open source: `solana-foundation/pay`; services registry: `solana-foundation/pay-skills`.
+
+Where it fits RAP:
+
+- **Best Solana-first benchmark:** Pay.sh is closer to the immediate Solana/MCP/x402 target than ERC-4337 stacks.
+- **Potential consumer adapter:** RAP MCP could interoperate with or wrap `pay mcp` for generic paid API calls while RAP handles specialist reputation, attestation, and routing.
+- **Potential provider channel:** RAP specialists could publish into Pay.sh/pay-skills as payment-ready APIs, making RAP specialists discoverable through the wider Solana agent economy.
+- **Potential source adapter:** RAP could ingest Pay.sh catalog metadata into RAP marketplace discovery, similar to the Circle x402 source-adapter preview.
+
+Risk/gap:
+
+- Pay.sh solves paid API discovery/payment, not necessarily user-friendly account abstraction/recovery by email. Wallet appears local secure-storage based rather than email/passkey account recovery.
+- Agent delegation policy depth needs validation. Docs emphasize local wallet approval and not exposing private keys, but we still need RAP-level caps, allowlists, receipt binding, and revoke UX.
+- Need to test card top-up availability, geography, KYC, and whether it works in Australia.
+- Need to inspect exact payment receipt format, x402/MPP headers, and how to bind Pay.sh receipts into RAP attestation/reputation.
+
+Sources:
+- https://pay.sh
+- https://pay.sh/docs/get-started/install/index.md
+- https://pay.sh/docs/pay-for-apis/mcp/index.md
+- https://pay.sh/.well-known/mcp/server-card.json
+- https://pay.sh/api/catalog
+- https://solana.com/news/solana-foundation-launches-pay-sh-in-collaboration-with-google-cloud
+
+### 7. EVM ERC-4337/EIP-7702 smart accounts — best “real AA” semantics, but chain-shift cost
 
 EVM smart accounts provide the cleanest version of autonomous-agent safety: session keys, paymasters, batched calls, spending limits, allowlisted contracts, revocation, social recovery, and gas abstraction.
 
@@ -173,14 +209,15 @@ Primary path:
 - **RAP integration:** MCP client calls RAP wallet gateway, not raw provider SDK.
 - **Settlement:** keep Solana devnet for continuity; optionally add Base/x402 route as a parallel adapter after POC.
 
-Updated recommendation after broader provider scan:
+Updated recommendation after broader provider scan and Pay.sh review:
 
-1. **Best full account-abstraction POC:** Privy login + ZeroDev Kernel smart account on Base Sepolia/Base. This gives the cleanest ERC-4337/EIP-7702 semantics: smart wallet, session keys, paymaster/gas sponsorship, permissioned agent keys, batching, and revocation.
-2. **Best Solana-continuity POC:** Privy Solana embedded/delegated wallet or Crossmint Solana smart/MPC wallet. This keeps continuity with current RAP Surfpool/devnet proof paths, but it is not ERC-4337-style AA; it is embedded wallet + delegated signer + fee sponsorship + RAP policy guardrails.
+1. **Best Solana-first POC:** Pay.sh integration + RAP policy/receipt wrapper. Pay.sh already has Solana stablecoin payments, x402/MPP, MCP tooling, paid API discovery, local secure wallet setup, and top-up flow. It is the most relevant Solana-native benchmark and likely the fastest proof that a Pi/OpenClaw/Codex-style agent can pay for services on Solana.
+2. **Best Solana wallet onboarding complement:** Privy Solana embedded/delegated wallet or Crossmint Solana smart/MPC wallet. This addresses the part Pay.sh may not fully solve: email/passkey recovery and branded user onboarding.
 3. **Best policy/signing core:** Turnkey. Strong for granular delegated signing and enclave-enforced policies across EVM/Solana, but needs a separate top-up/onramp layer.
 4. **Best all-in-one “maybe buy this” candidate:** Crossmint. Its agent payments docs already cover cards, stablecoin wallets, spending rules, x402, and agent payment flows.
+5. **Best full account-abstraction POC if/when EVM track matters:** Privy login + ZeroDev Kernel smart account on Base Sepolia/Base. This gives the cleanest ERC-4337/EIP-7702 semantics, but it is no longer the primary recommendation while RAP is Solana-first.
 
-If we only build one first: **Privy + ZeroDev Kernel on Base Sepolia** for the cleanest AA story and easiest session-key policy demo. If we want to stay closest to existing RAP devnet artifacts, run a parallel **Privy/Crossmint Solana wallet track** as the continuity proof.
+If we only build one first while staying Solana-focused: **Pay.sh source/consumer integration + RAP policy wrapper**. In parallel, test whether **Pay.sh top-up + local secure wallet** is sufficient for user onboarding, or whether we still need Privy/Crossmint for email/passkey recovery.
 
 ## Proposed user flow
 
@@ -292,7 +329,7 @@ Options:
 - **Turnkey wallet + Coinbase/Crossmint/Transak onramp** — stronger policy/security core, more integration work.
 - **Circle Wallets/Gas Station** — useful for USDC rails and Solana fee sponsorship, but not a consumer card onramp by itself and Solana wallet type is EOA-only.
 
-Default funding target for first public-ish POC: **Base USDC** because ERC-4337/paymasters/session keys are mature and vendor support is broad. Keep **Solana USDC/devnet** as continuity proof where current RAP artifacts already exist.
+Default funding target for first Solana-focused POC: **Solana USDC via Pay.sh/top-up if accessible**, with RAP-side budget/policy limits and receipt binding. If Pay.sh top-up or wallet recovery is insufficient, pair Pay.sh payment/discovery rails with Privy/Crossmint onboarding wallets.
 
 Do not promise public card top-up until KYC/geography/provider approval is verified, especially Australia coverage and supported USDC networks.
 
