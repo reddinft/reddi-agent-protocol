@@ -14,7 +14,15 @@ Delivered in this feature branch:
 
 Boundary remains clean: no Circle login, wallet setup, funding, terms acceptance, x402 payment header creation, external service invocation, or live spend. Imported Circle resources remain externally listed and not RAP-attested until RAP attestors verify receipts/evidence.
 
-RESUME FROM HERE: Resolve/validate feature branch, commit, push, and open the Circle x402 source-adapter PR.
+Post-merge validation for PR #313:
+- `npm run check:rap:naming` PASS
+- Focused Circle Jest tests PASS (9/9)
+- `./scripts/run-source-conformance.sh --source circle-x402 --mode smoke` PASS including build; artifact: `artifacts/source-conformance/20260513-060649-circle-x402-smoke/SUMMARY.md`
+- Local Surfpool simulator lanes PASS: `npm run test:surfpool:critical`, `npm run test:surfpool:onboarding-wrapper`, `npm run test:surfpool:jupiter-invoke`
+- Devnet signed action PASS: 7 signed devnet tx executed; artifact: `artifacts/economic-demo-devnet-signed-action/20260512T201557Z/SIGNED-ACTION.md`
+- RAP MCP bridge devnet proof PASS; artifact: `artifacts/rap-mcp-bridge-devnet-proof/20260512T201611Z/SUMMARY.md`; downstream signature `2XeC2v4C1ZvuZzZfG4qPU4W4mJhbZtRJ61vvqP8zBZwRiRRUpd14Yxb9jL8dkvnMYZjyGNz8wgX9s6T87ubZRXbb`, fee signature `3uFQ2KG5kMDhbfT3myTcsykmaUkZwW7nEMKgBbPuExF1iWmXoSGbvHmRHuXj5FLtZAEFnuafgFsaqpsz6BH6ALCj`
+
+RESUME FROM HERE: PR #313 is merged and post-merge validation evidence is captured. Next useful feature work: choose the next public-cohort readiness seed/validator slice or Circle x402 live-gated integration slice.
 
 ## Previous Update — Legacy RAP naming audit branch (2026-05-13 AEST)
 
