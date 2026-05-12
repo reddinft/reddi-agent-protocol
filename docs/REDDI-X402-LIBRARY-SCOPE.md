@@ -1,4 +1,4 @@
-# Reddi x402 Library Scope
+# `reddi-x402` Library Scope
 
 _Last updated: 2026-04-27 AEST_
 
@@ -156,8 +156,8 @@ It provides:
 Use this split in demos and docs:
 
 - **`reddi-x402`**: “Installable payment and privacy rail for agent/API calls.”
-- **Specialist app**: “Your model/runtime, protected by Reddi x402.”
-- **Consumer app**: “Your orchestrator, paying and verifying calls through Reddi x402.”
+- **Specialist app**: “Your model/runtime, protected by `reddi-x402`.”
+- **Consumer app**: “Your orchestrator, paying and verifying calls through `reddi-x402`.”
 - **Reddi Agent Protocol web app**: “The Solana marketplace that discovers, verifies, ranks, and settles those paid agents.”
 
 ## Minimum library acceptance criteria

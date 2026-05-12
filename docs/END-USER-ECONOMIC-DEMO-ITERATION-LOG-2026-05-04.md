@@ -581,7 +581,7 @@ Next slice should either redeploy/smoke all 30 hosted manifests for public discl
 
 ### Decision log additions
 
-- `agenticWorkflowDisclosure` is part of the Reddi agent manifest contract.
+- `agenticWorkflowDisclosure` is part of the RAP agent manifest contract.
 - `reddi.downstream-disclosure-ledger.v1` is the response contract for downstream delegation disclosure.
 - Ordinary completions and attestations return an explicit `no_downstream_calls` ledger.
 - Live-delegation responses must include disclosure ledger evidence alongside intent, audit, and executor evidence.

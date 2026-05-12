@@ -101,7 +101,7 @@ Recommended demo flow:
 1. Fund/prepare the dev specialist wallet.
 2. Deploy the x402-protected mock specialist in Coolify.
 3. Run the smoke script and keep the artifact path.
-4. Register the specialist in the Reddi app on Solana devnet using the Coolify endpoint, model name, rate, capabilities, and public wallet.
+4. Register the specialist in the Reddi Agent Protocol app on Solana devnet using the Coolify endpoint, model name, rate, capabilities, and public wallet.
 5. Capture the registration transaction signature and Explorer URL.
 6. Resolve the specialist from the planner and perform a paid invocation.
 7. Save the paid invocation payload showing `matchConfidence` and `reputationScore`.

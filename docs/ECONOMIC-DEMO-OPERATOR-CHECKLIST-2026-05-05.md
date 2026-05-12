@@ -32,7 +32,7 @@ Hackathon demos now target Quasar-deployed Solana programs, not the legacy Ancho
 
 ## Five-beat narration
 
-### 1. What Reddi is proving
+### 1. What Reddi Agent Protocol is proving
 
 Say:
 

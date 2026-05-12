@@ -23,4 +23,4 @@ Use this file as script notes aligned to the HTML slideshow (`index.html`).
 
 ## Market proof insertion — SPAN/XFRA
 
-Slide 2 references CNBC’s May 5 2026 report on NVIDIA + PulteGroup + SPAN residential XFRA mini data centers. Use it to establish the future-state backdrop: compute is moving into homes and grid-edge locations, creating the need for machine-native coordination rails. Reddi’s answer is identity, x402 payment intent, Quasar/Solana settlement, reputation, attestation, and disclosure. Full research note: `docs/research/SPAN-XFRA-MINI-DATA-CENTERS-2026-05-06.md`.
+Slide 2 references CNBC’s May 5 2026 report on NVIDIA + PulteGroup + SPAN residential XFRA mini data centers. Use it to establish the future-state backdrop: compute is moving into homes and grid-edge locations, creating the need for machine-native coordination rails. Reddi Agent Protocol’s answer is identity, x402 payment intent, Quasar/Solana settlement, reputation, attestation, and disclosure. Full research note: `docs/research/SPAN-XFRA-MINI-DATA-CENTERS-2026-05-06.md`.
