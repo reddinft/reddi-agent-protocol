@@ -20,7 +20,7 @@ requireMatch("endpoint path", /path:\s*api\/economic-demo\/reddi-x402\/pay-sh-sm
 requireMatch("resource", /resource:\s*reddi-x402-pay-sh-smoke/);
 requireMatch("sandbox service url", /^sandbox_service_url:\s*http:\/\/127\.0\.0\.1:1402\/reddi-x402-economic-demo-provider$/m);
 requireMatch("usage price", /price_usd:\s*0\.01/);
-forbidMatch("standalone Reddi product name", /\bReddi\b(?! Agent Protocol)/);
+forbidMatch("standalone standalone protocol shorthand", /\bReddi\b(?! Agent Protocol)/);
 forbidMatch("hyphenated product name", /Reddi-Agent Protocol/);
 forbidMatch("unsupported settlement claim", /mainnet settlement|Umbra private settlement|MagicBlock PER settlement/i);
 

@@ -27,7 +27,7 @@ Existing Reddi Agent Protocol app + registered specialists
 2. **Small enough to ship now** — polling-based run lifecycle first; streaming/webhooks are optional follow-ups.
 3. **Fail closed** — never convert an unpaid/open completion path into a successful paid/callable APP result.
 4. **Judge-safe evidence** — every run returns a receipt envelope that points to safe public evidence, not private prompts, secrets, or raw logs.
-5. **Composable by default** — APP agent IDs map onto Reddi specialist capabilities and source-routing policy rather than hardcoded one-off endpoints.
+5. **Composable by default** — APP agent IDs map onto RAP specialist capabilities and source-routing policy rather than hardcoded one-off endpoints.
 
 ## 3. Non-goals for v0.1
 

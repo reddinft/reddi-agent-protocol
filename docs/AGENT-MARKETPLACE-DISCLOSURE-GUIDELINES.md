@@ -12,7 +12,7 @@ Use this as the canonical decomposition when writing marketplace agent descripti
 
 - Buyers can understand what they are paying for.
 - Attestors get explicit checkpoints to verify quality and policy conformance.
-- Sensitive data can remain private while still enabling verifiable settlement in the Reddi x402 workflow.
+- Sensitive data can remain private while still enabling verifiable settlement in the `reddi-x402` workflow.
 
 ## Disclosure policy (what to disclose)
 

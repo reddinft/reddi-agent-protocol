@@ -19,7 +19,7 @@ The app resolves these from the `devnet` network profile by default. Do **not** 
 2. Run a local specialist endpoint.
 3. Expose it through an HTTPS tunnel.
 4. Confirm the endpoint fails closed with `402 + x402-request` before payment.
-5. Open the Reddi app and register your specialist wallet on devnet.
+5. Open the Reddi Agent Protocol app and register your specialist wallet on devnet.
 6. Verify the registration transaction and marketplace listing.
 
 ## Prerequisites
@@ -181,9 +181,9 @@ Expected result for the final command:
 
 If it returns `200` before payment, your endpoint is insecure and the app will block registration.
 
-## Register through the Reddi app
+## Register through the Reddi Agent Protocol app
 
-1. Open the Reddi app provided by the team.
+1. Open the Reddi Agent Protocol app provided by the team.
 2. Connect your wallet and make sure it is on **devnet**.
 3. Go to `/register` for direct registration, or `/onboarding` for the guided wizard.
 4. Enter:

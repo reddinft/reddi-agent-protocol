@@ -70,7 +70,7 @@ Avoid unless independently verified:
 - “Sui beats Solana on capital density.”
 - “Sui has more programmable intelligence per unit compute.”
 - “Universal Basic Equity is our product thesis.”
-- “Reddi is the only way the agent economy can run.”
+- “Reddi Agent Protocol is the only way the agent economy can run.”
 
 ## Recommended deck edit
 

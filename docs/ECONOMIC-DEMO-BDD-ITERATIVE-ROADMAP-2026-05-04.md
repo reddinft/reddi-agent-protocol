@@ -141,7 +141,7 @@ Completed before this roadmap:
 
 **Scope:**
 
-- Extend the Reddi agent manifest with `mayCallMarketplaceAgents`, expected downstream capabilities/categories, budget/allowlist policy, attestor expectations, and payload-disclosure policy.
+- Extend the RAP agent manifest with `mayCallMarketplaceAgents`, expected downstream capabilities/categories, budget/allowlist policy, attestor expectations, and payload-disclosure policy.
 - Define a response-level downstream-disclosure ledger for live and controlled-demo delegation runs.
 - Show disclosure in `/economic-demo` beside the receipt chain.
 - Allow proprietary value-add obfuscation only for returned implementation details; never for called-agent identity, payload class/summary or hash, wallet/endpoint, payment evidence, or attestation links.

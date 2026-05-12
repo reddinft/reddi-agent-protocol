@@ -232,7 +232,7 @@ test("caller-authored structured demo receipts are rejected", async () => {
   assert.equal((tokenResponse.body.error as { code: string }).code, "payment_required");
 });
 
-test("well-known metadata includes Reddi marketplace fields", async () => {
+test("well-known metadata includes RAP marketplace fields", async () => {
   const profile = getProfile("planning-agent");
   assert.ok(profile);
   const metadata = marketplaceMetadata(profile, config) as Record<string, unknown>;

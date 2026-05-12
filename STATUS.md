@@ -1,5 +1,23 @@
 # Reddi Agent Protocol — Status
 
+## Latest Update — Legacy RAP naming audit branch (2026-05-13 AEST)
+
+Branch: `fix/rap-legacy-naming-audit`. The Circle x402 feature work was stashed first as `wip-circle-x402-feature-before-rap-legacy-naming-audit` so this branch stays focused on naming.
+
+Nissan clarified the product name: **Reddi Agent Protocol**, short form **RAP**. The standalone shorthand should not be used as the protocol/product name; package identifiers like `reddi-x402` remain valid.
+
+Delivered:
+- Added `scripts/check-rap-naming.mjs`
+- Added npm script `check:rap:naming`
+- Patched legacy docs/scripts/package text caught by the guard, including app, x402, marketplace, agent-manifest, and pitch phrasing that used standalone protocol shorthand.
+
+Validation:
+- `npm run check:product:naming` PASS
+- `npm run check:rap:naming` PASS
+- `npm test` inside `packages/openrouter-specialists` PASS (54/54)
+
+RESUME FROM HERE: Commit this branch, then push/open PR if desired. After this naming PR is handled, restore stash `wip-circle-x402-feature-before-rap-legacy-naming-audit` and package the Circle x402 feature PR on top of the cleaned naming baseline.
+
 ## Current Resume — 2026-05-09
 
 Onboarding/judge UX is locally shippable and validated. Public proof path now has a stable in-product `/judge-replication` route (temporary `here.now` guide links removed from source CTAs). `/start` has overview + 3 proof videos; homepage shows 3 proof videos; contextual proof videos are embedded on setup/agents/register/economic-demo; `/register` is readable before wallet connect; `/economic-demo` defaults to safe recorded-proof verification with fresh devnet actions under an advanced warning.
