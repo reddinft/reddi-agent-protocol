@@ -1,5 +1,15 @@
 # Reddi Agent Protocol — Status
 
+## Latest Update — Agent wallet/account abstraction POC research drafted (2026-05-13 AEST)
+
+Drafted `docs/ACCOUNT-ABSTRACTION-AGENT-WALLET-POC-2026-05-13.md` for the RAP MCP consumer onboarding problem: a Pi/dev-style agent user should be able to install the RAP MCP client, log in by email/passkey, top up by card, delegate bounded spend to their agent, and consume specialist agents without managing raw crypto wallet details.
+
+Current recommendation: build a provider-neutral **RAP Agent Wallet Adapter**. First implementation should likely be **Privy + ZeroDev Kernel on Base Sepolia/Base** for the cleanest ERC-4337/EIP-7702 account-abstraction story: smart account, session keys, paymaster/gas sponsorship, scoped agent permissions, and revocation. Run a parallel Solana continuity track with Privy Solana delegated wallets or Crossmint Solana smart/MPC wallets because current RAP proofs are Solana/Surfpool/devnet-oriented.
+
+Provider summary: Privy = best user-login UX; ZeroDev Kernel = best EVM AA/session-key layer; Turnkey = strongest delegated signer/policy core; Crossmint = strongest all-in-one agent payments/card+stablecoin/x402 candidate; Coinbase Agentic Wallet MCP = closest benchmark/competitor for MCP wallet UX. Important nuance: Solana Circle Wallets are EOA-only, not strict ERC-4337-style account abstraction; Solana path requires embedded wallet + delegated signer + fee sponsorship + RAP policy/audit guardrails.
+
+RESUME FROM HERE: Review/merge the research PR, then choose first implementation path: EVM-first Privy+ZeroDev POC vs Solana-continuity Privy/Crossmint POC.
+
 ## Latest Update — Circle x402 source adapter packaged after RAP naming merge (2026-05-13 AEST)
 
 PR #312 (`docs: enforce RAP naming in legacy collateral`) was merged into `main` at `93702861`. The Circle x402 feature work was restored onto branch `feature/circle-x402-source-adapter` after updating from main.
