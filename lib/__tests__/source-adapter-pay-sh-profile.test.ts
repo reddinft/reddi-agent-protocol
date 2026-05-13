@@ -1,4 +1,5 @@
 import {
+  buildPayShEnvironmentCapabilities,
   buildPayShSourceManifest,
   mapPayShCategoryToTaskTypes,
   payShCatalogProviderToCandidate,
@@ -63,8 +64,52 @@ describe("source adapter pay-sh profile", () => {
       maxUsd: 0.01,
       hasMetering: true,
     });
+    expect(candidate.environmentCapabilities.sandbox).toMatchObject({
+      supported: true,
+      network: "localnet",
+      defaultRpcUrl: "https://402.surfnet.dev:8899",
+      localRpcUrl: "http://localhost:8899",
+      funding: "surfpool_fake_sol_usdc",
+    });
+    expect(candidate.environmentCapabilities.devnet.support).toBe("unknown");
+    expect(candidate.environmentCapabilities.mainnet).toMatchObject({
+      supported: true,
+      network: "mainnet",
+      livePaymentAllowed: false,
+    });
     expect(candidate.attestationState).toBe("externally_listed_unattested");
     expect(validateSourceAdapterManifest(candidate.sourceAdapter).ok).toBe(true);
     expect(candidate.trustNotes.join(" ")).toContain("Not RAP-attested");
+  });
+
+  it("preserves provider sandbox URLs for Pay.sh sandbox/localnet testing", () => {
+    const capabilities = buildPayShEnvironmentCapabilities({
+      fqn: "example/provider",
+      title: "Example Provider",
+      category: "data",
+      service_url: "https://api.example.com",
+      sandbox_service_url: "https://sandbox.example.com",
+    });
+
+    expect(capabilities.sandbox.providerSandboxServiceUrl).toBe("https://sandbox.example.com");
+    expect(capabilities.sandbox.notes.join(" ")).toContain("sandbox_service_url");
+    expect(capabilities.sandbox.notes.join(" ")).toContain("localnet/Surfpool");
+  });
+
+  it("marks devnet as provider-declared only when metadata says so", () => {
+    const capabilities = buildPayShEnvironmentCapabilities({
+      fqn: "quicknode/rpc",
+      title: "QuickNode",
+      description: "Pay-per-request RPC with Solana devnet support.",
+      category: "compute",
+      service_url: "https://x402.quicknode.com",
+    });
+
+    expect(capabilities.devnet).toMatchObject({
+      support: "provider_declared",
+      network: "devnet",
+      detection: "provider_metadata",
+    });
+    expect(capabilities.devnet.notes.join(" ")).toContain("challenge");
   });
 });
