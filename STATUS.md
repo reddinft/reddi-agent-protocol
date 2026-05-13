@@ -1,5 +1,17 @@
 # Reddi Agent Protocol — Status
 
+## Latest Update — Pay.sh sandbox/devnet research drafted (2026-05-13 AEST)
+
+Researched whether Pay.sh supports no-real-funds environments for Reddi Agent Protocol pre-go-live work. Drafted `docs/PAY-SH-DEVNET-SANDBOX-RESEARCH-2026-05-13.md`.
+
+Conclusion: Pay.sh **does** support a primary sandbox/localnet path for tests using `pay --sandbox`, hosted/local Surfpool, and ephemeral fake-funded wallets. Devnet exists in Pay.sh source/protocol handling and some provider metadata, but appears provider/challenge-dependent rather than the primary public CLI testing path.
+
+Recommended RAP stance: model Pay.sh sandbox/localnet as the default pre-go-live path; preserve provider `sandbox_service_url`; treat devnet as provider-declared/challenge-detected secondary support; do not promise universal devnet payments.
+
+Validation: `npm run check:rap:naming` PASS.
+
+RESUME FROM HERE: Merge the research doc, then implement environment capability metadata in the Pay.sh adapter (`sandbox_supported`, `sandbox_service_url`, `devnet_supported`).
+
 ## Latest Update — Pay.sh dry-run paid-call policy plan merged (2026-05-13 AEST)
 
 Merged PR #323 for Issue #322. Scope is local dry-run policy planning only: no `pay setup`, no `pay topup`, no wallet creation, no `pay mcp` process execution, no paid Pay.sh call, no provider invocation, and no secrets stored.
