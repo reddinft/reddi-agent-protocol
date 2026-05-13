@@ -1,5 +1,17 @@
 # Reddi Agent Protocol — Status
 
+## Latest Update — RAP positioning and Solana coupling map drafted (2026-05-13 AEST)
+
+Drafted `docs/RAP-POSITIONING-COUPLING-MAP-2026-05-13.md` for Issue #332. This steps back from specific vendors/chains and frames Reddi Agent Protocol as a trust, policy, receipt, attestation, settlement, and reputation layer for paid agent work.
+
+Key conclusion: RAP should remain Solana-first in implementation, but not Solana-defined in positioning. Solana is the v1 settlement adapter; Pay.sh/Circle are source/payment ecosystem adapters; RAP core is the paid-agent work lifecycle and trust control plane.
+
+Recommended next architecture vocabulary: `settlementRail`, `settlementAdapter`, `paymentChallenge`, `walletAuthority`, `environment`, `asset`, and `receipt` so alternatives can be compared as adapter choices rather than protocol rewrites.
+
+Validation: `npm run check:rap:naming` PASS.
+
+RESUME FROM HERE: Open/merge the positioning doc PR, then add an ADR: “RAP core is settlement-rail agnostic; Solana is adapter v1.”
+
 ## Latest Update — Pay.sh endpoint/environment compatibility gate implemented (2026-05-13 AEST)
 
 Merged PR #330 for Issue #329. Scope remains dry-run/policy only: no `pay setup`, no `pay topup`, no wallet creation, no `pay mcp`, no paid Pay.sh call, no provider invocation, and no secrets stored.
