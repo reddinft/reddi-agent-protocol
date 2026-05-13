@@ -123,3 +123,10 @@ Feature: Bucket S Source Adapter Onboarding
     Then sandbox localnet is represented as the primary no-real-funds pre-go-live environment
     And devnet support is unknown unless provider metadata or payment challenge evidence declares it
     And mainnet remains explicitly gated with live payment disabled by default
+
+  @S5.12 @conformance @pay-sh @environment-capabilities @settlement-safety
+  Scenario: Pay.sh policy plans reject endpoint and environment mismatches
+    When a Pay.sh endpoint is planned for sandbox devnet or mainnet execution
+    Then sandbox plans prefer provider sandbox service URLs when declared
+    And devnet plans require declared or challenge-detected devnet support
+    And mainnet plans require candidate service URL compatibility plus explicit allowlisting
