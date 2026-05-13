@@ -3,6 +3,7 @@ import { buildPayShQuotePreview } from "@/lib/integrations/source-adapter/pay-sh
 export type PayShPolicyPlanInput = {
   candidateId: string;
   task: string;
+  environment?: "sandbox" | "devnet" | "mainnet";
   endpointUrl?: string;
   toolName?: string;
   estimatedUsd?: number;
@@ -18,6 +19,7 @@ export type PayShPolicyBlockReason =
   | "tool_not_allowed_for_live_payment"
   | "endpoint_missing"
   | "endpoint_not_allowlisted"
+  | "devnet_support_unknown"
   | "user_approval_missing"
   | "spend_cap_missing"
   | "estimated_cost_exceeds_spend_cap"
@@ -35,6 +37,14 @@ export type PayShPolicyPlan = {
     endpointUrl: string | null;
     estimatedUsd: number | null;
     spendCapUsd: number | null;
+  };
+  environment: {
+    requested: "sandbox" | "devnet" | "mainnet";
+    executionNetwork: "localnet" | "devnet" | "mainnet";
+    livePaymentExperiment: boolean;
+    sandboxAvailable: boolean;
+    devnetSupport: "provider_declared" | "challenge_detected" | "unknown";
+    mainnetGated: true;
   };
   policy: {
     source: "pay-sh";
@@ -80,6 +90,9 @@ function endpointIsAllowlisted(endpointUrl: string | undefined, allowlistedEndpo
 
 export function buildPayShPolicyPlan(input: PayShPolicyPlanInput): PayShPolicyPlan {
   const quote = buildPayShQuotePreview({ candidateId: input.candidateId, task: input.task });
+  const requestedEnvironment = input.environment ?? "sandbox";
+  const candidateEnv = quote.candidate?.environmentCapabilities;
+  const executionNetwork = requestedEnvironment === "sandbox" ? "localnet" : requestedEnvironment;
   const toolName = input.toolName ?? "curl";
   const endpointUrl = input.endpointUrl?.trim() || null;
   const estimatedUsd = typeof input.estimatedUsd === "number" ? Math.max(0, input.estimatedUsd) : null;
@@ -115,6 +128,23 @@ export function buildPayShPolicyPlan(input: PayShPolicyPlanInput): PayShPolicyPl
       detail: endpointUrl
         ? "Endpoint must match an explicit allowlist entry before future live payment."
         : "Cannot evaluate allowlist until endpoint is supplied.",
+    },
+    {
+      id: "environment_supported",
+      passed:
+        requestedEnvironment === "sandbox" ||
+        requestedEnvironment === "mainnet" ||
+        candidateEnv?.devnet.support === "provider_declared" ||
+        candidateEnv?.devnet.support === "challenge_detected",
+      required: true,
+      detail:
+        requestedEnvironment === "sandbox"
+          ? "Pay.sh sandbox/localnet is the default no-real-funds pre-go-live lane."
+          : requestedEnvironment === "devnet"
+            ? candidateEnv?.devnet.support === "provider_declared" || candidateEnv?.devnet.support === "challenge_detected"
+              ? "Devnet support is detected for this candidate, but must still be verified against the payment challenge."
+              : "Devnet support is unknown for this candidate; use sandbox/localnet or provider mocks until a devnet challenge is detected."
+            : "Mainnet is structurally supported but remains gated and disabled by default.",
     },
     {
       id: "user_approval",
@@ -153,6 +183,7 @@ export function buildPayShPolicyPlan(input: PayShPolicyPlanInput): PayShPolicyPl
   if (!gates.find((gate) => gate.id === "tool_allowed")?.passed) blockReasons.push("tool_not_allowed_for_live_payment");
   if (!gates.find((gate) => gate.id === "endpoint_present")?.passed) blockReasons.push("endpoint_missing");
   if (!gates.find((gate) => gate.id === "endpoint_allowlisted")?.passed) blockReasons.push("endpoint_not_allowlisted");
+  if (!gates.find((gate) => gate.id === "environment_supported")?.passed) blockReasons.push("devnet_support_unknown");
   if (!gates.find((gate) => gate.id === "user_approval")?.passed) blockReasons.push("user_approval_missing");
   if (!gates.find((gate) => gate.id === "spend_cap_present")?.passed) blockReasons.push("spend_cap_missing");
   if (!gates.find((gate) => gate.id === "estimated_cost_within_cap")?.passed) blockReasons.push("estimated_cost_exceeds_spend_cap");
@@ -172,6 +203,14 @@ export function buildPayShPolicyPlan(input: PayShPolicyPlanInput): PayShPolicyPl
       endpointUrl,
       estimatedUsd,
       spendCapUsd,
+    },
+    environment: {
+      requested: requestedEnvironment,
+      executionNetwork,
+      livePaymentExperiment: requestedEnvironment === "mainnet",
+      sandboxAvailable: candidateEnv?.sandbox.supported === true,
+      devnetSupport: candidateEnv?.devnet.support ?? "unknown",
+      mainnetGated: true,
     },
     policy: {
       source: "pay-sh",

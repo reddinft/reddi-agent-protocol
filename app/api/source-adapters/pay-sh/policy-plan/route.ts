@@ -27,6 +27,7 @@ export async function POST(req: Request) {
   const plan = buildPayShPolicyPlan({
     candidateId: body.candidateId,
     task: body.task,
+    environment: body.environment,
     endpointUrl: body.endpointUrl,
     toolName: body.toolName,
     estimatedUsd: body.estimatedUsd,

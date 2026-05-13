@@ -24,6 +24,7 @@ describe("Pay.sh policy-plan route", () => {
         body: JSON.stringify({
           candidateId: "pay-sh:agentmail:email",
           task: "Send email",
+          environment: "sandbox",
           endpointUrl: "https://agentmail.to/api/send",
           allowlistedEndpoints: ["https://agentmail.to/api/"],
           estimatedUsd: 0.05,
@@ -39,6 +40,7 @@ describe("Pay.sh policy-plan route", () => {
       expect.objectContaining({
         candidateId: "pay-sh:agentmail:email",
         task: "Send email",
+        environment: "sandbox",
         endpointUrl: "https://agentmail.to/api/send",
         allowlistedEndpoints: ["https://agentmail.to/api/"],
       })

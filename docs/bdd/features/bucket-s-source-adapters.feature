@@ -116,3 +116,10 @@ Feature: Bucket S Source Adapter Onboarding
     Then Reddi requires explicit user approval endpoint allowlisting tiny spend cap receipt capture and attestation
     And live payment remains disabled in the policy plan
     And non-curl MCP tools are blocked from future paid invocation
+
+  @S5.11 @conformance @pay-sh @environment-capabilities
+  Scenario: Pay.sh environment capabilities separate sandbox devnet and mainnet
+    When a Pay.sh catalog provider is converted into a RAP candidate
+    Then sandbox localnet is represented as the primary no-real-funds pre-go-live environment
+    And devnet support is unknown unless provider metadata or payment challenge evidence declares it
+    And mainnet remains explicitly gated with live payment disabled by default

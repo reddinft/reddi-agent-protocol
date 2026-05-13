@@ -20,12 +20,40 @@ export type PayShCatalogProvider = {
   use_case?: string;
   category?: PayShProviderCategory;
   service_url?: string;
+  sandbox_service_url?: string;
   endpoint_count?: number;
   has_metering?: boolean;
   has_free_tier?: boolean;
   min_price_usd?: number;
   max_price_usd?: number;
   sha?: string;
+};
+
+export type PayShDevnetSupportState = "provider_declared" | "challenge_detected" | "unknown";
+
+export type PayShEnvironmentCapabilities = {
+  sandbox: {
+    supported: true;
+    network: "localnet";
+    defaultRpcUrl: "https://402.surfnet.dev:8899";
+    localRpcUrl: "http://localhost:8899";
+    command: "pay --sandbox curl <sandbox endpoint>";
+    funding: "surfpool_fake_sol_usdc";
+    providerSandboxServiceUrl?: string;
+    notes: string[];
+  };
+  devnet: {
+    support: PayShDevnetSupportState;
+    network: "devnet";
+    detection: "provider_metadata" | "payment_challenge" | "not_detected";
+    notes: string[];
+  };
+  mainnet: {
+    supported: true;
+    network: "mainnet";
+    livePaymentAllowed: false;
+    requirements: string[];
+  };
 };
 
 export type ReddiPayShCandidate = {
@@ -45,6 +73,7 @@ export type ReddiPayShCandidate = {
     hasFreeTier: boolean;
     hasMetering: boolean;
   };
+  environmentCapabilities: PayShEnvironmentCapabilities;
   sourceAdapter: SourceAdapterManifest;
   attestationState: "externally_listed_unattested";
   trustNotes: string[];
@@ -80,6 +109,62 @@ export function mapPayShCategoryToTaskTypes(category: PayShProviderCategory | un
 
 function stableCandidateId(fqn: string) {
   return `${PAY_SH_SOURCE_ID}:${fqn.replace(/\//g, ":").replace(/[^a-zA-Z0-9:-]+/g, "-").replace(/^[:\-]+|[:\-]+$/g, "").toLowerCase()}`;
+}
+
+function providerMentionsDevnet(provider: PayShCatalogProvider) {
+  return [provider.fqn, provider.title, provider.description, provider.use_case, provider.category, provider.service_url]
+    .filter(Boolean)
+    .some((value) => String(value).toLowerCase().includes("devnet"));
+}
+
+export function buildPayShEnvironmentCapabilities(provider: PayShCatalogProvider): PayShEnvironmentCapabilities {
+  const sandboxServiceUrl = provider.sandbox_service_url?.trim() || undefined;
+  const devnetDeclared = providerMentionsDevnet(provider);
+
+  return {
+    sandbox: {
+      supported: true,
+      network: "localnet",
+      defaultRpcUrl: "https://402.surfnet.dev:8899",
+      localRpcUrl: "http://localhost:8899",
+      command: "pay --sandbox curl <sandbox endpoint>",
+      funding: "surfpool_fake_sol_usdc",
+      providerSandboxServiceUrl: sandboxServiceUrl,
+      notes: [
+        sandboxServiceUrl
+          ? "Provider metadata includes a sandbox_service_url; use it for no-real-funds pre-go-live tests."
+          : "No provider sandbox_service_url is declared; use Pay.sh debugger/demo flows or RAP mocks for provider payloads.",
+        "Sandbox maps to Pay.sh localnet/Surfpool, not Solana devnet.",
+        "Sandbox tests must not create mainnet wallets, top up funds, or invoke real paid provider calls.",
+      ],
+    },
+    devnet: {
+      support: devnetDeclared ? "provider_declared" : "unknown",
+      network: "devnet",
+      detection: devnetDeclared ? "provider_metadata" : "not_detected",
+      notes: devnetDeclared
+        ? [
+            "Provider metadata mentions devnet; verify the actual x402/MPP challenge before treating devnet as supported.",
+            "Devnet support is provider/challenge-dependent and is not implied for all Pay.sh providers.",
+          ]
+        : [
+            "No devnet support detected in provider metadata.",
+            "Only enable devnet if a provider declares it or a payment challenge identifies Solana devnet.",
+          ],
+    },
+    mainnet: {
+      supported: true,
+      network: "mainnet",
+      livePaymentAllowed: false,
+      requirements: [
+        "explicit_user_approval_per_experiment",
+        "endpoint_allowlist",
+        "tiny_spend_cap",
+        "receipt_capture",
+        "rap_attestation_before_trust_credit",
+      ],
+    },
+  };
 }
 
 export function buildPayShSourceManifest(input: {
@@ -130,6 +215,7 @@ export function payShCatalogProviderToCandidate(provider: PayShCatalogProvider):
       hasFreeTier: provider.has_free_tier === true || minUsd === 0,
       hasMetering: provider.has_metering === true,
     },
+    environmentCapabilities: buildPayShEnvironmentCapabilities(provider),
     sourceAdapter: buildPayShSourceManifest({
       role: "specialist",
       runtime: "http",

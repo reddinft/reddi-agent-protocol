@@ -1,5 +1,24 @@
 # Reddi Agent Protocol — Status
 
+## Latest Update — Pay.sh environment capability metadata implemented (2026-05-13 AEST)
+
+Implemented Issue #326 on branch `feature/pay-sh-environment-capabilities`. Scope remains dry-run/metadata only: no `pay setup`, no `pay topup`, no wallet creation, no `pay mcp`, no paid Pay.sh call, no provider invocation, and no secrets stored.
+
+Delivered:
+- Pay.sh candidate `environmentCapabilities` separating Solana rail from `sandbox/localnet`, `devnet`, and `mainnet` states
+- `sandbox_service_url` preservation in Pay.sh catalog provider typing and candidate mapping
+- Devnet support state: `provider_declared | challenge_detected | unknown`; current mapping only declares devnet from provider metadata
+- Policy-plan `environment` input/output with sandbox default, devnet unknown blocking, and explicit mainnet gating while `livePaymentAllowed=false`
+- BDD scenario S5.11 for Pay.sh environment capabilities
+
+Validation:
+- `npm run test:bdd:index` PASS
+- `npm run check:rap:naming` PASS
+- Focused Pay.sh Jest PASS: 19/19
+- `./scripts/run-source-conformance.sh --source pay-sh --mode smoke` PASS including build; artifact `artifacts/source-conformance/20260513-141024-pay-sh-smoke/SUMMARY.md`
+
+RESUME FROM HERE: Open PR for Issue #326, review/merge if CI stays green, then next slice can add endpoint-to-environment URL matching or a sandbox UI demo.
+
 ## Latest Update — Pay.sh sandbox/devnet research drafted (2026-05-13 AEST)
 
 Researched whether Pay.sh supports no-real-funds environments for Reddi Agent Protocol pre-go-live work. Drafted `docs/PAY-SH-DEVNET-SANDBOX-RESEARCH-2026-05-13.md`.
