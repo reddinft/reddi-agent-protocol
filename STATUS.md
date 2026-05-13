@@ -2,7 +2,7 @@
 
 ## Latest Update — Pay.sh endpoint/environment compatibility gate implemented (2026-05-13 AEST)
 
-Implemented Issue #329 on branch `feature/pay-sh-endpoint-environment-gate`. Scope remains dry-run/policy only: no `pay setup`, no `pay topup`, no wallet creation, no `pay mcp`, no paid Pay.sh call, no provider invocation, and no secrets stored.
+Merged PR #330 for Issue #329. Scope remains dry-run/policy only: no `pay setup`, no `pay topup`, no wallet creation, no `pay mcp`, no paid Pay.sh call, no provider invocation, and no secrets stored.
 
 Delivered:
 - Pay.sh policy-plan `endpointCompatibility` output
@@ -19,7 +19,7 @@ Validation:
 - Focused Pay.sh Jest PASS: 21/21
 - `./scripts/run-source-conformance.sh --source pay-sh --mode smoke` PASS including build; artifact `artifacts/source-conformance/20260513-151809-pay-sh-smoke/SUMMARY.md`
 
-RESUME FROM HERE: Open PR for Issue #329, review/merge if CI stays green, then next slice can add a sandbox UI/CLI demo that composes catalog → quote-preview → policy-plan without executing Pay.sh.
+RESUME FROM HERE: Next slice can add a sandbox UI/CLI demo that composes catalog → quote-preview → policy-plan without executing Pay.sh.
 
 ## Latest Update — Pay.sh environment capability metadata implemented (2026-05-13 AEST)
 
