@@ -2,7 +2,7 @@
 
 ## Latest Update — Pay.sh environment capability metadata implemented (2026-05-13 AEST)
 
-Implemented Issue #326 on branch `feature/pay-sh-environment-capabilities`. Scope remains dry-run/metadata only: no `pay setup`, no `pay topup`, no wallet creation, no `pay mcp`, no paid Pay.sh call, no provider invocation, and no secrets stored.
+Merged PR #327 for Issue #326. Scope remains dry-run/metadata only: no `pay setup`, no `pay topup`, no wallet creation, no `pay mcp`, no paid Pay.sh call, no provider invocation, and no secrets stored.
 
 Delivered:
 - Pay.sh candidate `environmentCapabilities` separating Solana rail from `sandbox/localnet`, `devnet`, and `mainnet` states
@@ -17,7 +17,7 @@ Validation:
 - Focused Pay.sh Jest PASS: 19/19
 - `./scripts/run-source-conformance.sh --source pay-sh --mode smoke` PASS including build; artifact `artifacts/source-conformance/20260513-141024-pay-sh-smoke/SUMMARY.md`
 
-RESUME FROM HERE: Open PR for Issue #326, review/merge if CI stays green, then next slice can add endpoint-to-environment URL matching or a sandbox UI demo.
+RESUME FROM HERE: Next slice can add endpoint-to-environment URL matching or a sandbox UI demo; keep Pay.sh execution disabled unless explicitly approved.
 
 ## Latest Update — Pay.sh sandbox/devnet research drafted (2026-05-13 AEST)
 
