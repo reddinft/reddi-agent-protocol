@@ -17,6 +17,7 @@ describe("Pay.sh dry-run paid-call policy plan", () => {
             candidate: {
               candidateId: "pay-sh:agentmail:email",
               providerName: "AgentMail",
+              serviceUrl: "https://agentmail.to",
               pricing: { currency: "USDC", network: "solana", minUsd: 0.01, maxUsd: 0.25 },
               environmentCapabilities: {
                 sandbox: { supported: true, network: "localnet" },
@@ -52,6 +53,10 @@ describe("Pay.sh dry-run paid-call policy plan", () => {
       sandboxAvailable: true,
       devnetSupport: "unknown",
       mainnetGated: true,
+    });
+    expect(plan.endpointCompatibility).toMatchObject({
+      compatible: true,
+      rule: "sandbox_allowlist_only",
     });
     expect(plan.policy.eligibleForFutureLivePayment).toBe(true);
     expect(plan.blockReasons).toEqual([]);
@@ -149,6 +154,7 @@ describe("Pay.sh dry-run paid-call policy plan", () => {
       candidate: {
         candidateId: "pay-sh:quicknode:rpc",
         providerName: "QuickNode",
+        serviceUrl: "https://x402.quicknode.com",
         pricing: { currency: "USDC", network: "solana", minUsd: 0.001, maxUsd: 0.001 },
         environmentCapabilities: {
           sandbox: { supported: true, network: "localnet" },
@@ -171,6 +177,10 @@ describe("Pay.sh dry-run paid-call policy plan", () => {
     });
 
     expect(plan.environment.devnetSupport).toBe("provider_declared");
+    expect(plan.endpointCompatibility).toMatchObject({
+      compatible: true,
+      rule: "devnet_declared_endpoint",
+    });
     expect(plan.blockReasons).not.toContain("devnet_support_unknown");
     expect(plan.policy.livePaymentAllowed).toBe(false);
   });
@@ -198,6 +208,72 @@ describe("Pay.sh dry-run paid-call policy plan", () => {
     });
     expect(plan.blockReasons).toEqual([]);
     expect(plan.policy.eligibleForFutureLivePayment).toBe(true);
+    expect(plan.policy.livePaymentAllowed).toBe(false);
+  });
+
+  it("blocks sandbox endpoints that do not match declared sandbox_service_url", async () => {
+    const { buildPayShQuotePreview } = await import("@/lib/integrations/source-adapter/pay-sh-quote-preview");
+    (buildPayShQuotePreview as jest.Mock).mockReturnValue({
+      ok: true,
+      candidate: {
+        candidateId: "pay-sh:example:provider",
+        providerName: "Example Provider",
+        serviceUrl: "https://api.example.com",
+        pricing: { currency: "USDC", network: "solana", minUsd: 0.01, maxUsd: 0.01 },
+        environmentCapabilities: {
+          sandbox: {
+            supported: true,
+            network: "localnet",
+            providerSandboxServiceUrl: "https://sandbox.example.com",
+          },
+          devnet: { support: "unknown", network: "devnet" },
+          mainnet: { supported: true, network: "mainnet", livePaymentAllowed: false },
+        },
+      },
+    });
+    const { buildPayShPolicyPlan } = await import("@/lib/integrations/source-adapter/pay-sh-policy-plan");
+
+    const plan = buildPayShPolicyPlan({
+      candidateId: "pay-sh:example:provider",
+      task: "Plan sandbox call",
+      environment: "sandbox",
+      endpointUrl: "https://api.example.com/v1/search",
+      allowlistedEndpoints: ["https://api.example.com/"],
+      estimatedUsd: 0.01,
+      spendCapUsd: 0.1,
+      userApprovedLivePayment: true,
+    });
+
+    expect(plan.endpointCompatibility).toMatchObject({
+      compatible: false,
+      rule: "sandbox_service_url",
+      expectedBaseUrl: "https://sandbox.example.com",
+    });
+    expect(plan.blockReasons).toContain("endpoint_environment_mismatch");
+    expect(plan.policy.livePaymentAllowed).toBe(false);
+  });
+
+  it("requires mainnet/future-live endpoints to match candidate serviceUrl", async () => {
+    await mockCandidate(true);
+    const { buildPayShPolicyPlan } = await import("@/lib/integrations/source-adapter/pay-sh-policy-plan");
+
+    const plan = buildPayShPolicyPlan({
+      candidateId: "pay-sh:agentmail:email",
+      task: "Plan wrong host mainnet call",
+      environment: "mainnet",
+      endpointUrl: "https://evil.example/api/send",
+      allowlistedEndpoints: ["https://evil.example/"],
+      estimatedUsd: 0.01,
+      spendCapUsd: 0.1,
+      userApprovedLivePayment: true,
+    });
+
+    expect(plan.endpointCompatibility).toMatchObject({
+      compatible: false,
+      rule: "mainnet_service_url",
+      expectedBaseUrl: "https://agentmail.to",
+    });
+    expect(plan.blockReasons).toContain("endpoint_environment_mismatch");
     expect(plan.policy.livePaymentAllowed).toBe(false);
   });
 });

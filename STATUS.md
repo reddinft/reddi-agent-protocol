@@ -1,5 +1,26 @@
 # Reddi Agent Protocol — Status
 
+## Latest Update — Pay.sh endpoint/environment compatibility gate implemented (2026-05-13 AEST)
+
+Implemented Issue #329 on branch `feature/pay-sh-endpoint-environment-gate`. Scope remains dry-run/policy only: no `pay setup`, no `pay topup`, no wallet creation, no `pay mcp`, no paid Pay.sh call, no provider invocation, and no secrets stored.
+
+Delivered:
+- Pay.sh policy-plan `endpointCompatibility` output
+- New block reason `endpoint_environment_mismatch`
+- Sandbox plans prefer provider `sandbox_service_url` when present and block mismatches
+- Sandbox plans without provider sandbox URL remain allowlist-only for debugger/demo/mock planning
+- Devnet plans require devnet-like endpoints in addition to declared/detected devnet support
+- Mainnet/future-live plans require endpoint compatibility with candidate `serviceUrl` plus existing allowlist gates
+- BDD scenario S5.12 for endpoint/environment mismatch rejection
+
+Validation:
+- `npm run test:bdd:index` PASS
+- `npm run check:rap:naming` PASS
+- Focused Pay.sh Jest PASS: 21/21
+- `./scripts/run-source-conformance.sh --source pay-sh --mode smoke` PASS including build; artifact `artifacts/source-conformance/20260513-151809-pay-sh-smoke/SUMMARY.md`
+
+RESUME FROM HERE: Open PR for Issue #329, review/merge if CI stays green, then next slice can add a sandbox UI/CLI demo that composes catalog → quote-preview → policy-plan without executing Pay.sh.
+
 ## Latest Update — Pay.sh environment capability metadata implemented (2026-05-13 AEST)
 
 Merged PR #327 for Issue #326. Scope remains dry-run/metadata only: no `pay setup`, no `pay topup`, no wallet creation, no `pay mcp`, no paid Pay.sh call, no provider invocation, and no secrets stored.

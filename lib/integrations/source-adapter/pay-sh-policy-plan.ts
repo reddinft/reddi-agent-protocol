@@ -19,6 +19,7 @@ export type PayShPolicyBlockReason =
   | "tool_not_allowed_for_live_payment"
   | "endpoint_missing"
   | "endpoint_not_allowlisted"
+  | "endpoint_environment_mismatch"
   | "devnet_support_unknown"
   | "user_approval_missing"
   | "spend_cap_missing"
@@ -45,6 +46,12 @@ export type PayShPolicyPlan = {
     sandboxAvailable: boolean;
     devnetSupport: "provider_declared" | "challenge_detected" | "unknown";
     mainnetGated: true;
+  };
+  endpointCompatibility: {
+    compatible: boolean;
+    rule: "sandbox_service_url" | "sandbox_allowlist_only" | "devnet_declared_endpoint" | "mainnet_service_url" | "candidate_missing" | "endpoint_missing";
+    expectedBaseUrl: string | null;
+    detail: string;
   };
   policy: {
     source: "pay-sh";
@@ -88,6 +95,82 @@ function endpointIsAllowlisted(endpointUrl: string | undefined, allowlistedEndpo
   return allowlistedEndpoints.some((allowed) => normalizedEndpoint.startsWith(normalizeUrl(allowed)));
 }
 
+function endpointStartsWithBase(endpointUrl: string | null, baseUrl: string | undefined) {
+  if (!endpointUrl || !baseUrl) return false;
+  return normalizeUrl(endpointUrl).startsWith(normalizeUrl(baseUrl));
+}
+
+function endpointLooksDevnet(endpointUrl: string | null) {
+  return endpointUrl !== null && /devnet/i.test(endpointUrl);
+}
+
+function buildEndpointCompatibility(input: {
+  endpointUrl: string | null;
+  requestedEnvironment: "sandbox" | "devnet" | "mainnet";
+  candidate: ReturnType<typeof buildPayShQuotePreview>["candidate"];
+}): PayShPolicyPlan["endpointCompatibility"] {
+  const { endpointUrl, requestedEnvironment, candidate } = input;
+  if (!candidate) {
+    return {
+      compatible: false,
+      rule: "candidate_missing",
+      expectedBaseUrl: null,
+      detail: "Cannot evaluate endpoint/environment compatibility until Pay.sh candidate metadata is found.",
+    };
+  }
+  if (!endpointUrl) {
+    return {
+      compatible: false,
+      rule: "endpoint_missing",
+      expectedBaseUrl: null,
+      detail: "Cannot evaluate endpoint/environment compatibility until endpointUrl is supplied.",
+    };
+  }
+
+  const sandboxServiceUrl = candidate.environmentCapabilities.sandbox.providerSandboxServiceUrl;
+  if (requestedEnvironment === "sandbox") {
+    if (!sandboxServiceUrl) {
+      return {
+        compatible: true,
+        rule: "sandbox_allowlist_only",
+        expectedBaseUrl: null,
+        detail: "No provider sandbox_service_url is declared; sandbox planning relies on explicit endpoint allowlisting/debugger/demo URLs only.",
+      };
+    }
+    const compatible = endpointStartsWithBase(endpointUrl, sandboxServiceUrl);
+    return {
+      compatible,
+      rule: "sandbox_service_url",
+      expectedBaseUrl: sandboxServiceUrl,
+      detail: compatible
+        ? "Sandbox endpoint matches the provider sandbox_service_url."
+        : "Sandbox endpoint must match the provider sandbox_service_url when one is declared.",
+    };
+  }
+
+  if (requestedEnvironment === "devnet") {
+    const compatible = endpointLooksDevnet(endpointUrl);
+    return {
+      compatible,
+      rule: "devnet_declared_endpoint",
+      expectedBaseUrl: null,
+      detail: compatible
+        ? "Devnet endpoint appears environment-specific; provider/challenge devnet support is still required."
+        : "Devnet plans must use an explicitly devnet-like endpoint until challenge-level network evidence is captured.",
+    };
+  }
+
+  const compatible = endpointStartsWithBase(endpointUrl, candidate.serviceUrl);
+  return {
+    compatible,
+    rule: "mainnet_service_url",
+    expectedBaseUrl: candidate.serviceUrl ?? null,
+    detail: compatible
+      ? "Mainnet endpoint matches the candidate serviceUrl."
+      : "Mainnet/future-live endpoint must match the candidate serviceUrl in addition to the explicit allowlist.",
+  };
+}
+
 export function buildPayShPolicyPlan(input: PayShPolicyPlanInput): PayShPolicyPlan {
   const quote = buildPayShQuotePreview({ candidateId: input.candidateId, task: input.task });
   const requestedEnvironment = input.environment ?? "sandbox";
@@ -99,6 +182,11 @@ export function buildPayShPolicyPlan(input: PayShPolicyPlanInput): PayShPolicyPl
   const spendCapUsd = typeof input.spendCapUsd === "number" ? Math.max(0, input.spendCapUsd) : null;
   const receiptCaptureRequired = input.requireReceiptCapture !== false;
   const attestationRequired = input.requireAttestation !== false;
+  const endpointCompatibility = buildEndpointCompatibility({
+    endpointUrl,
+    requestedEnvironment,
+    candidate: quote.candidate,
+  });
 
   const gates = [
     {
@@ -128,6 +216,12 @@ export function buildPayShPolicyPlan(input: PayShPolicyPlanInput): PayShPolicyPl
       detail: endpointUrl
         ? "Endpoint must match an explicit allowlist entry before future live payment."
         : "Cannot evaluate allowlist until endpoint is supplied.",
+    },
+    {
+      id: "endpoint_environment_compatible",
+      passed: endpointCompatibility.compatible,
+      required: true,
+      detail: endpointCompatibility.detail,
     },
     {
       id: "environment_supported",
@@ -183,6 +277,7 @@ export function buildPayShPolicyPlan(input: PayShPolicyPlanInput): PayShPolicyPl
   if (!gates.find((gate) => gate.id === "tool_allowed")?.passed) blockReasons.push("tool_not_allowed_for_live_payment");
   if (!gates.find((gate) => gate.id === "endpoint_present")?.passed) blockReasons.push("endpoint_missing");
   if (!gates.find((gate) => gate.id === "endpoint_allowlisted")?.passed) blockReasons.push("endpoint_not_allowlisted");
+  if (!gates.find((gate) => gate.id === "endpoint_environment_compatible")?.passed) blockReasons.push("endpoint_environment_mismatch");
   if (!gates.find((gate) => gate.id === "environment_supported")?.passed) blockReasons.push("devnet_support_unknown");
   if (!gates.find((gate) => gate.id === "user_approval")?.passed) blockReasons.push("user_approval_missing");
   if (!gates.find((gate) => gate.id === "spend_cap_present")?.passed) blockReasons.push("spend_cap_missing");
@@ -212,6 +307,7 @@ export function buildPayShPolicyPlan(input: PayShPolicyPlanInput): PayShPolicyPl
       devnetSupport: candidateEnv?.devnet.support ?? "unknown",
       mainnetGated: true,
     },
+    endpointCompatibility,
     policy: {
       source: "pay-sh",
       network: "solana",
